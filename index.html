@@ -1371,10 +1371,10 @@ function motorGuardar(draft){
   if(!draft)goTo('honorarios');
 }
 function editarHon(id){
-  var hon=HON_DATA.find(function(h){return h.id===id;});if(!hon)return;
+  var hon=HON_DATA.find(function(h){return h.id==id;});if(!hon)return;
   // Revertir a borrador al editar (para que se pueda volver a guardar)
-  if(hon.estado!=='borrador'){
-    hon.estado='borrador';
+  if(hon.estado!=='Borrador'){
+    hon.estado='Borrador';
     guardarTodo();
     renderHon(HON_DATA);
     toast('✏ Editando — estado revertido a Borrador');
