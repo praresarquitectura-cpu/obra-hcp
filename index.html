@@ -3266,7 +3266,7 @@ async function loadCodigosAdmin(){
       +'<th>Código</th><th>Plan</th><th>Días</th><th>Usos</th><th>Límite</th><th>Activo</th><th>Compartir</th>'
       +'</tr></thead><tbody>'
       +codigos.map(function(c){
-        var url='https://'+window.location.host+'?invite='+c.code;
+        var base=window.location.origin+(window.location.pathname.replace(/\/[^\/]*$/,'')||window.location.pathname.replace(/\/$/,''));var url=base+'?invite='+c.code;
         var waMsg=encodeURIComponent(
           '¡Hola! Te invito a probar OBRAERP, el motor de honorarios profesionales para arquitectos y constructores de TDF.\n\n'
           +'🔗 '+url+'\n\n'
