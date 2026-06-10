@@ -1559,6 +1559,9 @@ function generarPDF(id){
   if(!EMPRESA.qr)   EMPRESA.qr   = localStorage.getItem('obraerp_qr')||'';
   const h=HON_DATA.find(x=>x.id===id);if(!h)return;
   const emp=Object.assign({},EMPRESA,h.empresa||{});
+  // Restaurar logo/QR — el presupuesto guardado los tiene nulos para ahorrar espacio
+  if(!emp.logo) emp.logo = EMPRESA.logo || localStorage.getItem('obraerp_logo') || '';
+  if(!emp.qr)   emp.qr   = EMPRESA.qr   || localStorage.getItem('obraerp_qr')   || '';
   const N=n=>Math.round(n).toLocaleString('es-AR');
   const tipo={nueva:'Obra nueva',amp:'Ampliación',ref:'Refacción',mod:'Modificación en ejec.',
     conf:'Conforme a obra',emp:'Empadronamiento',empref:'Empadron. de refacciones',
