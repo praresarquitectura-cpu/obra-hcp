@@ -1440,7 +1440,7 @@ function renderHon(data){
       +'<td style="cursor:pointer;color:var(--bt);font-weight:700" onclick="openHonDetail('+h.id+')">USD '+h.usd.toLocaleString()+'</td>'
       +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')"><span class="bdg '+(ST[h.estado]||'b-dr')+'">'+h.estado+'</span></td>'
       +'<td><div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap">'
-      +'<button class="btn btn-sm btn-edit" title="Editar" data-hid="'+h.id+'" onclick="editarHon(+this.dataset.hid)">✏ Editar</button>'
+      +'<button class="btn btn-sm btn-edit" title="Editar" data-hid="'+h.id+'" onclick="editarHon(+this.dataset.hid)">✏ Editar</button>'+(h.estado==='Borrador'?'<button class="btn btn-sm" style="color:var(--gt);border-color:rgba(74,222,128,.3)" data-hid="'+h.id+'" onclick="guardarDesdeListado(+this.dataset.hid)" title="Guardar cambios">💾 Guardar</button>':'')
       +'<button class="btn btn-sm" title="PDF" onclick="generarPDF('+h.id+')">PDF</button>'
       +'<button class="btn btn-sm btn-arch" title="Archivar" onclick="cambiarEstado('+h.id+',\'Archivado\')">📦</button>'
       +'<button class="btn btn-sm btn-del" title="Eliminar" onclick="eliminarHon('+h.id+')">🗑</button>'
@@ -1453,7 +1453,11 @@ function filtHonSt(v){renderHon(v?HON_DATA.filter(function(h){return h.estado===
 function cambiarEstado(id,estado){var h=HON_DATA.find(function(x){return x.id===id;});if(!h)return;h.estado=estado;renderHon(HON_DATA);updateDashboard();guardarTodo();toast(honCode(h)+' \u2192 '+estadoAbr(estado));}
 function eliminarHon(id){
   id=isNaN(id)?id:Number(id);
-  var h=HON_DATA.find(function(x){return x.id==id;});if(!h)return;
+  var h=HON_DATA.find(function(x){return x.id==id;});
+  // Eliminar de Firebase también
+  if(_db&&_uid&&h){
+    _db.collection('users').doc(_uid).collection('honorarios').doc(String(id)).delete().catch(function(){});
+  }if(!h)return;
   if(!confirm('\u00bfEliminar '+h.code+'?\nEsta acci\u00f3n no se puede deshacer.'))return;
   HON_DATA=HON_DATA.filter(function(x){return x.id!==id;});renderHon(HON_DATA);updateDashboard();guardarTodo();toast(h.code+' eliminado');
 }
@@ -2133,8 +2137,9 @@ function abrirFacturar(honId,pagoId){
 
   // Construir texto de factura listo para ARCA
   var fecha=new Date().toLocaleDateString('es-AR');
-  var tipoComp=emp.tipoComp||'C';
-  var ptoVenta=String(emp.ptoVenta||'0001').padStart(4,'0');
+  // Siempre usar config actual de EMPRESA para ARCA (no la del presupuesto guardado)
+  var tipoComp=EMPRESA.tipoComp||emp.tipoComp||'C';
+  var ptoVenta=String(EMPRESA.ptoVenta||emp.ptoVenta||'0001').padStart(4,'0');
   var tipoNm={'C':'Factura Tipo C','B':'Factura Tipo B','A':'Factura Tipo A','M':'Factura Tipo M'};
 
   var lineas=[
@@ -3366,6 +3371,97 @@ function estadoAbr(estado){
 }
 function honCode(hon){
   return hon.code+'-'+estadoAbr(hon.estado);
+}
+
+/* ── DETALLE DE CLIENTE ──────────────────────────────────────────── */
+function abrirDetalleCliente(cliId){
+  var cli = CLIENTES.find(function(c){return c.id==cliId;});
+  if(!cli) return;
+  
+  // Get all honorarios for this client
+  var hons = HON_DATA.filter(function(h){return h.cliId==cliId||h.cliente===(cli.nombre||'');});
+  
+  // Group by obra (catastral address)
+  var obras = {};
+  hons.forEach(function(h){
+    var key = (h.catDom||h.catSec+'-'+h.catMzo+'-'+h.catParc||'Sin dirección');
+    if(!obras[key]) obras[key]={nom:key,catastral:(h.catSec?'Sec.'+h.catSec+' Mza.'+h.catMzo+' Parc.'+h.catParc:'—'),hons:[]};
+    obras[key].hons.push(h);
+  });
+  
+  var m = document.getElementById('mod-cli-det');
+  if(!m){
+    m=document.createElement('div');m.id='mod-cli-det';m.className='mb';
+    m.onclick=function(e){if(e.target===m)m.classList.remove('open');};
+    var inner=document.createElement('div');inner.className='modal';inner.style.cssText='max-width:780px;max-height:85vh;overflow-y:auto';
+    m.appendChild(inner);document.body.appendChild(m);
+  }
+  
+  var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
+    +'<div><div class="mt2">'+cli.nombre+'</div>'
+    +'<div style="font-size:11px;color:var(--tx3)">'+(cli.email||'')+(cli.tel?' · '+cli.tel:'')+'</div></div>'
+    +'<button class="btn btn-sm" onclick="closeM(\'mod-cli-det\')">✕</button></div>';
+  
+  if(!Object.keys(obras).length){
+    html+='<div style="text-align:center;padding:30px;color:var(--tx3)">Sin presupuestos asociados</div>';
+  } else {
+    Object.values(obras).forEach(function(obra){
+      var totalUSD=obra.hons.reduce(function(a,h){return a+(h.usd||0);},0);
+      html+='<div class="card" style="margin-bottom:14px">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">'
+        +'<div><div style="font-size:13px;font-weight:700;color:var(--tx)">📍 '+obra.nom+'</div>'
+        +'<div style="font-size:10px;color:var(--tx3)">Nomenclatura: '+obra.catastral+'</div></div>'
+        +'<div style="text-align:right"><div style="font-size:14px;font-weight:700;color:var(--bt)">USD '+Math.round(totalUSD).toLocaleString()+'</div>'
+        +'<div style="font-size:9px;color:var(--tx3)">'+obra.hons.length+' presupuesto'+(obra.hons.length>1?'s':'')+'</div></div></div>';
+      
+      // List honorarios
+      obra.hons.forEach(function(hon){
+        var estadoColor={'Borrador':'var(--tx3)','Enviado':'var(--bt)','Aprobado':'var(--gt)','Entregado':'var(--gt)','Rechazado':'var(--rt)','Facturado':'var(--golt)','Archivado':'var(--tx3)'}[hon.estado]||'var(--tx3)';
+        html+='<div style="background:var(--bg3);border:1px solid var(--br);border-radius:6px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px">'
+          +'<div style="flex:1">'
+          +'<div style="font-size:12px;font-weight:700;color:var(--tx)">'+honCode(hon)+'</div>'
+          +'<div style="font-size:10px;color:var(--tx3)">'+hon.roles+'</div>'
+          +'</div>'
+          +'<div style="text-align:right">'
+          +'<div style="font-size:13px;font-weight:700;color:var(--bt)">USD '+(hon.usd||0).toLocaleString()+'</div>'
+          +'<div style="font-size:10px;color:'+estadoColor+';font-weight:700">'+hon.estado+'</div>'
+          +'</div>'
+          +'<div style="display:flex;gap:4px">'
+          +'<button class="btn btn-sm" onclick="generarPDF('+hon.id+')">PDF</button>'
+          +'<button class="btn btn-sm btn-edit" data-hid="'+hon.id+'" onclick="editarHon(+this.dataset.hid);closeM(\'mod-cli-det\')">✏</button>'
+          +'</div></div>';
+        
+        // Payments if any
+        if(hon.pagos&&hon.pagos.length){
+          html+='<div style="margin-left:12px;margin-bottom:8px">';
+          hon.pagos.forEach(function(p){
+            html+='<div style="font-size:10px;color:var(--tx2);padding:4px 0;border-bottom:1px solid var(--br2)">'
+              +'💰 '+p.concepto+' — USD '+p.usd+' — '+(p.fecha||'')
+              +(p.cae?' · <span style="color:var(--gt)">CAE: '+p.cae+'</span>':'')+'</div>';
+          });
+          html+='</div>';
+        }
+      });
+      html+='</div>';
+    });
+  }
+  
+  m.querySelector('.modal').innerHTML=html;
+  m.classList.add('open');
+}
+
+function guardarDesdeListado(id){
+  id=isNaN(id)?id:Number(id);
+  var hon=HON_DATA.find(function(h){return h.id==id;});
+  if(!hon)return;
+  guardarTodo();
+  if(_db&&_uid){
+    var honToSave=Object.assign({},hon);
+    delete honToSave.logo;delete honToSave.qr;
+    _db.collection('users').doc(_uid).collection('honorarios').doc(String(id)).set(honToSave).catch(function(){});
+  }
+  renderHon(HON_DATA);
+  toast('\u2713 '+honCode(hon)+' guardado');
 }
 
 </script>
