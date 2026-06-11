@@ -844,6 +844,9 @@ function saveEmpresa(){
   EMPRESA.nombreCompleto=g('emp-nombre-completo');EMPRESA.matricula=g('emp-matricula');
   EMPRESA.rpc=g('emp-rpc');EMPRESA.cuit=g('emp-cuit');EMPRESA.catdfMat=g('emp-catdf-mat');
   EMPRESA.cptMat=g('emp-cpt');EMPRESA.email=g('emp-email');EMPRESA.tel=g('emp-tel');EMPRESA.dir=g('emp-dir');
+  EMPRESA.ptoVenta=g('emp-pto-venta')||EMPRESA.ptoVenta||'0001';
+  EMPRESA.tipoComp=g('emp-tipo-comp')||EMPRESA.tipoComp||'C';
+  EMPRESA.condIVA=g('emp-cond-iva')||EMPRESA.condIVA||'Monotributista';
   guardarTodo();updEmpNm();loadEmpresaToForm();toast('✓ Datos del estudio guardados');
 }
 function loadEmpresaToForm(){
@@ -3375,72 +3378,80 @@ function honCode(hon){
 
 /* ── DETALLE DE CLIENTE ──────────────────────────────────────────── */
 function abrirDetalleCliente(cliId){
-  var cli = CLIENTES.find(function(c){return c.id==cliId;});
-  if(!cli) return;
+  var cli=CLIENTES.find(function(c){return c.id==cliId;});
+  if(!cli)return;
+  var hons=HON_DATA.filter(function(h){return h.cliId==cliId||h.cliente===(cli.nombre||'');});
   
-  // Get all honorarios for this client
-  var hons = HON_DATA.filter(function(h){return h.cliId==cliId||h.cliente===(cli.nombre||'');});
-  
-  // Group by obra (catastral address)
-  var obras = {};
+  // Agrupar por Nomenclatura + Tipo de encargo
+  var obras={};
   hons.forEach(function(h){
-    var key = (h.catDom||h.catSec+'-'+h.catMzo+'-'+h.catParc||'Sin dirección');
-    if(!obras[key]) obras[key]={nom:key,catastral:(h.catSec?'Sec.'+h.catSec+' Mza.'+h.catMzo+' Parc.'+h.catParc:'—'),hons:[]};
+    var nom=(h.catSec||h.catMzo||h.catParc)
+      ?'Sec. '+(h.catSec||'—')+' · Mza. '+(h.catMzo||'—')+' · Parc. '+(h.catParc||'—')+(h.catUF?' · UF '+h.catUF:'')
+      :'Sin nomenclatura catastral';
+    var tipoLabel={'nueva':'Obra nueva','amp':'Ampliación','ref':'Refacción','mod':'Modificación','conf':'Conforme a obra','emp':'Empadronamiento','empref':'Empadron. de refacciones','calc':'Cálculo estructural','inf':'Informe técnico'}[h.tipo]||(h.tipo||'Sin tipo');
+    var key=nom+'|||'+tipoLabel;
+    if(!obras[key])obras[key]={nom:nom,tipo:tipoLabel,dom:h.catDom||'',hons:[]};
     obras[key].hons.push(h);
   });
-  
-  var m = document.getElementById('mod-cli-det');
-  if(!m){
-    m=document.createElement('div');m.id='mod-cli-det';m.className='mb';
-    m.onclick=function(e){if(e.target===m)m.classList.remove('open');};
-    var inner=document.createElement('div');inner.className='modal';inner.style.cssText='max-width:780px;max-height:85vh;overflow-y:auto';
-    m.appendChild(inner);document.body.appendChild(m);
-  }
-  
-  var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
-    +'<div><div class="mt2">'+cli.nombre+'</div>'
-    +'<div style="font-size:11px;color:var(--tx3)">'+(cli.email||'')+(cli.tel?' · '+cli.tel:'')+'</div></div>'
+
+  var m=document.getElementById('mod-cli-det');
+  if(!m){m=document.createElement('div');m.id='mod-cli-det';m.className='mb';m.onclick=function(e){if(e.target===m)m.classList.remove('open');};var inner=document.createElement('div');inner.className='modal';inner.style.cssText='max-width:800px;max-height:88vh;overflow-y:auto';m.appendChild(inner);document.body.appendChild(m);}
+
+  var html='<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px">'
+    +'<div><div style="font-size:18px;font-weight:800;color:var(--tx)">'+cli.nombre+'</div>'
+    +'<div style="font-size:11px;color:var(--tx3);margin-top:3px">'
+    +(cli.email?'📧 '+cli.email+' &nbsp;':'')+(cli.tel?'📞 '+cli.tel:'')
+    +(cli.cuit?'&nbsp; · &nbsp;CUIT/CUIL: '+cli.cuit:'')+'</div></div>'
     +'<button class="btn btn-sm" onclick="closeM(\'mod-cli-det\')">✕</button></div>';
-  
+
   if(!Object.keys(obras).length){
-    html+='<div style="text-align:center;padding:30px;color:var(--tx3)">Sin presupuestos asociados</div>';
+    html+='<div style="text-align:center;padding:40px;color:var(--tx3);font-size:13px">Sin presupuestos asociados a este cliente</div>';
   } else {
     Object.values(obras).forEach(function(obra){
       var totalUSD=obra.hons.reduce(function(a,h){return a+(h.usd||0);},0);
-      html+='<div class="card" style="margin-bottom:14px">';
-      html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">'
-        +'<div><div style="font-size:13px;font-weight:700;color:var(--tx)">📍 '+obra.nom+'</div>'
-        +'<div style="font-size:10px;color:var(--tx3)">Nomenclatura: '+obra.catastral+'</div></div>'
-        +'<div style="text-align:right"><div style="font-size:14px;font-weight:700;color:var(--bt)">USD '+Math.round(totalUSD).toLocaleString()+'</div>'
-        +'<div style="font-size:9px;color:var(--tx3)">'+obra.hons.length+' presupuesto'+(obra.hons.length>1?'s':'')+'</div></div></div>';
+      var totalPagado=obra.hons.reduce(function(a,h){return a+((h.pagos||[]).reduce(function(b,p){return b+(p.usd||0);},0));},0);
       
-      // List honorarios
+      html+='<div class="card" style="margin-bottom:16px;border-color:rgba(96,165,250,.2)">';
+      // Obra header
+      html+='<div style="background:rgba(96,165,250,.06);border-radius:6px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-start">'
+        +'<div><div style="font-size:12px;font-weight:700;color:var(--bt);margin-bottom:3px">📐 '+obra.tipo+'</div>'
+        +'<div style="font-size:11px;color:var(--tx2);font-weight:600">'+obra.nom+'</div>'
+        +(obra.dom?'<div style="font-size:10px;color:var(--tx3);margin-top:2px">📍 '+obra.dom+'</div>':'')
+        +'</div>'
+        +'<div style="text-align:right;flex-shrink:0;margin-left:12px">'
+        +'<div style="font-size:14px;font-weight:800;color:var(--bt)">USD '+Math.round(totalUSD).toLocaleString()+'</div>'
+        +(totalPagado>0?'<div style="font-size:10px;color:var(--gt)">Cobrado: USD '+Math.round(totalPagado).toLocaleString()+'</div>':'')
+        +'<div style="font-size:9px;color:var(--tx3)">'+obra.hons.length+' presupuesto'+(obra.hons.length>1?'s':'')+'</div>'
+        +'</div></div>';
+      
       obra.hons.forEach(function(hon){
-        var estadoColor={'Borrador':'var(--tx3)','Enviado':'var(--bt)','Aprobado':'var(--gt)','Entregado':'var(--gt)','Rechazado':'var(--rt)','Facturado':'var(--golt)','Archivado':'var(--tx3)'}[hon.estado]||'var(--tx3)';
-        html+='<div style="background:var(--bg3);border:1px solid var(--br);border-radius:6px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px">'
-          +'<div style="flex:1">'
+        var estadoColors={'Borrador':'var(--tx3)','Enviado':'var(--bt)','Aprobado':'var(--gt)','Entregado':'var(--gt)','Rechazado':'var(--rt)','Facturado':'var(--golt)','Archivado':'var(--tx3)'};
+        var eColor=estadoColors[hon.estado]||'var(--tx3)';
+        html+='<div style="background:var(--bg3);border:1px solid var(--br);border-radius:6px;padding:10px 12px;margin-bottom:8px">'
+          +'<div style="display:flex;align-items:center;gap:10px;justify-content:space-between">'
+          +'<div style="flex:1;min-width:0">'
           +'<div style="font-size:12px;font-weight:700;color:var(--tx)">'+honCode(hon)+'</div>'
-          +'<div style="font-size:10px;color:var(--tx3)">'+hon.roles+'</div>'
+          +'<div style="font-size:10px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+hon.roles+'</div>'
           +'</div>'
-          +'<div style="text-align:right">'
+          +'<div style="text-align:right;flex-shrink:0">'
           +'<div style="font-size:13px;font-weight:700;color:var(--bt)">USD '+(hon.usd||0).toLocaleString()+'</div>'
-          +'<div style="font-size:10px;color:'+estadoColor+';font-weight:700">'+hon.estado+'</div>'
+          +'<div style="font-size:10px;font-weight:700;color:'+eColor+'">'+hon.estado+'</div>'
           +'</div>'
-          +'<div style="display:flex;gap:4px">'
+          +'<div style="display:flex;gap:4px;flex-shrink:0">'
           +'<button class="btn btn-sm" onclick="generarPDF('+hon.id+')">PDF</button>'
           +'<button class="btn btn-sm btn-edit" data-hid="'+hon.id+'" onclick="editarHon(+this.dataset.hid);closeM(\'mod-cli-det\')">✏</button>'
           +'</div></div>';
         
-        // Payments if any
+        // Pagos
         if(hon.pagos&&hon.pagos.length){
-          html+='<div style="margin-left:12px;margin-bottom:8px">';
           hon.pagos.forEach(function(p){
-            html+='<div style="font-size:10px;color:var(--tx2);padding:4px 0;border-bottom:1px solid var(--br2)">'
-              +'💰 '+p.concepto+' — USD '+p.usd+' — '+(p.fecha||'')
-              +(p.cae?' · <span style="color:var(--gt)">CAE: '+p.cae+'</span>':'')+'</div>';
+            html+='<div style="font-size:10px;color:var(--tx2);padding:5px 0 0 4px;border-top:1px solid var(--br2);margin-top:5px">'
+              +'💰 <b>'+p.concepto+'</b> — USD '+p.usd+' (ARS $'+Math.round((p.usd||0)*(hon.tc||1460)).toLocaleString()+') — '+(p.fecha||'')+' '
+              +(p.cae?'<span style="color:var(--gt);font-weight:700">· CAE: '+p.cae+'</span>':'')
+              +'<span style="color:var(--tx3);margin-left:6px">'+( p.estado==='facturado'?'✓ Facturado':'Pendiente' )+'</span></div>';
           });
-          html+='</div>';
         }
+        html+='</div>';
       });
       html+='</div>';
     });
