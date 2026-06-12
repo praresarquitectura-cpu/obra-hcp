@@ -198,6 +198,13 @@ input,select,textarea,button{font-family:var(--font)}
   .rc-head{padding:10px 12px}
 }
 
+
+.comp-tab{padding:8px 14px;border:none;background:transparent;color:var(--tx3);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.05em;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;text-transform:uppercase}
+.comp-tab:hover{color:var(--tx2)}
+.comp-tab.active{color:var(--bt);border-bottom-color:var(--bt)}
+.comp-input{width:80px;background:var(--bg3);border:1px solid var(--br);border-radius:4px;padding:4px 6px;color:var(--tx);font-size:11px;font-family:var(--font);text-align:center}
+.comp-input:focus{outline:none;border-color:var(--bt)}
+.comp-sel{background:var(--bg3);border:1px solid var(--br);border-radius:4px;padding:4px 6px;color:var(--tx);font-size:11px;font-family:var(--font)}
 </style></head><body>
 
 <!-- Firebase Auth / Setup Modal -->
@@ -3485,6 +3492,429 @@ function guardarDesdeListado(id){
   }
   renderHon(HON_DATA);
   toast('\u2713 '+honCode(hon)+' guardado');
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓDULO CÓMPUTO MÉTRICO
+   ════════════════════════════════════════════════════════════════════ */
+
+// ── TABS ─────────────────────────────────────────────────────────────
+function compTab(tab, btn){
+  ['exc','bases','est','metal','apu'].forEach(function(t){
+    var el=document.getElementById('ctab-'+t);
+    if(el)el.style.display=t===tab?'':'none';
+  });
+  document.querySelectorAll('.comp-tab').forEach(function(b){b.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  if(tab==='apu')calcAPU();
+}
+
+function compNuevo(){
+  if(!confirm('¿Limpiar todo el cómputo actual?'))return;
+  ['exc-rows','bases-rows','est-rows','metal-rows'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.innerHTML='';
+  });
+  calcExc();calcBases();calcEst();calcMetal();calcAPU();
+  toast('Cómputo limpiado');
+}
+
+// ── EXCAVACIÓN ────────────────────────────────────────────────────────
+var excRows=[];var excId=0;
+
+function excAddRow(){
+  excId++;
+  var id=excId;
+  excRows.push({id:id,desc:'Excavación '+id,tipo:'mecanica',l:1,a:1,p:1,c:1,esp:20});
+  renderExcRows();
+}
+
+function renderExcRows(){
+  var tbody=document.getElementById('exc-rows');
+  if(!tbody)return;
+  tbody.innerHTML=excRows.map(function(r){
+    return '<tr>'
+      +'<td><input class="comp-input" style="width:120px" value="'+r.desc+'" onchange="excRows.find(x=>x.id==='+r.id+').desc=this.value"></td>'
+      +'<td><select class="comp-sel" onchange="excRows.find(x=>x.id==='+r.id+').tipo=this.value;calcExc()">'
+      +'<option value="mecanica"'+(r.tipo==='mecanica'?' selected':'')+'>Mecánica</option>'
+      +'<option value="manual"'+(r.tipo==='manual'?' selected':'')+'>Manual</option>'
+      +'<option value="relleno"'+(r.tipo==='relleno'?' selected':'')+'>Relleno</option>'
+      +'</select></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.l+'" step="0.1" onchange="excRows.find(x=>x.id==='+r.id+').l=+this.value;calcExc()"></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.a+'" step="0.1" onchange="excRows.find(x=>x.id==='+r.id+').a=+this.value;calcExc()"></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.p+'" step="0.1" onchange="excRows.find(x=>x.id==='+r.id+').p=+this.value;calcExc()"></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.c+'" onchange="excRows.find(x=>x.id==='+r.id+').c=+this.value;calcExc()"></td>'
+      +'<td style="font-weight:700;color:var(--bt);text-align:center" id="exc-vol-'+r.id+'">—</td>'
+      +'<td><input class="comp-input" type="number" value="'+r.esp+'" onchange="excRows.find(x=>x.id==='+r.id+').esp=+this.value;calcExc()"></td>'
+      +'<td style="font-weight:700;color:var(--golt);text-align:center" id="exc-vesp-'+r.id+'">—</td>'
+      +'<td><button class="btn btn-del btn-sm" onclick="excRows=excRows.filter(x=>x.id!=='+r.id+');renderExcRows();calcExc()">×</button></td>'
+      +'</tr>';
+  }).join('');
+  calcExc();
+}
+
+function calcExc(){
+  var totVol=0,totEsp=0,totCost=0;
+  var puMec=+(document.getElementById('pu-exc-mec')?.value||35);
+  var puMan=+(document.getElementById('pu-exc-man')?.value||55);
+  var puRel=+(document.getElementById('pu-relleno')?.value||20);
+  excRows.forEach(function(r){
+    var vol=r.l*r.a*r.p*r.c;
+    var vesp=vol*(1+r.esp/100);
+    var pu=r.tipo==='manual'?puMan:(r.tipo==='relleno'?puRel:puMec);
+    var cost=vol*pu;
+    totVol+=(r.tipo==='relleno'?0:vol);
+    totEsp+=(r.tipo==='relleno'?0:vesp);
+    totCost+=cost;
+    var ve=document.getElementById('exc-vol-'+r.id);if(ve)ve.textContent=vol.toFixed(2)+' m³';
+    var vee=document.getElementById('exc-vesp-'+r.id);if(vee)vee.textContent=vesp.toFixed(2)+' m³';
+  });
+  var e1=document.getElementById('exc-tot-vol');if(e1)e1.textContent=totVol.toFixed(2)+' m³';
+  var e2=document.getElementById('exc-tot-esp');if(e2)e2.textContent=totEsp.toFixed(2)+' m³';
+  var e3=document.getElementById('exc-tot-cost');if(e3)e3.textContent='USD '+Math.round(totCost).toLocaleString();
+}
+
+// ── BASES H°A° ────────────────────────────────────────────────────────
+var basesRows=[];var basesId=0;
+
+function basesAddRow(){
+  basesId++;
+  var id=basesId;
+  basesRows.push({id:id,desc:'Zapata '+id,tipo:'aislada',l:0.8,a:0.8,h:0.4,c:4,diam:16,sep:0.20,rec:0.05,desp:5});
+  renderBasesRows();
+}
+
+function renderBasesRows(){
+  var tbody=document.getElementById('bases-rows');
+  if(!tbody)return;
+  tbody.innerHTML=basesRows.map(function(r){
+    return '<tr>'
+      +'<td><input class="comp-input" style="width:110px" value="'+r.desc+'" onchange="basesRows.find(x=>x.id==='+r.id+').desc=this.value"></td>'
+      +'<td><select class="comp-sel" onchange="basesRows.find(x=>x.id==='+r.id+').tipo=this.value;calcBases()">'
+      +'<option value="aislada"'+(r.tipo==='aislada'?' selected':'')+'>Aislada</option>'
+      +'<option value="corrida"'+(r.tipo==='corrida'?' selected':'')+'>Corrida</option>'
+      +'<option value="platea"'+(r.tipo==='platea'?' selected':'')+'>Platea</option>'
+      +'</select></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.l+'" step="0.05" onchange="basesRows.find(x=>x.id==='+r.id+').l=+this.value;calcBases()"></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.a+'" step="0.05" onchange="basesRows.find(x=>x.id==='+r.id+').a=+this.value;calcBases()"></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.h+'" step="0.05" onchange="basesRows.find(x=>x.id==='+r.id+').h=+this.value;calcBases()"></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.c+'" onchange="basesRows.find(x=>x.id==='+r.id+').c=+this.value;calcBases()"></td>'
+      +'<td style="font-weight:700;color:var(--bt);text-align:center" id="bas-vol-'+r.id+'">—</td>'
+      +'<td><input class="comp-input" type="number" value="'+r.diam+'" onchange="basesRows.find(x=>x.id==='+r.id+').diam=+this.value;calcBases()"></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.sep+'" step="0.05" onchange="basesRows.find(x=>x.id==='+r.id+').sep=+this.value;calcBases()"></td>'
+      +'<td style="font-weight:700;color:var(--golt);text-align:center" id="bas-hie-'+r.id+'">—</td>'
+      +'<td><button class="btn btn-del btn-sm" onclick="basesRows=basesRows.filter(x=>x.id!=='+r.id+');renderBasesRows();calcBases()">×</button></td>'
+      +'</tr>';
+  }).join('');
+  calcBases();
+}
+
+function calcBases(){
+  var totVol=0,totHie=0,totCost=0;
+  var puH=+(document.getElementById('pu-horm21')?.value||450);
+  var puHie=+(document.getElementById('pu-hierro')?.value||1.90);
+  basesRows.forEach(function(r){
+    var vol=r.l*r.a*r.h*r.c;
+    // Hierro: barras en dos direcciones
+    var densHie=7850; // kg/m³ acero
+    var area=Math.PI*Math.pow(r.diam/1000/2,2);
+    var nBarrasL=Math.floor((r.a-2*r.rec)/r.sep)+1;
+    var nBarrasA=Math.floor((r.l-2*r.rec)/r.sep)+1;
+    var longBarrasL=(r.l-2*r.rec+0.3)*nBarrasL; // +gancho
+    var longBarrasA=(r.a-2*r.rec+0.3)*nBarrasA;
+    var longTotal=(longBarrasL+longBarrasA)*r.c;
+    var hie=longTotal*area*densHie*(1+r.desp/100);
+    totVol+=vol;
+    totHie+=hie;
+    totCost+=vol*puH+hie*puHie;
+    var bv=document.getElementById('bas-vol-'+r.id);if(bv)bv.textContent=vol.toFixed(3)+' m³';
+    var bh=document.getElementById('bas-hie-'+r.id);if(bh)bh.textContent=Math.round(hie)+' kg';
+  });
+  var e1=document.getElementById('bases-tot-vol');if(e1)e1.textContent=totVol.toFixed(3)+' m³';
+  var e2=document.getElementById('bases-tot-hie');if(e2)e2.textContent=Math.round(totHie)+' kg';
+  var e3=document.getElementById('bases-tot-cost');if(e3)e3.textContent='USD '+Math.round(totCost).toLocaleString();
+}
+
+// ── H°A° ESTRUCTURA ───────────────────────────────────────────────────
+var estRows=[];var estId=0;
+
+function estAddRow(){
+  estId++;
+  var id=estId;
+  estRows.push({id:id,desc:'Columna '+id,elem:'columna',d1:0.25,d2:0.25,lon:3.0,c:1,kgm3:120});
+  renderEstRows();
+}
+
+function renderEstRows(){
+  var tbody=document.getElementById('est-rows');
+  if(!tbody)return;
+  tbody.innerHTML=estRows.map(function(r){
+    var encLabel={columna:'Perímetro×Alt',viga:'Perim×Long',losa:'Área sup.'};
+    return '<tr>'
+      +'<td><input class="comp-input" style="width:110px" value="'+r.desc+'" onchange="estRows.find(x=>x.id==='+r.id+').desc=this.value"></td>'
+      +'<td><select class="comp-sel" onchange="estRows.find(x=>x.id==='+r.id+').elem=this.value;calcEst()">'
+      +'<option value="columna"'+(r.elem==='columna'?' selected':'')+'>Columna</option>'
+      +'<option value="viga"'+(r.elem==='viga'?' selected':'')+'>Viga</option>'
+      +'<option value="losa"'+(r.elem==='losa'?' selected':'')+'>Losa</option>'
+      +'<option value="escalera"'+(r.elem==='escalera'?' selected':'')+'>Escalera</option>'
+      +'</select></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.d1+'" step="0.05" title="Ancho/Dim1" onchange="estRows.find(x=>x.id==='+r.id+').d1=+this.value;calcEst()"></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.d2+'" step="0.05" title="Altura secc/Dim2" onchange="estRows.find(x=>x.id==='+r.id+').d2=+this.value;calcEst()"></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.lon+'" step="0.1" title="Longitud/Altura" onchange="estRows.find(x=>x.id==='+r.id+').lon=+this.value;calcEst()"></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.c+'" onchange="estRows.find(x=>x.id==='+r.id+').c=+this.value;calcEst()"></td>'
+      +'<td style="font-weight:700;color:var(--bt);text-align:center" id="est-vol-'+r.id+'">—</td>'
+      +'<td><input class="comp-input" type="number" value="'+r.kgm3+'" title="kg hierro por m³ H°A°" onchange="estRows.find(x=>x.id==='+r.id+').kgm3=+this.value;calcEst()"></td>'
+      +'<td style="font-weight:700;color:var(--golt);text-align:center" id="est-hie-'+r.id+'">—</td>'
+      +'<td style="color:var(--tx2);text-align:center" id="est-enc-'+r.id+'">—</td>'
+      +'<td><button class="btn btn-del btn-sm" onclick="estRows=estRows.filter(x=>x.id!=='+r.id+');renderEstRows();calcEst()">×</button></td>'
+      +'</tr>';
+  }).join('');
+  calcEst();
+}
+
+function calcEst(){
+  var totVol=0,totHie=0,totEnc=0;
+  estRows.forEach(function(r){
+    var vol,enc;
+    if(r.elem==='losa'){
+      vol=r.d1*r.lon*r.d2*r.c; // largo×ancho×espesor
+      enc=r.d1*r.lon*r.c;
+    } else {
+      vol=r.d1*r.d2*r.lon*r.c;
+      enc=(r.elem==='columna'?2*(r.d1+r.d2)*r.lon*r.c:2*(r.d1+r.d2)*r.lon*r.c);
+    }
+    var hie=vol*r.kgm3;
+    totVol+=vol;totHie+=hie;totEnc+=enc;
+    var ev=document.getElementById('est-vol-'+r.id);if(ev)ev.textContent=vol.toFixed(3)+' m³';
+    var eh=document.getElementById('est-hie-'+r.id);if(eh)eh.textContent=Math.round(hie)+' kg';
+    var ee=document.getElementById('est-enc-'+r.id);if(ee)ee.textContent=Math.round(enc)+' m²';
+  });
+  var e1=document.getElementById('est-tot-vol');if(e1)e1.textContent=totVol.toFixed(3)+' m³';
+  var e2=document.getElementById('est-tot-hie');if(e2)e2.textContent=Math.round(totHie)+' kg';
+  var e3=document.getElementById('est-tot-enc');if(e3)e3.textContent=Math.round(totEnc)+' m²';
+}
+
+// ── ESTRUCTURA METÁLICA ────────────────────────────────────────────────
+var metalRows=[];var metalId=0;
+var PERFILES={'IPN100':8.34,'IPN120':11.1,'IPN140':14.3,'IPN160':17.9,'IPN180':21.9,'IPN200':26.2,'IPE200':22.4,'UPN100':10.6,'UPN120':13.4,'UPN140':16.0,'UPN160':18.8,'L50x5':3.77,'L60x6':5.42,'L80x8':9.66,'Caño100x100x4':12.0,'Caño150x100x5':18.0,'Barra20':2.47,'Barra25':3.85};
+
+function metalAddRow(){
+  metalId++;
+  var id=metalId;
+  metalRows.push({id:id,desc:'Viga '+id,perfil:'IPN160',lon:6,c:1});
+  renderMetalRows();
+}
+
+function renderMetalRows(){
+  var tbody=document.getElementById('metal-rows');
+  if(!tbody)return;
+  tbody.innerHTML=metalRows.map(function(r){
+    var opts=Object.keys(PERFILES).map(function(p){return '<option'+(p===r.perfil?' selected':'')+'>'+p+'</option>';}).join('');
+    return '<tr>'
+      +'<td><input class="comp-input" style="width:110px" value="'+r.desc+'" onchange="metalRows.find(x=>x.id==='+r.id+').desc=this.value"></td>'
+      +'<td><select class="comp-sel" onchange="metalRows.find(x=>x.id==='+r.id+').perfil=this.value;calcMetal()">'+opts+'</select></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.lon+'" step="0.1" onchange="metalRows.find(x=>x.id==='+r.id+').lon=+this.value;calcMetal()"></td>'
+      +'<td><input class="comp-input" type="number" value="'+r.c+'" onchange="metalRows.find(x=>x.id==='+r.id+').c=+this.value;calcMetal()"></td>'
+      +'<td style="text-align:center;color:var(--tx2)" id="met-ml-'+r.id+'">—</td>'
+      +'<td style="text-align:center;color:var(--tx3)" id="met-kgm-'+r.id+'">—</td>'
+      +'<td style="font-weight:700;color:var(--golt);text-align:center" id="met-kg-'+r.id+'">—</td>'
+      +'<td><button class="btn btn-del btn-sm" onclick="metalRows=metalRows.filter(x=>x.id!=='+r.id+');renderMetalRows();calcMetal()">×</button></td>'
+      +'</tr>';
+  }).join('');
+  calcMetal();
+}
+
+function calcMetal(){
+  var totMl=0,totKg=0,totCost=0;
+  var puAcero=+(document.getElementById('pu-acero')?.value||2.20);
+  metalRows.forEach(function(r){
+    var ml=r.lon*r.c;
+    var kgm=PERFILES[r.perfil]||15;
+    var kg=ml*kgm;
+    totMl+=ml;totKg+=kg;totCost+=kg*puAcero;
+    var mm=document.getElementById('met-ml-'+r.id);if(mm)mm.textContent=ml.toFixed(1)+' ml';
+    var mk=document.getElementById('met-kgm-'+r.id);if(mk)mk.textContent=kgm+' kg/m';
+    var mt=document.getElementById('met-kg-'+r.id);if(mt)mt.textContent=Math.round(kg)+' kg';
+  });
+  var e1=document.getElementById('metal-tot-ml');if(e1)e1.textContent=totMl.toFixed(1)+' ml';
+  var e2=document.getElementById('metal-tot-kg');if(e2)e2.textContent=Math.round(totKg)+' kg';
+  var e3=document.getElementById('metal-tot-cost');if(e3)e3.textContent='USD '+Math.round(totCost).toLocaleString();
+}
+
+// ── APU RESUMEN ────────────────────────────────────────────────────────
+function calcAPU(){
+  var puH21=+(document.getElementById('pu-horm21')?.value||450);
+  var puH25=+(document.getElementById('pu-horm25')?.value||520);
+  var puHie=+(document.getElementById('pu-hierro')?.value||1.90);
+  var puEnc=+(document.getElementById('pu-encofrado')?.value||28);
+  var puAce=+(document.getElementById('pu-acero')?.value||2.20);
+  var puMec=+(document.getElementById('pu-exc-mec')?.value||35);
+  var tc=+(document.getElementById('apu-tc')?.value||1460);
+
+  // Get totals from each module
+  var excVol=excRows.reduce(function(a,r){return r.tipo!=='relleno'?a+r.l*r.a*r.p*r.c:a;},0);
+  var excRel=excRows.reduce(function(a,r){return r.tipo==='relleno'?a+r.l*r.a*r.p*r.c:a;},0);
+  var basVol=basesRows.reduce(function(a,r){return a+r.l*r.a*r.h*r.c;},0);
+  var basHie=basesRows.reduce(function(a,r){
+    var area=Math.PI*Math.pow(r.diam/1000/2,2);
+    var densHie=7850;
+    var nL=Math.floor((r.a-2*r.rec)/r.sep)+1;
+    var nA=Math.floor((r.l-2*r.rec)/r.sep)+1;
+    return a+(((r.l-2*r.rec+0.3)*nL+(r.a-2*r.rec+0.3)*nA)*r.c)*area*densHie*(1+r.desp/100);
+  },0);
+  var estVol=estRows.reduce(function(a,r){
+    return a+(r.elem==='losa'?r.d1*r.lon*r.d2*r.c:r.d1*r.d2*r.lon*r.c);
+  },0);
+  var estHie=estRows.reduce(function(a,r){
+    var vol=r.elem==='losa'?r.d1*r.lon*r.d2*r.c:r.d1*r.d2*r.lon*r.c;
+    return a+vol*r.kgm3;
+  },0);
+  var estEnc=estRows.reduce(function(a,r){
+    return a+(r.elem==='losa'?r.d1*r.lon*r.c:2*(r.d1+r.d2)*r.lon*r.c);
+  },0);
+  var metKg=metalRows.reduce(function(a,r){return a+r.lon*r.c*(PERFILES[r.perfil]||15);},0);
+
+  var rubros=[
+    {desc:'Excavación mecánica',u:'m³',q:excVol.toFixed(2),pu:puMec,t:excVol*puMec},
+    {desc:'Relleno compactado',u:'m³',q:excRel.toFixed(2),pu:+(document.getElementById('pu-relleno')?.value||20),t:excRel*(+(document.getElementById('pu-relleno')?.value||20))},
+    {desc:'H°A° H-21 Fundaciones',u:'m³',q:basVol.toFixed(3),pu:puH21,t:basVol*puH21},
+    {desc:'Hierro fundaciones',u:'kg',q:Math.round(basHie),pu:puHie,t:basHie*puHie},
+    {desc:'H°A° H-25 Estructura',u:'m³',q:estVol.toFixed(3),pu:puH25,t:estVol*puH25},
+    {desc:'Hierro estructura',u:'kg',q:Math.round(estHie),pu:puHie,t:estHie*puHie},
+    {desc:'Encofrado estructura',u:'m²',q:Math.round(estEnc),pu:puEnc,t:estEnc*puEnc},
+    {desc:'Estructura metálica',u:'kg',q:Math.round(metKg),pu:puAce,t:metKg*puAce},
+  ].filter(function(r){return +r.q>0;});
+
+  var tbody=document.getElementById('apu-rows');
+  if(tbody){
+    tbody.innerHTML=rubros.map(function(r){
+      return '<tr>'
+        +'<td class="p">'+r.desc+'</td>'
+        +'<td style="text-align:center;color:var(--tx3)">'+r.u+'</td>'
+        +'<td style="text-align:right">'+r.q+'</td>'
+        +'<td style="text-align:right;color:var(--tx2)">USD '+r.pu.toFixed(2)+'</td>'
+        +'<td style="text-align:right;font-weight:700;color:var(--bt)">USD '+Math.round(r.t).toLocaleString()+'</td>'
+        +'<td style="text-align:right;color:var(--golt)">$'+Math.round(r.t*tc).toLocaleString()+'</td>'
+        +'</tr>';
+    }).join('');
+  }
+  var total=rubros.reduce(function(a,r){return a+r.t;},0);
+  var tu=document.getElementById('apu-total-usd');if(tu)tu.textContent='USD '+Math.round(total).toLocaleString();
+  var ta=document.getElementById('apu-total-ars');if(ta)ta.textContent='$ '+Math.round(total*tc).toLocaleString();
+}
+
+function compExportPDF(){
+  calcAPU();
+  var puH21=+(document.getElementById('pu-horm21')?.value||450);
+  var puH25=+(document.getElementById('pu-horm25')?.value||520);
+  var puHie=+(document.getElementById('pu-hierro')?.value||1.90);
+  var puEnc=+(document.getElementById('pu-encofrado')?.value||28);
+  var puAce=+(document.getElementById('pu-acero')?.value||2.20);
+  var tc=+(document.getElementById('apu-tc')?.value||1460);
+  var totUSD=document.getElementById('apu-total-usd')?.textContent||'—';
+  var totARS=document.getElementById('apu-total-ars')?.textContent||'—';
+
+  var d='';
+  var emp=Object.assign({},EMPRESA);
+  if(!emp.logo)emp.logo=localStorage.getItem('obraerp_logo')||'';
+  if(!emp.qr)emp.qr=localStorage.getItem('obraerp_qr')||'';
+
+  d='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cómputo Métrico</title>';
+  d+='<style>body{font-family:Arial,sans-serif;font-size:10pt;margin:20mm}';
+  d+='.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;border-bottom:2px solid #8a0e1e;padding-bottom:10px}';
+  d+='.logo-img{height:60px;object-fit:contain}';
+  d+='.hdr-right{text-align:right;font-size:9pt}';
+  d+='.hdr-right .firma{font-size:13pt;font-weight:700;color:#8a0e1e;letter-spacing:1px}';
+  d+='h2{background:#8a0e1e;color:#fff;padding:8px 12px;font-size:11pt;margin:16px 0 8px}';
+  d+='table{width:100%;border-collapse:collapse;margin-bottom:12px}';
+  d+='th{background:#f0f0f0;border:1px solid #ccc;padding:5px 8px;font-size:9pt;text-align:left}';
+  d+='td{border:1px solid #ddd;padding:4px 8px;font-size:9pt}';
+  d+='.total-row{font-weight:700;background:#f9f9f9}';
+  d+='</style></head><body>';
+
+  // Header
+  d+='<div class="hdr">';
+  if(emp.logo)d+='<img class="logo-img" src="'+emp.logo+'">';
+  else d+='<div></div>';
+  d+='<div class="hdr-right">';
+  d+='<div class="firma">'+(emp.nombre||'PRARES ARQUITECTURA')+'</div>';
+  d+='<div>'+(emp.nombreCompleto||'')+'</div>';
+  d+='<div>'+(emp.titulo||'')+'</div>';
+  if(emp.matricula)d+='<div>Mat. Prof. Nº '+emp.matricula+(emp.rpc?' — Mat. Munic. (RPC) Nº '+emp.rpc:'')+'</div>';
+  d+='</div></div>';
+
+  d+='<h1 style="background:#8a0e1e;color:#fff;padding:10px 14px;font-size:13pt;margin-bottom:16px">CÓMPUTO MÉTRICO Y PRESUPUESTO DE OBRA</h1>';
+  d+='<p style="font-size:9pt;color:#666;margin-bottom:16px">Fecha: '+new Date().toLocaleDateString('es-AR')+' · TC BNA: $ '+tc.toLocaleString()+'</p>';
+
+  // Excavación
+  if(excRows.length){
+    d+='<h2>EXCAVACIÓN Y MOVIMIENTO DE SUELOS</h2>';
+    d+='<table><thead><tr><th>Descripción</th><th>Tipo</th><th>Largo</th><th>Ancho</th><th>Prof.</th><th>Cant.</th><th>Vol. (m³)</th><th>Vol. c/esp. (m³)</th></tr></thead><tbody>';
+    var totExc=0;
+    excRows.forEach(function(r){
+      var vol=r.l*r.a*r.p*r.c;
+      var vesp=vol*(1+r.esp/100);
+      if(r.tipo!=='relleno')totExc+=vol;
+      d+='<tr><td>'+r.desc+'</td><td>'+r.tipo+'</td><td>'+r.l+'m</td><td>'+r.a+'m</td><td>'+r.p+'m</td><td>'+r.c+'</td><td>'+vol.toFixed(2)+'</td><td>'+vesp.toFixed(2)+'</td></tr>';
+    });
+    d+='<tr class="total-row"><td colspan="6">TOTAL EXCAVACIÓN</td><td>'+totExc.toFixed(2)+' m³</td><td></td></tr>';
+    d+='</tbody></table>';
+  }
+
+  // Bases
+  if(basesRows.length){
+    d+='<h2>BASES Y FUNDACIONES H°A° H-21</h2>';
+    d+='<table><thead><tr><th>Descripción</th><th>Tipo</th><th>L×A×H</th><th>Cant.</th><th>Vol. H°A° (m³)</th><th>Hierro (kg)</th></tr></thead><tbody>';
+    var totBVol=0,totBHie=0;
+    basesRows.forEach(function(r){
+      var vol=r.l*r.a*r.h*r.c;
+      var area=Math.PI*Math.pow(r.diam/1000/2,2);
+      var nL=Math.floor((r.a-2*r.rec)/r.sep)+1;
+      var nA=Math.floor((r.l-2*r.rec)/r.sep)+1;
+      var hie=(((r.l-2*r.rec+0.3)*nL+(r.a-2*r.rec+0.3)*nA)*r.c)*area*7850*(1+r.desp/100);
+      totBVol+=vol;totBHie+=hie;
+      d+='<tr><td>'+r.desc+'</td><td>'+r.tipo+'</td><td>'+r.l+'×'+r.a+'×'+r.h+'m</td><td>'+r.c+'</td><td>'+vol.toFixed(3)+'</td><td>'+Math.round(hie)+'</td></tr>';
+    });
+    d+='<tr class="total-row"><td colspan="4">TOTAL FUNDACIONES</td><td>'+totBVol.toFixed(3)+' m³</td><td>'+Math.round(totBHie)+' kg</td></tr>';
+    d+='</tbody></table>';
+  }
+
+  // Estructura
+  if(estRows.length){
+    d+='<h2>ESTRUCTURA H°A° H-25</h2>';
+    d+='<table><thead><tr><th>Descripción</th><th>Elemento</th><th>Sección</th><th>Long./Alt.</th><th>Cant.</th><th>Vol. (m³)</th><th>Hierro (kg)</th><th>Encofrado (m²)</th></tr></thead><tbody>';
+    var totEVol=0,totEHie=0,totEEnc=0;
+    estRows.forEach(function(r){
+      var vol=r.elem==='losa'?r.d1*r.lon*r.d2*r.c:r.d1*r.d2*r.lon*r.c;
+      var hie=vol*r.kgm3;
+      var enc=r.elem==='losa'?r.d1*r.lon*r.c:2*(r.d1+r.d2)*r.lon*r.c;
+      totEVol+=vol;totEHie+=hie;totEEnc+=enc;
+      d+='<tr><td>'+r.desc+'</td><td>'+r.elem+'</td><td>'+r.d1+'×'+r.d2+'m</td><td>'+r.lon+'m</td><td>'+r.c+'</td><td>'+vol.toFixed(3)+'</td><td>'+Math.round(hie)+'</td><td>'+Math.round(enc)+'</td></tr>';
+    });
+    d+='<tr class="total-row"><td colspan="5">TOTAL ESTRUCTURA</td><td>'+totEVol.toFixed(3)+' m³</td><td>'+Math.round(totEHie)+' kg</td><td>'+Math.round(totEEnc)+' m²</td></tr>';
+    d+='</tbody></table>';
+  }
+
+  // APU Resumen
+  d+='<h2>RESUMEN APU — PRESUPUESTO DE OBRA</h2>';
+  d+='<table><thead><tr><th>Rubro</th><th>Unidad</th><th>Cantidad</th><th>PU (USD)</th><th>Total USD</th><th>Total ARS</th></tr></thead><tbody>';
+  var apuRows=document.querySelectorAll('#apu-rows tr');
+  var total=0;
+  apuRows.forEach(function(row){
+    var cells=row.querySelectorAll('td');
+    if(cells.length<5)return;
+    var t=parseFloat(cells[4].textContent.replace(/[^\d.]/g,''))||0;
+    total+=t;
+    d+='<tr><td>'+cells[0].textContent+'</td><td style="text-align:center">'+cells[1].textContent+'</td><td style="text-align:right">'+cells[2].textContent+'</td><td style="text-align:right">'+cells[3].textContent+'</td><td style="text-align:right;font-weight:700">'+cells[4].textContent+'</td><td style="text-align:right">'+cells[5].textContent+'</td></tr>';
+  });
+  d+='<tr class="total-row" style="font-size:11pt"><td colspan="4" style="text-align:right">TOTAL PRESUPUESTO</td><td style="color:#005fa3">'+totUSD+'</td><td style="color:#8a0e1e">'+totARS+'</td></tr>';
+  d+='</tbody></table>';
+
+  d+='</body></html>';
+
+  var win=window.open('','_blank');
+  win.document.write(d);
+  win.document.close();
+  setTimeout(function(){win.print();},500);
 }
 
 </script>
