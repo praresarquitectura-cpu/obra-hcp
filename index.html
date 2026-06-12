@@ -3767,175 +3767,202 @@ var CP_ITEMS = [
   {cod:'A', rubro:'TAREAS PRELIMINARES'},
   {cod:'A.1',nom:'Limpieza del terreno',un:'gl',q:1,dim:{tipo:'gl'},
    mo:[{rol:'ay',hh:16}],mat:[]},
-  {cod:'A.2',nom:'Cartel de obra',un:'gl',q:1,dim:{tipo:'gl'},
-   mo:[{rol:'ay',hh:8}],mat:[]},
-  {cod:'A.3',nom:'Cerco de obra',un:'gl',q:1,dim:{tipo:'gl'},
-   mo:[{rol:'ay',hh:16}],mat:[]},
-  {cod:'A.4',nom:'Obrador',un:'gl',q:1,dim:{tipo:'gl'},
+  {cod:'A.2',nom:'Cartel de obra + Obrador + Cerco',un:'gl',q:1,dim:{tipo:'gl'},
    mo:[{rol:'ay',hh:24}],mat:[]},
-  {cod:'A.5',nom:'Replanteo',un:'gl',q:1,dim:{tipo:'gl'},
+  {cod:'A.3',nom:'Replanteo de obra',un:'gl',q:1,dim:{tipo:'gl'},
    mo:[{rol:'of',hh:8},{rol:'ay',hh:8}],mat:[]},
 
   // B. DEMOLICIÓN
   {cod:'B', rubro:'DEMOLICIÓN'},
-  {cod:'B.1',nom:'Demolición mampostería 0,30m',un:'m³',q:0,
-   dim:{tipo:'rect',l:0,a:0.3,h:0,c:1,calc:'vol'},
-   mo:[{rol:'ay',hh:2.0}],mat:[]},
-  {cod:'B.2',nom:'Demolición mampostería 0,15m',un:'m³',q:0,
-   dim:{tipo:'rect',l:0,a:0.15,h:0,c:1,calc:'vol'},
-   mo:[{rol:'ay',hh:1.5}],mat:[]},
-  {cod:'B.3',nom:'Picado revoque existente',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
-   mo:[{rol:'ay',hh:0.8}],mat:[]},
+  {cod:'B.1',nom:'Demolición mampostería e=0,20m',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Descripción','Largo (m)','Alto (m)','Cant.']},
+   mo:[{rol:'ay',hh:0.8}],mat:[],
+   nota:'Unidad m² de pared vista (largo × alto de muro)'},
+  {cod:'B.2',nom:'Picado revoque existente',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Descripción','Largo (m)','Alto (m)','Cant.']},
+   mo:[{rol:'ay',hh:0.5}],mat:[]},
+  {cod:'B.3',nom:'Retiro de escombros',un:'m³',q:0,
+   dim:{tipo:'rows',calc:'vol',rows:[],
+        cols:['Descripción','Largo (m)','Ancho (m)','Alto (m)','Cant.']},
+   mo:[{rol:'ay',hh:1.0}],mat:[]},
 
   // C. MOVIMIENTO DE SUELOS
   {cod:'C', rubro:'MOVIMIENTO DE SUELOS'},
-  {cod:'C.1',nom:'Excavación cimientos y carga',un:'m³',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
+  {cod:'C.1',nom:'Excavación para cimientos y carga',un:'m³',q:0,
+   dim:{tipo:'rows',calc:'vol',rows:[],
+        cols:['Descripción','Largo (m)','Ancho (m)','Prof. (m)','Cant.']},
    mo:[{rol:'ay',hh:1.5}],mat:[]},
-  {cod:'C.2',nom:'Excavación de pozos',un:'m³',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
-   mo:[{rol:'ay',hh:2.0}],mat:[]},
-  {cod:'C.3',nom:'Relleno y compactación',un:'m³',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
+  {cod:'C.2',nom:'Relleno y compactación',un:'m³',q:0,
+   dim:{tipo:'rows',calc:'vol',rows:[],
+        cols:['Descripción','Largo (m)','Ancho (m)','Alt. (m)','Cant.']},
    mo:[{rol:'ay',hh:0.8}],mat:[]},
-  {cod:'C.4',nom:'Desmonte',un:'m³',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
-   mo:[{rol:'ay',hh:1.2}],mat:[]},
 
   // D. CIMIENTOS
   {cod:'D', rubro:'CIMIENTOS'},
   {cod:'D.1',nom:'Cimientos H° Ripio Bruto (1:12)',un:'m³',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
+   dim:{tipo:'rows',calc:'vol',rows:[],
+        cols:['Descripción','Largo (m)','Ancho (m)','Alto (m)','Cant.']},
    mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
-   mat:[{id:'cemento',cant:3.32},{id:'horm-h17',cant:0}]},
-
-  // E. CAPA AISLADORA
-  {cod:'E', rubro:'CAPA AISLADORA'},
-  {cod:'E.1',nom:'Capa aisladora horizontal c/ pintura asfáltica',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mat:[{id:'cemento',cant:3.32}]},
+  {cod:'D.2',nom:'Capa aisladora horizontal (pintura asfáltica)',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Descripción','Largo (m)','Ancho (m)','Cant.']},
    mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.3}],mat:[]},
 
-  // F. CONTRAPISOS
-  {cod:'F', rubro:'CONTRAPISOS'},
-  {cod:'F.1',nom:'Contrapiso s/terreno natural 0,10m',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+  // E. CONTRAPISOS
+  {cod:'E', rubro:'CONTRAPISOS'},
+  {cod:'E.1',nom:'Contrapiso s/terreno natural e=0,10m',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Descripción','Largo (m)','Ancho (m)','Cant.']},
    mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.5}],
    mat:[{id:'horm-h17',cant:0.11},{id:'poliet',cant:1.1}]},
-  {cod:'F.2',nom:'Carpeta cementicia 2cm',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+  {cod:'E.2',nom:'Carpeta cementicia e=2cm',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Descripción','Largo (m)','Ancho (m)','Cant.']},
    mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.4}],mat:[]},
 
-  // G. HORMIGÓN ARMADO - FUNDACIONES
-  {cod:'G', rubro:'HORMIGÓN ARMADO — FUNDACIONES'},
-  {cod:'G.1',nom:'Bases de H°A° (zapatas)',un:'m³',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol',label:'L×A×H×Cant'},
+  // F. HORMIGÓN ARMADO — FUNDACIONES
+  {cod:'F', rubro:'HORMIGÓN ARMADO — FUNDACIONES'},
+  {cod:'F.1',nom:'Bases de H°A° — Zapatas aisladas',un:'m³',q:0,
+   dim:{tipo:'rows',calc:'vol',rows:[],
+        cols:['Descripción','Largo (m)','Ancho (m)','Alto (m)','Cant.']},
    mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
-   mat:[{id:'exc-bases',cant:1},{id:'hie-12',cant:1},{id:'hie-6',cant:1},{id:'horm-h21',cant:1}]},
-  {cod:'G.2',nom:'Vigas de fundación / Encadenado inferior',un:'m³',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
+   mat:[{id:'exc-bases',cant:1},{id:'horm-h21',cant:1},{id:'hie-12',cant:0.008},{id:'hie-6',cant:0.004}],
+   nota:'m³ de H°A°'},
+  {cod:'F.2',nom:'Vigas de fundación / Encadenado inferior',un:'m³',q:0,
+   dim:{tipo:'rows',calc:'vol',rows:[],
+        cols:['Descripción','Longitud (m)','Ancho (m)','Alto (m)','Cant.']},
    mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
-   mat:[{id:'exc-va',cant:1},{id:'horm-h25',cant:1},{id:'hie-6',cant:1},{id:'hie-8',cant:1},{id:'hie-12',cant:1}]},
-  {cod:'G.3',nom:'Losa de fundación / Platea',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mat:[{id:'horm-h25',cant:1},{id:'hie-8',cant:0.012},{id:'hie-12',cant:0.006}]},
+  {cod:'F.3',nom:'Losa de fundación / Platea H°A°',un:'m³',q:0,
+   dim:{tipo:'rows',calc:'vol',rows:[],
+        cols:['Descripción','Largo (m)','Ancho (m)','Espesor (m)','Cant.']},
    mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
-   mat:[{id:'poliet',cant:1},{id:'aisl-tb10',cant:0.05},{id:'malla-8',cant:1},{id:'hie-6',cant:1},{id:'hie-10',cant:1},{id:'horm-h25',cant:1}]},
+   mat:[{id:'poliet',cant:1},{id:'malla-8',cant:1},{id:'horm-h25',cant:1}],
+   nota:'m³ de H°A° (largo × ancho × espesor × cant.)'},
 
-  // H. HORMIGÓN ARMADO - ESTRUCTURA
-  {cod:'H', rubro:'HORMIGÓN ARMADO — ESTRUCTURA'},
-  {cod:'H.1',nom:'Columnas de H°A°',un:'m³',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol',label:'A×B×Alto×Cant'},
+  // G. HORMIGÓN ARMADO — ESTRUCTURA
+  {cod:'G', rubro:'HORMIGÓN ARMADO — ESTRUCTURA'},
+  {cod:'G.1',nom:'Columnas de H°A°',un:'m³',q:0,
+   dim:{tipo:'rows',calc:'vol',rows:[],
+        cols:['Descripción','Ancho (m)','Largo sección (m)','Altura (m)','Cant.']},
    mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
-   mat:[{id:'hie-12',cant:1},{id:'hie-8',cant:1},{id:'horm-h25',cant:1}]},
-  {cod:'H.2',nom:'Vigas de H°A°',un:'m³',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol',label:'Ancho×Alt×Long×Cant'},
+   mat:[{id:'horm-h25',cant:1},{id:'hie-12',cant:0.015},{id:'hie-8',cant:0.008}],
+   nota:'m³ de H°A°'},
+  {cod:'G.2',nom:'Vigas de H°A°',un:'m³',q:0,
+   dim:{tipo:'rows',calc:'vol',rows:[],
+        cols:['Descripción','Ancho (m)','Alto sección (m)','Longitud (m)','Cant.']},
    mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
-   mat:[{id:'horm-h25',cant:1},{id:'hie-6',cant:1},{id:'hie-12',cant:1}]},
-  {cod:'H.3',nom:'Losas de H°A°',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mat:[{id:'horm-h25',cant:1},{id:'hie-12',cant:0.012},{id:'hie-6',cant:0.006}],
+   nota:'m³ de H°A°'},
+  {cod:'G.3',nom:'Losas de H°A°',un:'m³',q:0,
+   dim:{tipo:'rows',calc:'vol',rows:[],
+        cols:['Descripción','Largo (m)','Ancho (m)','Espesor (m)','Cant.']},
    mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
-   mat:[{id:'malla-8',cant:1},{id:'hie-10',cant:1},{id:'hie-6',cant:1}]},
+   mat:[{id:'malla-8',cant:1},{id:'horm-h25',cant:1},{id:'hie-6',cant:0.005}],
+   nota:'m³ de H°A° (largo × ancho × espesor × cant.)'},
 
-  // I. ESTRUCTURA METÁLICA
-  {cod:'I', rubro:'ESTRUCTURA METÁLICA'},
-  {cod:'I.1',nom:'Columnas, vigas y correas de Perfiles C',un:'kg',q:0,
-   dim:{tipo:'metal'},
+  // H. ESTRUCTURA METÁLICA
+  {cod:'H', rubro:'ESTRUCTURA METÁLICA'},
+  {cod:'H.1',nom:'Estructura metálica — Perfiles (columnas, vigas, correas)',un:'kg',q:0,
+   dim:{tipo:'metal',rows:[]},
    mo:[{rol:'ofEsp',hh:0.02}],
-   mat:[{id:'pc-100',cant:0.01}]},
-  {cod:'I.2',nom:'Entrepiso metálico',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mat:[{id:'pc-100',cant:0.005}],
+   nota:'Desglosa por elemento: tipo + perfil + longitud × cant. = ml → kg'},
+  {cod:'H.2',nom:'Entrepiso metálico colaborante',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Descripción / Nivel','Largo (m)','Ancho (m)','Cant.']},
    mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
-   mat:[{id:'horm-h17',cant:1},{id:'malla-6',cant:1},{id:'chapa-enc',cant:1}]},
+   mat:[{id:'horm-h17',cant:1},{id:'malla-6',cant:1},{id:'chapa-enc',cant:1}],
+   nota:'Agregar un renglón por cada nivel de entrepiso'},
 
-  // J. TABIQUES EXTERIORES
-  {cod:'J', rubro:'TABIQUES EXTERIORES (Steel Framing)'},
-  {cod:'J.1',nom:'Tabique estructural PGU+PGC+OSB',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+  // I. CUBIERTA
+  {cod:'I', rubro:'CUBIERTA'},
+  {cod:'I.1',nom:'Cubierta chapa galvanizada prepintada',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Faldón / Descripción','Largo (m)','Ancho (m)','Cant.']},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
+   mat:[{id:'chapa-gal',cant:1},{id:'barrera-wichi',cant:0.02},{id:'aisl-lv2',cant:0.05}],
+   nota:'Agregar un renglón por cada faldón. Para tímpanos usar forma triangular.'},
+
+  // J. CERRAMIENTO EXTERIOR
+  {cod:'J', rubro:'CERRAMIENTO EXTERIOR (Steel Framing)'},
+  {cod:'J.1',nom:'Tabique estructural exterior (PGU+PGC+OSB+aislación)',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Tabique / Descripción','Largo (m)','Alto (m)','Cant.'],triangle:true},
    mo:[{rol:'of',hh:0.6},{rol:'ay',hh:0.6}],
-   mat:[{id:'pgc100',cant:0.17},{id:'pgu100',cant:0.08},{id:'osb',cant:0.37},{id:'barrera-wichi',cant:1},{id:'aisl-lv2',cant:0.06}]},
+   mat:[{id:'pgc100',cant:0.17},{id:'pgu100',cant:0.08},{id:'osb',cant:0.37},{id:'barrera-wichi',cant:1},{id:'aisl-lv2',cant:0.06}],
+   nota:'Agregar un renglón por cada tabique. Tímpanos triangulares: marcá la casilla △'},
 
-  // K. CUBIERTA
-  {cod:'K', rubro:'CUBIERTA'},
-  {cod:'K.1',nom:'Cubierta chapa galvanizada prepintada',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+  // K. MAMPOSTERÍA
+  {cod:'K', rubro:'MAMPOSTERÍA'},
+  {cod:'K.1',nom:'Mampostería bloques H° 0,20m',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Muro / Descripción','Largo (m)','Alto (m)','Cant.'],triangle:true},
    mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
-   mat:[{id:'chapa-gal',cant:1},{id:'malla-5',cant:1},{id:'barrera-wichi',cant:0.02},{id:'aisl-lv2',cant:0.05}]},
-
-  // L. MAMPOSTERÍA
-  {cod:'L', rubro:'MAMPOSTERÍA'},
-  {cod:'L.1',nom:'Mampostería bloques 0,20m + Durlock',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
-   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
-   mat:[{id:'bloq-20',cant:12.5},{id:'arena',cant:0.04},{id:'cemento',cant:0.5},{id:'cal',cant:0.32}]},
-  {cod:'L.2',nom:'Tabiques interiores Durlock 70mm',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mat:[{id:'bloq-20',cant:12.5},{id:'arena',cant:0.04},{id:'cemento',cant:0.5},{id:'cal',cant:0.32}],
+   nota:'Agregar un renglón por cada paño. Tímpanos triangulares: marcá △'},
+  {cod:'K.2',nom:'Tabiques interiores Durlock 70mm',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Tabique / Descripción','Largo (m)','Alto (m)','Cant.'],triangle:true},
    mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.4}],
-   mat:[{id:'mont-69',cant:0.7},{id:'yeso-12',cant:0.9},{id:'masilla',cant:0.05}]},
+   mat:[{id:'mont-69',cant:0.7},{id:'yeso-12',cant:0.9},{id:'masilla',cant:0.05}],
+   nota:'Agregar renglón por cada tabique'},
 
-  // M. CIELORRASOS
-  {cod:'M', rubro:'CIELORRASOS'},
-  {cod:'M.1',nom:'Cielorraso suspendido placa yeso',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+  // L. CIELORRASOS
+  {cod:'L', rubro:'CIELORRASOS'},
+  {cod:'L.1',nom:'Cielorraso suspendido placa yeso',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Sector / Descripción','Largo (m)','Ancho (m)','Cant.']},
    mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.4}],
-   mat:[{id:'yeso-12',cant:0.4},{id:'mont-34',cant:0.4},{id:'masilla',cant:0.05}]},
+   mat:[{id:'yeso-12',cant:0.4},{id:'mont-34',cant:0.4},{id:'masilla',cant:0.05}],
+   nota:'Agregar renglón por cada sector o nivel de cielorraso'},
 
-  // N. PISOS Y REVESTIMIENTOS
-  {cod:'N', rubro:'PISOS Y REVESTIMIENTOS'},
-  {cod:'N.1',nom:'Piso cerámico/porcelanato',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+  // M. PISOS Y REVESTIMIENTOS
+  {cod:'M', rubro:'PISOS Y REVESTIMIENTOS'},
+  {cod:'M.1',nom:'Piso cerámico / porcelanato',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Sector / Ambiente','Largo (m)','Ancho (m)','Cant.']},
    mo:[{rol:'of',hh:0.5},{rol:'ay',hh:0.5}],
    mat:[{id:'ceramico',cant:1.1}]},
-  {cod:'N.2',nom:'Piso flotante',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+  {cod:'M.2',nom:'Piso flotante',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Sector / Ambiente','Largo (m)','Ancho (m)','Cant.']},
    mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.3}],
    mat:[{id:'flotante',cant:1.1}]},
-  {cod:'N.3',nom:'Revestimiento cerámico',un:'m²',q:0,
-   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+  {cod:'M.3',nom:'Revestimiento cerámico (baños/cocina)',un:'m²',q:0,
+   dim:{tipo:'rows',calc:'sup',rows:[],
+        cols:['Sector / Paño','Largo (m)','Alto (m)','Cant.']},
    mo:[{rol:'of',hh:0.6},{rol:'ay',hh:0.5}],
    mat:[{id:'ceramico',cant:1.1}]},
 
-  // O. CARPINTERÍAS
-  {cod:'O', rubro:'CARPINTERÍAS'},
-  {cod:'O.1',nom:'Puertas interiores',un:'un',q:0,
+  // N. CARPINTERÍAS
+  {cod:'N', rubro:'CARPINTERÍAS'},
+  {cod:'N.1',nom:'Puertas interiores',un:'un',q:0,
    dim:{tipo:'gl'},
    mo:[{rol:'of',hh:4}],mat:[]},
-  {cod:'O.2',nom:'Ventanas PVC',un:'un',q:0,
+  {cod:'N.2',nom:'Ventanas / aberturas exteriores',un:'un',q:0,
    dim:{tipo:'gl'},
    mo:[{rol:'of',hh:3}],mat:[]},
 
-  // P. INSTALACIONES
-  {cod:'P', rubro:'INSTALACIONES'},
-  {cod:'P.1',nom:'Instalación sanitaria',un:'gl',q:1,
+  // O. INSTALACIONES
+  {cod:'O', rubro:'INSTALACIONES'},
+  {cod:'O.1',nom:'Instalación sanitaria',un:'gl',q:1,
    dim:{tipo:'gl'},
    mo:[{rol:'ofEsp',hh:120}],
    mat:[{id:'instalacion',cant:1}]},
-  {cod:'P.2',nom:'Instalación eléctrica',un:'gl',q:1,
+  {cod:'O.2',nom:'Instalación eléctrica',un:'gl',q:1,
    dim:{tipo:'gl'},
    mo:[{rol:'ofEsp',hh:100}],
    mat:[{id:'instalacion-el',cant:1}]},
 ];
+;
 
 // ── ESTADO ────────────────────────────────────────────────────────────
+var PERFILES={'IPN100':8.34,'IPN120':11.1,'IPN140':14.3,'IPN160':17.9,'IPN180':21.9,'IPN200':26.2,'IPE200':22.4,'UPN100':10.6,'UPN120':13.4,'UPN140':16.0,'UPN160':18.8,'L50x5':3.77,'L60x6':5.42,'L80x8':9.66,'Caño100x100x4':12.0,'Caño150x100x5':18.0,'Perfil C 100':7.5,'Perfil C 120':9.2,'Perfil C 150':11.8,'PGC100':3.2,'PGU100':2.8};
+
 var CP_STATE = {items: JSON.parse(JSON.stringify(CP_ITEMS))};
 
 function cpGetJor(){
@@ -4014,90 +4041,186 @@ function cpAddMat(){
   cpRenderPrecios();
 }
 
-// ── RENDER: CÓMPUTO DIMENSIONAL ──────────────────────────────────────
+// ── RENDER: CÓMPUTO DIMENSIONAL (NUEVO CON SUBITEMS) ─────────────────
 function cpRenderComp(){
-  var el = document.getElementById('cp-rubros-comp');
-  if(!el) return;
-  var html = '';
-  var curRubro = '';
-  CP_STATE.items.forEach(function(item, idx){
+  var el=document.getElementById('cp-rubros-comp');
+  if(!el)return;
+  var html='';
+  CP_STATE.items.forEach(function(item,idx){
     if(item.rubro){
-      html += '<div class="fsc" style="margin:16px 0 8px;font-size:11px;font-weight:700;color:var(--bt);letter-spacing:.08em">'
-        +item.cod+'. '+item.rubro+'</div>';
-      curRubro = item.rubro;
+      html+='<div class="fsc" style="margin:16px 0 8px;font-size:11px;font-weight:700;color:var(--bt);letter-spacing:.08em">'+item.cod+'. '+item.rubro+'</div>';
       return;
     }
-    html += '<div class="card" style="margin-bottom:8px;padding:12px">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-      +'<div style="font-size:12px;font-weight:700;color:var(--tx)"><span style="color:var(--tx3);margin-right:4px">'+item.cod+'</span>'+item.nom+'</div>'
-      +'<div style="font-size:11px;color:var(--tx3)">UN: '+item.un+'</div></div>';
+    html+='<div class="card" style="margin-bottom:8px;padding:12px" id="cpcard-'+idx+'">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      +'<div style="font-size:12px;font-weight:700"><span style="color:var(--tx3);margin-right:4px">'+item.cod+'</span>'+item.nom+'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +(item.nota?'<span style="font-size:9px;color:var(--tx3)" title="'+item.nota+'">ℹ</span>':'')
+      +'<div style="text-align:right">'
+        +'<div style="font-size:9px;color:var(--tx3)">TOTAL</div>'
+        +'<div id="cp-res-'+idx+'" style="font-size:15px;font-weight:800;color:var(--bt)">'+( item.q||0)+' '+item.un+'</div>'
+      +'</div></div></div>';
 
-    if(item.dim && item.dim.tipo === 'gl'){
-      html += '<div class="fg" style="max-width:160px"><label class="fl">Cantidad</label>'
-        +'<input class="fi" type="number" value="'+item.q+'" min="0" step="0.1" oninput="CP_STATE.items['+idx+'].q=+this.value;cpCalcAll()" style="text-align:center">'
-        +'</div>';
-    } else if(item.dim && item.dim.tipo === 'metal'){
-      html += '<div class="g3" style="gap:8px">'
-        +'<div class="fg"><label class="fl">Peso total (kg)</label>'
-        +'<input class="fi" type="number" value="'+item.q+'" min="0" oninput="CP_STATE.items['+idx+'].q=+this.value;cpCalcAll()"></div>'
-        +'</div>';
-    } else if(item.dim){
-      var calc = item.dim.calc || 'vol';
-      var label = item.dim.label || (calc==='sup' ? 'Largo (m) × Ancho (m) × Cant.' : 'Largo (m) × Ancho (m) × Alto (m) × Cant.');
-      html += '<div style="font-size:9px;color:var(--tx3);margin-bottom:6px">'+label+'</div>';
-      html += '<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">';
-      if(calc==='vol'){
-        html += cpDimInput('Largo','l',idx,item.dim.l||0)
-              + cpDimInput('Ancho','a',idx,item.dim.a||0)
-              + cpDimInput('Alto','h',idx,item.dim.h||0)
-              + cpDimInput('Cant.','c',idx,item.dim.c||1);
-      } else {
-        html += cpDimInput('Largo','l',idx,item.dim.l||0)
-              + cpDimInput('Ancho','a',idx,item.dim.a||0)
-              + cpDimInput('Cant.','c',idx,item.dim.c||1);
-      }
-      html += '<div style="min-width:80px;text-align:center">'
-        +'<div style="font-size:9px;color:var(--tx3)">'+(calc==='sup'?'m²':'m³')+'</div>'
-        +'<div id="cp-res-'+idx+'" style="font-size:16px;font-weight:800;color:var(--bt)">'+cpCalcDim(item)+'</div>'
-        +'</div>';
-      html += '</div>';
+    var d=item.dim||{};
+
+    // GL: single quantity input
+    if(d.tipo==='gl'){
+      html+='<div class="fg" style="max-width:180px"><label class="fl">Cantidad ('+item.un+')</label>'
+        +'<input class="fi" type="number" value="'+(item.q||0)+'" min="0" step="1" '
+        +'oninput="CP_STATE.items['+idx+'].q=+this.value;cpUpdateDim('+idx+')"></div>';
     }
-    html += '</div>';
+
+    // METAL: structural steel by element
+    else if(d.tipo==='metal'){
+      html+=cpRenderMetalRows(idx,d.rows||[]);
+      html+='<button class="btn btn-b" style="font-size:10px;padding:4px 10px;margin-top:6px" '
+        +'onclick="cpMetalAddRow('+idx+')">+ Agregar elemento</button>';
+    }
+
+    // ROWS: multiple sub-items with dimensions
+    else if(d.tipo==='rows'){
+      html+=cpRenderSubRows(idx,d,item.un);
+      html+='<button class="btn btn-b" style="font-size:10px;padding:4px 10px;margin-top:6px" '
+        +'onclick="cpAddSubRow('+idx+')">+ Agregar renglón</button>';
+    }
+
+    html+='</div>';
   });
-  el.innerHTML = html;
-  cpUpdateAllDims();
+  el.innerHTML=html;
 }
 
-function cpDimInput(label, key, idx, val){
-  return '<div><label class="fl" style="font-size:9px">'+label+'</label>'
-    +'<input class="comp-input" type="number" value="'+val+'" step="0.05" min="0" '
-    +'oninput="CP_STATE.items['+idx+'].dim.'+key+'=+this.value;cpUpdateDim('+idx+')"></div>';
+// ── SUB-ROWS (multi-dimensional) ─────────────────────────────────────
+function cpRenderSubRows(idx,d,un){
+  var rows=d.rows||[];
+  var calc=d.calc||'sup';
+  var cols=d.cols||['Descripción','Largo (m)','Ancho (m)','Cant.'];
+  var hasTriangle=!!d.triangle;
+  var html='<div style="overflow-x:auto"><table class="dt" style="font-size:10px;margin-bottom:0">'
+    +'<thead><tr>';
+  cols.forEach(function(c){html+='<th style="font-size:9px">'+c+'</th>';});
+  if(hasTriangle)html+='<th style="font-size:9px" title="Marcar si la figura es triangular">△</th>';
+  html+='<th>'+un+'</th><th></th></tr></thead><tbody>';
+
+  rows.forEach(function(r,ri){
+    html+='<tr>';
+    // Descripción
+    html+='<td><input class="comp-input" style="width:120px" value="'+(r.desc||'')+'" '
+      +'oninput="CP_STATE.items['+idx+'].dim.rows['+ri+'].desc=this.value"></td>';
+    // Dim1 = Largo/Longitud
+    html+='<td><input class="comp-input" type="number" value="'+(r.d1||0)+'" step="0.05" '
+      +'oninput="CP_STATE.items['+idx+'].dim.rows['+ri+'].d1=+this.value;cpUpdateDim('+idx+')"></td>';
+    // Dim2 = Ancho/Alto
+    html+='<td><input class="comp-input" type="number" value="'+(r.d2||0)+'" step="0.05" '
+      +'oninput="CP_STATE.items['+idx+'].dim.rows['+ri+'].d2=+this.value;cpUpdateDim('+idx+')"></td>';
+    // Dim3 = Alto/Espesor (solo para vol)
+    if(calc==='vol'){
+      html+='<td><input class="comp-input" type="number" value="'+(r.d3||0)+'" step="0.05" '
+        +'oninput="CP_STATE.items['+idx+'].dim.rows['+ri+'].d3=+this.value;cpUpdateDim('+idx+')"></td>';
+    }
+    // Cantidad
+    html+='<td><input class="comp-input" type="number" value="'+(r.c||1)+'" step="1" '
+      +'oninput="CP_STATE.items['+idx+'].dim.rows['+ri+'].c=+this.value;cpUpdateDim('+idx+')"></td>';
+    // Triangle checkbox
+    if(hasTriangle){
+      html+='<td style="text-align:center"><input type="checkbox"'+(r.tri?' checked':'')+' '
+        +'onchange="CP_STATE.items['+idx+'].dim.rows['+ri+'].tri=this.checked;cpUpdateDim('+idx+')"></td>';
+    }
+    // Result
+    html+='<td style="font-weight:700;color:var(--bt);text-align:center" id="cprow-'+idx+'-'+ri+'">'
+      +(cpCalcSubRow(r,calc)||'—')+'</td>';
+    html+='<td><button class="btn btn-del btn-sm" '
+      +'onclick="CP_STATE.items['+idx+'].dim.rows.splice('+ri+',1);cpRenderComp();cpUpdateDim('+idx+')">×</button></td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  return html;
 }
 
-function cpCalcDim(item){
-  if(!item.dim) return item.q;
-  var d = item.dim;
-  var calc = d.calc || 'vol';
-  var v;
-  if(calc==='vol') v = (d.l||0)*(d.a||0)*(d.h||0)*(d.c||1);
-  else v = (d.l||0)*(d.a||0)*(d.c||1);
-  return Math.round(v*1000)/1000;
+function cpCalcSubRow(r,calc){
+  var d1=r.d1||0, d2=r.d2||0, d3=r.d3||0, c=r.c||1;
+  var area=r.tri ? (d1*d2/2) : (d1*d2);
+  if(calc==='vol') return Math.round((area*(d3||1)*c)*1000)/1000;
+  return Math.round(area*c*100)/100;
 }
 
+function cpAddSubRow(idx){
+  var item=CP_STATE.items[idx];
+  if(!item.dim.rows)item.dim.rows=[];
+  var n=item.dim.rows.length+1;
+  var calc=item.dim.calc||'sup';
+  item.dim.rows.push({desc:'Ítem '+n,d1:0,d2:0,d3:calc==='vol'?0:undefined,c:1,tri:false});
+  cpRenderComp();
+}
+
+// ── METAL ROWS ────────────────────────────────────────────────────────
+var ELEM_TIPOS=['Columna','Viga principal','Viga secundaria','Correa','Tensor','Viga de cubierta','Otro'];
+
+function cpRenderMetalRows(idx,rows){
+  var html='<div style="overflow-x:auto"><table class="dt" style="font-size:10px;margin-bottom:0">'
+    +'<thead><tr>'
+    +'<th>Tipo de elemento</th><th>Perfil</th><th>Longitud (m)</th><th>Cant.</th>'
+    +'<th>ml total</th><th>kg/m</th><th>kg total</th>'
+    +'<th></th></tr></thead><tbody>';
+  rows.forEach(function(r,ri){
+    var kgm=PERFILES[r.perfil]||15;
+    var ml=(r.lon||0)*(r.c||1);
+    var kg=ml*kgm;
+    var perfilOpts=Object.keys(PERFILES).map(function(p){
+      return '<option value="'+p+'"'+(p===r.perfil?' selected':'')+'>'+p+'</option>';
+    }).join('');
+    html+='<tr>'
+      +'<td><select class="comp-sel" style="font-size:10px" onchange="CP_STATE.items['+idx+'].dim.rows['+ri+'].tipo=this.value">'
+      +ELEM_TIPOS.map(function(t){return '<option'+(t===r.tipo?' selected':'')+'>'+t+'</option>';}).join('')
+      +'</select></td>'
+      +'<td><select class="comp-sel" style="font-size:10px" onchange="CP_STATE.items['+idx+'].dim.rows['+ri+'].perfil=this.value;cpUpdateDim('+idx+')">'+perfilOpts+'</select></td>'
+      +'<td><input class="comp-input" type="number" value="'+(r.lon||0)+'" step="0.1" oninput="CP_STATE.items['+idx+'].dim.rows['+ri+'].lon=+this.value;cpUpdateDim('+idx+')"></td>'
+      +'<td><input class="comp-input" type="number" value="'+(r.c||1)+'" oninput="CP_STATE.items['+idx+'].dim.rows['+ri+'].c=+this.value;cpUpdateDim('+idx+')"></td>'
+      +'<td style="font-weight:700;color:var(--tx2);text-align:center">'+ml.toFixed(1)+'m</td>'
+      +'<td style="color:var(--tx3);text-align:center">'+kgm+'</td>'
+      +'<td style="font-weight:700;color:var(--bt);text-align:center">'+Math.round(kg)+' kg</td>'
+      +'<td><button class="btn btn-del btn-sm" onclick="CP_STATE.items['+idx+'].dim.rows.splice('+ri+',1);cpRenderComp();cpUpdateDim('+idx+')">×</button></td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  return html;
+}
+
+function cpMetalAddRow(idx){
+  var item=CP_STATE.items[idx];
+  if(!item.dim.rows)item.dim.rows=[];
+  item.dim.rows.push({tipo:'Columna',perfil:'UPN100',lon:3,c:1});
+  cpRenderComp();
+}
+
+// ── CALC DIM ──────────────────────────────────────────────────────────
 function cpUpdateDim(idx){
-  var item = CP_STATE.items[idx];
-  if(!item||!item.dim) return;
-  item.q = cpCalcDim(item);
-  var el = document.getElementById('cp-res-'+idx);
-  if(el) el.textContent = item.q;
+  var item=CP_STATE.items[idx];
+  if(!item)return;
+  var d=item.dim||{};
+
+  if(d.tipo==='gl'){
+    // q already set by input
+  } else if(d.tipo==='rows'){
+    item.q=Math.round((d.rows||[]).reduce(function(a,r){
+      return a+cpCalcSubRow(r,d.calc||'sup');
+    },0)*1000)/1000;
+  } else if(d.tipo==='metal'){
+    item.q=Math.round((d.rows||[]).reduce(function(a,r){
+      return a+(r.lon||0)*(r.c||1)*(PERFILES[r.perfil]||15);
+    },0));
+  }
+
+  var el=document.getElementById('cp-res-'+idx);
+  if(el)el.textContent=item.q+' '+item.un;
   cpCalcAll();
 }
 
 function cpUpdateAllDims(){
   CP_STATE.items.forEach(function(item,idx){
-    if(item.dim && !item.rubro) cpUpdateDim(idx);
+    if(!item.rubro)cpUpdateDim(idx);
   });
 }
+
 
 // ── RENDER: APU ───────────────────────────────────────────────────────
 function cpRenderAPU(){
