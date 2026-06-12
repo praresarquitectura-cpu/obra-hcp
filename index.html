@@ -2031,18 +2031,6 @@ function updateDashboard(){
 }
 
 /* ── COMPUTO ──────────────────────────────────────────────────────────── */
-var KGM={8:.395,10:.617,12:.888,16:1.578,20:2.466,25:3.853,32:6.313};
-function calcBase(){
-  var l=parseFloat(document.getElementById('bp-l').value)||0,a=parseFloat(document.getElementById('bp-a').value)||0,
-    h=parseFloat(document.getElementById('bp-h').value)||0,c=parseFloat(document.getElementById('bp-c').value)||1,
-    d=parseFloat(document.getElementById('bp-d').value)||16,s=parseFloat(document.getElementById('bp-s').value)||.2,
-    r=parseFloat(document.getElementById('bp-r').value)||.05,dp=(parseFloat(document.getElementById('bp-dp').value)||5)/100;
-  var vol=l*a*h*c*(1+dp),enc=2*(l*h+a*h)*c,nb=Math.ceil((a-2*r)/s)+1,lac=(l-2*r)*c*nb,
-    kg=lac*(KGM[d]||(d*d/162))*(1+dp),costo=vol*42000+kg*520;
-  document.getElementById('base-res').innerHTML=[['bt',vol.toFixed(2),'m\u00b3 hormig\u00f3n'],['gt',enc.toFixed(1),'m\u00b2 encofrado'],['golt',Math.round(kg),'kg acero \u00d8'+d],['pt',lac.toFixed(1),'ml armadura'],['rt','$'+Math.round(costo).toLocaleString('es-AR'),'costo estim.']].map(function(x){return'<div style="background:var(--bg3);border:1px solid var(--br);border-radius:6px;padding:12px;text-align:center"><div style="font-size:18px;font-weight:700;color:var(--'+x[0]+')">'+x[1]+'</div><div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-top:4px">'+x[2]+'</div></div>';}).join('');
-}
-function compShow(id,el){['bases','exc','metal'].forEach(function(m){var e=document.getElementById('comp-'+m);if(e)e.style.display='none';});var t=document.getElementById('comp-'+id);if(t)t.style.display='';document.querySelectorAll('#comp-mods .csm').forEach(function(c){c.style.borderColor='';c.style.background='';});if(el){el.style.borderColor='rgba(96,165,250,.4)';el.style.background='rgba(26,58,100,.1)';}if(id==='bases')calcBase();}
-
 /* ── DATE ─────────────────────────────────────────────────────────────── */
 (function(){var d=new Date(),da=['dom','lun','mar','mi\u00e9','jue','vie','s\u00e1b'],mo=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];var e=document.getElementById('pg-date');if(e)e.textContent=da[d.getDay()]+' '+d.getDate()+' '+mo[d.getMonth()]+' '+d.getFullYear()+' \u00b7 Ushuaia TDF';})();
 
@@ -2339,7 +2327,6 @@ cargarTodo();
     else { localStorage.removeItem('obraerp_trial_expires'); }
   }
 })();
-calcBase();
 motorInit();
 updateDashboard();
 renderCli(CLIENTES);
