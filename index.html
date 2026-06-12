@@ -587,31 +587,82 @@ input,select,textarea,button{font-family:var(--font)}
   </div>
 </section>
 <section id="s-computo" class="scr">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="pgt">Cómputo Métrico</div><div class="pgs">Motor paramétrico</div></div><button class="btn btn-r">+ Nuevo</button></div>
-  <div class="g3" style="margin:18px 0" id="comp-mods">
-    <div class="csm" style="cursor:pointer;border-color:rgba(96,165,250,.4);background:rgba(26,58,100,.1)" onclick="compShow('bases',this)"><div style="font-size:12px;font-weight:600;margin-bottom:2px">Bases H°A°</div><div style="font-size:10px;color:var(--tx3)">Zapatas corridas y aisladas</div><div style="font-size:20px;font-weight:700;color:var(--bt);margin-top:8px">4</div></div>
-    <div class="csm" style="cursor:pointer" onclick="compShow('exc',this)"><div style="font-size:12px;font-weight:600">Excavación</div><div style="font-size:10px;color:var(--tx3)">Zanjas, pozos</div><div style="font-size:20px;font-weight:700;color:var(--bt);margin-top:8px">2</div></div>
-    <div class="csm" style="cursor:pointer" onclick="compShow('metal',this)"><div style="font-size:12px;font-weight:600">Estructura Metálica</div><div style="font-size:10px;color:var(--tx3)">Perfiles</div><div style="font-size:20px;font-weight:700;color:var(--bt);margin-top:8px">1</div></div>
-  </div>
-  <div id="comp-bases">
-    <div class="card">
-      <div class="fsc">Bases H°A° — Calculadora paramétrica</div>
-      <div class="g4" style="margin-bottom:14px">
-        <div><label class="fl">Largo</label><div class="pw"><input class="pi" id="bp-l" type="number" value="6.00" step="0.05" oninput="calcBase()"><span class="pu">m</span></div></div>
-        <div><label class="fl">Ancho</label><div class="pw"><input class="pi" id="bp-a" type="number" value="0.80" step="0.05" oninput="calcBase()"><span class="pu">m</span></div></div>
-        <div><label class="fl">Alto</label><div class="pw"><input class="pi" id="bp-h" type="number" value="0.40" step="0.05" oninput="calcBase()"><span class="pu">m</span></div></div>
-        <div><label class="fl">Cantidad</label><div class="pw"><input class="pi" id="bp-c" type="number" value="4" oninput="calcBase()"><span class="pu">u</span></div></div>
-        <div><label class="fl">Ø arm.</label><div class="pw"><input class="pi" id="bp-d" type="number" value="16" oninput="calcBase()"><span class="pu">mm</span></div></div>
-        <div><label class="fl">Separación</label><div class="pw"><input class="pi" id="bp-s" type="number" value="0.20" step="0.01" oninput="calcBase()"><span class="pu">m</span></div></div>
-        <div><label class="fl">Recubrim.</label><div class="pw"><input class="pi" id="bp-r" type="number" value="0.05" step="0.01" oninput="calcBase()"><span class="pu">m</span></div></div>
-        <div><label class="fl">Desperd.</label><div class="pw"><input class="pi" id="bp-dp" type="number" value="5" oninput="calcBase()"><span class="pu">%</span></div></div>
-      </div>
-      <div class="fsc">Resultados</div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px" id="base-res"></div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <div><div class="pgt">Cómputo Métrico y Presupuesto de Obra</div>
+    <div class="pgs">APU según planilla · Incidencias editables · Orden constructivo</div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn" style="background:var(--bt);color:#fff;padding:8px 14px;font-size:12px" onclick="cpGuardar()">💾 Guardar</button>
+      <button class="btn btn-r" style="padding:8px 14px;font-size:12px" onclick="cpPDF()">📄 PDF Presupuesto</button>
     </div>
   </div>
-  <div id="comp-exc" style="display:none;padding:40px;text-align:center;color:var(--tx3)">Módulo Excavación</div>
-  <div id="comp-metal" style="display:none;padding:40px;text-align:center;color:var(--tx3)">Módulo Estructura Metálica</div>
+  <!-- Tabs -->
+  <div style="display:flex;gap:2px;margin-bottom:14px;overflow-x:auto;border-bottom:1px solid var(--br);padding-bottom:0">
+    <button class="comp-tab active" data-tab="cp-param" onclick="cpTab(this)">⚙ Parámetros</button>
+    <button class="comp-tab" data-tab="cp-comp" onclick="cpTab(this)">📐 Cómputo</button>
+    <button class="comp-tab" data-tab="cp-apu" onclick="cpTab(this)">💰 APU</button>
+    <button class="comp-tab" data-tab="cp-ppto" onclick="cpTab(this)">📋 Presupuesto</button>
+  </div>
+
+  <!-- TAB: PARÁMETROS -->
+  <div id="cp-param">
+    <div class="g2" style="gap:12px">
+      <div class="card">
+        <div class="fsc" style="margin-bottom:12px">Jornales de Mano de Obra ($ ARS/hh)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="fg"><label class="fl">Oficial Especializado</label><input class="fi" type="number" id="jor-ofEsp" value="13663" oninput="cpCalcAll()"></div>
+          <div class="fg"><label class="fl">Oficial</label><input class="fi" type="number" id="jor-of" value="11881" oninput="cpCalcAll()"></div>
+          <div class="fg"><label class="fl">Ayudante</label><input class="fi" type="number" id="jor-ay" value="8645" oninput="cpCalcAll()"></div>
+          <div class="fg"><label class="fl">Medio Oficial</label><input class="fi" type="number" id="jor-mo" value="9392" oninput="cpCalcAll()"></div>
+        </div>
+        <div class="fsc" style="margin:12px 0 8px">Factores de Actualización</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="fg"><label class="fl">Coeficiente de Pase</label><input class="fi" type="number" id="jor-cp" value="1.355" step="0.005" oninput="cpCalcAll()"></div>
+          <div class="fg"><label class="fl">Factor MAT (CAC)</label><input class="fi" type="number" id="jor-fm" value="1.0529" step="0.001" oninput="cpCalcAll()"></div>
+          <div class="fg"><label class="fl">Factor MO (IPC Patagonia)</label><input class="fi" type="number" id="jor-fmo" value="1.086" step="0.001" oninput="cpCalcAll()"></div>
+          <div class="fg"><label class="fl">TC BNA (ARS/$)</label><input class="fi" type="number" id="cp-tc" value="1460" oninput="cpCalcAll()"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="fsc" style="margin-bottom:12px">Precios Base de Materiales ($ ARS)</div>
+        <div style="max-height:340px;overflow-y:auto">
+          <table class="dt" style="font-size:10px">
+            <thead><tr><th>Material</th><th>UN</th><th>Precio ARS</th></tr></thead>
+            <tbody id="cp-precios-tbody"></tbody>
+          </table>
+        </div>
+        <button class="btn btn-b" style="margin-top:8px;font-size:11px;padding:6px 12px" onclick="cpAddMat()">+ Agregar material</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: CÓMPUTO -->
+  <div id="cp-comp" style="display:none">
+    <div id="cp-rubros-comp"></div>
+  </div>
+
+  <!-- TAB: APU -->
+  <div id="cp-apu" style="display:none">
+    <div id="cp-rubros-apu"></div>
+  </div>
+
+  <!-- TAB: PRESUPUESTO -->
+  <div id="cp-ppto" style="display:none">
+    <div class="card" style="margin-bottom:12px">
+      <table class="dt" id="cp-ppto-table">
+        <thead><tr>
+          <th>Nº</th><th>Rubro / Ítem</th><th>UN</th><th>Cant.</th>
+          <th>P.U. MAT ($/u)</th><th>P.U. MO ($/u)</th>
+          <th>P.U. Total ($/u)</th><th>Total ARS</th><th>Total USD</th>
+        </tr></thead>
+        <tbody id="cp-ppto-body"></tbody>
+        <tfoot><tr style="font-weight:700;background:var(--bg3)">
+          <td colspan="7" style="text-align:right;padding:10px">TOTAL OBRA</td>
+          <td id="cp-tot-ars" style="padding:10px;color:var(--golt)">$ 0</td>
+          <td id="cp-tot-usd" style="padding:10px;color:var(--bt)">USD 0</td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>
 </section>
 <section id="s-config" class="scr">
   <div class="pgt">Configuración</div><div class="pgs">Empresa · Profesionales · Logo · QR · Parámetros</div>
@@ -3499,309 +3550,6 @@ function guardarDesdeListado(id){
    ════════════════════════════════════════════════════════════════════ */
 
 // ── TABS ─────────────────────────────────────────────────────────────
-function compTab(tab, btn){
-  ['exc','bases','est','metal','apu'].forEach(function(t){
-    var el=document.getElementById('ctab-'+t);
-    if(el)el.style.display=t===tab?'':'none';
-  });
-  document.querySelectorAll('.comp-tab').forEach(function(b){b.classList.remove('active');});
-  if(btn)btn.classList.add('active');
-  if(tab==='apu')calcAPU();
-}
-
-function compNuevo(){
-  if(!confirm('¿Limpiar todo el cómputo actual?'))return;
-  ['exc-rows','bases-rows','est-rows','metal-rows'].forEach(function(id){
-    var el=document.getElementById(id);if(el)el.innerHTML='';
-  });
-  calcExc();calcBases();calcEst();calcMetal();calcAPU();
-  toast('Cómputo limpiado');
-}
-
-// ── EXCAVACIÓN ────────────────────────────────────────────────────────
-var excRows=[];var excId=0;
-
-function excAddRow(){
-  excId++;
-  var id=excId;
-  excRows.push({id:id,desc:'Excavación '+id,tipo:'mecanica',l:1,a:1,p:1,c:1,esp:20});
-  renderExcRows();
-}
-
-function renderExcRows(){
-  var tbody=document.getElementById('exc-rows');
-  if(!tbody)return;
-  tbody.innerHTML=excRows.map(function(r){
-    return '<tr>'
-      +'<td><input class="comp-input" style="width:120px" value="'+r.desc+'" onchange="excRows.find(x=>x.id==='+r.id+').desc=this.value"></td>'
-      +'<td><select class="comp-sel" onchange="excRows.find(x=>x.id==='+r.id+').tipo=this.value;calcExc()">'
-      +'<option value="mecanica"'+(r.tipo==='mecanica'?' selected':'')+'>Mecánica</option>'
-      +'<option value="manual"'+(r.tipo==='manual'?' selected':'')+'>Manual</option>'
-      +'<option value="relleno"'+(r.tipo==='relleno'?' selected':'')+'>Relleno</option>'
-      +'</select></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.l+'" step="0.1" onchange="excRows.find(x=>x.id==='+r.id+').l=+this.value;calcExc()"></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.a+'" step="0.1" onchange="excRows.find(x=>x.id==='+r.id+').a=+this.value;calcExc()"></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.p+'" step="0.1" onchange="excRows.find(x=>x.id==='+r.id+').p=+this.value;calcExc()"></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.c+'" onchange="excRows.find(x=>x.id==='+r.id+').c=+this.value;calcExc()"></td>'
-      +'<td style="font-weight:700;color:var(--bt);text-align:center" id="exc-vol-'+r.id+'">—</td>'
-      +'<td><input class="comp-input" type="number" value="'+r.esp+'" onchange="excRows.find(x=>x.id==='+r.id+').esp=+this.value;calcExc()"></td>'
-      +'<td style="font-weight:700;color:var(--golt);text-align:center" id="exc-vesp-'+r.id+'">—</td>'
-      +'<td><button class="btn btn-del btn-sm" onclick="excRows=excRows.filter(x=>x.id!=='+r.id+');renderExcRows();calcExc()">×</button></td>'
-      +'</tr>';
-  }).join('');
-  calcExc();
-}
-
-function calcExc(){
-  var totVol=0,totEsp=0,totCost=0;
-  var puMec=+(document.getElementById('pu-exc-mec')?.value||35);
-  var puMan=+(document.getElementById('pu-exc-man')?.value||55);
-  var puRel=+(document.getElementById('pu-relleno')?.value||20);
-  excRows.forEach(function(r){
-    var vol=r.l*r.a*r.p*r.c;
-    var vesp=vol*(1+r.esp/100);
-    var pu=r.tipo==='manual'?puMan:(r.tipo==='relleno'?puRel:puMec);
-    var cost=vol*pu;
-    totVol+=(r.tipo==='relleno'?0:vol);
-    totEsp+=(r.tipo==='relleno'?0:vesp);
-    totCost+=cost;
-    var ve=document.getElementById('exc-vol-'+r.id);if(ve)ve.textContent=vol.toFixed(2)+' m³';
-    var vee=document.getElementById('exc-vesp-'+r.id);if(vee)vee.textContent=vesp.toFixed(2)+' m³';
-  });
-  var e1=document.getElementById('exc-tot-vol');if(e1)e1.textContent=totVol.toFixed(2)+' m³';
-  var e2=document.getElementById('exc-tot-esp');if(e2)e2.textContent=totEsp.toFixed(2)+' m³';
-  var e3=document.getElementById('exc-tot-cost');if(e3)e3.textContent='USD '+Math.round(totCost).toLocaleString();
-}
-
-// ── BASES H°A° ────────────────────────────────────────────────────────
-var basesRows=[];var basesId=0;
-
-function basesAddRow(){
-  basesId++;
-  var id=basesId;
-  basesRows.push({id:id,desc:'Zapata '+id,tipo:'aislada',l:0.8,a:0.8,h:0.4,c:4,diam:16,sep:0.20,rec:0.05,desp:5});
-  renderBasesRows();
-}
-
-function renderBasesRows(){
-  var tbody=document.getElementById('bases-rows');
-  if(!tbody)return;
-  tbody.innerHTML=basesRows.map(function(r){
-    return '<tr>'
-      +'<td><input class="comp-input" style="width:110px" value="'+r.desc+'" onchange="basesRows.find(x=>x.id==='+r.id+').desc=this.value"></td>'
-      +'<td><select class="comp-sel" onchange="basesRows.find(x=>x.id==='+r.id+').tipo=this.value;calcBases()">'
-      +'<option value="aislada"'+(r.tipo==='aislada'?' selected':'')+'>Aislada</option>'
-      +'<option value="corrida"'+(r.tipo==='corrida'?' selected':'')+'>Corrida</option>'
-      +'<option value="platea"'+(r.tipo==='platea'?' selected':'')+'>Platea</option>'
-      +'</select></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.l+'" step="0.05" onchange="basesRows.find(x=>x.id==='+r.id+').l=+this.value;calcBases()"></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.a+'" step="0.05" onchange="basesRows.find(x=>x.id==='+r.id+').a=+this.value;calcBases()"></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.h+'" step="0.05" onchange="basesRows.find(x=>x.id==='+r.id+').h=+this.value;calcBases()"></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.c+'" onchange="basesRows.find(x=>x.id==='+r.id+').c=+this.value;calcBases()"></td>'
-      +'<td style="font-weight:700;color:var(--bt);text-align:center" id="bas-vol-'+r.id+'">—</td>'
-      +'<td><input class="comp-input" type="number" value="'+r.diam+'" onchange="basesRows.find(x=>x.id==='+r.id+').diam=+this.value;calcBases()"></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.sep+'" step="0.05" onchange="basesRows.find(x=>x.id==='+r.id+').sep=+this.value;calcBases()"></td>'
-      +'<td style="font-weight:700;color:var(--golt);text-align:center" id="bas-hie-'+r.id+'">—</td>'
-      +'<td><button class="btn btn-del btn-sm" onclick="basesRows=basesRows.filter(x=>x.id!=='+r.id+');renderBasesRows();calcBases()">×</button></td>'
-      +'</tr>';
-  }).join('');
-  calcBases();
-}
-
-function calcBases(){
-  var totVol=0,totHie=0,totCost=0;
-  var puH=+(document.getElementById('pu-horm21')?.value||450);
-  var puHie=+(document.getElementById('pu-hierro')?.value||1.90);
-  basesRows.forEach(function(r){
-    var vol=r.l*r.a*r.h*r.c;
-    // Hierro: barras en dos direcciones
-    var densHie=7850; // kg/m³ acero
-    var area=Math.PI*Math.pow(r.diam/1000/2,2);
-    var nBarrasL=Math.floor((r.a-2*r.rec)/r.sep)+1;
-    var nBarrasA=Math.floor((r.l-2*r.rec)/r.sep)+1;
-    var longBarrasL=(r.l-2*r.rec+0.3)*nBarrasL; // +gancho
-    var longBarrasA=(r.a-2*r.rec+0.3)*nBarrasA;
-    var longTotal=(longBarrasL+longBarrasA)*r.c;
-    var hie=longTotal*area*densHie*(1+r.desp/100);
-    totVol+=vol;
-    totHie+=hie;
-    totCost+=vol*puH+hie*puHie;
-    var bv=document.getElementById('bas-vol-'+r.id);if(bv)bv.textContent=vol.toFixed(3)+' m³';
-    var bh=document.getElementById('bas-hie-'+r.id);if(bh)bh.textContent=Math.round(hie)+' kg';
-  });
-  var e1=document.getElementById('bases-tot-vol');if(e1)e1.textContent=totVol.toFixed(3)+' m³';
-  var e2=document.getElementById('bases-tot-hie');if(e2)e2.textContent=Math.round(totHie)+' kg';
-  var e3=document.getElementById('bases-tot-cost');if(e3)e3.textContent='USD '+Math.round(totCost).toLocaleString();
-}
-
-// ── H°A° ESTRUCTURA ───────────────────────────────────────────────────
-var estRows=[];var estId=0;
-
-function estAddRow(){
-  estId++;
-  var id=estId;
-  estRows.push({id:id,desc:'Columna '+id,elem:'columna',d1:0.25,d2:0.25,lon:3.0,c:1,kgm3:120});
-  renderEstRows();
-}
-
-function renderEstRows(){
-  var tbody=document.getElementById('est-rows');
-  if(!tbody)return;
-  tbody.innerHTML=estRows.map(function(r){
-    var encLabel={columna:'Perímetro×Alt',viga:'Perim×Long',losa:'Área sup.'};
-    return '<tr>'
-      +'<td><input class="comp-input" style="width:110px" value="'+r.desc+'" onchange="estRows.find(x=>x.id==='+r.id+').desc=this.value"></td>'
-      +'<td><select class="comp-sel" onchange="estRows.find(x=>x.id==='+r.id+').elem=this.value;calcEst()">'
-      +'<option value="columna"'+(r.elem==='columna'?' selected':'')+'>Columna</option>'
-      +'<option value="viga"'+(r.elem==='viga'?' selected':'')+'>Viga</option>'
-      +'<option value="losa"'+(r.elem==='losa'?' selected':'')+'>Losa</option>'
-      +'<option value="escalera"'+(r.elem==='escalera'?' selected':'')+'>Escalera</option>'
-      +'</select></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.d1+'" step="0.05" title="Ancho/Dim1" onchange="estRows.find(x=>x.id==='+r.id+').d1=+this.value;calcEst()"></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.d2+'" step="0.05" title="Altura secc/Dim2" onchange="estRows.find(x=>x.id==='+r.id+').d2=+this.value;calcEst()"></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.lon+'" step="0.1" title="Longitud/Altura" onchange="estRows.find(x=>x.id==='+r.id+').lon=+this.value;calcEst()"></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.c+'" onchange="estRows.find(x=>x.id==='+r.id+').c=+this.value;calcEst()"></td>'
-      +'<td style="font-weight:700;color:var(--bt);text-align:center" id="est-vol-'+r.id+'">—</td>'
-      +'<td><input class="comp-input" type="number" value="'+r.kgm3+'" title="kg hierro por m³ H°A°" onchange="estRows.find(x=>x.id==='+r.id+').kgm3=+this.value;calcEst()"></td>'
-      +'<td style="font-weight:700;color:var(--golt);text-align:center" id="est-hie-'+r.id+'">—</td>'
-      +'<td style="color:var(--tx2);text-align:center" id="est-enc-'+r.id+'">—</td>'
-      +'<td><button class="btn btn-del btn-sm" onclick="estRows=estRows.filter(x=>x.id!=='+r.id+');renderEstRows();calcEst()">×</button></td>'
-      +'</tr>';
-  }).join('');
-  calcEst();
-}
-
-function calcEst(){
-  var totVol=0,totHie=0,totEnc=0;
-  estRows.forEach(function(r){
-    var vol,enc;
-    if(r.elem==='losa'){
-      vol=r.d1*r.lon*r.d2*r.c; // largo×ancho×espesor
-      enc=r.d1*r.lon*r.c;
-    } else {
-      vol=r.d1*r.d2*r.lon*r.c;
-      enc=(r.elem==='columna'?2*(r.d1+r.d2)*r.lon*r.c:2*(r.d1+r.d2)*r.lon*r.c);
-    }
-    var hie=vol*r.kgm3;
-    totVol+=vol;totHie+=hie;totEnc+=enc;
-    var ev=document.getElementById('est-vol-'+r.id);if(ev)ev.textContent=vol.toFixed(3)+' m³';
-    var eh=document.getElementById('est-hie-'+r.id);if(eh)eh.textContent=Math.round(hie)+' kg';
-    var ee=document.getElementById('est-enc-'+r.id);if(ee)ee.textContent=Math.round(enc)+' m²';
-  });
-  var e1=document.getElementById('est-tot-vol');if(e1)e1.textContent=totVol.toFixed(3)+' m³';
-  var e2=document.getElementById('est-tot-hie');if(e2)e2.textContent=Math.round(totHie)+' kg';
-  var e3=document.getElementById('est-tot-enc');if(e3)e3.textContent=Math.round(totEnc)+' m²';
-}
-
-// ── ESTRUCTURA METÁLICA ────────────────────────────────────────────────
-var metalRows=[];var metalId=0;
-var PERFILES={'IPN100':8.34,'IPN120':11.1,'IPN140':14.3,'IPN160':17.9,'IPN180':21.9,'IPN200':26.2,'IPE200':22.4,'UPN100':10.6,'UPN120':13.4,'UPN140':16.0,'UPN160':18.8,'L50x5':3.77,'L60x6':5.42,'L80x8':9.66,'Caño100x100x4':12.0,'Caño150x100x5':18.0,'Barra20':2.47,'Barra25':3.85};
-
-function metalAddRow(){
-  metalId++;
-  var id=metalId;
-  metalRows.push({id:id,desc:'Viga '+id,perfil:'IPN160',lon:6,c:1});
-  renderMetalRows();
-}
-
-function renderMetalRows(){
-  var tbody=document.getElementById('metal-rows');
-  if(!tbody)return;
-  tbody.innerHTML=metalRows.map(function(r){
-    var opts=Object.keys(PERFILES).map(function(p){return '<option'+(p===r.perfil?' selected':'')+'>'+p+'</option>';}).join('');
-    return '<tr>'
-      +'<td><input class="comp-input" style="width:110px" value="'+r.desc+'" onchange="metalRows.find(x=>x.id==='+r.id+').desc=this.value"></td>'
-      +'<td><select class="comp-sel" onchange="metalRows.find(x=>x.id==='+r.id+').perfil=this.value;calcMetal()">'+opts+'</select></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.lon+'" step="0.1" onchange="metalRows.find(x=>x.id==='+r.id+').lon=+this.value;calcMetal()"></td>'
-      +'<td><input class="comp-input" type="number" value="'+r.c+'" onchange="metalRows.find(x=>x.id==='+r.id+').c=+this.value;calcMetal()"></td>'
-      +'<td style="text-align:center;color:var(--tx2)" id="met-ml-'+r.id+'">—</td>'
-      +'<td style="text-align:center;color:var(--tx3)" id="met-kgm-'+r.id+'">—</td>'
-      +'<td style="font-weight:700;color:var(--golt);text-align:center" id="met-kg-'+r.id+'">—</td>'
-      +'<td><button class="btn btn-del btn-sm" onclick="metalRows=metalRows.filter(x=>x.id!=='+r.id+');renderMetalRows();calcMetal()">×</button></td>'
-      +'</tr>';
-  }).join('');
-  calcMetal();
-}
-
-function calcMetal(){
-  var totMl=0,totKg=0,totCost=0;
-  var puAcero=+(document.getElementById('pu-acero')?.value||2.20);
-  metalRows.forEach(function(r){
-    var ml=r.lon*r.c;
-    var kgm=PERFILES[r.perfil]||15;
-    var kg=ml*kgm;
-    totMl+=ml;totKg+=kg;totCost+=kg*puAcero;
-    var mm=document.getElementById('met-ml-'+r.id);if(mm)mm.textContent=ml.toFixed(1)+' ml';
-    var mk=document.getElementById('met-kgm-'+r.id);if(mk)mk.textContent=kgm+' kg/m';
-    var mt=document.getElementById('met-kg-'+r.id);if(mt)mt.textContent=Math.round(kg)+' kg';
-  });
-  var e1=document.getElementById('metal-tot-ml');if(e1)e1.textContent=totMl.toFixed(1)+' ml';
-  var e2=document.getElementById('metal-tot-kg');if(e2)e2.textContent=Math.round(totKg)+' kg';
-  var e3=document.getElementById('metal-tot-cost');if(e3)e3.textContent='USD '+Math.round(totCost).toLocaleString();
-}
-
-// ── APU RESUMEN ────────────────────────────────────────────────────────
-function calcAPU(){
-  var puH21=+(document.getElementById('pu-horm21')?.value||450);
-  var puH25=+(document.getElementById('pu-horm25')?.value||520);
-  var puHie=+(document.getElementById('pu-hierro')?.value||1.90);
-  var puEnc=+(document.getElementById('pu-encofrado')?.value||28);
-  var puAce=+(document.getElementById('pu-acero')?.value||2.20);
-  var puMec=+(document.getElementById('pu-exc-mec')?.value||35);
-  var tc=+(document.getElementById('apu-tc')?.value||1460);
-
-  // Get totals from each module
-  var excVol=excRows.reduce(function(a,r){return r.tipo!=='relleno'?a+r.l*r.a*r.p*r.c:a;},0);
-  var excRel=excRows.reduce(function(a,r){return r.tipo==='relleno'?a+r.l*r.a*r.p*r.c:a;},0);
-  var basVol=basesRows.reduce(function(a,r){return a+r.l*r.a*r.h*r.c;},0);
-  var basHie=basesRows.reduce(function(a,r){
-    var area=Math.PI*Math.pow(r.diam/1000/2,2);
-    var densHie=7850;
-    var nL=Math.floor((r.a-2*r.rec)/r.sep)+1;
-    var nA=Math.floor((r.l-2*r.rec)/r.sep)+1;
-    return a+(((r.l-2*r.rec+0.3)*nL+(r.a-2*r.rec+0.3)*nA)*r.c)*area*densHie*(1+r.desp/100);
-  },0);
-  var estVol=estRows.reduce(function(a,r){
-    return a+(r.elem==='losa'?r.d1*r.lon*r.d2*r.c:r.d1*r.d2*r.lon*r.c);
-  },0);
-  var estHie=estRows.reduce(function(a,r){
-    var vol=r.elem==='losa'?r.d1*r.lon*r.d2*r.c:r.d1*r.d2*r.lon*r.c;
-    return a+vol*r.kgm3;
-  },0);
-  var estEnc=estRows.reduce(function(a,r){
-    return a+(r.elem==='losa'?r.d1*r.lon*r.c:2*(r.d1+r.d2)*r.lon*r.c);
-  },0);
-  var metKg=metalRows.reduce(function(a,r){return a+r.lon*r.c*(PERFILES[r.perfil]||15);},0);
-
-  var rubros=[
-    {desc:'Excavación mecánica',u:'m³',q:excVol.toFixed(2),pu:puMec,t:excVol*puMec},
-    {desc:'Relleno compactado',u:'m³',q:excRel.toFixed(2),pu:+(document.getElementById('pu-relleno')?.value||20),t:excRel*(+(document.getElementById('pu-relleno')?.value||20))},
-    {desc:'H°A° H-21 Fundaciones',u:'m³',q:basVol.toFixed(3),pu:puH21,t:basVol*puH21},
-    {desc:'Hierro fundaciones',u:'kg',q:Math.round(basHie),pu:puHie,t:basHie*puHie},
-    {desc:'H°A° H-25 Estructura',u:'m³',q:estVol.toFixed(3),pu:puH25,t:estVol*puH25},
-    {desc:'Hierro estructura',u:'kg',q:Math.round(estHie),pu:puHie,t:estHie*puHie},
-    {desc:'Encofrado estructura',u:'m²',q:Math.round(estEnc),pu:puEnc,t:estEnc*puEnc},
-    {desc:'Estructura metálica',u:'kg',q:Math.round(metKg),pu:puAce,t:metKg*puAce},
-  ].filter(function(r){return +r.q>0;});
-
-  var tbody=document.getElementById('apu-rows');
-  if(tbody){
-    tbody.innerHTML=rubros.map(function(r){
-      return '<tr>'
-        +'<td class="p">'+r.desc+'</td>'
-        +'<td style="text-align:center;color:var(--tx3)">'+r.u+'</td>'
-        +'<td style="text-align:right">'+r.q+'</td>'
-        +'<td style="text-align:right;color:var(--tx2)">USD '+r.pu.toFixed(2)+'</td>'
-        +'<td style="text-align:right;font-weight:700;color:var(--bt)">USD '+Math.round(r.t).toLocaleString()+'</td>'
-        +'<td style="text-align:right;color:var(--golt)">$'+Math.round(r.t*tc).toLocaleString()+'</td>'
-        +'</tr>';
-    }).join('');
-  }
-  var total=rubros.reduce(function(a,r){return a+r.t;},0);
-  var tu=document.getElementById('apu-total-usd');if(tu)tu.textContent='USD '+Math.round(total).toLocaleString();
-  var ta=document.getElementById('apu-total-ars');if(ta)ta.textContent='$ '+Math.round(total*tc).toLocaleString();
-}
-
 function compExportPDF(){
   calcAPU();
   var puH21=+(document.getElementById('pu-horm21')?.value||450);
@@ -3916,6 +3664,621 @@ function compExportPDF(){
   win.document.close();
   setTimeout(function(){win.print();},500);
 }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   MÓDULO CÓMPUTO MÉTRICO Y PRESUPUESTO DE OBRA
+   Sistema APU según planilla PRARES ARQUITECTURA - Ushuaia TDF
+   ══════════════════════════════════════════════════════════════════ */
+
+// ── PRECIOS BASE ($ ARS actualizado) ─────────────────────────────────
+var CP_MATS = [
+  {id:'exc-bases', nom:'EXCAVACIÓN, BASES', un:'m³', p:18953},
+  {id:'exc-va', nom:'EXCAVACIÓN V.A.', un:'m³', p:20005},
+  {id:'relleno', nom:'COMPACTACIÓN SUELO SELECCIONADO', un:'m³', p:33693},
+  {id:'horm-h17', nom:'HORMIGON H17', un:'m³', p:131615},
+  {id:'horm-h21', nom:'HORMIGON H21', un:'m³', p:138000},
+  {id:'horm-h25', nom:'HORMIGON H25', un:'m³', p:145303},
+  {id:'hie-6', nom:'HIERRO Ø6mm (barra 12m)', un:'un', p:17900},
+  {id:'hie-8', nom:'HIERRO Ø8mm (barra 12m)', un:'un', p:30535},
+  {id:'hie-10', nom:'HIERRO Ø10mm (barra 12m)', un:'un', p:46328},
+  {id:'hie-12', nom:'HIERRO Ø12mm (barra 12m)', un:'un', p:65281},
+  {id:'hie-16', nom:'HIERRO Ø16mm (barra 12m)', un:'un', p:113715},
+  {id:'hie-20', nom:'HIERRO Ø20mm (barra 12m)', un:'un', p:173732},
+  {id:'malla-6', nom:'MALLA Ø6mm 15×15 (2.15×6m)', un:'un', p:257965},
+  {id:'malla-8', nom:'MALLA Ø8mm 15×15 (2.15×6m)', un:'un', p:410638},
+  {id:'malla-5', nom:'MALLA Ø5mm 20×20 (2.15×6m)', un:'m²', p:100027},
+  {id:'poliet', nom:'POLIETILENO 200 micrones', un:'m²', p:2632},
+  {id:'aisl-tb10', nom:'AISLANTE TÉRMICO MANTA TB10 (rollo×20m)', un:'un', p:47381},
+  {id:'aisl-lv2', nom:'AISLANTE LANA DE VIDRIO 2" (rollo 1.2×18m)', un:'un', p:68440},
+  {id:'barrera-wichi', nom:'BARRERA VAPOR WICHI (rollo 1.16×26m)', un:'un', p:37905},
+  {id:'chapa-gal', nom:'CHAPA GALVANIZADA PREPINTADA', un:'m²', p:19479},
+  {id:'chapa-enc', nom:'CHAPA GALVANIZADA (encofrado)', un:'m²', p:22111},
+  {id:'pgc100', nom:'PGC 100-0,94 (largo 6m)', un:'un', p:18953},
+  {id:'pgu100', nom:'PGU 100-0,94 (largo 6m)', un:'un', p:17373},
+  {id:'pc-100', nom:'PERFIL C 100-50-15-1,6 (largo 12m)', un:'un', p:163202},
+  {id:'pc-120', nom:'PERFIL C 120-50-15-2 (largo 12m)', un:'un', p:233748},
+  {id:'flejes', nom:'FLEJES 50-2mm', un:'ml', p:4738},
+  {id:'bloq-20', nom:'BLOQUES HORMIGON 20×20×40cm', un:'un', p:2632},
+  {id:'cemento', nom:'CEMENTO (bolsa 50 kg)', un:'un', p:12109},
+  {id:'cal', nom:'CAL HIDRATADA (bolsa 30 kg)', un:'un', p:6844},
+  {id:'arena', nom:'ARENA MEDIANA', un:'m³', p:31588},
+  {id:'osb', nom:'PLACA OSB 11mm (1.20×2.40m)', un:'un', p:33693},
+  {id:'yeso-12', nom:'PLACA YESO 12.5mm (1.20×2.40m)', un:'un', p:18426},
+  {id:'mont-34', nom:'MONTANTES 34mm (2.60m)', un:'un', p:5475},
+  {id:'mont-69', nom:'MONTANTES 69mm (2.60m)', un:'un', p:8002},
+  {id:'masilla', nom:'MASILLA DURLOCK (balde 28kg)', un:'un', p:25270},
+  {id:'tornillos', nom:'TORNILLOS AUTOPERF. 14×2½"', un:'un', p:505},
+  {id:'ceramico', nom:'CERÁMICO / PORCELANATO', un:'m²', p:25000},
+  {id:'flotante', nom:'PISO FLOTANTE', un:'m²', p:18000},
+  {id:'instalacion', nom:'INSTALACIÓN SANITARIA GL', un:'gl', p:2000000},
+  {id:'instalacion-el', nom:'INSTALACIÓN ELÉCTRICA GL', un:'gl', p:1500000},
+];
+
+// ── ÍTEMS DE OBRA (orden constructivo) ───────────────────────────────
+// mo: [{rol:'of'|'ay'|'ofEsp'|'mo', hh: horas/unidad}]
+// mat: [{id: materialId, cant: cantidad/unidad}]
+// dim: {tipo:'gl'|'rect'|'circ'} - tipo de cómputo dimensional
+
+var CP_ITEMS = [
+  // A. TAREAS PRELIMINARES
+  {cod:'A', rubro:'TAREAS PRELIMINARES'},
+  {cod:'A.1',nom:'Limpieza del terreno',un:'gl',q:1,dim:{tipo:'gl'},
+   mo:[{rol:'ay',hh:16}],mat:[]},
+  {cod:'A.2',nom:'Cartel de obra',un:'gl',q:1,dim:{tipo:'gl'},
+   mo:[{rol:'ay',hh:8}],mat:[]},
+  {cod:'A.3',nom:'Cerco de obra',un:'gl',q:1,dim:{tipo:'gl'},
+   mo:[{rol:'ay',hh:16}],mat:[]},
+  {cod:'A.4',nom:'Obrador',un:'gl',q:1,dim:{tipo:'gl'},
+   mo:[{rol:'ay',hh:24}],mat:[]},
+  {cod:'A.5',nom:'Replanteo',un:'gl',q:1,dim:{tipo:'gl'},
+   mo:[{rol:'of',hh:8},{rol:'ay',hh:8}],mat:[]},
+
+  // B. DEMOLICIÓN
+  {cod:'B', rubro:'DEMOLICIÓN'},
+  {cod:'B.1',nom:'Demolición mampostería 0,30m',un:'m³',q:0,
+   dim:{tipo:'rect',l:0,a:0.3,h:0,c:1,calc:'vol'},
+   mo:[{rol:'ay',hh:2.0}],mat:[]},
+  {cod:'B.2',nom:'Demolición mampostería 0,15m',un:'m³',q:0,
+   dim:{tipo:'rect',l:0,a:0.15,h:0,c:1,calc:'vol'},
+   mo:[{rol:'ay',hh:1.5}],mat:[]},
+  {cod:'B.3',nom:'Picado revoque existente',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'ay',hh:0.8}],mat:[]},
+
+  // C. MOVIMIENTO DE SUELOS
+  {cod:'C', rubro:'MOVIMIENTO DE SUELOS'},
+  {cod:'C.1',nom:'Excavación cimientos y carga',un:'m³',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
+   mo:[{rol:'ay',hh:1.5}],mat:[]},
+  {cod:'C.2',nom:'Excavación de pozos',un:'m³',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
+   mo:[{rol:'ay',hh:2.0}],mat:[]},
+  {cod:'C.3',nom:'Relleno y compactación',un:'m³',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
+   mo:[{rol:'ay',hh:0.8}],mat:[]},
+  {cod:'C.4',nom:'Desmonte',un:'m³',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
+   mo:[{rol:'ay',hh:1.2}],mat:[]},
+
+  // D. CIMIENTOS
+  {cod:'D', rubro:'CIMIENTOS'},
+  {cod:'D.1',nom:'Cimientos H° Ripio Bruto (1:12)',un:'m³',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
+   mat:[{id:'cemento',cant:3.32},{id:'horm-h17',cant:0}]},
+
+  // E. CAPA AISLADORA
+  {cod:'E', rubro:'CAPA AISLADORA'},
+  {cod:'E.1',nom:'Capa aisladora horizontal c/ pintura asfáltica',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.3}],mat:[]},
+
+  // F. CONTRAPISOS
+  {cod:'F', rubro:'CONTRAPISOS'},
+  {cod:'F.1',nom:'Contrapiso s/terreno natural 0,10m',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.5}],
+   mat:[{id:'horm-h17',cant:0.11},{id:'poliet',cant:1.1}]},
+  {cod:'F.2',nom:'Carpeta cementicia 2cm',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.4}],mat:[]},
+
+  // G. HORMIGÓN ARMADO - FUNDACIONES
+  {cod:'G', rubro:'HORMIGÓN ARMADO — FUNDACIONES'},
+  {cod:'G.1',nom:'Bases de H°A° (zapatas)',un:'m³',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol',label:'L×A×H×Cant'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
+   mat:[{id:'exc-bases',cant:1},{id:'hie-12',cant:1},{id:'hie-6',cant:1},{id:'horm-h21',cant:1}]},
+  {cod:'G.2',nom:'Vigas de fundación / Encadenado inferior',un:'m³',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
+   mat:[{id:'exc-va',cant:1},{id:'horm-h25',cant:1},{id:'hie-6',cant:1},{id:'hie-8',cant:1},{id:'hie-12',cant:1}]},
+  {cod:'G.3',nom:'Losa de fundación / Platea',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
+   mat:[{id:'poliet',cant:1},{id:'aisl-tb10',cant:0.05},{id:'malla-8',cant:1},{id:'hie-6',cant:1},{id:'hie-10',cant:1},{id:'horm-h25',cant:1}]},
+
+  // H. HORMIGÓN ARMADO - ESTRUCTURA
+  {cod:'H', rubro:'HORMIGÓN ARMADO — ESTRUCTURA'},
+  {cod:'H.1',nom:'Columnas de H°A°',un:'m³',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol',label:'A×B×Alto×Cant'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
+   mat:[{id:'hie-12',cant:1},{id:'hie-8',cant:1},{id:'horm-h25',cant:1}]},
+  {cod:'H.2',nom:'Vigas de H°A°',un:'m³',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:0,c:1,calc:'vol',label:'Ancho×Alt×Long×Cant'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
+   mat:[{id:'horm-h25',cant:1},{id:'hie-6',cant:1},{id:'hie-12',cant:1}]},
+  {cod:'H.3',nom:'Losas de H°A°',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
+   mat:[{id:'malla-8',cant:1},{id:'hie-10',cant:1},{id:'hie-6',cant:1}]},
+
+  // I. ESTRUCTURA METÁLICA
+  {cod:'I', rubro:'ESTRUCTURA METÁLICA'},
+  {cod:'I.1',nom:'Columnas, vigas y correas de Perfiles C',un:'kg',q:0,
+   dim:{tipo:'metal'},
+   mo:[{rol:'ofEsp',hh:0.02}],
+   mat:[{id:'pc-100',cant:0.01}]},
+  {cod:'I.2',nom:'Entrepiso metálico',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
+   mat:[{id:'horm-h17',cant:1},{id:'malla-6',cant:1},{id:'chapa-enc',cant:1}]},
+
+  // J. TABIQUES EXTERIORES
+  {cod:'J', rubro:'TABIQUES EXTERIORES (Steel Framing)'},
+  {cod:'J.1',nom:'Tabique estructural PGU+PGC+OSB',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.6},{rol:'ay',hh:0.6}],
+   mat:[{id:'pgc100',cant:0.17},{id:'pgu100',cant:0.08},{id:'osb',cant:0.37},{id:'barrera-wichi',cant:1},{id:'aisl-lv2',cant:0.06}]},
+
+  // K. CUBIERTA
+  {cod:'K', rubro:'CUBIERTA'},
+  {cod:'K.1',nom:'Cubierta chapa galvanizada prepintada',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
+   mat:[{id:'chapa-gal',cant:1},{id:'malla-5',cant:1},{id:'barrera-wichi',cant:0.02},{id:'aisl-lv2',cant:0.05}]},
+
+  // L. MAMPOSTERÍA
+  {cod:'L', rubro:'MAMPOSTERÍA'},
+  {cod:'L.1',nom:'Mampostería bloques 0,20m + Durlock',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.8}],
+   mat:[{id:'bloq-20',cant:12.5},{id:'arena',cant:0.04},{id:'cemento',cant:0.5},{id:'cal',cant:0.32}]},
+  {cod:'L.2',nom:'Tabiques interiores Durlock 70mm',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.4}],
+   mat:[{id:'mont-69',cant:0.7},{id:'yeso-12',cant:0.9},{id:'masilla',cant:0.05}]},
+
+  // M. CIELORRASOS
+  {cod:'M', rubro:'CIELORRASOS'},
+  {cod:'M.1',nom:'Cielorraso suspendido placa yeso',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.4}],
+   mat:[{id:'yeso-12',cant:0.4},{id:'mont-34',cant:0.4},{id:'masilla',cant:0.05}]},
+
+  // N. PISOS Y REVESTIMIENTOS
+  {cod:'N', rubro:'PISOS Y REVESTIMIENTOS'},
+  {cod:'N.1',nom:'Piso cerámico/porcelanato',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.5},{rol:'ay',hh:0.5}],
+   mat:[{id:'ceramico',cant:1.1}]},
+  {cod:'N.2',nom:'Piso flotante',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.3}],
+   mat:[{id:'flotante',cant:1.1}]},
+  {cod:'N.3',nom:'Revestimiento cerámico',un:'m²',q:0,
+   dim:{tipo:'rect',l:0,a:0,h:1,c:1,calc:'sup'},
+   mo:[{rol:'of',hh:0.6},{rol:'ay',hh:0.5}],
+   mat:[{id:'ceramico',cant:1.1}]},
+
+  // O. CARPINTERÍAS
+  {cod:'O', rubro:'CARPINTERÍAS'},
+  {cod:'O.1',nom:'Puertas interiores',un:'un',q:0,
+   dim:{tipo:'gl'},
+   mo:[{rol:'of',hh:4}],mat:[]},
+  {cod:'O.2',nom:'Ventanas PVC',un:'un',q:0,
+   dim:{tipo:'gl'},
+   mo:[{rol:'of',hh:3}],mat:[]},
+
+  // P. INSTALACIONES
+  {cod:'P', rubro:'INSTALACIONES'},
+  {cod:'P.1',nom:'Instalación sanitaria',un:'gl',q:1,
+   dim:{tipo:'gl'},
+   mo:[{rol:'ofEsp',hh:120}],
+   mat:[{id:'instalacion',cant:1}]},
+  {cod:'P.2',nom:'Instalación eléctrica',un:'gl',q:1,
+   dim:{tipo:'gl'},
+   mo:[{rol:'ofEsp',hh:100}],
+   mat:[{id:'instalacion-el',cant:1}]},
+];
+
+// ── ESTADO ────────────────────────────────────────────────────────────
+var CP_STATE = {items: JSON.parse(JSON.stringify(CP_ITEMS))};
+
+function cpGetJor(){
+  return {
+    ofEsp: +(document.getElementById('jor-ofEsp')?.value||13663),
+    of:    +(document.getElementById('jor-of')?.value||11881),
+    ay:    +(document.getElementById('jor-ay')?.value||8645),
+    mo:    +(document.getElementById('jor-mo')?.value||9392),
+    cp:    +(document.getElementById('jor-cp')?.value||1.355),
+    fm:    +(document.getElementById('jor-fm')?.value||1.0529),
+    fmo:   +(document.getElementById('jor-fmo')?.value||1.086),
+    tc:    +(document.getElementById('cp-tc')?.value||1460),
+  };
+}
+
+function cpGetPrecio(matId){
+  var mat = CP_MATS.find(function(m){return m.id===matId;});
+  if(!mat) return 0;
+  // Price from editable table
+  var el = document.getElementById('cpmat-'+matId);
+  return el ? +el.value : mat.p;
+}
+
+function cpCalcAPU(item){
+  var jor = cpGetJor();
+  var moTotal = (item.mo||[]).reduce(function(a,r){
+    return a + r.hh * (jor[r.rol]||0);
+  }, 0);
+  var matTotal = (item.mat||[]).reduce(function(a,m){
+    return a + m.cant * cpGetPrecio(m.id);
+  }, 0);
+  var equipos = 0.02 * (moTotal + matTotal);
+  var costo = moTotal + matTotal + equipos;
+  var precio = costo * jor.cp;
+  return {moTotal:moTotal, matTotal:matTotal, equipos:equipos, costo:costo, precio:precio};
+}
+
+function cpCalcAll(){
+  cpRenderPpto();
+}
+
+// ── TAB NAVIGATION ───────────────────────────────────────────────────
+function cpTab(btn){
+  var tab = btn.dataset.tab;
+  ['cp-param','cp-comp','cp-apu','cp-ppto'].forEach(function(t){
+    var el=document.getElementById(t);
+    if(el) el.style.display = t===tab ? '' : 'none';
+  });
+  document.querySelectorAll('.comp-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  if(tab==='cp-comp') cpRenderComp();
+  if(tab==='cp-apu') cpRenderAPU();
+  if(tab==='cp-ppto') cpRenderPpto();
+}
+
+// ── RENDER: TABLA DE PRECIOS ──────────────────────────────────────────
+function cpRenderPrecios(){
+  var tbody = document.getElementById('cp-precios-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = CP_MATS.map(function(m){
+    return '<tr>'
+      +'<td style="font-size:10px">'+m.nom+'</td>'
+      +'<td style="text-align:center;color:var(--tx3);font-size:10px">'+m.un+'</td>'
+      +'<td><input type="number" id="cpmat-'+m.id+'" class="comp-input" style="width:90px;text-align:right" value="'+m.p+'" oninput="cpCalcAll()"></td>'
+      +'</tr>';
+  }).join('');
+}
+
+function cpAddMat(){
+  var nom = prompt('Nombre del material:');
+  if(!nom) return;
+  var un = prompt('Unidad (m², m³, un, kg, ml):','un');
+  var p = prompt('Precio ARS:','0');
+  var id = 'custom-'+Date.now();
+  CP_MATS.push({id:id, nom:nom, un:un||'un', p:+p||0});
+  cpRenderPrecios();
+}
+
+// ── RENDER: CÓMPUTO DIMENSIONAL ──────────────────────────────────────
+function cpRenderComp(){
+  var el = document.getElementById('cp-rubros-comp');
+  if(!el) return;
+  var html = '';
+  var curRubro = '';
+  CP_STATE.items.forEach(function(item, idx){
+    if(item.rubro){
+      html += '<div class="fsc" style="margin:16px 0 8px;font-size:11px;font-weight:700;color:var(--bt);letter-spacing:.08em">'
+        +item.cod+'. '+item.rubro+'</div>';
+      curRubro = item.rubro;
+      return;
+    }
+    html += '<div class="card" style="margin-bottom:8px;padding:12px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      +'<div style="font-size:12px;font-weight:700;color:var(--tx)"><span style="color:var(--tx3);margin-right:4px">'+item.cod+'</span>'+item.nom+'</div>'
+      +'<div style="font-size:11px;color:var(--tx3)">UN: '+item.un+'</div></div>';
+
+    if(item.dim && item.dim.tipo === 'gl'){
+      html += '<div class="fg" style="max-width:160px"><label class="fl">Cantidad</label>'
+        +'<input class="fi" type="number" value="'+item.q+'" min="0" step="0.1" oninput="CP_STATE.items['+idx+'].q=+this.value;cpCalcAll()" style="text-align:center">'
+        +'</div>';
+    } else if(item.dim && item.dim.tipo === 'metal'){
+      html += '<div class="g3" style="gap:8px">'
+        +'<div class="fg"><label class="fl">Peso total (kg)</label>'
+        +'<input class="fi" type="number" value="'+item.q+'" min="0" oninput="CP_STATE.items['+idx+'].q=+this.value;cpCalcAll()"></div>'
+        +'</div>';
+    } else if(item.dim){
+      var calc = item.dim.calc || 'vol';
+      var label = item.dim.label || (calc==='sup' ? 'Largo (m) × Ancho (m) × Cant.' : 'Largo (m) × Ancho (m) × Alto (m) × Cant.');
+      html += '<div style="font-size:9px;color:var(--tx3);margin-bottom:6px">'+label+'</div>';
+      html += '<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">';
+      if(calc==='vol'){
+        html += cpDimInput('Largo','l',idx,item.dim.l||0)
+              + cpDimInput('Ancho','a',idx,item.dim.a||0)
+              + cpDimInput('Alto','h',idx,item.dim.h||0)
+              + cpDimInput('Cant.','c',idx,item.dim.c||1);
+      } else {
+        html += cpDimInput('Largo','l',idx,item.dim.l||0)
+              + cpDimInput('Ancho','a',idx,item.dim.a||0)
+              + cpDimInput('Cant.','c',idx,item.dim.c||1);
+      }
+      html += '<div style="min-width:80px;text-align:center">'
+        +'<div style="font-size:9px;color:var(--tx3)">'+(calc==='sup'?'m²':'m³')+'</div>'
+        +'<div id="cp-res-'+idx+'" style="font-size:16px;font-weight:800;color:var(--bt)">'+cpCalcDim(item)+'</div>'
+        +'</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  el.innerHTML = html;
+  cpUpdateAllDims();
+}
+
+function cpDimInput(label, key, idx, val){
+  return '<div><label class="fl" style="font-size:9px">'+label+'</label>'
+    +'<input class="comp-input" type="number" value="'+val+'" step="0.05" min="0" '
+    +'oninput="CP_STATE.items['+idx+'].dim.'+key+'=+this.value;cpUpdateDim('+idx+')"></div>';
+}
+
+function cpCalcDim(item){
+  if(!item.dim) return item.q;
+  var d = item.dim;
+  var calc = d.calc || 'vol';
+  var v;
+  if(calc==='vol') v = (d.l||0)*(d.a||0)*(d.h||0)*(d.c||1);
+  else v = (d.l||0)*(d.a||0)*(d.c||1);
+  return Math.round(v*1000)/1000;
+}
+
+function cpUpdateDim(idx){
+  var item = CP_STATE.items[idx];
+  if(!item||!item.dim) return;
+  item.q = cpCalcDim(item);
+  var el = document.getElementById('cp-res-'+idx);
+  if(el) el.textContent = item.q;
+  cpCalcAll();
+}
+
+function cpUpdateAllDims(){
+  CP_STATE.items.forEach(function(item,idx){
+    if(item.dim && !item.rubro) cpUpdateDim(idx);
+  });
+}
+
+// ── RENDER: APU ───────────────────────────────────────────────────────
+function cpRenderAPU(){
+  var el = document.getElementById('cp-rubros-apu');
+  if(!el) return;
+  var html = '';
+  var jor = cpGetJor();
+  CP_STATE.items.forEach(function(item, idx){
+    if(item.rubro){
+      html += '<div class="fsc" style="margin:16px 0 8px;font-size:11px;font-weight:700;color:var(--bt)">'+item.cod+'. '+item.rubro+'</div>';
+      return;
+    }
+    var apu = cpCalcAPU(item);
+    html += '<div class="card" style="margin-bottom:8px;padding:12px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+      +'<div style="font-size:12px;font-weight:700"><span style="color:var(--tx3);margin-right:4px">'+item.cod+'</span>'+item.nom+'</div>'
+      +'<div style="text-align:right">'
+        +'<div style="font-size:9px;color:var(--tx3)">PRECIO / '+item.un+'</div>'
+        +'<div id="cp-apu-precio-'+idx+'" style="font-size:14px;font-weight:800;color:var(--bt)">$'+Math.round(apu.precio).toLocaleString('es-AR')+'</div>'
+      +'</div></div>';
+
+    // MO incidencias
+    html += '<div style="font-size:10px;font-weight:700;color:var(--tx2);margin-bottom:4px">MANO DE OBRA</div>';
+    html += '<div style="overflow-x:auto"><table class="dt" style="font-size:10px;margin-bottom:8px">'
+      +'<thead><tr><th>Categoría</th><th>hh/'+item.un+'</th><th>Jornal $/hh</th><th>Parcial $</th><th></th></tr></thead><tbody>';
+    (item.mo||[]).forEach(function(r, ri){
+      var jorVal = jor[r.rol]||0;
+      html += '<tr>'
+        +'<td><select class="comp-sel" style="font-size:10px" onchange="CP_STATE.items['+idx+'].mo['+ri+'].rol=this.value;cpUpdateAPUItem('+idx+')">'
+        +'<option value="ofEsp"'+(r.rol==='ofEsp'?' selected':'')+'>Oficial Esp.</option>'
+        +'<option value="of"'+(r.rol==='of'?' selected':'')+'>Oficial</option>'
+        +'<option value="mo"'+(r.rol==='mo'?' selected':'')+'>Medio Oficial</option>'
+        +'<option value="ay"'+(r.rol==='ay'?' selected':'')+'>Ayudante</option>'
+        +'</select></td>'
+        +'<td><input class="comp-input" type="number" value="'+r.hh+'" step="0.1" style="width:60px" oninput="CP_STATE.items['+idx+'].mo['+ri+'].hh=+this.value;cpUpdateAPUItem('+idx+')"></td>'
+        +'<td style="color:var(--tx3)">$'+Math.round(jorVal).toLocaleString('es-AR')+'</td>'
+        +'<td style="font-weight:700;color:var(--tx2)">$'+Math.round(r.hh*jorVal).toLocaleString('es-AR')+'</td>'
+        +'<td><button class="btn btn-del btn-sm" onclick="CP_STATE.items['+idx+'].mo.splice('+ri+',1);cpRenderAPU()">×</button></td>'
+        +'</tr>';
+    });
+    html += '</tbody></table></div>';
+    html += '<button class="btn btn-b" style="font-size:10px;padding:4px 10px;margin-bottom:8px" '
+      +'onclick="CP_STATE.items['+idx+'].mo.push({rol:\'ay\',hh:0.5});cpRenderAPU()">+ MO</button>';
+
+    // MAT incidencias
+    html += '<div style="font-size:10px;font-weight:700;color:var(--tx2);margin-bottom:4px">MATERIALES</div>';
+    html += '<div style="overflow-x:auto"><table class="dt" style="font-size:10px;margin-bottom:8px">'
+      +'<thead><tr><th>Material</th><th>UN</th><th>Cant/'+item.un+'</th><th>Precio unit $</th><th>Parcial $</th><th></th></tr></thead><tbody>';
+    (item.mat||[]).forEach(function(m, mi){
+      var mat = CP_MATS.find(function(x){return x.id===m.id;});
+      var p = cpGetPrecio(m.id);
+      html += '<tr>'
+        +'<td><select class="comp-sel" style="font-size:10px;max-width:180px" onchange="CP_STATE.items['+idx+'].mat['+mi+'].id=this.value;cpUpdateAPUItem('+idx+')">'
+        + CP_MATS.map(function(x){return '<option value="'+x.id+'"'+(x.id===m.id?' selected':'')+'>'+x.nom.substring(0,35)+'</option>';}).join('')
+        +'</select></td>'
+        +'<td style="color:var(--tx3)">'+(mat?mat.un:'')+'</td>'
+        +'<td><input class="comp-input" type="number" value="'+m.cant+'" step="0.01" style="width:60px" oninput="CP_STATE.items['+idx+'].mat['+mi+'].cant=+this.value;cpUpdateAPUItem('+idx+')"></td>'
+        +'<td style="color:var(--tx3)">$'+Math.round(p).toLocaleString('es-AR')+'</td>'
+        +'<td style="font-weight:700;color:var(--tx2)">$'+Math.round(m.cant*p).toLocaleString('es-AR')+'</td>'
+        +'<td><button class="btn btn-del btn-sm" onclick="CP_STATE.items['+idx+'].mat.splice('+mi+',1);cpRenderAPU()">×</button></td>'
+        +'</tr>';
+    });
+    html += '</tbody></table></div>';
+    html += '<button class="btn btn-b" style="font-size:10px;padding:4px 10px;margin-bottom:8px" '
+      +'onclick="CP_STATE.items['+idx+'].mat.push({id:CP_MATS[0].id,cant:1});cpRenderAPU()">+ Material</button>';
+
+    // Resumen APU
+    html += '<div style="background:var(--bg3);border-radius:6px;padding:8px 12px;margin-top:4px;font-size:11px">'
+      +'<div style="display:flex;justify-content:space-between"><span style="color:var(--tx3)">MO total</span><span>$'+Math.round(apu.moTotal).toLocaleString('es-AR')+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between"><span style="color:var(--tx3)">MAT total</span><span>$'+Math.round(apu.matTotal).toLocaleString('es-AR')+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between"><span style="color:var(--tx3)">Equipos (2%)</span><span>$'+Math.round(apu.equipos).toLocaleString('es-AR')+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;border-top:1px solid var(--br);margin-top:4px;padding-top:4px"><span style="font-weight:700">COSTO</span><span style="font-weight:700">$'+Math.round(apu.costo).toLocaleString('es-AR')+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;color:var(--tx3)"><span>× Coef. Pase ('+jor.cp+')</span></div>'
+      +'<div style="display:flex;justify-content:space-between"><span style="font-weight:800;color:var(--bt)">PRECIO / '+item.un+'</span>'
+      +'<span style="font-weight:800;color:var(--bt)">$'+Math.round(apu.precio).toLocaleString('es-AR')+'</span></div>'
+      +'</div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function cpUpdateAPUItem(idx){
+  var item = CP_STATE.items[idx];
+  var apu = cpCalcAPU(item);
+  var el = document.getElementById('cp-apu-precio-'+idx);
+  if(el) el.textContent = '$'+Math.round(apu.precio).toLocaleString('es-AR');
+  cpRenderPpto();
+}
+
+// ── RENDER: PRESUPUESTO ───────────────────────────────────────────────
+function cpRenderPpto(){
+  var tbody = document.getElementById('cp-ppto-body');
+  if(!tbody) return;
+  var jor = cpGetJor();
+  var totARS = 0, totUSD = 0;
+  var html = '';
+  var rowNum = 0;
+
+  CP_STATE.items.forEach(function(item, idx){
+    if(item.rubro){
+      html += '<tr style="background:rgba(96,165,250,.08)">'
+        +'<td colspan="9" style="font-size:11px;font-weight:700;color:var(--bt);padding:8px 10px">'
+        +item.cod+'. '+item.rubro+'</td></tr>';
+      rowNum = 0;
+      return;
+    }
+    rowNum++;
+    var apu = cpCalcAPU(item);
+    var totalARS = apu.precio * item.q;
+    var totalUSD = totalARS / jor.tc;
+    totARS += totalARS;
+    totUSD += totalUSD;
+
+    html += '<tr>'
+      +'<td style="color:var(--tx3);font-size:10px;text-align:center">'+item.cod+'</td>'
+      +'<td class="p" style="font-size:11px">'+item.nom+'</td>'
+      +'<td style="text-align:center;color:var(--tx3);font-size:10px">'+item.un+'</td>'
+      +'<td style="text-align:right">'+(item.q||0)+'</td>'
+      +'<td style="text-align:right;color:var(--tx2)">$'+Math.round(apu.matTotal*(apu.precio/Math.max(apu.costo,1))*jor.cp).toLocaleString('es-AR')+'</td>'
+      +'<td style="text-align:right;color:var(--tx2)">$'+Math.round(apu.moTotal*(apu.precio/Math.max(apu.costo,1))*jor.cp).toLocaleString('es-AR')+'</td>'
+      +'<td style="text-align:right;font-weight:700;color:var(--bt)">$'+Math.round(apu.precio).toLocaleString('es-AR')+'</td>'
+      +'<td style="text-align:right;font-weight:700;color:var(--golt)">$'+Math.round(totalARS).toLocaleString('es-AR')+'</td>'
+      +'<td style="text-align:right;font-weight:700;color:var(--bt)">USD '+Math.round(totalUSD).toLocaleString('es-AR')+'</td>'
+      +'</tr>';
+  });
+
+  tbody.innerHTML = html;
+  var te = document.getElementById('cp-tot-ars');
+  if(te) te.textContent = '$'+Math.round(totARS).toLocaleString('es-AR');
+  var tu = document.getElementById('cp-tot-usd');
+  if(tu) tu.textContent = 'USD '+Math.round(totUSD).toLocaleString('es-AR');
+}
+
+// ── GUARDAR/CARGAR ────────────────────────────────────────────────────
+function cpGuardar(){
+  try{
+    localStorage.setItem('obraerp_computo', JSON.stringify({
+      items: CP_STATE.items,
+      mats: CP_MATS.map(function(m){
+        var el=document.getElementById('cpmat-'+m.id);
+        return Object.assign({},m,{p:el?+el.value:m.p});
+      })
+    }));
+    toast('✓ Cómputo guardado');
+  }catch(e){toast('Error al guardar');}
+}
+
+function cpCargar(){
+  try{
+    var d = localStorage.getItem('obraerp_computo');
+    if(!d) return;
+    var obj = JSON.parse(d);
+    if(obj.items) CP_STATE.items = obj.items;
+    if(obj.mats) obj.mats.forEach(function(m){
+      var orig = CP_MATS.find(function(x){return x.id===m.id;});
+      if(orig) orig.p = m.p;
+    });
+  }catch(e){}
+}
+
+// ── PDF ───────────────────────────────────────────────────────────────
+function cpPDF(){
+  cpRenderPpto();
+  var jor = cpGetJor();
+  var emp = Object.assign({},EMPRESA);
+  if(!emp.logo) emp.logo = localStorage.getItem('obraerp_logo')||'';
+  if(!emp.qr)   emp.qr   = localStorage.getItem('obraerp_qr')||'';
+
+  var totARS=0, totUSD=0;
+  var rows = '';
+  CP_STATE.items.forEach(function(item){
+    if(item.rubro){
+      rows += '<tr style="background:#f0f4f8"><td colspan="7" style="font-weight:700;font-size:9pt;padding:5px 8px;color:#1e3a5f">'+item.cod+'. '+item.rubro+'</td></tr>';
+      return;
+    }
+    var apu = cpCalcAPU(item);
+    var tARS = apu.precio * item.q;
+    var tUSD = tARS / jor.tc;
+    totARS += tARS; totUSD += tUSD;
+    rows += '<tr>'
+      +'<td style="color:#888;font-size:8pt">'+item.cod+'</td>'
+      +'<td style="font-size:8pt">'+item.nom+'</td>'
+      +'<td style="text-align:center;color:#888;font-size:8pt">'+item.un+'</td>'
+      +'<td style="text-align:right;font-size:8pt">'+item.q+'</td>'
+      +'<td style="text-align:right;font-size:8pt">$'+Math.round(apu.precio).toLocaleString('es-AR')+'</td>'
+      +'<td style="text-align:right;font-size:8pt;font-weight:700">$'+Math.round(tARS).toLocaleString('es-AR')+'</td>'
+      +'<td style="text-align:right;font-size:8pt;font-weight:700;color:#005fa3">USD '+Math.round(tUSD).toLocaleString('es-AR')+'</td>'
+      +'</tr>';
+  });
+
+  var d = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Presupuesto de Obra</title>'
+    +'<style>body{font-family:Arial,sans-serif;margin:15mm;font-size:9pt}'
+    +'.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #8a0e1e;padding-bottom:8px;margin-bottom:12px}'
+    +'.firma{font-size:13pt;font-weight:700;color:#8a0e1e;letter-spacing:1px}'
+    +'table{width:100%;border-collapse:collapse}th{background:#8a0e1e;color:#fff;padding:4px 6px;font-size:8pt}'
+    +'td{border-bottom:1px solid #eee;padding:3px 6px}tr:hover{background:#f9f9f9}'
+    +'.total-row{font-weight:700;font-size:10pt;background:#f0f4f8}'
+    +'</style></head><body>';
+  d += '<div class="hdr">'+(emp.logo?'<img src="'+emp.logo+'" style="height:50px">':'<div></div>')
+    +'<div style="text-align:right"><div class="firma">'+(emp.nombre||'PRARES ARQUITECTURA')+'</div>'
+    +'<div style="font-size:9pt">'+(emp.nombreCompleto||'')+'</div>'
+    +'<div style="font-size:8pt">'+(emp.titulo||'')+'</div>'
+    +(emp.matricula?'<div style="font-size:8pt">Mat.Prof. Nº '+emp.matricula+(emp.rpc?' · Mat.Munic.(RPC) Nº '+emp.rpc:'')+'</div>':'')
+    +'</div></div>';
+  d += '<h2 style="background:#8a0e1e;color:#fff;padding:7px 10px;font-size:11pt;margin-bottom:8px">CÓMPUTO MÉTRICO Y PRESUPUESTO DE OBRA</h2>';
+  d += '<p style="font-size:8pt;color:#666;margin-bottom:10px">Fecha: '+new Date().toLocaleDateString('es-AR')+' · TC BNA: $'+jor.tc+' · Coef. de Pase: '+jor.cp+'</p>';
+  d += '<table><thead><tr><th>Nº</th><th>Ítem</th><th>UN</th><th>Cant.</th><th>P.U. $</th><th>Total ARS</th><th>Total USD</th></tr></thead><tbody>'+rows;
+  d += '<tr class="total-row"><td colspan="5" style="text-align:right;padding:8px">TOTAL PRESUPUESTO DE OBRA</td>'
+    +'<td style="padding:8px;color:#8a0e1e">$'+Math.round(totARS).toLocaleString('es-AR')+'</td>'
+    +'<td style="padding:8px;color:#005fa3">USD '+Math.round(totUSD).toLocaleString('es-AR')+'</td></tr>';
+  d += '</tbody></table></body></html>';
+
+  var win = window.open('','_blank');
+  win.document.write(d);
+  win.document.close();
+  setTimeout(function(){win.print();},600);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+setTimeout(function(){
+  cpCargar();
+  cpRenderPrecios();
+}, 500);
 
 </script>
 </body></html>
