@@ -365,8 +365,8 @@ input,select,textarea,button{font-family:var(--font)}
         <input type="file" accept=".json" onchange="importarDesdeBoton(this)" style="display:none">
       </label>
     </div></div>
-    <div class="csm"><div class="sl" style="margin-bottom:8px">CATDF · Mayo 2026</div>
-      <div style="font-size:11px;color:var(--tx2);line-height:1.9">Dir. Proyecto: <b style="color:var(--bt)">5%</b><br>Dir. de Obra: <b style="color:var(--bt)">5%</b><br>Constructor: <b style="color:var(--pt)">5%</b><br>Repr. Técnico: <b style="color:var(--tt)">3.5%</b><br>Inf. Técnico: <b style="color:var(--ot)">6%</b><br>CPT ≤100m²: <b style="color:var(--golt)">$46.000</b></div>
+    <div class="csm"><div class="sl" style="margin-bottom:8px">Aranceles Junio 2026</div>
+      <div style="font-size:10.5px;color:var(--tx2);line-height:1.8"><b style="color:var(--tx3);font-size:8.5px;text-transform:uppercase;letter-spacing:.06em">CATDF Arquitectos</b><br>Dir. Proyecto/Obra: <b style="color:var(--bt)">5%</b><br>Inf. Técnico: <b style="color:var(--ot)">4–8%</b> · Repr.: <b style="color:var(--tt)">2–5%</b><br><b style="color:var(--tx3);font-size:8.5px;text-transform:uppercase;letter-spacing:.06em">CPT-TDF Técnicos Mayo 2026</b><br>Empadron.Arq.: <b style="color:var(--golt)">$9.266/m²</b><br>Encomienda Ref.1 ≤100m²: <b style="color:var(--golt)">$46.000</b><br>Encomienda Ref.2 ≤100m²: <b style="color:var(--golt)">$36.000</b></div>
     </div>
   </div>
 </section>
@@ -580,10 +580,14 @@ input,select,textarea,button{font-family:var(--font)}
           <div class="trow fin"><span class="tl">TOTAL</span><span class="tv" id="s-tot" style="color:var(--bt)">USD 0</span></div>
           <div class="tusd" id="s-ars">ARS $ 0</div>
         </div>
-        <div style="margin-top:12px;background:var(--bg3);border:1px solid var(--br);border-radius:6px;padding:12px">
-          <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:6px">CPT-TDF · Encomienda</div>
-          <div id="s-cpt" style="font-size:12px;color:var(--golt);font-weight:700"></div>
-          <div style="font-size:9px;color:var(--tx3);margin-top:3px">Vigente 11/04/2026 — 30/06/2026</div>
+        <div style="margin-top:12px;background:var(--bg3);border:1px solid rgba(212,168,67,.3);border-radius:6px;padding:12px">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--golt);margin-bottom:4px">CPT-TDF · Aranceles de Encomienda</div>
+          <div style="font-size:8px;color:var(--tx3);margin-bottom:6px">Res. C.D. N°052/2026 — 11/04/2026 al 30/06/2026</div>
+          <div style="font-size:8.5px;color:var(--tx3);margin-bottom:2px">Ref.1: Obra nueva · Amp. · Empadron. · Refacción</div>
+          <div id="s-cpt" style="font-size:13px;color:var(--golt);font-weight:700;margin-bottom:5px"></div>
+          <div style="font-size:8.5px;color:var(--tx3);margin-bottom:2px">Ref.2: Certificado de uso conforme</div>
+          <div id="s-cpt-ref2" style="font-size:12px;color:var(--tt);font-weight:600;margin-bottom:6px"></div>
+          <div id="s-cpt-hon" style="font-size:10px;color:var(--tx2);line-height:1.7;margin-top:5px;border-top:1px solid rgba(255,255,255,.06);padding-top:6px"></div>
         </div>
         <button class="btn btn-r" style="width:100%;margin-top:12px;justify-content:center" onclick="motorGuardar(false)">Guardar y exportar PDF</button>
         <button class="btn" style="width:100%;margin-top:6px;justify-content:center" onclick="motorGuardar(true)">Guardar borrador</button>
@@ -1154,6 +1158,8 @@ ROLES.forEach(function(r){
 });
 
 var PRESETS={catdf:{dir_proy:0.05,dir_obra:0.05,const:0.05,repr:0.035,inf:0.06,calc:0.01},cpt:{dir_proy:0.04,dir_obra:0.04,const:0.04,repr:0.03,inf:0.05,calc:0.009}};
+// Valores CPT-TDF Mayo 2026 por m²
+var CPT_HON_REF={empArq:9266.40,empSan:2733.59,obraArq_proy:15444,obraArq_dir:9009,infViv:138996,infCat_men50:185328,infCat_may50:231660,consulta:30888,valorMod:15444};
 function aplicarPreset(tipo){
   var p=PRESETS[tipo];if(!p)return;
   ROLES.forEach(function(r){
@@ -1342,7 +1348,11 @@ function selTarea(rid,tid,v){
 
 /* ── RECALC ───────────────────────────────────────────────────────────── */
 var dirProyTotalUSD=0,dirProyTotalAfterDisc=0,calcTotalUSD=0,calcTotalAfterDisc=0;
-var CPT_TAB=[[100,46000],[200,69000],[300,92000],[400,115000],[500,138000],[600,161000],[700,184000],[800,207000],[1000,253000],[Infinity,322000]];
+// Encomiendas CPT-TDF Ref.1 — Res. C.D. N°052/2026 — vigente 11/04/2026 al 30/06/2026
+var CPT_TAB=[[100,46000],[200,69000],[300,92000],[400,115000],[500,138000],[600,161000],[700,184000],[800,207000],[900,230000],[1000,253000],[1100,276000],[1200,299000],[1300,322000],[1400,345000],[1500,368000],[Infinity,391000]];
+// Ref.2 — Certificado de uso conforme
+var CPT_TAB_REF2=[[100,36000],[200,54000],[300,72000],[400,90000],[500,108000],[600,126000],[700,144000],[800,162000],[900,180000],[1000,198000],[Infinity,216000]];
+function cptRef2Val(m2){for(var i=0;i<CPT_TAB_REF2.length;i++)if(m2<=CPT_TAB_REF2[i][0])return CPT_TAB_REF2[i][1];return 216000;}
 function cptVal(m2){for(var i=0;i<CPT_TAB.length;i++)if(m2<=CPT_TAB[i][0])return CPT_TAB[i][1];return 322000;}
 function getN(id,def){var el=document.getElementById(id);if(!el)return def;var v=parseFloat(el.value);return isNaN(v)?def:v;}
 
@@ -1361,8 +1371,27 @@ function recalc(){
     var partes=[];if(m2>0)partes.push(m2+' nueva');if(m2dec>0)partes.push(m2dec+' decl.');if(m2sind>0)partes.push(m2sind+' sin decl.');
     vi.textContent='Sup. total: '+m2total+' m² ('+partes.join(' + ')+') × USD '+cu+'/m² × cat ×'+cat+' = USD '+Math.round(vObra).toLocaleString();
   }
+  // Encomienda Ref.1
   var cptEl=document.getElementById('s-cpt');
-  if(cptEl){var av=cptVal(m2);cptEl.textContent=m2+' m\u00b2: $'+av.toLocaleString('es-AR')+' \u2248 USD '+Math.round(av/tc).toLocaleString();}
+  if(cptEl){var av=cptVal(m2total||m2);cptEl.textContent='$'+av.toLocaleString('es-AR')+' ≈ USD '+Math.round(av/tc).toLocaleString()+' ('+(m2total||m2)+'m²)';}
+  // Encomienda Ref.2
+  var cptEl2=document.getElementById('s-cpt-ref2');
+  if(cptEl2){var av2=cptRef2Val(m2total||m2);cptEl2.textContent='$'+av2.toLocaleString('es-AR')+' ≈ USD '+Math.round(av2/tc).toLocaleString();}
+  // Ref. CPT en ARS/m² según tipo
+  var cptHon=document.getElementById('s-cpt-hon');
+  if(cptHon){
+    var tipoCPT=document.getElementById('mot-tipo')?.value||'nueva';
+    var cptLines=[];
+    if(tipoCPT==='emp'||tipoCPT==='empref'){
+      var m2base=m2sind||m2;
+      if(m2base>0){cptLines.push('Empadron.Arq.: $'+CPT_HON_REF.empArq.toLocaleString('es-AR')+'/m² × '+m2base+' = <b style="color:var(--golt)">$'+Math.round(m2base*CPT_HON_REF.empArq).toLocaleString('es-AR')+'</b>');}
+      if(m2base>0){cptLines.push('Empadron.San.: $'+CPT_HON_REF.empSan.toLocaleString('es-AR')+'/m² × '+m2base+' = <b style="color:var(--golt)">$'+Math.round(m2base*CPT_HON_REF.empSan).toLocaleString('es-AR')+'</b>');}
+    } else if((tipoCPT==='nueva'||tipoCPT==='amp')&&m2>0){
+      cptLines.push('Proy.Arq.: $'+CPT_HON_REF.obraArq_proy.toLocaleString('es-AR')+'/m² × '+m2+' = <b style="color:var(--golt)">$'+Math.round(m2*CPT_HON_REF.obraArq_proy).toLocaleString('es-AR')+'</b>');
+      cptLines.push('Dir.Arq.: $'+CPT_HON_REF.obraArq_dir.toLocaleString('es-AR')+'/m² × '+m2+' = <b style="color:var(--golt)">$'+Math.round(m2*CPT_HON_REF.obraArq_dir).toLocaleString('es-AR')+'</b>');
+    }
+    cptHon.innerHTML=cptLines.length?'<div style="font-size:8px;font-weight:700;color:var(--tx3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em">Ref. CPT Mayo 2026 (ARS/m²)</div>'+cptLines.join('<br>'):'';
+  }
 
   var totalDesc=0,totalNoDesc=0,sumRows=[];
   dirProyTotalUSD=0;
@@ -1580,13 +1609,12 @@ function motorGuardar(draft){
 }
 function editarHon(id){
   id=isNaN(id)?id:Number(id); var hon=HON_DATA.find(function(h){return h.id==id;});if(!hon)return;
-  // Revertir a borrador al editar (para que se pueda volver a guardar)
-  if(hon.estado!=='Borrador'){
-    hon.estado='Borrador';
-    guardarTodo();
-    renderHon(HON_DATA);
-    toast('✏ Editando — estado revertido a Borrador');
-  }
+  // Revertir a borrador al editar
+  var eraEnviado=hon.estado!=='Borrador';
+  hon.estado='Borrador';
+  guardarTodo();
+  renderHon(HON_DATA);
+  if(eraEnviado)toast('✏ Editando '+hon.code+' — revertido a Borrador');
   editandoId=id;
   // Restaurar datos en el formulario
   var sv=function(elId,v){var el=document.getElementById(elId);if(el&&v!==undefined&&v!==null)el.value=v;};
@@ -2033,6 +2061,21 @@ function generarPDF(id){
     }
     d+='</td></tr></table></div>';
   }
+
+  /* ENCOMIENDA CPT EN PDF */
+  var pdfCptAv=cptVal(h.m2||0);
+  var pdfCptRef2=cptRef2Val(h.m2||0);
+  d+='<div style="margin:8pt 0;padding:8pt 10pt;background:#fffdf0;border:1.5px solid #c8a800;border-radius:3pt">';
+  d+='<div style="font-weight:700;color:#7a5e00;font-size:9pt;margin-bottom:5pt">CPT-TDF · Aranceles de Encomienda — Res. C.D. N°052/2026 — Vigente 11/04/2026 al 30/06/2026</div>';
+  d+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8pt">';
+  d+='<div><div style="font-size:7.5pt;color:#888;margin-bottom:2pt">Ref.1 — Obra nueva / Ampliación / Empadronamiento / Refacción / Demolición</div>';
+  d+='<div style="font-size:13pt;font-weight:700;color:#5a4000">$'+pdfCptAv.toLocaleString('es-AR')+'</div>';
+  d+='<div style="font-size:8pt;color:#888">≈ USD '+Math.round(pdfCptAv/(h.tc||1460))+'</div></div>';
+  d+='<div><div style="font-size:7.5pt;color:#888;margin-bottom:2pt">Ref.2 — Certificado de uso conforme</div>';
+  d+='<div style="font-size:13pt;font-weight:700;color:#5a4000">$'+pdfCptRef2.toLocaleString('es-AR')+'</div>';
+  d+='<div style="font-size:8pt;color:#888">≈ USD '+Math.round(pdfCptRef2/(h.tc||1460))+'</div></div>';
+  d+='</div><div style="font-size:7pt;color:#999;margin-top:4pt">Para '+(h.m2||0)+' m² cubiertos. Aranceles independientes de los honorarios profesionales.</div>';
+  d+='</div>';
 
   /* NOTA LEGAL */
   d+='<div style="margin:10pt 0 0;padding:7pt 10pt;background:#f8f8f8;border-left:3px solid #ccc;font-size:8pt;color:#666">';
