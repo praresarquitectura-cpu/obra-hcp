@@ -202,6 +202,11 @@ input,select,textarea,button{font-family:var(--font)}
 .comp-tab{padding:8px 14px;border:none;background:transparent;color:var(--tx3);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.05em;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;text-transform:uppercase}
 .comp-tab:hover{color:var(--tx2)}
 .comp-tab.active{color:var(--bt);border-bottom-color:var(--bt)}
+.font-opt{padding:8px 14px;border:1px solid var(--br);border-radius:8px;background:var(--bg3);color:var(--tx);cursor:pointer;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:90px}
+.font-opt:hover{border-color:var(--bt)}
+.font-opt.active{border-color:var(--bt);background:rgba(96,165,250,.1)}
+.font-opt span:first-child{font-size:14px;font-weight:600}
+.font-tag{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em}
 .comp-input{width:80px;background:var(--bg3);border:1px solid var(--br);border-radius:4px;padding:4px 6px;color:var(--tx);font-size:11px;font-family:var(--font);text-align:center}
 .comp-input:focus{outline:none;border-color:var(--bt)}
 .comp-sel{background:var(--bg3);border:1px solid var(--br);border-radius:4px;padding:4px 6px;color:var(--tx);font-size:11px;font-family:var(--font)}
@@ -719,6 +724,80 @@ input,select,textarea,button{font-family:var(--font)}
     </div>
   </div>
 </section>
+  <!-- PERSONALIZACIÓN DE MARCA -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="fsc" style="margin-bottom:4px">🎨 Personalización de Marca — PDF</div>
+    <div style="font-size:10px;color:var(--tx3);margin-bottom:14px">
+      Elegí los colores y tipografía para todos los PDFs de honorarios.<br>
+      Tip: tomá los colores del logo de tu estudio.
+    </div>
+    <!-- COLORES -->
+    <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:10px">Colores</div>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:14px;align-items:flex-end">
+      <div class="fg" style="min-width:160px">
+        <label class="fl">Color principal (encabezado)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="color" id="emp-color1" value="#8a0e1e"
+            style="width:44px;height:38px;border:1px solid var(--br);border-radius:6px;cursor:pointer;background:none;padding:2px"
+            oninput="updateColorPreview()">
+          <input class="fi" type="text" id="emp-color1-hex" value="#8a0e1e" maxlength="7"
+            style="width:90px;font-family:monospace;font-size:12px"
+            oninput="syncColor('emp-color1','emp-color1-hex')">
+        </div>
+      </div>
+      <div class="fg" style="min-width:160px">
+        <label class="fl">Color secundario (acentos)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="color" id="emp-color2" value="#c42d46"
+            style="width:44px;height:38px;border:1px solid var(--br);border-radius:6px;cursor:pointer;background:none;padding:2px"
+            oninput="updateColorPreview()">
+          <input class="fi" type="text" id="emp-color2-hex" value="#c42d46" maxlength="7"
+            style="width:90px;font-family:monospace;font-size:12px"
+            oninput="syncColor('emp-color2','emp-color2-hex')">
+        </div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:10px;color:var(--tx3);margin-bottom:6px">Vista previa encabezado PDF</div>
+        <div style="border-radius:6px;overflow:hidden;border:1px solid var(--br)">
+          <div id="bp-header" style="background:#8a0e1e;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+            <div style="color:#fff;font-size:11px;font-weight:700;letter-spacing:1px" id="bp-nombre">PRARES ARQUITECTURA</div>
+            <div style="color:rgba(255,255,255,.8);font-size:8px">Diego Rojas · Mat.Prof. Nº 026</div>
+          </div>
+          <div id="bp-bar" style="background:#c42d46;height:3px"></div>
+          <div style="background:#f5f5f5;padding:7px 14px;display:flex;justify-content:space-between">
+            <div style="font-size:9px;font-weight:700;color:#333" id="bp-titulo">PRESUPUESTO DE HONORARIOS</div>
+            <div style="font-size:8px;color:#666">HON-0001-BOR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- PALETAS -->
+    <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:8px">Paletas predefinidas</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+      <button class="btn btn-b" style="padding:5px 10px;font-size:10px;display:flex;align-items:center;gap:5px" onclick="setPalette('#8a0e1e','#c42d46')"><span style="width:10px;height:10px;border-radius:2px;background:#8a0e1e;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#c42d46;display:inline-block"></span>Rojo</button>
+      <button class="btn btn-b" style="padding:5px 10px;font-size:10px;display:flex;align-items:center;gap:5px" onclick="setPalette('#1a3a5c','#2563eb')"><span style="width:10px;height:10px;border-radius:2px;background:#1a3a5c;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#2563eb;display:inline-block"></span>Azul Naval</button>
+      <button class="btn btn-b" style="padding:5px 10px;font-size:10px;display:flex;align-items:center;gap:5px" onclick="setPalette('#1b4332','#2d6a4f')"><span style="width:10px;height:10px;border-radius:2px;background:#1b4332;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#2d6a4f;display:inline-block"></span>Verde Bosque</button>
+      <button class="btn btn-b" style="padding:5px 10px;font-size:10px;display:flex;align-items:center;gap:5px" onclick="setPalette('#1c1917','#57534e')"><span style="width:10px;height:10px;border-radius:2px;background:#1c1917;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#57534e;display:inline-block"></span>Carbón</button>
+      <button class="btn btn-b" style="padding:5px 10px;font-size:10px;display:flex;align-items:center;gap:5px" onclick="setPalette('#581c87','#9333ea')"><span style="width:10px;height:10px;border-radius:2px;background:#581c87;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#9333ea;display:inline-block"></span>Violeta</button>
+      <button class="btn btn-b" style="padding:5px 10px;font-size:10px;display:flex;align-items:center;gap:5px" onclick="setPalette('#7c2d12','#ea580c')"><span style="width:10px;height:10px;border-radius:2px;background:#7c2d12;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#ea580c;display:inline-block"></span>Naranja</button>
+      <button class="btn btn-b" style="padding:5px 10px;font-size:10px;display:flex;align-items:center;gap:5px" onclick="setPalette('#0c4a6e','#0ea5e9')"><span style="width:10px;height:10px;border-radius:2px;background:#0c4a6e;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#0ea5e9;display:inline-block"></span>Celeste</button>
+      <button class="btn btn-b" style="padding:5px 10px;font-size:10px;display:flex;align-items:center;gap:5px" onclick="setPalette('#134e4a','#0d9488')"><span style="width:10px;height:10px;border-radius:2px;background:#134e4a;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#0d9488;display:inline-block"></span>Teal</button>
+      <button class="btn btn-b" style="padding:5px 10px;font-size:10px;display:flex;align-items:center;gap:5px" onclick="setPalette('#713f12','#d97706')"><span style="width:10px;height:10px;border-radius:2px;background:#713f12;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#d97706;display:inline-block"></span>Dorado</button>
+    </div>
+    <!-- TIPOGRAFÍA -->
+    <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:8px">Tipografía del PDF</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <button class="font-opt active" data-font="Montserrat" onclick="selectFont(this)"><span style="font-family:Montserrat">Montserrat</span><span class="font-tag">Moderno</span></button>
+      <button class="font-opt" data-font="Lato" onclick="selectFont(this)"><span style="font-family:Lato">Lato</span><span class="font-tag">Limpio</span></button>
+      <button class="font-opt" data-font="Raleway" onclick="selectFont(this)"><span style="font-family:Raleway">Raleway</span><span class="font-tag">Elegante</span></button>
+      <button class="font-opt" data-font="Oswald" onclick="selectFont(this)"><span style="font-family:Oswald">Oswald</span><span class="font-tag">Impacto</span></button>
+      <button class="font-opt" data-font="Georgia,serif" onclick="selectFont(this)"><span style="font-family:Georgia,serif">Georgia</span><span class="font-tag">Clásico</span></button>
+      <button class="font-opt" data-font="Arial,sans-serif" onclick="selectFont(this)"><span style="font-family:Arial">Arial</span><span class="font-tag">Neutral</span></button>
+      <button class="font-opt" data-font="Trebuchet MS,sans-serif" onclick="selectFont(this)"><span style="font-family:'Trebuchet MS'">Trebuchet</span><span class="font-tag">Técnico</span></button>
+    </div>
+    <input type="hidden" id="emp-font" value="Montserrat">
+  </div>
+
 <section id="s-config" class="scr">
   <div class="pgt">Configuración</div><div class="pgs">Empresa · Profesionales · Logo · QR · Parámetros</div>
   <div class="card" style="margin-bottom:16px">
@@ -925,7 +1004,7 @@ function parseNum(v){
 }
 
 /* ── STORAGE ─────────────────────────────────────────────────────────── */
-let EMPRESA={nombre:'PRARES ARQUITECTURA',titulo:'',nombreCompleto:'',matricula:'',rpc:'',cuit:'',catdfMat:'',cptMat:'',email:'',tel:'',dir:'',logo:null,qr:null,ptoVenta:'0001',tipoComp:'C',condIVA:'Monotributista'};
+let EMPRESA={nombre:'PRARES ARQUITECTURA',titulo:'',nombreCompleto:'',matricula:'',rpc:'',cuit:'',catdfMat:'',cptMat:'',email:'',tel:'',dir:'',logo:null,qr:null,ptoVenta:'0001',tipoComp:'C',condIVA:'Monotributista',brandColor1:'#8a0e1e',brandColor2:'#c42d46',brandFont:'Montserrat'};
 let CLIENTES=[];
 let HON_DATA=[];
 let editandoId=null;
@@ -1273,9 +1352,10 @@ function recalc(){
   var cu=getN('mot-cu',1200),cat=parseFloat(document.getElementById('mot-cat')?.value)||1.0;
   var tc=getN('mot-tc',TC),desc=getN('mot-desc-pct',0)/100,gast=getN('mot-gast-pct',5)/100,ipc=getN('mot-ipc',0)/100;
   TC=tc;
-  var vObra=m2total*cu*cat;       // total para la mayoria de roles
-  var vObraNueva=m2*cu*cat;      // solo superficie nueva (para inf. técnico calculista)
-  var vObraCalc=m2total*cu*cat;  // calculista usa total
+  var vObraNueva=m2*cu*cat;       // SOLO superficie nueva — base para Dir.Proyecto/Obra/Constructor/Repr.Técnico
+  var vObraInf=m2sind*cu*cat;     // superficie EXISTENTE SIN DECLARAR — base para Informe Técnico (empadronamiento)
+  var vObraCalc=m2total*cu*cat;   // superficie TOTAL — base para Calculista (verifica estructura completa)
+  var vObra=vObraNueva;           // alias usado en textos informativos (superficie nueva)
   var vi=document.getElementById('mot-val-obra');
   if(vi){
     var partes=[];if(m2>0)partes.push(m2+' nueva');if(m2dec>0)partes.push(m2dec+' decl.');if(m2sind>0)partes.push(m2sind+' sin decl.');
@@ -1289,10 +1369,13 @@ function recalc(){
 
   ROLES.forEach(function(role){
     var st=S[role.id];if(!st)return;
-    var vObraRole=role.usaSupTotal?vObraCalc:vObra;
+    var vObraRole = role.id==='calc' ? vObraCalc
+                   : role.id==='inf'  ? vObraInf
+                   : vObraNueva;
     var rolTotal=role.catdf*vObraRole;
     var fb=document.getElementById('fbar-'+role.id);
-    if(fb)fb.innerHTML='<b>F\u00f3rmula:</b> USD '+Math.round(vObra).toLocaleString()+' \u00d7 <b>'+(role.catdf*100).toFixed(2)+'%</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' \u00d7 % del rol.'+(role.descuentable?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>');
+    var baseLbl = role.id==='calc' ? 'Sup. TOTAL' : role.id==='inf' ? 'Sup. existente sin declarar' : 'Sup. NUEVA';
+    if(fb)fb.innerHTML='<b>F\u00f3rmula:</b> '+baseLbl+' USD '+Math.round(vObraRole).toLocaleString()+' \u00d7 <b>'+(role.catdf*100).toFixed(2)+'%</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' \u00d7 % del rol.'+(role.descuentable?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>');
     var rs=0;
     role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       var on=st.subs[it.id];
@@ -1432,10 +1515,19 @@ function motorGuardar(draft){
   var comisionPct=formaPago==='tarjeta'?getN('mot-comision',6.49):0;
   var cliId=gs('mot-cli');
   var cli=CLIENTES.find(function(c){return c.id==cliId;});
-  var vObra=m2*cu*cat,totalDesc=0,totalNoDesc=0;
+  var m2dec=getN('mot-m2-dec',0),m2sind=getN('mot-m2-sind',0);
+  var m2total=m2+m2dec+m2sind;
+  var vObraNueva=m2*cu*cat;       // base Dir.Proyecto/Obra/Constructor/Repr.Técnico
+  var vObraInf=m2sind*cu*cat;     // base Informe Técnico (empadronamiento)
+  var vObraCalc=m2total*cu*cat;   // base Calculista (estructura completa)
+  var vObra=vObraNueva;           // alias para compatibilidad
+  var totalDesc=0,totalNoDesc=0;
   var detalle=[];
   ROLES.forEach(function(role){
     if(!S[role.id]?.on)return;
+    var vObraRole = role.id==='calc' ? vObraCalc
+                   : role.id==='inf'  ? vObraInf
+                   : vObraNueva;
     var items=[];
     role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       if(S[role.id].subs[it.id]){
@@ -1447,7 +1539,7 @@ function motorGuardar(draft){
           iusd=Math.round(qty*prc);
           items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'render',qty:qty,unitPrice:prc});
         }else{
-          iusd=Math.round(vObra*it.pct);
+          iusd=Math.round(vObraRole*it.pct);
           items.push({nm:it.nm,inc:it.inc,pct:it.pct,usd:iusd,tipo:'normal'});
         }
       }
@@ -1514,24 +1606,29 @@ function editarHon(id){
   // Resetear estado
   ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{}};});
   // Restaurar checkboxes desde detalle
-  if(hon.detalle){
-    hon.detalle.forEach(function(rolDet){
-      var role=ROLES.find(function(r){return r.nm===rolDet.rol;});
-      if(!role)return;
-      S[role.id].on=true;S[role.id].open=true;
-      rolDet.items.forEach(function(itDet){
-        role.tareas.forEach(function(t){
-          S[role.id].tasks[t.id]=true;
-          t.grupos.forEach(function(g){g.items.forEach(function(it){
-            if(it.nm===itDet.nm){
-              S[role.id].subs[it.id]=true;
-              if(it.tipo==='render'&&itDet.qty)it.qty=itDet.qty;
-              if(it.tipo==='render'&&itDet.unitPrice)it.unitPrice=itDet.unitPrice;
-            }
-          });});
+  try{
+    if(hon.detalle){
+      hon.detalle.forEach(function(rolDet){
+        var role=ROLES.find(function(r){return r.nm===rolDet.rol;});
+        if(!role)return;
+        S[role.id].on=true;S[role.id].open=true;
+        rolDet.items.forEach(function(itDet){
+          role.tareas.forEach(function(t){
+            S[role.id].tasks[t.id]=true;
+            t.grupos.forEach(function(g){g.items.forEach(function(it){
+              if(it.nm===itDet.nm){
+                S[role.id].subs[it.id]=true;
+                if(it.tipo==='render'&&itDet.qty)it.qty=itDet.qty;
+                if(it.tipo==='render'&&itDet.unitPrice)it.unitPrice=itDet.unitPrice;
+              }
+            });});
+          });
         });
       });
-    });
+    }
+  }catch(errRestore){
+    console.error('Error restaurando detalle del presupuesto:',errRestore);
+    toast('\u26a0 Algunos datos no se pudieron restaurar — revisá los roles y subtareas',false);
   }
   closeM('mod-hon');
   goTo('motor');
@@ -1566,7 +1663,7 @@ function renderHon(data){
 renderHon(HON_DATA);
 function filtHon(v){var q=v.toLowerCase();renderHon(HON_DATA.filter(function(h){return(h.code+h.roles+h.cliente+h.uso).toLowerCase().includes(q);}));}
 function filtHonSt(v){renderHon(v?HON_DATA.filter(function(h){return h.estado===v;}):HON_DATA);}
-function cambiarEstado(id,estado){var h=HON_DATA.find(function(x){return x.id===id;});if(!h)return;h.estado=estado;renderHon(HON_DATA);updateDashboard();guardarTodo();toast(honCode(h)+' \u2192 '+estadoAbr(estado));}
+function cambiarEstado(id,estado){id=isNaN(id)?id:Number(id);var h=HON_DATA.find(function(x){return x.id==id;});if(!h)return;h.estado=estado;renderHon(HON_DATA);updateDashboard();guardarTodo();toast(honCode(h)+' \u2192 '+estadoAbr(estado));}
 function eliminarHon(id){
   id=isNaN(id)?id:Number(id);
   var h=HON_DATA.find(function(x){return x.id==id;});
@@ -1587,11 +1684,10 @@ function openHonDetail(id){
   var N=function(n){return Math.round(n).toLocaleString();};
   var det='';
   (h.detalle||[]).forEach(function(rol){
-    var rFm=Math.round(h.m2*h.cu*h.cat*rol.catdf);
     det+='<div style="margin-bottom:14px">'
       +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:'+(rol.descuentable?'var(--bt)':'var(--golt)')+';text-transform:uppercase;letter-spacing:.04em;padding:5px 0 4px;border-bottom:1px solid var(--br);margin-bottom:5px">'
       +'<span>'+rol.rol+'</span><span style="font-size:9px;opacity:.7;font-weight:400">'+(rol.descuentable?'Con descuento':'Sin descuento')+' \u00b7 CATDF '+(rol.catdf*100).toFixed(1)+'%</span></div>'
-      +'<div style="font-size:10px;color:var(--tx3);margin-bottom:7px;font-style:italic">USD '+N(h.m2*h.cu*h.cat)+' \u00d7 '+(rol.catdf*100).toFixed(2)+'% = USD '+N(rFm)+' del rol. Cada subtarea = USD '+N(rFm)+' \u00d7 % del rol.</div>'
+      +'<div style="font-size:10px;color:var(--tx3);margin-bottom:7px;font-style:italic">Subtotal del rol = USD '+N(rol.total)+'. Cada subtarea = USD '+N(rol.total)+' \u00d7 % del rol.</div>'
       +rol.items.map(function(it){
         var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
         var nmCol=it.tipo==='render'?it.nm+' <span style="background:rgba(212,168,67,.15);color:var(--golt);font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px">MERCADO</span>':it.nm;
@@ -1627,7 +1723,7 @@ function openHonDetail(id){
     +'<div class="msub" style="margin-bottom:0">'+h.roles+'</div></div>'
     +'<div style="display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">'
     +'<span class="bdg '+(ST[h.estado]||'b-dr')+'">'+h.estado+'</span>'
-    +'<button class="btn btn-edit btn-sm" data-hid="'+h.id+'" onclick="editarHon(+this.dataset.hid)">✏ Editar</button>'+(h.estado!=='Borrador'?'<button class="btn btn-sm" style="color:var(--golt);border:1px solid rgba(212,168,67,.3);margin-left:4px" title="Volver a Borrador" onclick="cambiarEstado(\'+h.id+\',\'Borrador\')">↩ Borrador</button>':'')
+    +'<button class="btn btn-edit btn-sm" data-hid="'+h.id+'" onclick="editarHon(+this.dataset.hid)">✏ Editar</button>'+(h.estado!=='Borrador'?'<button class="btn btn-sm" style="color:var(--golt);border:1px solid rgba(212,168,67,.3);margin-left:4px" title="Volver a Borrador" onclick="cambiarEstado('+h.id+',\'Borrador\')">↩ Borrador</button>':'')
     +'<select class="sf" style="font-size:10px;padding:4px 8px" onchange="cambiarEstado('+h.id+',this.value)">'
     +'<option value="">Cambiar estado…</option><option value="Borrador">Borrador</option><option value="Enviado">Enviado</option>'
     +'<option value="Aprobado">Aprobado</option><option value="Entregado">Entregado</option>'
@@ -1682,6 +1778,9 @@ function generarPDF(id){
   // Restaurar logo/QR — el presupuesto guardado los tiene nulos para ahorrar espacio
   if(!emp.logo) emp.logo = EMPRESA.logo || localStorage.getItem('obraerp_logo') || '';
   if(!emp.qr)   emp.qr   = EMPRESA.qr   || localStorage.getItem('obraerp_qr')   || '';
+  var C1=emp.brandColor1||EMPRESA.brandColor1||''+C1+''; // color principal
+  var C2=emp.brandColor2||EMPRESA.brandColor2||''+C2+''; // color secundario
+  var PFONT=emp.brandFont||EMPRESA.brandFont||'Montserrat'; // fuente
   const N=n=>Math.round(n).toLocaleString('es-AR');
   const tipo={nueva:'Obra nueva',amp:'Ampliación',ref:'Refacción',mod:'Modificación en ejec.',
     conf:'Conforme a obra',emp:'Empadronamiento',empref:'Empadron. de refacciones',
@@ -1695,23 +1794,23 @@ function generarPDF(id){
     +'.pg{max-width:794px;margin:0 auto}'
 
     /* HEADER */
-    +'.hd{display:flex;align-items:stretch;justify-content:space-between;margin-bottom:0;border-bottom:3px solid #8a0e1e;padding-bottom:10pt}'
+    +'.hd{display:flex;align-items:stretch;justify-content:space-between;margin-bottom:0;border-bottom:3px solid '+C1+';padding-bottom:10pt}'
     +'.hd-left{display:flex;align-items:center;gap:10pt}'
     +'.logo-txt{font-size:17pt;font-weight:800;letter-spacing:.08em;color:#1a1a1a}'
-    +'.logo-txt em{color:#8a0e1e;font-style:normal}'
+    +'.logo-txt em{color:'+C1+';font-style:normal}'
     +'.emp-nm{font-size:11pt;font-weight:700;letter-spacing:1px;color:#1a1a1a;margin-top:3pt}'
     +'.hd-right{text-align:right;font-size:8.5pt;color:#444;line-height:1.65;flex:1;min-width:200pt}'
     +'.hd-right .prof-nm{font-size:11pt;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#1a1a1a}'
     +'.hd-right .prof-tit{font-size:8.5pt;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:3pt}'
 
     /* TITLE BAND */
-    +'.title-band{display:flex;justify-content:space-between;align-items:center;background:#8a0e1e;color:#fff;padding:6pt 10pt;margin:8pt 0}'
+    +'.title-band{display:flex;justify-content:space-between;align-items:center;background:'+C1+';color:#fff;padding:6pt 10pt;margin:8pt 0}'
     +'.title-band h1{font-size:13pt;font-weight:700;letter-spacing:.5px}'
     +'.title-band .ref{font-size:9pt;opacity:.9;text-align:right}'
 
     /* SECTIONS */
     +'.sec{margin-bottom:0;border-bottom:1px solid #ddd}'
-    +'.sec-head{background:#f0f0f0;border-left:4px solid #8a0e1e;padding:4pt 8pt;font-size:9.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a1a1a;margin:0}'
+    +'.sec-head{background:#f0f0f0;border-left:4px solid '+C1+';padding:4pt 8pt;font-size:9.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a1a1a;margin:0}'
     +'.sec-tbl{width:100%;border-collapse:collapse}'
     +'.sec-tbl td{padding:7pt 8pt;vertical-align:top;border-bottom:1px solid #efefef}'
     +'.sec-desc{width:22%;font-size:8pt;color:#666;line-height:1.5;border-right:1px solid #ddd;background:#fafafa}'
@@ -1738,10 +1837,10 @@ function generarPDF(id){
     +'.rol-sub b{color:#1a1a1a}'
 
     /* TOTAL BOX */
-    +'.tot-box{border:1.5px solid #8a0e1e;border-radius:3pt;margin:10pt 0;overflow:hidden}'
+    +'.tot-box{border:1.5px solid '+C1+';border-radius:3pt;margin:10pt 0;overflow:hidden}'
     +'.tot-row{display:flex;justify-content:space-between;padding:4pt 10pt;font-size:10pt;border-bottom:1px solid #f0f0f0}'
     +'.tot-row.disc{color:#c0392b}'
-    +'.tot-row.final{background:#8a0e1e;color:#fff;padding:7pt 10pt}'
+    +'.tot-row.final{background:'+C1+';color:#fff;padding:7pt 10pt}'
     +'.tot-row.final span:first-child{font-size:11pt;font-weight:700}'
     +'.tot-row.final span:last-child{font-size:18pt;font-weight:800}'
     +'.tot-ars{text-align:right;font-size:8.5pt;color:#888;padding:3pt 10pt 6pt;background:#fff7f7}'
@@ -1753,7 +1852,7 @@ function generarPDF(id){
     +'.cq-tbl .r{text-align:right;font-weight:700}'
 
     /* FIRMA + QR */
-    +'.sign-area{display:flex;justify-content:space-between;align-items:flex-end;margin-top:16pt;padding-top:10pt;border-top:2px solid #8a0e1e}'
+    +'.sign-area{display:flex;justify-content:space-between;align-items:flex-end;margin-top:16pt;padding-top:10pt;border-top:2px solid '+C1+'}'
     +'.sign-box{border-top:1px solid #333;width:170pt;padding-top:4pt;font-size:8.5pt}'
     +'.qr-box{text-align:center}'
     +'.qr-box img{display:block;margin:0 auto 3pt}'
@@ -1784,8 +1883,8 @@ function generarPDF(id){
   d+='<div class="hd-right">';
   // Nombre del estudio ARRIBA DEL TODO, derecha
   if(emp.nombre){
-    d+='<div style="font-size:13pt;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#8a0e1e;margin-bottom:5pt">'+emp.nombre+'</div>';
-    d+='<div style="height:1px;background:linear-gradient(to left,#8a0e1e,transparent);margin-bottom:4pt"></div>';
+    d+='<div style="font-size:13pt;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:'+C1+';margin-bottom:5pt">'+emp.nombre+'</div>';
+    d+='<div style="height:1px;background:linear-gradient(to left,'+C1+',transparent);margin-bottom:4pt"></div>';
   }
   if(emp.nombreCompleto) d+='<div class="prof-nm">'+emp.nombreCompleto+'</div>';
   if(emp.titulo) d+='<div class="prof-tit">'+emp.titulo+'</div>';
@@ -1823,7 +1922,7 @@ function generarPDF(id){
   d+='</div>';
   d+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8pt;margin-top:8pt">';
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Tipo de encargo</div><div>'+( tipo[h.tipo]||h.tipo )+'</div></div>';
-  d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Superficie cubierta</div><div style="font-size:12pt;font-weight:700;color:#8a0e1e">'+h.m2+' m\u00b2</div></div>';
+  d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Superficie cubierta</div><div style="font-size:12pt;font-weight:700;color:'+C1+'">'+h.m2+' m\u00b2</div></div>';
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Estado</div><span class="badge '+( stClr[h.estado]||'badge-dr' )+'">'+h.estado+'</span></div>';
   d+='</div>';
   d+='</td></tr></table></div>';
@@ -1857,7 +1956,7 @@ function generarPDF(id){
   }
   if(h.descTrab){
     d+='<div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:4pt;margin-top:4pt">Descripción del trabajo a realizar</div>';
-    d+='<div class="nota" style="background:#fafafa;border-left:3px solid #8a0e1e;padding:6pt 8pt">'+h.descTrab+'</div>';
+    d+='<div class="nota" style="background:#fafafa;border-left:3px solid '+C1+';padding:6pt 8pt">'+h.descTrab+'</div>';
   }
   d+='</td></tr></table></div>';
 
@@ -4444,6 +4543,62 @@ setTimeout(function(){
   cpCargar();
   cpRenderPrecios();
 }, 500);
+
+
+/* ── BRAND CUSTOMIZATION ───────────────────────────────────────────── */
+function updateColorPreview(){
+  var c1=document.getElementById('emp-color1')?.value||'#8a0e1e';
+  var c2=document.getElementById('emp-color2')?.value||'#c42d46';
+  var font=document.getElementById('emp-font')?.value||'Montserrat';
+  // sync hex fields
+  var h1=document.getElementById('emp-color1-hex');if(h1)h1.value=c1;
+  var h2=document.getElementById('emp-color2-hex');if(h2)h2.value=c2;
+  // update preview
+  var bp=document.getElementById('bp-header');if(bp)bp.style.background=c1;
+  var bb=document.getElementById('bp-bar');if(bb)bb.style.background=c2;
+  var bn=document.getElementById('bp-nombre');if(bn)bn.style.fontFamily=font;
+}
+
+function syncColor(pickerId, hexId){
+  var hex=document.getElementById(hexId)?.value||'';
+  if(/^#[0-9a-fA-F]{6}$/.test(hex)){
+    var picker=document.getElementById(pickerId);
+    if(picker)picker.value=hex;
+    updateColorPreview();
+  }
+}
+
+function setPalette(c1,c2){
+  var p1=document.getElementById('emp-color1');if(p1)p1.value=c1;
+  var p2=document.getElementById('emp-color2');if(p2)p2.value=c2;
+  updateColorPreview();
+}
+
+function selectFont(btn){
+  document.querySelectorAll('.font-opt').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  var font=btn.dataset.font;
+  var fi=document.getElementById('emp-font');if(fi)fi.value=font;
+  updateColorPreview();
+  // Load font from Google if needed
+  var googleFonts=['Montserrat','Lato','Raleway','Oswald'];
+  var base=font.split(',')[0].trim();
+  if(googleFonts.indexOf(base)>=0){
+    var linkId='gf-'+base.toLowerCase();
+    if(!document.getElementById(linkId)){
+      var link=document.createElement('link');
+      link.id=linkId;link.rel='stylesheet';
+      link.href='https://fonts.googleapis.com/css2?family='+base.replace(' ','+')+':wght@400;500;600;700;800&display=swap';
+      document.head.appendChild(link);
+    }
+  }
+  var preview=document.getElementById('bp-nombre');if(preview)preview.style.fontFamily=font;
+}
+
+function applyBrandToPage(){
+  // Apply selected font to brand preview only - the app itself keeps its font
+  updateColorPreview();
+}
 
 </script>
 </body></html>
