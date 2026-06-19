@@ -542,7 +542,7 @@ input,select,textarea,button{font-family:var(--font)}
       <div id="roles-list"></div>
 
       <div class="cuotas-card" id="cuotas-section" style="display:none">
-        <div class="fsc" style="color:var(--bt)">Planilla de Cuotas — Dirección de Proyecto</div>
+        <div class="fsc" style="color:var(--bt)">Planilla de Cuotas — Honorarios Financiables</div>
         <div class="cuotas-info" id="cuotas-info">Base: USD 0</div>
         <div style="display:grid;grid-template-columns:1fr 58px 88px 30px;gap:8px;padding:0 0 6px;border-bottom:1px solid var(--br);margin-bottom:4px">
           <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)">Concepto</div>
@@ -1354,7 +1354,7 @@ function selTarea(rid,tid,v){
 }
 
 /* ── RECALC ───────────────────────────────────────────────────────────── */
-var dirProyTotalUSD=0,dirProyTotalAfterDisc=0,calcTotalUSD=0,calcTotalAfterDisc=0;
+var dirProyTotalUSD=0,dirProyTotalAfterDisc=0,calcTotalUSD=0,calcTotalAfterDisc=0,infTotalUSD=0,infTotalAfterDisc=0;
 // Encomiendas CPT-TDF Ref.1 — Res. C.D. N°052/2026 — vigente 11/04/2026 al 30/06/2026
 var CPT_TAB=[[100,46000],[200,69000],[300,92000],[400,115000],[500,138000],[600,161000],[700,184000],[800,207000],[900,230000],[1000,253000],[1100,276000],[1200,299000],[1300,322000],[1400,345000],[1500,368000],[Infinity,391000]];
 // Ref.2 — Certificado de uso conforme
@@ -1475,6 +1475,7 @@ function recalc(){
     }
     if(role.id==='dir_proy')dirProyTotalUSD=rs;
     if(role.id==='calc')calcTotalUSD=rs;
+    if(role.id==='inf')infTotalUSD=rs;
   });
 
   var descAmt=totalDesc*desc,afterDesc=totalDesc-descAmt+totalNoDesc;
@@ -1485,6 +1486,7 @@ function recalc(){
   var fin=afterDesc+gastos+ipcAmt+comisionAmt;
   dirProyTotalAfterDisc=Math.round(dirProyTotalUSD*(1-desc));
   calcTotalAfterDisc=Math.round(calcTotalUSD*(1-desc)); // Calculista también aplica descuento
+  infTotalAfterDisc=Math.round(infTotalUSD*(1-desc)); // Informante Técnico también aplica descuento
 
   // Summary
   var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
@@ -1515,7 +1517,8 @@ function recalc(){
   var dirOn=S['dir_proy']?.on;
   var formaPagoVal=document.getElementById('mot-forma-pago')?.value||'contado';
   var calcOn=S['calc']?.on;
-  var mostrarCuotas=(dirOn||calcOn)&&formaPagoVal!=='contado';
+  var infOn=S['inf']?.on;
+  var mostrarCuotas=(dirOn||calcOn||infOn)&&formaPagoVal!=='contado';
   var csec=document.getElementById('cuotas-section');if(csec)csec.style.display=mostrarCuotas?'':'none';
   if(mostrarCuotas)renderCuotas();
 }
@@ -1527,10 +1530,14 @@ function renderCuotas(){
   var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
   var baseDirProy=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-descPctV));
   var baseCalc=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-descPctV));
-  var base=baseDirProy+baseCalc;
+  var baseInf=infTotalAfterDisc>0?infTotalAfterDisc:Math.round(infTotalUSD*(1-descPctV));
+  var base=baseDirProy+baseCalc+baseInf;
   var ci=document.getElementById('cuotas-info');
-  var calcStr=baseCalc>0?' + Calculista (USD '+Math.round(baseCalc).toLocaleString()+')':'';
-  if(ci)ci.innerHTML='Base: <b>USD '+Math.round(base).toLocaleString()+'</b> = Dir. de Proyecto'+calcStr+(descPctV>0?' · con descuento':'')+'. Modificá nombre, % y cuotas.';
+  var parts=[];
+  if(baseDirProy>0)parts.push('Dir. de Proyecto (USD '+Math.round(baseDirProy).toLocaleString()+')');
+  if(baseCalc>0)parts.push('Calculista (USD '+Math.round(baseCalc).toLocaleString()+')');
+  if(baseInf>0)parts.push('Informante Técnico (USD '+Math.round(baseInf).toLocaleString()+')');
+  if(ci)ci.innerHTML='Base: <b>USD '+Math.round(base).toLocaleString()+'</b> = '+(parts.join(' + ')||'—')+(descPctV>0?' · con descuento':'')+'. Modificá nombre, % y cuotas.';
   var tbody=document.getElementById('cuotas-rows');if(!tbody)return;
   tbody.innerHTML=cuotas.map(function(c,i){
     return '<div class="cq-row">'
@@ -1547,7 +1554,8 @@ function updCuotasTot(){
   var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
   var baseDirProy=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-descPctV));
   var baseCalc=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-descPctV));
-  var base=baseDirProy+baseCalc;
+  var baseInf=infTotalAfterDisc>0?infTotalAfterDisc:Math.round(infTotalUSD*(1-descPctV));
+  var base=baseDirProy+baseCalc+baseInf;
   document.querySelectorAll('.cq-usd').forEach(function(el,i){if(cuotas[i])el.textContent='USD '+Math.round(base*(cuotas[i].pct/100)).toLocaleString();});
 }
 function addCuota(){cuotas.push({id:Date.now(),nm:'Nueva cuota',pct:0});renderCuotas();}
@@ -1621,7 +1629,9 @@ function motorGuardar(draft){
     subtotalDesc:Math.round(totalDesc),subtotalNoDesc:Math.round(totalNoDesc),
     descAmt:Math.round(descAmt),gastos:Math.round(gastos),comisionAmt,comisionPct,formaPago,
     detalle,cuotas:JSON.parse(JSON.stringify(cuotas)),
-    dirProyTotal:Math.round(dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:dirProyTotalUSD),
+    dirProyTotal:Math.round((dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:dirProyTotalUSD)
+      +(calcTotalAfterDisc>0?calcTotalAfterDisc:calcTotalUSD)
+      +(infTotalAfterDisc>0?infTotalAfterDisc:infTotalUSD)),
     descTrab,excl,nota,catSec,catMzo,catParc,catUF,catDom,
     empresa:JSON.parse(JSON.stringify(EMPRESA)),
     estado:draft?'Borrador':'Enviado',
@@ -2096,7 +2106,7 @@ function generarPDF(id){
 
   /* SECTION E — PLANILLA DE CUOTAS */
   if(h.cuotas&&h.cuotas.length&&h.dirProyTotal&&h.formaPago!=='contado'){
-    d+='<div class="sec"><div class="sec-head">E.&nbsp; Planilla de Cuotas \u2014 Direcci\u00f3n de Proyecto</div>';
+    d+='<div class="sec"><div class="sec-head">E.&nbsp; Planilla de Cuotas \u2014 Honorarios Financiables</div>';
     d+='<table class="sec-tbl"><tr>';
     d+='<td class="sec-desc">Esquema de pagos sobre los honorarios de Direcci\u00f3n de Proyecto. Base: <b>USD '+N(h.dirProyTotal)+'</b>.</td>';
     d+='<td class="sec-cont">';
