@@ -1354,7 +1354,8 @@ function selTarea(rid,tid,v){
 }
 
 /* ── RECALC ───────────────────────────────────────────────────────────── */
-var dirProyTotalUSD=0,dirProyTotalAfterDisc=0,calcTotalUSD=0,calcTotalAfterDisc=0,infTotalUSD=0,infTotalAfterDisc=0;
+var dirProyTotalUSD=0,dirProyTotalAfterDisc=0,calcTotalUSD=0,calcTotalAfterDisc=0,infTotalUSD=0,infTotalAfterDisc=0,infFinanciableUSD=0,infFinanciableAfterDisc=0;
+var INF_FINANCIABLES=['irelev','iplan_emp','iddj']; // subtareas de Informante Técnico que pueden financiarse en cuotas
 // Encomiendas CPT-TDF Ref.1 — Res. C.D. N°052/2026 — vigente 11/04/2026 al 30/06/2026
 var CPT_TAB=[[100,46000],[200,69000],[300,92000],[400,115000],[500,138000],[600,161000],[700,184000],[800,207000],[900,230000],[1000,253000],[1100,276000],[1200,299000],[1300,322000],[1400,345000],[1500,368000],[Infinity,391000]];
 // Ref.2 — Certificado de uso conforme
@@ -1424,7 +1425,7 @@ function recalc(){
   }
 
   var totalDesc=0,totalNoDesc=0,sumRows=[];
-  dirProyTotalUSD=0;
+  dirProyTotalUSD=0;infFinanciableUSD=0;
 
   ROLES.forEach(function(role){
     var st=S[role.id];if(!st)return;
@@ -1456,6 +1457,7 @@ function recalc(){
         }else{usd=vObraRole*it.pct;}
       }
       rs+=usd;
+      if(role.id==='inf'&&on&&INF_FINANCIABLES.indexOf(it.id)>=0)infFinanciableUSD+=usd;
       var ue=document.getElementById('usd-'+it.id),ae=document.getElementById('ars-'+it.id);
       if(ue){
         if(on&&it.tipo==='render'){ue.textContent='USD '+Math.round(usd).toLocaleString()+' ('+it.qty+'u \u00d7 $'+it.unitPrice+')';}
@@ -1487,6 +1489,7 @@ function recalc(){
   dirProyTotalAfterDisc=Math.round(dirProyTotalUSD*(1-desc));
   calcTotalAfterDisc=Math.round(calcTotalUSD*(1-desc)); // Calculista también aplica descuento
   infTotalAfterDisc=Math.round(infTotalUSD*(1-desc)); // Informante Técnico también aplica descuento
+  infFinanciableAfterDisc=Math.round(infFinanciableUSD*(1-desc)); // Solo subtareas financiables del Inf.Técnico
 
   // Summary
   var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
@@ -1530,13 +1533,19 @@ function renderCuotas(){
   var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
   var baseDirProy=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-descPctV));
   var baseCalc=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-descPctV));
-  var baseInf=infTotalAfterDisc>0?infTotalAfterDisc:Math.round(infTotalUSD*(1-descPctV));
-  var base=baseDirProy+baseCalc+baseInf;
+  // Informante Técnico: solo subtareas financiables (Relevamiento, Plano Empadron., DDJJ) — NO Redacción ni Registro Fotográfico
+  var baseInf=infFinanciableAfterDisc>0?infFinanciableAfterDisc:Math.round(infFinanciableUSD*(1-descPctV));
+  var baseHonorarios=baseDirProy+baseCalc+baseInf;
+  // Gastos y gestiones proporcional a la base financiable
+  var gastPctV=(parseFloat(document.getElementById('mot-gast-pct')?.value)||5)/100;
+  var baseGastos=Math.round(baseHonorarios*gastPctV);
+  var base=baseHonorarios+baseGastos;
   var ci=document.getElementById('cuotas-info');
   var parts=[];
   if(baseDirProy>0)parts.push('Dir. de Proyecto (USD '+Math.round(baseDirProy).toLocaleString()+')');
   if(baseCalc>0)parts.push('Calculista (USD '+Math.round(baseCalc).toLocaleString()+')');
-  if(baseInf>0)parts.push('Informante Técnico (USD '+Math.round(baseInf).toLocaleString()+')');
+  if(baseInf>0)parts.push('Inf.Técnico — Relev./Plano Emp./DDJJ (USD '+Math.round(baseInf).toLocaleString()+')');
+  if(baseGastos>0)parts.push('Gastos y gestiones (USD '+Math.round(baseGastos).toLocaleString()+')');
   if(ci)ci.innerHTML='Base: <b>USD '+Math.round(base).toLocaleString()+'</b> = '+(parts.join(' + ')||'—')+(descPctV>0?' · con descuento':'')+'. Modificá nombre, % y cuotas.';
   var tbody=document.getElementById('cuotas-rows');if(!tbody)return;
   tbody.innerHTML=cuotas.map(function(c,i){
@@ -1554,8 +1563,12 @@ function updCuotasTot(){
   var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
   var baseDirProy=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-descPctV));
   var baseCalc=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-descPctV));
-  var baseInf=infTotalAfterDisc>0?infTotalAfterDisc:Math.round(infTotalUSD*(1-descPctV));
-  var base=baseDirProy+baseCalc+baseInf;
+  // Informante Técnico: solo subtareas financiables (Relevamiento, Plano Empadron., DDJJ)
+  var baseInf=infFinanciableAfterDisc>0?infFinanciableAfterDisc:Math.round(infFinanciableUSD*(1-descPctV));
+  var baseHonorarios=baseDirProy+baseCalc+baseInf;
+  var gastPctV=(parseFloat(document.getElementById('mot-gast-pct')?.value)||5)/100;
+  var baseGastos=Math.round(baseHonorarios*gastPctV);
+  var base=baseHonorarios+baseGastos;
   document.querySelectorAll('.cq-usd').forEach(function(el,i){if(cuotas[i])el.textContent='USD '+Math.round(base*(cuotas[i].pct/100)).toLocaleString();});
 }
 function addCuota(){cuotas.push({id:Date.now(),nm:'Nueva cuota',pct:0});renderCuotas();}
@@ -1629,9 +1642,14 @@ function motorGuardar(draft){
     subtotalDesc:Math.round(totalDesc),subtotalNoDesc:Math.round(totalNoDesc),
     descAmt:Math.round(descAmt),gastos:Math.round(gastos),comisionAmt,comisionPct,formaPago,
     detalle,cuotas:JSON.parse(JSON.stringify(cuotas)),
-    dirProyTotal:Math.round((dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:dirProyTotalUSD)
-      +(calcTotalAfterDisc>0?calcTotalAfterDisc:calcTotalUSD)
-      +(infTotalAfterDisc>0?infTotalAfterDisc:infTotalUSD)),
+    dirProyTotal:(function(){
+      var bDP=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-desc));
+      var bCA=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-desc));
+      var bIF=infFinanciableAfterDisc>0?infFinanciableAfterDisc:Math.round(infFinanciableUSD*(1-desc));
+      var bHon=bDP+bCA+bIF;
+      var bGas=Math.round(bHon*gast);
+      return Math.round(bHon+bGas);
+    })(),
     descTrab,excl,nota,catSec,catMzo,catParc,catUF,catDom,
     empresa:JSON.parse(JSON.stringify(EMPRESA)),
     estado:draft?'Borrador':'Enviado',
@@ -1643,8 +1661,8 @@ function motorGuardar(draft){
     if(idx>=0)HON_DATA[idx]=hon;else HON_DATA.unshift(hon);
     editandoId=null;
   }else{HON_DATA.unshift(hon);}
-  guardarTodo();renderHon(HON_DATA);updateDashboard();
-  toast(draft?'Borrador guardado':hon.code+' guardado \u2014 USD '+Math.round(fin).toLocaleString());
+  guardarTodo(true);renderHon(HON_DATA);updateDashboard(); // true = sync inmediato a Firebase
+  toast(draft?'\u2713 Borrador guardado y sincronizado':hon.code+' guardado \u2014 USD '+Math.round(fin).toLocaleString());
   if(!draft)goTo('honorarios');
 }
 function editarHon(id){
@@ -2023,11 +2041,16 @@ function generarPDF(id){
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Revisión</div><div style="font-size:11pt;font-weight:700">'+h.rev+'</div></div>';
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Fecha de emisión</div><div style="font-size:11pt;font-weight:700">'+h.fecha+'</div></div>';
   d+='</div>';
-  d+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8pt;margin-top:8pt">';
+  d+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8pt;margin-top:8pt">';
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Tipo de encargo</div><div>'+( tipo[h.tipo]||h.tipo )+'</div></div>';
-  d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Superficie cubierta</div><div style="font-size:12pt;font-weight:700;color:'+C1+'">'+h.m2+' m\u00b2</div></div>';
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Estado</div><span class="badge '+( stClr[h.estado]||'badge-dr' )+'">'+h.estado+'</span></div>';
   d+='</div>';
+  d+='<div style="margin-top:8pt"><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:4pt">Superficie a intervenir</div>';
+  d+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6pt">';
+  d+='<div style="border:1px solid #ddd;border-radius:3pt;padding:5pt 6pt;text-align:center"><div style="font-size:7pt;color:#888;margin-bottom:2pt">Sup. nueva</div><div style="font-size:13pt;font-weight:700;color:'+C1+'">'+(h.m2||0)+' m\u00b2</div></div>';
+  d+='<div style="border:1px solid #ddd;border-radius:3pt;padding:5pt 6pt;text-align:center"><div style="font-size:7pt;color:#888;margin-bottom:2pt">Sup. existente declarada</div><div style="font-size:13pt;font-weight:700;color:#555">'+(h.m2dec||0)+' m\u00b2</div></div>';
+  d+='<div style="border:1px solid #ddd;border-radius:3pt;padding:5pt 6pt;text-align:center"><div style="font-size:7pt;color:#888;margin-bottom:2pt">Sup. existente sin declarar</div><div style="font-size:13pt;font-weight:700;color:#555">'+(h.m2sind||0)+' m\u00b2</div></div>';
+  d+='</div></div>';
   d+='</td></tr></table></div>';
 
   /* SECTION B — CLIENTE */
@@ -2069,19 +2092,23 @@ function generarPDF(id){
   d+='<td class="sec-desc">Detalle de honorarios por rol, tarea y subtarea. Los porcentajes reflejan la incidencia sobre los honorarios totales del rol.</td>';
   d+='<td class="sec-cont">';
   d+='<div style="font-size:8pt;color:#666;font-style:italic;margin-bottom:8pt;padding:5pt 8pt;background:#f8f8f8;border-radius:3pt">'
-    +'Valor de obra: '+h.m2+' m\u00b2 \u00d7 USD '+N(h.cu)+'/m\u00b2 \u00d7 cat \u00d7'+h.cat+' = '
-    +'<b>USD '+N(h.m2*h.cu*h.cat)+'</b>. '
-    +'Honorarios = % CATDF \u00d7 valor de obra \u00d7 % incidencia de cada subtarea.'
+    +'Cada rol calcula sus honorarios sobre la superficie que corresponde a su tarea (nueva, declarada o sin declarar) \u00d7 USD '+N(h.cu)+'/m\u00b2 \u00d7 categor\u00eda \u00d7'+h.cat+'. El detalle de cada rol indica su base espec\u00edfica.'
     +'</div>';
   (h.detalle||[]).forEach(function(rol){
-    var rFm=Math.round(h.m2*h.cu*h.cat*rol.catdf);
+    var rolBaseM2 = (rol.rol==='Informante Técnico') ? (h.m2sind||0)
+                   : (rol.rol==='Calculista') ? ((h.m2||0)+(h.m2dec||0)+(h.m2sind||0))
+                   : (h.m2||0);
+    var rolBaseLbl = (rol.rol==='Informante Técnico') ? 'Sup. existente sin declarar'
+                    : (rol.rol==='Calculista') ? 'Sup. total'
+                    : 'Sup. nueva';
+    var rFm=Math.round(rolBaseM2*h.cu*h.cat*rol.catdf);
     var clrRol=rol.descuentable?'#1e3a5f':'#1a3a2a';
     d+='<div class="rol-block">';
     d+='<div class="rol-head" style="background:'+clrRol+'">';
     d+=rol.rol;
     d+='<span class="desc-tag">CATDF '+(rol.catdf*100).toFixed(2)+'% &nbsp;\u00b7\u00a0'+(rol.descuentable?'Con descuento':'Sin descuento')+'</span>';
     d+='</div>';
-    d+='<div class="rol-fm">USD '+N(h.m2*h.cu*h.cat)+' \u00d7 '+(rol.catdf*100).toFixed(2)+'% = USD '+N(rFm)+' del rol. Cada subtarea = USD '+N(rFm)+' \u00d7 % de incidencia.</div>';
+    d+='<div class="rol-fm">'+rolBaseLbl+': USD '+N(rolBaseM2*h.cu*h.cat)+' \u00d7 '+(rol.catdf*100).toFixed(2)+'% = USD '+N(rFm)+' del rol. Cada subtarea = USD '+N(rFm)+' \u00d7 % de incidencia.</div>';
     d+='<table class="rol-tbl"><thead><tr>';
     d+='<th>Subtarea</th><th class="c">% del rol</th><th class="r">USD</th></tr></thead><tbody>';
     rol.items.forEach(function(it){
@@ -2857,6 +2884,10 @@ async function fbLoadAll(){
   if(_syncMode!=='firebase'||!_db||!_uid)return;
   showSyncBar('Cargando datos...',false);
   try{
+    // Guardar copia local ANTES de pisarla con datos de la nube
+    var localHonBackup=JSON.parse(JSON.stringify(HON_DATA));
+    var localCliBackup=JSON.parse(JSON.stringify(CLIENTES));
+
     // Load empresa
     var empDoc=await _db.collection('users').doc(_uid).get();
     if(empDoc.exists){
@@ -2875,9 +2906,26 @@ async function fbLoadAll(){
     var honSnap=await _db.collection('users').doc(_uid).collection('honorarios').get();
     if(!honSnap.empty){
       HON_DATA=honSnap.docs.map(function(d){return d.data();});
-      HON_DATA.sort(function(a,b){return b.id-a.id;});
     }
-    guardarTodo(); // save to localStorage as cache
+    // MERGE: si había presupuestos locales que no llegaron a la nube (guardado antes de cerrar sin conexión),
+    // los recuperamos en vez de perderlos. Un local "gana" sobre la nube si su id no existe en la nube.
+    localHonBackup.forEach(function(localH){
+      var enNube=HON_DATA.find(function(h){return h.id===localH.id;});
+      if(!enNube){
+        HON_DATA.push(localH); // recuperar presupuesto que no llegó a sincronizar
+      }
+    });
+    localCliBackup.forEach(function(localC){
+      var enNube=CLIENTES.find(function(c){return c.id===localC.id;});
+      if(!enNube)CLIENTES.push(localC);
+    });
+    HON_DATA.sort(function(a,b){return b.id-a.id;});
+
+    _guardarTodoOrig(); // guardar merge resultante en localStorage (sin re-disparar sync)
+    // Si hubo presupuestos recuperados que no estaban en la nube, subirlos ahora
+    var huboRecuperados=localHonBackup.some(function(localH){return !honSnap.docs.find(function(d){return d.data().id===localH.id;});});
+    if(huboRecuperados)fbSyncAll();
+
     renderHon(HON_DATA);
     renderCli(CLIENTES);
     updateDashboard();
@@ -2960,18 +3008,22 @@ function setupRealtimeListeners(){
       if(!snap.metadata.hasPendingWrites){
         HON_DATA.sort(function(a,b){return b.id-a.id;});
         renderHon(HON_DATA);updateDashboard();
-        guardarTodo();
+        _guardarTodoOrig(); // solo localStorage, NO re-sync a Firebase (evita loop)
       }
     },function(){});
 }
 
 /* ── OVERRIDE guardarTodo TO ALSO SYNC ─────────────────────────── */
 var _guardarTodoOrig=guardarTodo;
-guardarTodo=function(){
+guardarTodo=function(immediate){
   _guardarTodoOrig();
   if(_syncMode==='firebase'&&_uid){
     clearTimeout(guardarTodo._t);
-    guardarTodo._t=setTimeout(fbSyncAll,1200); // debounce 1.2s
+    if(immediate){
+      fbSyncAll(); // guardado inmediato, sin esperar debounce
+    }else{
+      guardarTodo._t=setTimeout(fbSyncAll,1200); // debounce 1.2s para autoguardados menores
+    }
   }
 };
 
@@ -3779,14 +3831,14 @@ function guardarDesdeListado(id){
   id=isNaN(id)?id:Number(id);
   var hon=HON_DATA.find(function(h){return h.id==id;});
   if(!hon)return;
-  guardarTodo();
-  if(_db&&_uid){
-    var honToSave=Object.assign({},hon);
-    delete honToSave.logo;delete honToSave.qr;
-    _db.collection('users').doc(_uid).collection('honorarios').doc(String(id)).set(honToSave).catch(function(){});
+  // Si NO estamos editando este presupuesto en el Motor (form vacío/otro), 
+  // este botón solo re-sincroniza lo que ya hay guardado (no hay datos nuevos para leer).
+  if(editandoId!==id){
+    toast('Abrí "✏ Editar" primero, hacé los cambios y guardá desde el Motor',false);
+    return;
   }
-  renderHon(HON_DATA);
-  toast('\u2713 '+honCode(hon)+' guardado');
+  // Estamos editando este mismo presupuesto: releer el formulario real y guardar de verdad
+  motorGuardar(true);
 }
 
 /* ════════════════════════════════════════════════════════════════════
