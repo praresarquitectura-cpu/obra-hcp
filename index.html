@@ -1129,7 +1129,7 @@ var ROLES=[
      {id:'rprov',nm:'Presentaciones Provinciales',tipo:'normal',inc:14,dsc:'DPOSS, EDELAP, CAMUZZI, Sec. Ambiental'},
    ]}]}]},
   ,
-  {id:'inf',nm:'Informante T\u00e9cnico',clr:'#fb923c',catdf:0.06,descuentable:true,
+  {id:'inf',nm:'Informante T\u00e9cnico',clr:'#fb923c',catdf:0.012,descuentable:true,
    dsc:'Relevamiento, informes y DD.JJ. CATDF: 4%-8%. Aplica descuento.',
    tareas:[{id:'ta_inf',nm:'Informe T\u00e9cnico',grupos:[{nm:null,items:[
      {id:'irelev',nm:'Relevamiento Arquitect\u00f3nico y Estructural',tipo:'normal',inc:22,dsc:'Medici\u00f3n y relevamiento de la construcci\u00f3n existente'},
@@ -1157,7 +1157,14 @@ ROLES.forEach(function(r){
   });});});
 });
 
-var PRESETS={catdf:{dir_proy:0.05,dir_obra:0.05,const:0.05,repr:0.035,inf:0.06,calc:0.01},cpt:{dir_proy:0.04,dir_obra:0.04,const:0.04,repr:0.03,inf:0.05,calc:0.009}};
+var PRESETS={
+  catdf:{dir_proy:0.05,dir_obra:0.05,const:0.05,repr:0.035,inf:0.012,calc:0.01},
+  cpt:  {dir_proy:0.04,dir_obra:0.04,const:0.04,repr:0.03, inf:0.008,calc:0.009}
+};
+// NOTA presets inf: Para empadronamiento, % sobre vObraInf (m²sind × cu × cat)
+// CPT Mayo 2026: ~0.8% → $9.266/m² / ($1200/m²) = 0.77%
+// CATDF Jun 2026: ~1.2% → $14.600/m² prom / ($1200/m²) = 1.22%
+// El usuario puede ajustar desde el panel "Ajuste de honorarios por rol".
 // Valores CPT-TDF Mayo 2026 por m²
 var CPT_HON_REF={empArq:9266.40,empSan:2733.59,obraArq_proy:15444,obraArq_dir:9009,infViv:138996,infCat_men50:185328,infCat_may50:231660,consulta:30888,valorMod:15444};
 function aplicarPreset(tipo){
@@ -1390,7 +1397,30 @@ function recalc(){
       cptLines.push('Proy.Arq.: $'+CPT_HON_REF.obraArq_proy.toLocaleString('es-AR')+'/m² × '+m2+' = <b style="color:var(--golt)">$'+Math.round(m2*CPT_HON_REF.obraArq_proy).toLocaleString('es-AR')+'</b>');
       cptLines.push('Dir.Arq.: $'+CPT_HON_REF.obraArq_dir.toLocaleString('es-AR')+'/m² × '+m2+' = <b style="color:var(--golt)">$'+Math.round(m2*CPT_HON_REF.obraArq_dir).toLocaleString('es-AR')+'</b>');
     }
-    cptHon.innerHTML=cptLines.length?'<div style="font-size:8px;font-weight:700;color:var(--tx3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em">Ref. CPT Mayo 2026 (ARS/m²)</div>'+cptLines.join('<br>'):'';
+    // Agregar referencias CATDF (Junio 2026) — solo panel, nunca PDF
+    var catdfLines=[];
+    var cu2=getN('mot-cu',1200);
+    var cat2=parseFloat(document.getElementById('mot-cat')?.value)||1.0;
+    var vObraRef=m2*cu2*cat2; // base CATDF = sup nueva × costo × cat
+    if(tipoCPT==='emp'||tipoCPT==='empref'){
+      var m2base2=m2sind||m2;
+      var catdfEmpMin=Math.round(m2base2*11680);
+      var catdfEmpMax=Math.round(m2base2*17520);
+      catdfLines.push('Relevam./Empadron.: $'+catdfEmpMin.toLocaleString('es-AR')+' – $'+catdfEmpMax.toLocaleString('es-AR')+' ('+m2base2+'m² × $11.680–$17.520/m²)');
+    } else if((tipoCPT==='nueva'||tipoCPT==='amp')&&m2>0){
+      var catdfPMin=Math.round(vObraRef*0.03);
+      var catdfPMax=Math.round(vObraRef*0.05);
+      var catdfDMin=Math.round(vObraRef*0.05);
+      var catdfDMax=Math.round(vObraRef*0.05);
+      catdfLines.push('Proyecto (CATDF): USD '+Math.round(vObraRef*0.03).toLocaleString()+'–'+Math.round(vObraRef*0.05).toLocaleString()+' (3–5%)');
+      catdfLines.push('Dirección Obra (CATDF): USD '+Math.round(vObraRef*0.05).toLocaleString()+' (5%)');
+    } else if(tipoCPT==='inf'&&m2>0){
+      catdfLines.push('DDJJ/Inf.Téc. (CATDF): $'+Math.round(m2*29200).toLocaleString('es-AR')+' – $'+Math.round(m2*87600).toLocaleString('es-AR')+'/m²');
+    }
+    var html2='';
+    if(cptLines.length) html2+='<div style="font-size:8px;font-weight:700;color:var(--tx3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em">Ref. CPT Mayo 2026 (ARS/m²)</div>'+cptLines.join('<br>');
+    if(catdfLines.length) html2+='<div style="font-size:8px;font-weight:700;color:var(--bt);margin-top:6px;margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em">Ref. CATDF Arquitectos Jun 2026</div>'+catdfLines.map(function(l){return '<span style="color:var(--bt)">'+l+'</span>';}).join('<br>');
+    cptHon.innerHTML=html2;
   }
 
   var totalDesc=0,totalNoDesc=0,sumRows=[];
@@ -1584,7 +1614,7 @@ function motorGuardar(draft){
   var hon={
     id:editandoId||Date.now(),
     code:editandoId?HON_DATA.find(function(h){return h.id===editandoId;})?.code||('HON-'+String(HON_DATA.length+1).padStart(4,'0')):'HON-'+String(HON_DATA.length+1).padStart(4,'0'),
-    rev:'R01',roles:activeRoles.join(' + '),uso,tipo,m2,cu,cat,tc,
+    rev:'R01',roles:activeRoles.join(' + '),uso,tipo,m2,m2dec,m2sind,cu,cat,tc,
     descPct:desc*100,gastPct:gast*100,ipc:ipc*100,
     cliente:cli?cli.ap+', '+cli.nm:'—',cliId,
     usd:Math.round(fin),ars:Math.round(fin*tc),
@@ -1660,7 +1690,30 @@ function editarHon(id){
   }
   closeM('mod-hon');
   goTo('motor');
-  setTimeout(function(){buildRoles();toast('Editando '+hon.code+' \u2014 guard\u00e1 los cambios');},100);
+  // Guardar cliId para restaurar DESPUÉS de que populateCliSel llene el select
+  var _honCliId=hon.cliId;
+  var _honM2dec=hon.m2dec||0;
+  var _honM2sind=hon.m2sind||0;
+  setTimeout(function(){
+    // Restaurar cliente (ahora el select ya está poblado)
+    var cliEl2=document.getElementById('mot-cli');
+    if(cliEl2&&_honCliId){
+      cliEl2.value=_honCliId;
+      // Si no encontró el valor, intentar como string y number
+      if(!cliEl2.value||cliEl2.value===''){
+        cliEl2.value=String(_honCliId);
+        if(!cliEl2.value)cliEl2.value=Number(_honCliId);
+      }
+    }
+    // Restaurar superficies que pueden haberse perdido
+    var m2decEl=document.getElementById('mot-m2-dec');
+    if(m2decEl&&_honM2dec)m2decEl.value=_honM2dec;
+    var m2sindEl=document.getElementById('mot-m2-sind');
+    if(m2sindEl&&_honM2sind)m2sindEl.value=_honM2sind;
+    buildRoles();
+    recalc();
+    toast('Editando '+hon.code+' \u2014 guard\u00e1 los cambios');
+  },400);
 }
 
 /* ── HON LIST ─────────────────────────────────────────────────────────── */
