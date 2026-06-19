@@ -434,7 +434,7 @@ input,select,textarea,button{font-family:var(--font)}
     <span id="hon-cnt" style="margin-left:auto;font-size:10.5px;color:var(--tx3)"></span>
   </div>
   <div class="tw"><table class="dt">
-    <thead><tr><th>Código</th><th>Rol(es)</th><th>Cliente</th><th>Uso</th><th>m²</th><th>USD</th><th>Estado</th><th style="text-align:center">Acciones</th></tr></thead>
+    <thead><tr><th>Código</th><th>Rol(es)</th><th>Cliente</th><th>Uso</th><th title="Superficie nueva">M² Nva</th><th title="Superficie existente declarada">M² Decl.</th><th title="Superficie existente sin declarar">M² S/Decl.</th><th>USD</th><th>Estado</th><th style="text-align:center">Acciones</th></tr></thead>
     <tbody id="hon-body"></tbody>
   </table></div>
 </section>
@@ -1639,81 +1639,91 @@ function motorGuardar(draft){
 }
 function editarHon(id){
   id=isNaN(id)?id:Number(id); var hon=HON_DATA.find(function(h){return h.id==id;});if(!hon)return;
-  // Revertir a borrador al editar
   var eraEnviado=hon.estado!=='Borrador';
   hon.estado='Borrador';
   guardarTodo();
   renderHon(HON_DATA);
-  if(eraEnviado)toast('✏ Editando '+hon.code+' — revertido a Borrador');
   editandoId=id;
-  // Restaurar datos en el formulario
-  var sv=function(elId,v){var el=document.getElementById(elId);if(el&&v!==undefined&&v!==null)el.value=v;};
-  sv('mot-uso',hon.uso);sv('mot-tipo',hon.tipo);sv('mot-m2',hon.m2);sv('mot-cu',hon.cu);
-  sv('mot-tc',hon.tc);sv('mot-desc-pct',hon.descPct||0);sv('mot-gast-pct',hon.gastPct||5);
-  sv('mot-ipc',hon.ipc||0);sv('mot-sec',hon.catSec);sv('mot-mzo',hon.catMzo);
-  sv('mot-parc',hon.catParc);sv('mot-uf',hon.catUF);sv('mot-dom',hon.catDom);
-  sv('mot-desc-trab',hon.descTrab);sv('mot-excl',hon.excl);sv('mot-nota',hon.nota);
-  sv('mot-forma-pago',hon.formaPago||'contado');sv('mot-comision',hon.comisionPct||6.49);
-  onFormaPago();
-  // Restaurar cliId
-  var cliEl=document.getElementById('mot-cli');if(cliEl&&hon.cliId){cliEl.value=hon.cliId;}
-  // Restaurar cat
-  var catEl=document.getElementById('mot-cat');if(catEl)catEl.value=String(hon.cat||1.0);
-  // Restaurar cuotas
-  if(hon.cuotas)cuotas=JSON.parse(JSON.stringify(hon.cuotas));
-  // Resetear estado
-  ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{}};});
-  // Restaurar checkboxes desde detalle
-  try{
-    if(hon.detalle){
-      hon.detalle.forEach(function(rolDet){
+  closeM('mod-hon');
+
+  // PASO 1: ir al motor primero (esto pobla el select de clientes y resetea el form)
+  goTo('motor');
+
+  // PASO 2: ahora que el DOM del motor existe y está poblado, restaurar TODO
+  setTimeout(function(){
+    var sv=function(elId,v){var el=document.getElementById(elId);if(el&&v!==undefined&&v!==null&&v!=='')el.value=v;};
+
+    sv('mot-uso',hon.uso);
+    sv('mot-tipo',hon.tipo);
+    sv('mot-m2',hon.m2||0);
+    sv('mot-m2-dec',hon.m2dec||0);
+    sv('mot-m2-sind',hon.m2sind||0);
+    sv('mot-cu',hon.cu);
+    sv('mot-tc',hon.tc);
+    sv('mot-desc-pct',hon.descPct||0);
+    sv('mot-gast-pct',hon.gastPct!==undefined?hon.gastPct:5);
+    sv('mot-ipc',hon.ipc||0);
+    sv('mot-sec',hon.catSec);
+    sv('mot-mzo',hon.catMzo);
+    sv('mot-parc',hon.catParc);
+    sv('mot-uf',hon.catUF);
+    sv('mot-dom',hon.catDom);
+    sv('mot-desc-trab',hon.descTrab);
+    sv('mot-excl',hon.excl);
+    sv('mot-nota',hon.nota);
+    sv('mot-forma-pago',hon.formaPago||'contado');
+    sv('mot-comision',hon.comisionPct||6.49);
+    onFormaPago();
+
+    // Cliente — el select YA está poblado por motorInit()
+    var cliEl=document.getElementById('mot-cli');
+    if(cliEl&&hon.cliId)cliEl.value=String(hon.cliId);
+
+    // Categoría
+    var catEl=document.getElementById('mot-cat');
+    if(catEl)catEl.value=String(hon.cat||1.0);
+
+    // Cuotas
+    if(hon.cuotas)cuotas=JSON.parse(JSON.stringify(hon.cuotas));
+
+    // Reconstruir estado S desde el detalle guardado (match por ID, no por nombre)
+    ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{}};
+      r.tareas.forEach(function(t){S[r.id].tasks[t.id]=false;t.grupos.forEach(function(g){g.items.forEach(function(it){S[r.id].subs[it.id]=false;});});});
+    });
+
+    try{
+      (hon.detalle||[]).forEach(function(rolDet){
         var role=ROLES.find(function(r){return r.nm===rolDet.rol;});
         if(!role)return;
         S[role.id].on=true;S[role.id].open=true;
-        rolDet.items.forEach(function(itDet){
-          role.tareas.forEach(function(t){
-            S[role.id].tasks[t.id]=true;
-            t.grupos.forEach(function(g){g.items.forEach(function(it){
-              if(it.nm===itDet.nm){
-                S[role.id].subs[it.id]=true;
-                if(it.tipo==='render'&&itDet.qty)it.qty=itDet.qty;
-                if(it.tipo==='render'&&itDet.unitPrice)it.unitPrice=itDet.unitPrice;
+        var nombresActivos={};
+        (rolDet.items||[]).forEach(function(itDet){nombresActivos[itDet.nm]=itDet;});
+        role.tareas.forEach(function(t){
+          var anyInTask=false;
+          t.grupos.forEach(function(g){g.items.forEach(function(it){
+            if(nombresActivos[it.nm]){
+              S[role.id].subs[it.id]=true;
+              anyInTask=true;
+              var itDet=nombresActivos[it.nm];
+              if(it.tipo==='render'){
+                if(itDet.qty)it.qty=itDet.qty;
+                if(itDet.unitPrice!==undefined)it.unitPrice=itDet.unitPrice;
               }
-            });});
-          });
+            }
+          });});
+          if(anyInTask)S[role.id].tasks[t.id]=true;
         });
       });
+    }catch(errRestore){
+      console.error('Error restaurando detalle:',errRestore);
+      toast('\u26a0 Algunos roles no se pudieron restaurar completamente',false);
     }
-  }catch(errRestore){
-    console.error('Error restaurando detalle del presupuesto:',errRestore);
-    toast('\u26a0 Algunos datos no se pudieron restaurar — revisá los roles y subtareas',false);
-  }
-  closeM('mod-hon');
-  goTo('motor');
-  // Guardar cliId para restaurar DESPUÉS de que populateCliSel llene el select
-  var _honCliId=hon.cliId;
-  var _honM2dec=hon.m2dec||0;
-  var _honM2sind=hon.m2sind||0;
-  setTimeout(function(){
-    // Restaurar cliente (ahora el select ya está poblado)
-    var cliEl2=document.getElementById('mot-cli');
-    if(cliEl2&&_honCliId){
-      cliEl2.value=_honCliId;
-      // Si no encontró el valor, intentar como string y number
-      if(!cliEl2.value||cliEl2.value===''){
-        cliEl2.value=String(_honCliId);
-        if(!cliEl2.value)cliEl2.value=Number(_honCliId);
-      }
-    }
-    // Restaurar superficies que pueden haberse perdido
-    var m2decEl=document.getElementById('mot-m2-dec');
-    if(m2decEl&&_honM2dec)m2decEl.value=_honM2dec;
-    var m2sindEl=document.getElementById('mot-m2-sind');
-    if(m2sindEl&&_honM2sind)m2sindEl.value=_honM2sind;
+
+    // PASO 3: reconstruir la UI de roles con el S ya correcto, y recalcular
     buildRoles();
     recalc();
-    toast('Editando '+hon.code+' \u2014 guard\u00e1 los cambios');
-  },400);
+    toast('\u270f Editando '+hon.code+(eraEnviado?' \u2014 revertido a Borrador':''));
+  },150);
 }
 
 /* ── HON LIST ─────────────────────────────────────────────────────────── */
@@ -1722,7 +1732,7 @@ function renderHon(data){
   var cnt=document.getElementById('hon-cnt');if(cnt)cnt.textContent=data.length+' registros';
   var sbn=document.getElementById('sb-hon');if(sbn)sbn.textContent=data.length;
   var body=document.getElementById('hon-body');if(!body)return;
-  if(!data.length){body.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--tx3)">Sin presupuestos \u2014 cre\u00e1 el primero desde Motor Hon.</td></tr>';return;}
+  if(!data.length){body.innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--tx3)">Sin presupuestos \u2014 cre\u00e1 el primero desde Motor Hon.</td></tr>';return;}
   body.innerHTML=data.map(function(h){
     var isDraft=h.estado==='Borrador';
     return '<tr>'
@@ -1730,7 +1740,9 @@ function renderHon(data){
       +'<td style="cursor:pointer;max-width:170px;white-space:normal;font-size:11px" onclick="openHonDetail('+h.id+')">'+h.roles+'</td>'
       +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')">'+h.cliente+'</td>'
       +'<td style="cursor:pointer;max-width:140px;white-space:normal;font-size:11px" onclick="openHonDetail('+h.id+')">'+h.uso+'</td>'
-      +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')">'+h.m2+' m\u00b2</td>'
+      +'<td style="cursor:pointer;text-align:center" onclick="openHonDetail('+h.id+')">'+(h.m2||0)+'</td>'
+      +'<td style="cursor:pointer;text-align:center;color:var(--tx3)" onclick="openHonDetail('+h.id+')">'+(h.m2dec||0)+'</td>'
+      +'<td style="cursor:pointer;text-align:center;color:var(--tx3)" onclick="openHonDetail('+h.id+')">'+(h.m2sind||0)+'</td>'
       +'<td style="cursor:pointer;color:var(--bt);font-weight:700" onclick="openHonDetail('+h.id+')">USD '+h.usd.toLocaleString()+'</td>'
       +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')"><span class="bdg '+(ST[h.estado]||'b-dr')+'">'+h.estado+'</span></td>'
       +'<td><div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap">'
@@ -1821,7 +1833,7 @@ function openHonDetail(id){
     +'</div>'
     +'<div class="g3" style="margin-bottom:12px">'
     +'<div class="csm"><div class="sl">Tipo</div><div style="font-size:12px;margin-top:4px">'+(tl[h.tipo]||h.tipo)+'</div></div>'
-    +'<div class="csm"><div class="sl">Superficie</div><div style="font-size:18px;font-weight:700;color:var(--bt);margin-top:4px">'+h.m2+' m\u00b2</div></div>'
+    +'<div class="csm"><div class="sl">Superficie</div><div style="font-size:14px;font-weight:700;color:var(--bt);margin-top:4px">'+(h.m2||0)+' nva'+(h.m2dec?' + '+h.m2dec+' decl.':'')+(h.m2sind?' + '+h.m2sind+' s/decl.':'')+' m\u00b2</div></div>'
     +'<div class="csm"><div class="sl">Fecha \u00b7 TC</div><div style="font-size:12px;margin-top:4px">'+h.fecha+' \u00b7 $'+h.tc.toLocaleString('es-AR')+'</div></div>'
     +'</div>'
     +(h.descTrab?'<div class="csm" style="margin-bottom:12px"><div class="sl">Descripci\u00f3n del trabajo</div><div style="font-size:12px;color:var(--tx2);line-height:1.6;margin-top:4px">'+h.descTrab+'</div></div>':'')
@@ -2114,21 +2126,6 @@ function generarPDF(id){
     }
     d+='</td></tr></table></div>';
   }
-
-  /* ENCOMIENDA CPT EN PDF */
-  var pdfCptAv=cptVal(h.m2||0);
-  var pdfCptRef2=cptRef2Val(h.m2||0);
-  d+='<div style="margin:8pt 0;padding:8pt 10pt;background:#fffdf0;border:1.5px solid #c8a800;border-radius:3pt">';
-  d+='<div style="font-weight:700;color:#7a5e00;font-size:9pt;margin-bottom:5pt">CPT-TDF · Aranceles de Encomienda — Res. C.D. N°052/2026 — Vigente 11/04/2026 al 30/06/2026</div>';
-  d+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8pt">';
-  d+='<div><div style="font-size:7.5pt;color:#888;margin-bottom:2pt">Ref.1 — Obra nueva / Ampliación / Empadronamiento / Refacción / Demolición</div>';
-  d+='<div style="font-size:13pt;font-weight:700;color:#5a4000">$'+pdfCptAv.toLocaleString('es-AR')+'</div>';
-  d+='<div style="font-size:8pt;color:#888">≈ USD '+Math.round(pdfCptAv/(h.tc||1460))+'</div></div>';
-  d+='<div><div style="font-size:7.5pt;color:#888;margin-bottom:2pt">Ref.2 — Certificado de uso conforme</div>';
-  d+='<div style="font-size:13pt;font-weight:700;color:#5a4000">$'+pdfCptRef2.toLocaleString('es-AR')+'</div>';
-  d+='<div style="font-size:8pt;color:#888">≈ USD '+Math.round(pdfCptRef2/(h.tc||1460))+'</div></div>';
-  d+='</div><div style="font-size:7pt;color:#999;margin-top:4pt">Para '+(h.m2||0)+' m² cubiertos. Aranceles independientes de los honorarios profesionales.</div>';
-  d+='</div>';
 
   /* NOTA LEGAL */
   d+='<div style="margin:10pt 0 0;padding:7pt 10pt;background:#f8f8f8;border-left:3px solid #ccc;font-size:8pt;color:#666">';
