@@ -1576,15 +1576,17 @@ function onFormaPago(){var v=document.getElementById('mot-forma-pago')?.value||'
 var cuotas=[{id:1,nm:'Anticipo',pct:40},{id:2,nm:'Aprobaci\u00f3n de anteproyecto',pct:20},{id:3,nm:'Presentaci\u00f3n plano municipal',pct:20},{id:4,nm:'Aprobaci\u00f3n de estructura',pct:10},{id:5,nm:'Entrega documentaci\u00f3n ejecutiva',pct:10}];
 function renderCuotas(){
   var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
-  var baseDirProy=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-descPctV));
-  var baseCalc=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-descPctV));
-  // Informante Técnico: solo subtareas financiables (Relevamiento, Plano Empadron., DDJJ) — NO Redacción ni Registro Fotográfico
-  var baseInf=infFinanciableAfterDisc>0?infFinanciableAfterDisc:Math.round(infFinanciableUSD*(1-descPctV));
-  var baseHonorarios=baseDirProy+baseCalc+baseInf;
-  // Gastos y gestiones proporcional a la base financiable
   var gastPctV=(parseFloat(document.getElementById('mot-gast-pct')?.value)||5)/100;
-  var baseGastos=Math.round(baseHonorarios*gastPctV);
-  var base=baseHonorarios+baseGastos;
+  // CRÍTICO: aplicar descuento sobre el TOTAL combinado (no rol por rol)
+  // para que coincida exactamente con el cálculo de recalc() y evitar diferencia de USD 1
+  var totalFinanciableExacto=dirProyTotalUSD+calcTotalUSD+infFinanciableUSD;
+  var totalFinanciableConDesc=totalFinanciableExacto*(1-descPctV);
+  var baseGastos=totalFinanciableConDesc*gastPctV;
+  var base=Math.round(totalFinanciableConDesc+baseGastos);
+  // Valores redondeados para el detalle informativo (no afectan la base)
+  var baseDirProy=Math.round(dirProyTotalUSD*(1-descPctV));
+  var baseCalc=Math.round(calcTotalUSD*(1-descPctV));
+  var baseInf=Math.round(infFinanciableUSD*(1-descPctV));
   var ci=document.getElementById('cuotas-info');
   var parts=[];
   if(baseDirProy>0)parts.push('Dir. de Proyecto (USD '+Math.round(baseDirProy).toLocaleString()+')');
@@ -1606,14 +1608,11 @@ function updCuotasTot(){
   var tot=cuotas.reduce(function(a,c){return a+(parseFloat(c.pct)||0);},0);
   var el=document.getElementById('cq-total');if(el){el.textContent='Total: '+tot.toFixed(0)+'% '+(tot===100?'\u2713':'  debe sumar 100%');el.className=tot===100?'cq-ok':'cq-err';}
   var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
-  var baseDirProy=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-descPctV));
-  var baseCalc=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-descPctV));
-  // Informante Técnico: solo subtareas financiables (Relevamiento, Plano Empadron., DDJJ)
-  var baseInf=infFinanciableAfterDisc>0?infFinanciableAfterDisc:Math.round(infFinanciableUSD*(1-descPctV));
-  var baseHonorarios=baseDirProy+baseCalc+baseInf;
   var gastPctV=(parseFloat(document.getElementById('mot-gast-pct')?.value)||5)/100;
-  var baseGastos=Math.round(baseHonorarios*gastPctV);
-  var base=baseHonorarios+baseGastos;
+  // Mismo cálculo que renderCuotas(): total combinado sin redondear por rol
+  var totalFinanciableExacto=dirProyTotalUSD+calcTotalUSD+infFinanciableUSD;
+  var totalFinanciableConDesc=totalFinanciableExacto*(1-descPctV);
+  var base=Math.round(totalFinanciableConDesc*(1+gastPctV));
   document.querySelectorAll('.cq-usd').forEach(function(el,i){if(cuotas[i])el.textContent='USD '+Math.round(base*(cuotas[i].pct/100)).toLocaleString();});
 }
 function addCuota(){cuotas.push({id:Date.now(),nm:'Nueva cuota',pct:0});renderCuotas();}
@@ -1694,14 +1693,7 @@ function motorGuardar(draft){
     subtotalDesc:Math.round(totalDesc),subtotalNoDesc:Math.round(totalNoDesc),
     descAmt:Math.round(descAmt),gastos:Math.round(gastos),comisionAmt,comisionPct,formaPago,
     detalle,cuotas:JSON.parse(JSON.stringify(cuotas)),
-    dirProyTotal:(function(){
-      var bDP=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-desc));
-      var bCA=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-desc));
-      var bIF=infFinanciableAfterDisc>0?infFinanciableAfterDisc:Math.round(infFinanciableUSD*(1-desc));
-      var bHon=bDP+bCA+bIF;
-      var bGas=Math.round(bHon*gast);
-      return Math.round(bHon+bGas);
-    })(),
+    dirProyTotal:Math.round((dirProyTotalUSD+calcTotalUSD+infFinanciableUSD)*(1-desc)*(1+gast)),
     descTrab,excl,nota,catSec,catMzo,catParc,catUF,catDom,
     empresa:JSON.parse(JSON.stringify(EMPRESA)),
     estado:draft?'Borrador':'Enviado',
