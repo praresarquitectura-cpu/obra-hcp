@@ -1102,7 +1102,7 @@ var ROLES=[
      ]},
      {nm:'Documentaci\u00f3n Municipal',items:[
        {id:'p_arq_mun',nm:'Plano de Arquitectura Municipal',tipo:'normal',inc:18,dsc:'Plano con escala y formato requerido por el Municipio — responsabilidad del Director de Proyecto'},
-       {id:'guia_aviso',nm:'Guía de Aviso de Obra',tipo:'render',inc:0,qty:1,unitPrice:136,dsc:'Gestión y tramitación de la Guía de Aviso ante Municipio — Profesional 1º categoría (Arquitecto/Ingeniero) · precio: $150.000–$250.000 ARS'},
+       {id:'guia_aviso',nm:'Guía de Aviso de Obra',tipo:'m2price',inc:0,pricePerM2:3.0,dsc:'Cobra por m² de superficie nueva · rango orientativo: USD 1,50–USD 5,00/m² · Profesional 1º categoría (Arquitecto/Ingeniero)'},
        {id:'ddj_mojones_proy',nm:'Declaración Jurada de Mojones',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'DD.JJ. de Deslinde y Amojonamiento — precio orientativo: $300.000–$500.000 ARS (USD 204–340 al TC actual)'},
      ]},
      {nm:'Documentaci\u00f3n Ejecutiva',items:[
@@ -1240,6 +1240,31 @@ function initS(){
 }
 
 /* Build a single render row (no string escaping nightmares) */
+function makeM2PriceRow(it,on,roleId,tareaId,m2Nueva){
+  var price=it.pricePerM2||3.0;
+  var dis=on?'':' disabled';
+  var total=on?Math.round(m2Nueva*price):0;
+  var html='<div class="str-render">';
+  html+='<input type="checkbox" class="st-chk" id="it-'+it.id+'"'+(on?' checked':'')+' onchange="onItem(\''+roleId+'\',\''+tareaId+'\',\''+it.id+'\',this.checked)">';
+  html+='<div>';
+  html+='<div class="st-nm">'+it.nm+' <span style="background:rgba(45,212,191,.12);color:var(--tt);font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px">USD/m²</span></div>';
+  html+='<div class="st-dsc">'+it.dsc+'</div></div>';
+  html+='<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">';
+  html+='<input id="m2p-'+it.id+'" type="number" min="0.5" max="20" step="0.5" value="'+price+'"'+dis+' class="r-inp-p" style="width:52px" oninput="updateM2Price(\''+roleId+'\',\''+it.id+'\',this.value)" title="USD por m²">';
+  html+='<span style="font-size:9px;color:var(--tx3)">USD/m²</span>';
+  html+='</div>';
+  html+='<div class="st-usd" id="usd-'+it.id+'" style="color:'+(on?'var(--bt)':'var(--tx3)')+'">'+( on&&total>0?'USD '+total.toLocaleString():'—' )+'</div>';
+  html+='<div class="st-ars" id="ars-'+it.id+'">—</div>';
+  html+='</div>';
+  return html;
+}
+
+function updateM2Price(rid,iid,val){
+  var prc=Math.max(0.5,parseFloat(String(val).replace(',','.'))||3.0);
+  ROLES.forEach(function(r){if(r.id!==rid)return;r.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){if(it.id===iid)it.pricePerM2=prc;});});});});
+  recalc();
+}
+
 function makeRenderRow(it,on,roleId,tareaId){
   var qty=it.qty||1; var price=it.unitPrice||0;
   var dis=on?'':' disabled';
@@ -1287,7 +1312,8 @@ function buildRoles(){
         var ihtml='';
         grp.items.forEach(function(it){
           var on=st.subs[it.id];
-          ihtml+=it.tipo==='render'?makeRenderRow(it,on,role.id,tarea.id):makeNormalRow(it,on,role.id,tarea.id);
+          var m2NuevaCur=getN('mot-m2',0);
+          ihtml+=it.tipo==='render'?makeRenderRow(it,on,role.id,tarea.id):it.tipo==='m2price'?makeM2PriceRow(it,on,role.id,tarea.id,m2NuevaCur):makeNormalRow(it,on,role.id,tarea.id);
         });
         var glbl=grp.nm?'<div class="stg-lbl">'+grp.nm+'</div>':'';
         ghtml+='<div class="stg">'+glbl+ihtml+'</div>';
@@ -1466,6 +1492,12 @@ function recalc(){
           usd=qty*prc;
           // Actualizar objeto
           it.qty=qty;it.unitPrice=prc;
+        } else if(it.tipo==='m2price'){
+          // Cobra por m² de superficie nueva × precio/m² editable
+          var m2pEl=document.getElementById('m2p-'+it.id);
+          var m2prc=m2pEl?Math.max(0.5,parseFloat(m2pEl.value)||it.pricePerM2||3.0):(it.pricePerM2||3.0);
+          it.pricePerM2=m2prc;
+          usd=m2*m2prc; // m2 = superficie nueva (del scope de recalc)
         }else{usd=vObraRole*it.pct;}
       }
       rs+=usd;
@@ -1473,6 +1505,7 @@ function recalc(){
       var ue=document.getElementById('usd-'+it.id),ae=document.getElementById('ars-'+it.id);
       if(ue){
         if(on&&it.tipo==='render'){ue.textContent='USD '+Math.round(usd).toLocaleString()+' ('+it.qty+'u \u00d7 $'+it.unitPrice+')';}
+        else if(on&&it.tipo==='m2price'){ue.textContent='USD '+Math.round(usd).toLocaleString()+' ('+m2+'m\u00b2 \u00d7 USD '+(it.pricePerM2||3)+')';}
         else{ue.textContent=on?'USD '+Math.round(usd).toLocaleString():'—';}
         ue.style.color=on?'var(--bt)':'var(--tx3)';
       }
@@ -1628,10 +1661,16 @@ function motorGuardar(draft){
           var qEl=document.getElementById('rqty-'+it.id),pEl=document.getElementById('rprc-'+it.id);
           var qty=qEl?Math.max(1,parseInt(qEl.value)||it.qty||1):(it.qty||1);
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
-          iusd=qty*prc; // valor exacto, sin redondear todavía
+          iusd=qty*prc;
           items.push({nm:it.nm,inc:it.inc,pct:0,usd:Math.round(iusd),usdExact:iusd,tipo:'render',qty:qty,unitPrice:prc});
+        }else if(it.tipo==='m2price'){
+          var m2pEl=document.getElementById('m2p-'+it.id);
+          var m2prc=m2pEl?Math.max(0.5,parseFloat(m2pEl.value)||it.pricePerM2||3.0):(it.pricePerM2||3.0);
+          iusd=m2*m2prc; // m2 = superficie nueva
+          it.pricePerM2=m2prc;
+          items.push({nm:it.nm,inc:it.inc,pct:0,usd:Math.round(iusd),usdExact:iusd,tipo:'m2price',pricePerM2:m2prc,m2:m2});
         }else{
-          iusd=vObraRole*it.pct; // valor exacto, sin redondear todavía
+          iusd=vObraRole*it.pct;
           items.push({nm:it.nm,inc:it.inc,pct:it.pct,usd:Math.round(iusd),usdExact:iusd,tipo:'normal'});
         }
       }
@@ -1746,6 +1785,7 @@ function _restaurarFormularioHon(hon,eraEnviado){
               if(itDet.qty)it.qty=itDet.qty;
               if(itDet.unitPrice!==undefined)it.unitPrice=itDet.unitPrice;
             }
+              if(it.tipo==='m2price'&&itDet.pricePerM2!==undefined){it.pricePerM2=itDet.pricePerM2;}
           }
         });});
         if(anyInTask)S[role.id].tasks[t.id]=true;
@@ -1849,7 +1889,7 @@ function openHonDetail(id){
       +'<span>'+rol.rol+'</span><span style="font-size:9px;opacity:.7;font-weight:400">'+(rol.descuentable?'Con descuento':'Sin descuento')+' \u00b7 CATDF '+(rol.catdf*100).toFixed(1)+'%</span></div>'
       +'<div style="font-size:10px;color:var(--tx3);margin-bottom:7px;font-style:italic">Subtotal del rol = USD '+N(rol.total)+'. Cada subtarea = USD '+N(rol.total)+' \u00d7 % del rol.</div>'
       +rol.items.map(function(it){
-        var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
+        var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span>'):it.tipo==='m2price'?('<span style="color:var(--tt);font-size:10px">'+(it.m2||'?')+'m\u00b2 \u00d7 USD '+(it.pricePerM2||3)+'</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
         var nmCol=it.tipo==='render'?it.nm+' <span style="background:rgba(212,168,67,.15);color:var(--golt);font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px">MERCADO</span>':it.nm;
         return '<div style="display:grid;grid-template-columns:1fr 80px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px">'
           +'<span style="color:var(--tx)">'+nmCol+'</span>'
@@ -2151,7 +2191,8 @@ function generarPDF(id){
     d+='<table class="rol-tbl"><thead><tr>';
     d+='<th>Subtarea</th><th class="c">% del rol</th><th class="r">USD</th></tr></thead><tbody>';
     rol.items.forEach(function(it){
-      d+='<tr><td>'+it.nm+'</td><td class="c">'+it.inc+'%</td><td class="r">USD '+N(it.usd)+'</td></tr>';
+      var colPct=it.tipo==='render'?(it.qty+'u \u00d7 USD '+it.unitPrice):it.tipo==='m2price'?((it.m2||'?')+'m\u00b2 \u00d7 USD '+(it.pricePerM2||3)):(it.inc+'%');
+      d+='<tr><td>'+it.nm+'</td><td class="c">'+colPct+'</td><td class="r">USD '+N(it.usd)+'</td></tr>';
     });
     d+='</tbody></table>';
     d+='<div class="rol-sub">Subtotal '+rol.rol+': &nbsp;<b>USD '+N(rol.total)+'</b></div>';
