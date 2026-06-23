@@ -1972,6 +1972,7 @@ function openHonDetail(id){
 
 
 function generarPDF(id){
+  try {
   // Asegurar logo y QR desde localStorage
   if(!EMPRESA.logo) EMPRESA.logo = localStorage.getItem('obraerp_logo')||'';
   if(!EMPRESA.qr)   EMPRESA.qr   = localStorage.getItem('obraerp_qr')||'';
@@ -2289,10 +2290,23 @@ function generarPDF(id){
     +'<style>'+css+'</style></head><body><div class="pg">'+d+'</div>'
     +'<script>window.onload=function(){window.print();}<\/script></body></html>';
 
-  const pw=window.open('','_blank','width=940,height=780');
-  pw.document.write(html);
-  pw.document.close();
-  toast('PDF listo \u2014 Ctrl+P para guardar como PDF');
+  // Generar PDF como Blob y abrir en nueva pestaña (sin popup blocker)
+  var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  // Método 1: abrir en nueva pestaña (funciona cuando el usuario lo inicia con click)
+  var a=document.createElement('a');
+  a.href=url;
+  a.target='_blank';
+  a.rel='noopener';
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);
+  toast('PDF abierto \u2014 us\u00e1 Ctrl+P para imprimir o guardar como PDF');
+  } catch(pdfErr) {
+    console.error('Error generarPDF:', pdfErr);
+    toast('Error al generar PDF: ' + pdfErr.message, false);
+  }
 }
 
 
