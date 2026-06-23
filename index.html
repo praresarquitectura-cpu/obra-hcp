@@ -468,11 +468,7 @@ input,select,textarea,button{font-family:var(--font)}
           <div style="flex:1"></div>
         </div>
         <div class="g3">
-          <div class="fg"><label class="fl">Cliente</label>
-            <input class="fi" id="mot-cli-txt" list="cli-datalist" placeholder="Buscar cliente..." autocomplete="off" oninput="onCliInput(this.value)" style="font-size:12px">
-            <datalist id="cli-datalist"></datalist>
-            <input type="hidden" id="mot-cli" value="">
-          </div>
+          <div class="fg"><label class="fl">Cliente</label><select class="fis" id="mot-cli"><option value="">— seleccionar —</option></select></div>
           <div class="fg"><label class="fl">Uso / Descripción</label><input class="fi" type="text" id="mot-uso" placeholder="Ej: Vivienda unifamiliar…"></div>
           <div class="fg"><label class="fl">Tipo de encargo</label>
             <select class="fis" id="mot-tipo" onchange="recalc()">
@@ -1680,8 +1676,6 @@ function motorGuardar(draft){
   var comisionPct=formaPago==='tarjeta'?getN('mot-comision',6.49):0;
   var ajusteTC2=getN('mot-ajuste-tc',0);
   var cliId=gs('mot-cli');
-  // Si el campo oculto está vacío pero hay texto, intentar matchear por nombre
-  if(!cliId){var txt=(document.getElementById('mot-cli-txt')||{}).value||'';var found=CLIENTES.find(function(c){return(c.ap+', '+c.nm)===txt;});if(found)cliId=String(found.id);}
   var cli=CLIENTES.find(function(c){return c.id==cliId;});
   var m2dec=getN('mot-m2-dec',0),m2sind=getN('mot-m2-sind',0);
   var m2total=m2+m2dec+m2sind;
@@ -1795,12 +1789,6 @@ function _restaurarFormularioHon(hon,eraEnviado){
   // Cliente
   var cliEl=document.getElementById('mot-cli');
   if(cliEl&&hon.cliId)cliEl.value=String(hon.cliId);
-  var cliTxt=document.getElementById('mot-cli-txt');
-  if(cliTxt&&hon.cliId){
-    var cliObj=CLIENTES.find(function(c){return String(c.id)===String(hon.cliId);});
-    if(cliObj)cliTxt.value=cliObj.ap+', '+cliObj.nm;
-    else cliTxt.value=hon.cliente||'';
-  }
 
   // Categoría
   var catEl=document.getElementById('mot-cat');
@@ -2384,17 +2372,7 @@ function goTo(id,btn,sb){
 }
 
 /* ── CLIENTES ─────────────────────────────────────────────────────────── */
-function populateCliSel(){
-  // Poblar datalist para autocompletado
-  var dl=document.getElementById('cli-datalist');
-  if(dl)dl.innerHTML=CLIENTES.map(function(c){return'<option value="'+c.ap+', '+c.nm+'" data-id="'+c.id+'">';}).join('');
-}
-function onCliInput(val){
-  // Buscar cliente por nombre y setear el ID oculto
-  var found=CLIENTES.find(function(c){return (c.ap+', '+c.nm)===val;});
-  var hidden=document.getElementById('mot-cli');
-  if(hidden)hidden.value=found?String(found.id):'';
-}
+function populateCliSel(){var sel=document.getElementById('mot-cli');if(!sel)return;sel.innerHTML='<option value="">— seleccionar —</option>'+CLIENTES.map(function(c){return'<option value="'+c.id+'">'+c.ap+', '+c.nm+'</option>';}).join('');}
 function renderCli(data){
   var cnt=document.getElementById('cli-cnt');if(cnt)cnt.textContent=data.length+' clientes';
   var db=document.getElementById('db-cli');if(db)db.textContent=CLIENTES.length;
