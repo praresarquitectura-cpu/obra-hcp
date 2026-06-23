@@ -197,6 +197,15 @@ input,select,textarea,button{font-family:var(--font)}
   .scr{padding:12px 10px}
   .rc-head{padding:10px 12px}
 }
+/* Total flotante en mobile */
+#motor-total-float{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:2px solid var(--br2);padding:8px 16px;z-index:60;justify-content:space-between;align-items:center}
+#motor-total-float .tot-lbl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em}
+#motor-total-float .tot-val{font-size:20px;font-weight:800;color:var(--bt)}
+#motor-total-float .tot-ars{font-size:10px;color:var(--tx3)}
+@media(max-width:768px){
+  #motor-total-float{display:flex}
+  #s-motor .sump{display:none}
+}
 
 
 .comp-tab{padding:8px 14px;border:none;background:transparent;color:var(--tx3);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.05em;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;text-transform:uppercase}
@@ -422,7 +431,10 @@ input,select,textarea,button{font-family:var(--font)}
 <section id="s-honorarios" class="scr">
   <div style="display:flex;justify-content:space-between;align-items:flex-start">
     <div><div class="pgt">Presupuestos de Honorarios</div><div class="pgs">Clic para detalle · Editar borradores · PDF · Archivar · Eliminar</div></div>
-    <button class="btn btn-r" onclick="goTo('motor')">+ Nuevo</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-r" onclick="goTo('motor')">+ Nuevo</button>
+      <button class="btn btn-b" onclick="exportarCSV()" title="Exportar todos los presupuestos a CSV/Excel">&#8595; CSV</button>
+    </div>
   </div>
   <div class="tb" style="margin-top:16px">
     <input class="si" type="text" placeholder="Buscar…" oninput="filtHon(this.value)">
@@ -434,7 +446,7 @@ input,select,textarea,button{font-family:var(--font)}
     <span id="hon-cnt" style="margin-left:auto;font-size:10.5px;color:var(--tx3)"></span>
   </div>
   <div class="tw"><table class="dt">
-    <thead><tr><th>Código</th><th>Rol(es)</th><th>Cliente</th><th>Uso</th><th title="Superficie nueva">M² Nva</th><th title="Superficie existente declarada">M² Decl.</th><th title="Superficie existente sin declarar">M² S/Decl.</th><th>USD</th><th>Estado</th><th style="text-align:center">Acciones</th></tr></thead>
+    <thead><tr><th>Código</th><th>Rol(es)</th><th>Cliente</th><th>Uso</th><th title="Superficie nueva">M² Nva</th><th title="Superficie existente declarada">M² Decl.</th><th title="Superficie existente sin declarar">M² S/Decl.</th><th>Total USD</th><th>Cobrado</th><th>Estado</th><th>Modif.</th><th style="text-align:center">Acciones</th></tr></thead>
     <tbody id="hon-body"></tbody>
   </table></div>
 </section>
@@ -450,8 +462,17 @@ input,select,textarea,button{font-family:var(--font)}
     <div>
       <div class="card" style="margin-bottom:14px">
         <div class="fsc">Datos generales del encargo</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:10px">
+          <div style="flex:0 0 auto"><label class="fl">Código</label><input class="fi" id="mot-code" placeholder="HON-0001" style="width:120px;font-family:monospace;font-weight:700" title="Código del presupuesto (editable)"></div>
+          <div style="flex:0 0 auto"><label class="fl">Revisión</label><input class="fi" id="mot-rev" placeholder="R01" style="width:60px;font-family:monospace;text-align:center" title="Revisión"></div>
+          <div style="flex:1"></div>
+        </div>
         <div class="g3">
-          <div class="fg"><label class="fl">Cliente</label><select class="fis" id="mot-cli"><option value="">— seleccionar —</option></select></div>
+          <div class="fg"><label class="fl">Cliente</label>
+            <input class="fi" id="mot-cli-txt" list="cli-datalist" placeholder="Buscar cliente..." autocomplete="off" oninput="onCliInput(this.value)" style="font-size:12px">
+            <datalist id="cli-datalist"></datalist>
+            <input type="hidden" id="mot-cli" value="">
+          </div>
           <div class="fg"><label class="fl">Uso / Descripción</label><input class="fi" type="text" id="mot-uso" placeholder="Ej: Vivienda unifamiliar…"></div>
           <div class="fg"><label class="fl">Tipo de encargo</label>
             <select class="fis" id="mot-tipo" onchange="recalc()">
@@ -995,6 +1016,10 @@ input,select,textarea,button{font-family:var(--font)}
 </div>
 <div class="mb" id="mod-hon" onclick="closeBg(event,'mod-hon')">
   <div class="modal" id="mod-hon-inner" style="max-width:860px"></div>
+</div>
+<div id="motor-total-float">
+  <div><div class="tot-lbl">Total honorarios</div><div class="tot-ars" id="float-ars">ARS $ 0</div></div>
+  <div class="tot-val" id="float-tot">USD 0</div>
 </div>
 <div id="toast"><span>✓</span><span id="toast-msg">OK</span></div>
 <script>
@@ -1563,6 +1588,9 @@ function recalc(){
   set('s-ajuste-tc',ajusteTC>0?'+ USD '+N(ajusteTC):ajusteTC<0?'− USD '+N(Math.abs(ajusteTC)):'—');
   if(comisionAmt>0){set('s-tarj','+ USD '+N(comisionAmt));var tl2=document.getElementById('s-tarj-lbl');if(tl2)tl2.textContent='Comisi\u00f3n tarjeta ('+(getN('mot-comision',6.49)).toFixed(2)+'%)';}
   set('s-tot','USD '+N(fin));set('s-ars','ARS $ '+Math.round(fin*tc).toLocaleString('es-AR'));
+  // Actualizar total flotante mobile
+  var fTot=document.getElementById('float-tot');if(fTot)fTot.textContent='USD '+N(fin);
+  var fArs=document.getElementById('float-ars');if(fArs)fArs.textContent='ARS $ '+Math.round(fin*tc).toLocaleString('es-AR');
 
   var sr=document.getElementById('sum-roles');
   if(sr)sr.innerHTML=sumRows.length?sumRows.map(function(r){return '<div class="sum-row"><span class="sum-rn">'+r.nm+'</span><span class="sum-rv" style="color:'+(r.descuentable?'var(--bt)':'var(--golt)')+'">USD '+N(r.usd)+'</span></div>';}).join(''):'<div style="font-size:11px;color:var(--tx3);padding:4px 0">Seleccion\u00e1 roles \u2192</div>';
@@ -1588,10 +1616,11 @@ function renderCuotas(){
   var gastPctV=(parseFloat(document.getElementById('mot-gast-pct')?.value)||5)/100;
   // CRÍTICO: aplicar descuento sobre el TOTAL combinado (no rol por rol)
   // para que coincida exactamente con el cálculo de recalc() y evitar diferencia de USD 1
+  var ajusteTCv=getN('mot-ajuste-tc',0);
   var totalFinanciableExacto=dirProyTotalUSD+calcTotalUSD+infFinanciableUSD;
   var totalFinanciableConDesc=totalFinanciableExacto*(1-descPctV);
   var baseGastos=totalFinanciableConDesc*gastPctV;
-  var base=Math.round(totalFinanciableConDesc+baseGastos);
+  var base=Math.round(totalFinanciableConDesc+baseGastos+ajusteTCv);
   // Valores redondeados para el detalle informativo (no afectan la base)
   var baseDirProy=Math.round(dirProyTotalUSD*(1-descPctV));
   var baseCalc=Math.round(calcTotalUSD*(1-descPctV));
@@ -1619,9 +1648,10 @@ function updCuotasTot(){
   var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
   var gastPctV=(parseFloat(document.getElementById('mot-gast-pct')?.value)||5)/100;
   // Mismo cálculo que renderCuotas(): total combinado sin redondear por rol
+  var ajusteTCv2=getN('mot-ajuste-tc',0);
   var totalFinanciableExacto=dirProyTotalUSD+calcTotalUSD+infFinanciableUSD;
   var totalFinanciableConDesc=totalFinanciableExacto*(1-descPctV);
-  var base=Math.round(totalFinanciableConDesc*(1+gastPctV));
+  var base=Math.round(totalFinanciableConDesc*(1+gastPctV)+ajusteTCv2);
   document.querySelectorAll('.cq-usd').forEach(function(el,i){if(cuotas[i])el.textContent='USD '+Math.round(base*(cuotas[i].pct/100)).toLocaleString();});
 }
 function addCuota(){cuotas.push({id:Date.now(),nm:'Nueva cuota',pct:0});renderCuotas();}
@@ -1633,6 +1663,8 @@ function motorLimpiar(){
   ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{}};});
   cuotas=[{id:1,nm:'Anticipo',pct:40},{id:2,nm:'Aprobaci\u00f3n anteproyecto',pct:20},{id:3,nm:'Plano municipal',pct:20},{id:4,nm:'Estructura',pct:10},{id:5,nm:'Doc. ejecutiva',pct:10}];
   editandoId=null;
+  var codeEl=document.getElementById('mot-code');if(codeEl)codeEl.value='';
+  var revEl=document.getElementById('mot-rev');if(revEl)revEl.value='R01';
   buildRoles();toast('Motor limpiado');
 }
 function motorGuardar(draft){
@@ -1648,6 +1680,8 @@ function motorGuardar(draft){
   var comisionPct=formaPago==='tarjeta'?getN('mot-comision',6.49):0;
   var ajusteTC2=getN('mot-ajuste-tc',0);
   var cliId=gs('mot-cli');
+  // Si el campo oculto está vacío pero hay texto, intentar matchear por nombre
+  if(!cliId){var txt=(document.getElementById('mot-cli-txt')||{}).value||'';var found=CLIENTES.find(function(c){return(c.ap+', '+c.nm)===txt;});if(found)cliId=String(found.id);}
   var cli=CLIENTES.find(function(c){return c.id==cliId;});
   var m2dec=getN('mot-m2-dec',0),m2sind=getN('mot-m2-sind',0);
   var m2total=m2+m2dec+m2sind;
@@ -1671,16 +1705,16 @@ function motorGuardar(draft){
           var qty=qEl?Math.max(1,parseInt(qEl.value)||it.qty||1):(it.qty||1);
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
           iusd=qty*prc;
-          items.push({nm:it.nm,inc:it.inc,pct:0,usd:Math.round(iusd),usdExact:iusd,tipo:'render',qty:qty,unitPrice:prc});
+          items.push({id:it.id,nm:it.nm,inc:it.inc,pct:0,usd:Math.round(iusd),usdExact:iusd,tipo:'render',qty:qty,unitPrice:prc});
         }else if(it.tipo==='m2price'){
           var m2pEl=document.getElementById('m2p-'+it.id);
           var m2prc=m2pEl?Math.max(0.5,parseFloat(m2pEl.value)||it.pricePerM2||3.0):(it.pricePerM2||3.0);
           iusd=m2*m2prc; // m2 = superficie nueva
           it.pricePerM2=m2prc;
-          items.push({nm:it.nm,inc:it.inc,pct:0,usd:Math.round(iusd),usdExact:iusd,tipo:'m2price',pricePerM2:m2prc,m2:m2});
+          items.push({id:it.id,nm:it.nm,inc:it.inc,pct:0,usd:Math.round(iusd),usdExact:iusd,tipo:'m2price',pricePerM2:m2prc,m2:m2});
         }else{
           iusd=vObraRole*it.pct;
-          items.push({nm:it.nm,inc:it.inc,pct:it.pct,usd:Math.round(iusd),usdExact:iusd,tipo:'normal'});
+          items.push({id:it.id,nm:it.nm,inc:it.inc,pct:it.pct,usd:Math.round(iusd),usdExact:iusd,tipo:'normal'});
         }
       }
     });});});
@@ -1695,18 +1729,19 @@ function motorGuardar(draft){
   var fin=after+gastos+ipcAmt+comisionAmt+ajusteTC2;
   var hon={
     id:editandoId||Date.now(),
-    code:editandoId?HON_DATA.find(function(h){return h.id===editandoId;})?.code||('HON-'+String(HON_DATA.length+1).padStart(4,'0')):'HON-'+String(HON_DATA.length+1).padStart(4,'0'),
-    rev:'R01',roles:activeRoles.join(' + '),uso,tipo,m2,m2dec,m2sind,cu,cat,tc,
+    code:(function(){var c=document.getElementById('mot-code')?.value?.trim();if(c)return c;if(editandoId){var cur=HON_DATA.find(function(h){return h.id===editandoId;});if(cur&&cur.code)return cur.code;}var n=HON_DATA.length+1;var base='HON-'+String(n).padStart(4,'0');while(HON_DATA.find(function(h){return h.code===base&&(!editandoId||h.id!==editandoId);})){n++;base='HON-'+String(n).padStart(4,'0');}return base;})(),
+    rev:(function(){var r=document.getElementById('mot-rev')?.value?.trim();if(r)return r;if(!editandoId)return 'R01';var prev=HON_DATA.find(function(h){return h.id===editandoId;});if(!prev)return 'R01';var n=parseInt((prev.rev||'R01').replace('R',''))||1;return 'R'+String(n+1).padStart(2,'0');}()),roles:activeRoles.join(' + '),uso,tipo,m2,m2dec,m2sind,cu,cat,tc,
     descPct:desc*100,gastPct:gast*100,ipc:ipc*100,
     cliente:cli?cli.ap+', '+cli.nm:'—',cliId,
     usd:Math.round(fin),ars:Math.round(fin*tc),
     subtotalDesc:Math.round(totalDesc),subtotalNoDesc:Math.round(totalNoDesc),
     descAmt:Math.round(descAmt),gastos:Math.round(gastos),comisionAmt,comisionPct,formaPago,ajusteTC:ajusteTC2,
     detalle,cuotas:JSON.parse(JSON.stringify(cuotas)),
-    dirProyTotal:Math.round((dirProyTotalUSD+calcTotalUSD+infFinanciableUSD)*(1-desc)*(1+gast)),
+    dirProyTotal:Math.round((dirProyTotalUSD+calcTotalUSD+infFinanciableUSD)*(1-desc)*(1+gast)+ajusteTC2),
     descTrab,excl,nota,catSec,catMzo,catParc,catUF,catDom,
     empresa:JSON.parse(JSON.stringify(EMPRESA)),
     estado:draft?'Borrador':'Enviado',
+    fechaMod:new Date().toLocaleString('es-AR'),
     pagos:[],
     fecha:new Date().toLocaleDateString('es-AR')
   };
@@ -1716,14 +1751,24 @@ function motorGuardar(draft){
     editandoId=null;
   }else{HON_DATA.unshift(hon);}
   guardarTodo(true);renderHon(HON_DATA);updateDashboard(); // true = sync inmediato a Firebase
-  toast(draft?'\u2713 Borrador guardado y sincronizado':hon.code+' guardado \u2014 USD '+Math.round(fin).toLocaleString());
-  if(!draft)goTo('honorarios');
+  if(draft){
+    toast('\u2713 Borrador guardado');
+  } else {
+    var honId=hon.id;
+    toast(hon.code+' guardado \u2014 USD '+Math.round(fin).toLocaleString());
+    if(confirm('\u00bfDescar\u00e1s el PDF de '+hon.code+'?')){
+      setTimeout(function(){generarPDF(honId);},300);
+    }
+    goTo('honorarios');
+  }
 }
 // Bandera global: mientras estamos restaurando un presupuesto en edición,
 // fetchDolar() no debe pisar el campo TC que el usuario ya tenía guardado.
 function _restaurarFormularioHon(hon,eraEnviado){
   var sv=function(elId,v){var el=document.getElementById(elId);if(el&&v!==undefined&&v!==null&&v!=='')el.value=v;};
 
+  sv('mot-code',hon.code||'');
+  sv('mot-rev',hon.rev||'R01');
   sv('mot-uso',hon.uso);
   sv('mot-tipo',hon.tipo);
   sv('mot-m2',hon.m2||0);
@@ -1750,6 +1795,12 @@ function _restaurarFormularioHon(hon,eraEnviado){
   // Cliente
   var cliEl=document.getElementById('mot-cli');
   if(cliEl&&hon.cliId)cliEl.value=String(hon.cliId);
+  var cliTxt=document.getElementById('mot-cli-txt');
+  if(cliTxt&&hon.cliId){
+    var cliObj=CLIENTES.find(function(c){return String(c.id)===String(hon.cliId);});
+    if(cliObj)cliTxt.value=cliObj.ap+', '+cliObj.nm;
+    else cliTxt.value=hon.cliente||'';
+  }
 
   // Categoría
   var catEl=document.getElementById('mot-cat');
@@ -1775,20 +1826,24 @@ function _restaurarFormularioHon(hon,eraEnviado){
           if(it.tipo==='normal')it.pct=role.catdf*(it.inc/100);
         });});});
       }
-      var nombresActivos={};
-      (rolDet.items||[]).forEach(function(itDet){nombresActivos[itDet.nm]=itDet;});
+      // Match por ID (presupuestos nuevos) con fallback por nombre (presupuestos viejos)
+      var idActivos={}, nombresActivos={};
+      (rolDet.items||[]).forEach(function(itDet){
+        if(itDet.id) idActivos[itDet.id]=itDet;
+        nombresActivos[itDet.nm]=itDet;
+      });
       role.tareas.forEach(function(t){
         var anyInTask=false;
         t.grupos.forEach(function(g){g.items.forEach(function(it){
-          if(nombresActivos[it.nm]){
+          var itDet=idActivos[it.id]||nombresActivos[it.nm];
+          if(itDet){
             S[role.id].subs[it.id]=true;
             anyInTask=true;
-            var itDet=nombresActivos[it.nm];
             if(it.tipo==='render'){
               if(itDet.qty)it.qty=itDet.qty;
               if(itDet.unitPrice!==undefined)it.unitPrice=itDet.unitPrice;
             }
-              if(it.tipo==='m2price'&&itDet.pricePerM2!==undefined){it.pricePerM2=itDet.pricePerM2;}
+            if(it.tipo==='m2price'&&itDet.pricePerM2!==undefined){it.pricePerM2=itDet.pricePerM2;}
           }
         });});
         if(anyInTask)S[role.id].tasks[t.id]=true;
@@ -1854,7 +1909,9 @@ function renderHon(data){
       +'<td style="cursor:pointer;text-align:center;color:var(--tx3)" onclick="openHonDetail('+h.id+')">'+(h.m2dec||0)+'</td>'
       +'<td style="cursor:pointer;text-align:center;color:var(--tx3)" onclick="openHonDetail('+h.id+')">'+(h.m2sind||0)+'</td>'
       +'<td style="cursor:pointer;color:var(--bt);font-weight:700" onclick="openHonDetail('+h.id+')">USD '+h.usd.toLocaleString()+'</td>'
+      +(function(){var cobrado=(h.pagos||[]).reduce(function(a,p){return a+(p.montoUSD||0);},0);var pct=h.usd>0?Math.round(cobrado/h.usd*100):0;var color=cobrado>=h.usd?'var(--gt)':cobrado>0?'var(--golt)':'var(--tx3)';return cobrado>0?'<td style="color:'+color+';font-weight:600;cursor:pointer" onclick="openHonDetail('+h.id+')">USD '+Math.round(cobrado).toLocaleString()+' <span style="font-size:9px">('+pct+'%)</span></td>':'<td style="color:var(--tx3);cursor:pointer" onclick="openHonDetail('+h.id+')">—</td>';})()
       +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')"><span class="bdg '+(ST[h.estado]||'b-dr')+'">'+h.estado+'</span></td>'
+      +'<td style="font-size:9px;color:var(--tx3);cursor:pointer" onclick="openHonDetail('+h.id+')">'+(h.fechaMod||h.fecha||'—')+'</td>'
       +'<td><div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap">'
       +'<button class="btn btn-sm btn-edit" title="Editar" data-hid="'+h.id+'" onclick="editarHon(+this.dataset.hid)">✏ Editar</button>'+(h.estado==='Borrador'?'<button class="btn btn-sm" style="color:var(--gt);border-color:rgba(74,222,128,.3)" data-hid="'+h.id+'" onclick="guardarDesdeListado(+this.dataset.hid)" title="Guardar cambios">💾 Guardar</button>':'')
       +'<button class="btn btn-sm" title="PDF" onclick="generarPDF('+h.id+')">PDF</button>'
@@ -2325,7 +2382,17 @@ function goTo(id,btn,sb){
 }
 
 /* ── CLIENTES ─────────────────────────────────────────────────────────── */
-function populateCliSel(){var sel=document.getElementById('mot-cli');if(!sel)return;sel.innerHTML='<option value="">— seleccionar —</option>'+CLIENTES.map(function(c){return'<option value="'+c.id+'">'+c.ap+', '+c.nm+'</option>';}).join('');}
+function populateCliSel(){
+  // Poblar datalist para autocompletado
+  var dl=document.getElementById('cli-datalist');
+  if(dl)dl.innerHTML=CLIENTES.map(function(c){return'<option value="'+c.ap+', '+c.nm+'" data-id="'+c.id+'">';}).join('');
+}
+function onCliInput(val){
+  // Buscar cliente por nombre y setear el ID oculto
+  var found=CLIENTES.find(function(c){return (c.ap+', '+c.nm)===val;});
+  var hidden=document.getElementById('mot-cli');
+  if(hidden)hidden.value=found?String(found.id):'';
+}
 function renderCli(data){
   var cnt=document.getElementById('cli-cnt');if(cnt)cnt.textContent=data.length+' clientes';
   var db=document.getElementById('db-cli');if(db)db.textContent=CLIENTES.length;
@@ -3830,6 +3897,32 @@ function mostrarModalCodigo(codePreFill){
     +'\u2713 Activar código</button>'
     +'<button class="btn" style="width:100%;justify-content:center" onclick="closeM(\'mod-codigo\')">Cerrar</button>';
   m.classList.add('open');
+}
+
+function exportarCSV(){
+  var headers=['Código','Revisión','Roles','Cliente','Uso','Tipo','M² Nueva','M² Decl.','M² S/Decl.','Total USD','Cobrado USD','Gastos %','Descuento %','Estado','Fecha','Últ.Modif.'];
+  var rows=HON_DATA.map(function(h){
+    var cobrado=(h.pagos||[]).reduce(function(a,p){return a+(p.montoUSD||0);},0);
+    return [
+      h.code, h.rev||'R01', '"'+h.roles+'"', '"'+(h.cliente||'')+'"', '"'+(h.uso||'')+'"',
+      h.tipo||'', h.m2||0, h.m2dec||0, h.m2sind||0,
+      h.usd||0, Math.round(cobrado), h.gastPct||5, h.descPct||0,
+      h.estado||'', h.fecha||'', h.fechaMod||''
+    ].join(',');
+  });
+  var csv=headers.join(',')+'
+'+rows.join('
+');
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='OBRAERP-honorarios-'+new Date().toISOString().split('T')[0]+'.csv';
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+  toast('CSV exportado — abrilo con Excel');
 }
 
 function estadoAbr(estado){
