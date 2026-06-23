@@ -1491,10 +1491,18 @@ function updCuotasTot(){
   var tot=cuotas.reduce(function(a,c){return a+(parseFloat(c.pct)||0);},0);
   var el=document.getElementById('cq-total');if(el){el.textContent='Total: '+tot.toFixed(0)+'% '+(tot===100?'\u2713':'  debe sumar 100%');el.className=tot===100?'cq-ok':'cq-err';}
   var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
+  var gastPctV2=(parseFloat(document.getElementById('mot-gast-pct')?.value)||5)/100;
   var baseDirProy=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-descPctV));
   var baseCalc=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-descPctV));
-  var base=baseDirProy+baseCalc;
-  document.querySelectorAll('.cq-usd').forEach(function(el,i){if(cuotas[i])el.textContent='USD '+Math.round(base*(cuotas[i].pct/100)).toLocaleString();});
+  var base=Math.round((baseDirProy+baseCalc)*(1+gastPctV2));
+  // Última cuota toma el residuo exacto
+  var _acUpd=0;
+  document.querySelectorAll('.cq-usd').forEach(function(el,i){
+    if(!cuotas[i])return;
+    var _m=(i===cuotas.length-1)?Math.round(base-_acUpd):Math.round(base*(cuotas[i].pct/100));
+    _acUpd+=_m;
+    el.textContent='USD '+_m.toLocaleString();
+  });
 }
 function addCuota(){cuotas.push({id:Date.now(),nm:'Nueva cuota',pct:0});renderCuotas();}
 function delCuota(id){if(cuotas.length<=1){toast('Debe haber al menos una cuota',false);return;}cuotas=cuotas.filter(function(c){return c.id!==id;});renderCuotas();}
