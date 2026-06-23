@@ -1091,7 +1091,7 @@ var ROLES=[
      ]},
      {nm:'Documentaci\u00f3n Municipal',items:[
        {id:'p_arq_mun',nm:'Plano de Arquitectura Municipal',tipo:'normal',inc:18,dsc:'Plano con escala y formato requerido por el Municipio — responsabilidad del Director de Proyecto'},
-       {id:'guia_aviso',nm:'Gu\u00eda de Aviso de Obra',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'Gesti\u00f3n Gu\u00eda de Aviso ante Municipio'},
+       {id:'guia_aviso',nm:'Gu\u00eda de Aviso de Obra',tipo:'render',inc:0,qty:1,unitPrice:3.0,dsc:'Gesti\u00f3n Gu\u00eda de Aviso ante Municipio'},
        {id:'ddj_mojones_proy',nm:'Declaraci\u00f3n Jurada de Mojones',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'DD.JJ. Deslinde y Amojonamiento'},
      ]},
      {nm:'Documentaci\u00f3n Ejecutiva',items:[
@@ -1394,6 +1394,8 @@ function recalc(){
           var qEl=document.getElementById('rqty-'+it.id),pEl=document.getElementById('rprc-'+it.id);
           var qty=qEl?Math.max(1,parseInt(qEl.value)||it.qty||1):(it.qty||1);
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
+          // Guía de Aviso: la cantidad es siempre el m² nuevo del encargo
+          if(it.id==='guia_aviso'){qty=m2;var qEl2=document.getElementById('rqty-'+it.id);if(qEl2)qEl2.value=m2;}
           usd=qty*prc;
           // Actualizar objeto
           it.qty=qty;it.unitPrice=prc;
@@ -1539,6 +1541,7 @@ function motorGuardar(draft){
           var qEl=document.getElementById('rqty-'+it.id),pEl=document.getElementById('rprc-'+it.id);
           var qty=qEl?Math.max(1,parseInt(qEl.value)||it.qty||1):(it.qty||1);
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
+          if(it.id==='guia_aviso'){qty=m2;}
           iusd=Math.round(qty*prc);
           items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'render',qty:qty,unitPrice:prc});
         }else{
@@ -2011,10 +2014,12 @@ function generarPDF(id){
     d+='<td class="sec-desc">Esquema de pagos sobre los honorarios de Direcci\u00f3n de Proyecto. Base: <b>USD '+N(h.dirProyTotal)+'</b>.</td>';
     d+='<td class="sec-cont">';
     d+='<table class="cq-tbl"><thead><tr><th>#</th><th>Concepto</th><th class="r">%</th><th class="r">USD</th></tr></thead><tbody>';
+    var _acPDF=0;
     h.cuotas.forEach(function(c,i){
+      var _mPDF=(i===h.cuotas.length-1)?Math.round(h.dirProyTotal-_acPDF):Math.round(h.dirProyTotal*(c.pct/100));_acPDF+=_mPDF;
       d+='<tr><td style="color:#888;font-size:8pt">'+(i+1)+'</td><td>'+c.nm+'</td>';
       d+='<td class="r" style="color:#b8700a">'+c.pct+'%</td>';
-      d+='<td class="r">USD '+N(h.dirProyTotal*(c.pct/100))+'</td></tr>';
+      d+='<td class="r">USD '+N(_mPDF)+'</td></tr>';
     });
     d+='</tbody></table>';
     d+='</td></tr></table></div>';
