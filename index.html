@@ -3045,7 +3045,7 @@ async function fbSyncAll(){
     });
     await batch.commit();
     showSyncBar('\u2713 Sincronizado',true);
-  }catch(e){console.error('Sync error:',e);hideSyncBar();}
+  }catch(e){showSyncBar('Error de sync: '+e.message,false);console.error(e);}
 }
 
 async function fbLoadAll(){
@@ -3070,23 +3070,13 @@ async function fbLoadAll(){
     var honSnap=await _db.collection('users').doc(_uid).collection('honorarios').get();
     if(!honSnap.empty){
       HON_DATA=honSnap.docs.map(function(d){return d.data();});
+      HON_DATA.sort(function(a,b){return b.id-a.id;});
     }
-    // MERGE: si había presupuestos locales que no llegaron a la nube (guardado antes de cerrar sin conexión),
-    // los recuperamos en vez de perderlos. Un local "gana" sobre la nube si su id no existe en la nube.
-    localHonBackup.forEach(function(localH){
-      var enNube=HON_DATA.find(function(h){return h.id===localH.id;});
-      if(!enNube){
-        HON_DATA.push(localH); // recuperar presupuesto que no llegó a sincronizar
-      }
-    });
-    localCliBackup.forEach(function(localC){
-      var enNube=CLIENTES.find(function(c){return c.id===localC.id;});
-      if(!enNube)CLIENTES.push(localC);
-    });
-    HON_DATA.sort(function(a,b){return b.id-a.id;});
-
-    HON_DATA.sort(function(a,b){return b.id-a.id;});
-    renderHon(HON_DATA);renderCli(CLIENTES);updateDashboard();actualizarUIEmpresa();
+    guardarTodo(); // save to localStorage as cache
+    renderHon(HON_DATA);
+    renderCli(CLIENTES);
+    updateDashboard();
+    actualizarUIEmpresa();
     showSyncBar('\u2713 Datos cargados',true);
   }catch(e){showSyncBar('Error al cargar: '+e.message,false);console.error(e);}
 }
@@ -3164,9 +3154,8 @@ function setupRealtimeListeners(){
       });
       if(!snap.metadata.hasPendingWrites){
         HON_DATA.sort(function(a,b){return b.id-a.id;});
-        try{renderHon(HON_DATA);}catch(e){console.error('renderHon en listener:',e);}
-        try{updateDashboard();}catch(e){console.error('updateDashboard en listener:',e);}
-        try{_guardarTodoOrig();}catch(e){console.error('guardarTodo en listener:',e);}
+        renderHon(HON_DATA);updateDashboard();
+        guardarTodo();
       }
     },function(){});
 }
