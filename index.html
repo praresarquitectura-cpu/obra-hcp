@@ -197,15 +197,6 @@ input,select,textarea,button{font-family:var(--font)}
   .scr{padding:12px 10px}
   .rc-head{padding:10px 12px}
 }
-/* Total flotante en mobile */
-#motor-total-float{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:2px solid var(--br2);padding:8px 16px;z-index:60;justify-content:space-between;align-items:center}
-#motor-total-float .tot-lbl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em}
-#motor-total-float .tot-val{font-size:20px;font-weight:800;color:var(--bt)}
-#motor-total-float .tot-ars{font-size:10px;color:var(--tx3)}
-@media(max-width:768px){
-  #motor-total-float{display:flex}
-  #s-motor .sump{display:none}
-}
 
 
 .comp-tab{padding:8px 14px;border:none;background:transparent;color:var(--tx3);cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.05em;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;text-transform:uppercase}
@@ -374,8 +365,8 @@ input,select,textarea,button{font-family:var(--font)}
         <input type="file" accept=".json" onchange="importarDesdeBoton(this)" style="display:none">
       </label>
     </div></div>
-    <div class="csm"><div class="sl" style="margin-bottom:8px">Aranceles Junio 2026</div>
-      <div style="font-size:10.5px;color:var(--tx2);line-height:1.8"><b style="color:var(--tx3);font-size:8.5px;text-transform:uppercase;letter-spacing:.06em">CATDF Arquitectos</b><br>Dir. Proyecto/Obra: <b style="color:var(--bt)">5%</b><br>Inf. Técnico: <b style="color:var(--ot)">4–8%</b> · Repr.: <b style="color:var(--tt)">2–5%</b><br><b style="color:var(--tx3);font-size:8.5px;text-transform:uppercase;letter-spacing:.06em">CPT-TDF Técnicos Mayo 2026</b><br>Empadron.Arq.: <b style="color:var(--golt)">$9.266/m²</b><br>Encomienda Ref.1 ≤100m²: <b style="color:var(--golt)">$46.000</b><br>Encomienda Ref.2 ≤100m²: <b style="color:var(--golt)">$36.000</b></div>
+    <div class="csm"><div class="sl" style="margin-bottom:8px">CATDF · Mayo 2026</div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.9">Dir. Proyecto: <b style="color:var(--bt)">5%</b><br>Dir. de Obra: <b style="color:var(--bt)">5%</b><br>Constructor: <b style="color:var(--pt)">5%</b><br>Repr. Técnico: <b style="color:var(--tt)">3.5%</b><br>Inf. Técnico: <b style="color:var(--ot)">6%</b><br>CPT ≤100m²: <b style="color:var(--golt)">$46.000</b></div>
     </div>
   </div>
 </section>
@@ -431,10 +422,7 @@ input,select,textarea,button{font-family:var(--font)}
 <section id="s-honorarios" class="scr">
   <div style="display:flex;justify-content:space-between;align-items:flex-start">
     <div><div class="pgt">Presupuestos de Honorarios</div><div class="pgs">Clic para detalle · Editar borradores · PDF · Archivar · Eliminar</div></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-r" onclick="goTo('motor')">+ Nuevo</button>
-      <button class="btn btn-b" onclick="exportarCSV()" title="Exportar todos los presupuestos a CSV/Excel">&#8595; CSV</button>
-    </div>
+    <button class="btn btn-r" onclick="goTo('motor')">+ Nuevo</button>
   </div>
   <div class="tb" style="margin-top:16px">
     <input class="si" type="text" placeholder="Buscar…" oninput="filtHon(this.value)">
@@ -446,7 +434,7 @@ input,select,textarea,button{font-family:var(--font)}
     <span id="hon-cnt" style="margin-left:auto;font-size:10.5px;color:var(--tx3)"></span>
   </div>
   <div class="tw"><table class="dt">
-    <thead><tr><th>Código</th><th>Rol(es)</th><th>Cliente</th><th>Uso</th><th title="Superficie nueva">M² Nva</th><th title="Superficie existente declarada">M² Decl.</th><th title="Superficie existente sin declarar">M² S/Decl.</th><th>Total USD</th><th>Cobrado</th><th>Estado</th><th>Modif.</th><th style="text-align:center">Acciones</th></tr></thead>
+    <thead><tr><th>Código</th><th>Rol(es)</th><th>Cliente</th><th>Uso</th><th>m²</th><th>USD</th><th>Estado</th><th style="text-align:center">Acciones</th></tr></thead>
     <tbody id="hon-body"></tbody>
   </table></div>
 </section>
@@ -462,17 +450,8 @@ input,select,textarea,button{font-family:var(--font)}
     <div>
       <div class="card" style="margin-bottom:14px">
         <div class="fsc">Datos generales del encargo</div>
-        <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:10px">
-          <div style="flex:0 0 auto"><label class="fl">Código</label><input class="fi" id="mot-code" placeholder="HON-0001" style="width:120px;font-family:monospace;font-weight:700" title="Código del presupuesto (editable)"></div>
-          <div style="flex:0 0 auto"><label class="fl">Revisión</label><input class="fi" id="mot-rev" placeholder="R01" style="width:60px;font-family:monospace;text-align:center" title="Revisión"></div>
-          <div style="flex:1"></div>
-        </div>
         <div class="g3">
-          <div class="fg"><label class="fl">Cliente</label>
-            <input class="fi" id="mot-cli-txt" list="cli-datalist" placeholder="Buscar cliente..." autocomplete="off" oninput="onCliInput(this.value)" style="font-size:12px">
-            <datalist id="cli-datalist"></datalist>
-            <input type="hidden" id="mot-cli" value="">
-          </div>
+          <div class="fg"><label class="fl">Cliente</label><select class="fis" id="mot-cli"><option value="">— seleccionar —</option></select></div>
           <div class="fg"><label class="fl">Uso / Descripción</label><input class="fi" type="text" id="mot-uso" placeholder="Ej: Vivienda unifamiliar…"></div>
           <div class="fg"><label class="fl">Tipo de encargo</label>
             <select class="fis" id="mot-tipo" onchange="recalc()">
@@ -538,11 +517,6 @@ input,select,textarea,button{font-family:var(--font)}
             <div class="pw"><input class="pi" type="number" id="mot-comision" value="6.49" step="0.01" oninput="recalc()"><span class="pu">%</span></div>
             <div style="font-size:9px;color:var(--golt);margin-top:3px">Se traslada al cliente</div>
           </div>
-          <div class="fg">
-            <label class="fl">Ajuste por cierre / TC</label>
-            <div class="pw"><input class="pi" type="number" id="mot-ajuste-tc" value="0" step="1" oninput="recalc()"><span class="pu">USD</span></div>
-            <div style="font-size:9px;color:var(--tt);margin-top:3px">+ o - para ajustar diferencia de TC al cobrar</div>
-          </div>
         </div>
         <div id="mot-val-obra" style="font-size:11px;color:var(--tx3);margin-top:4px"></div>
       </div>
@@ -568,7 +542,7 @@ input,select,textarea,button{font-family:var(--font)}
       <div id="roles-list"></div>
 
       <div class="cuotas-card" id="cuotas-section" style="display:none">
-        <div class="fsc" style="color:var(--bt)">Planilla de Cuotas — Honorarios Financiables</div>
+        <div class="fsc" style="color:var(--bt)">Planilla de Cuotas — Dirección de Proyecto</div>
         <div class="cuotas-info" id="cuotas-info">Base: USD 0</div>
         <div style="display:grid;grid-template-columns:1fr 58px 88px 30px;gap:8px;padding:0 0 6px;border-bottom:1px solid var(--br);margin-bottom:4px">
           <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)">Concepto</div>
@@ -603,18 +577,13 @@ input,select,textarea,button{font-family:var(--font)}
           <div class="trow"><span class="tl" id="s-gast-lbl">Gastos</span><span class="tv" id="s-gast">USD 0</span></div>
           <div class="trow" id="row-tarjeta" style="display:none"><span class="tl" id="s-tarj-lbl" style="color:var(--golt)">Comisión tarjeta</span><span class="tv" id="s-tarj" style="color:var(--golt)">USD 0</span></div>
           <div class="trow"><span class="tl">Ajuste IPC</span><span class="tv" id="s-ipc">—</span></div>
-          <div class="trow" id="row-ajuste-tc" style="display:none"><span class="tl" style="color:var(--tt)">Ajuste TC/cierre</span><span class="tv" id="s-ajuste-tc" style="color:var(--tt)">—</span></div>
           <div class="trow fin"><span class="tl">TOTAL</span><span class="tv" id="s-tot" style="color:var(--bt)">USD 0</span></div>
           <div class="tusd" id="s-ars">ARS $ 0</div>
         </div>
-        <div style="margin-top:12px;background:var(--bg3);border:1px solid rgba(212,168,67,.3);border-radius:6px;padding:12px">
-          <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--golt);margin-bottom:4px">CPT-TDF · Aranceles de Encomienda</div>
-          <div style="font-size:8px;color:var(--tx3);margin-bottom:6px">Res. C.D. N°052/2026 — 11/04/2026 al 30/06/2026</div>
-          <div style="font-size:8.5px;color:var(--tx3);margin-bottom:2px">Ref.1: Obra nueva · Amp. · Empadron. · Refacción</div>
-          <div id="s-cpt" style="font-size:13px;color:var(--golt);font-weight:700;margin-bottom:5px"></div>
-          <div style="font-size:8.5px;color:var(--tx3);margin-bottom:2px">Ref.2: Certificado de uso conforme</div>
-          <div id="s-cpt-ref2" style="font-size:12px;color:var(--tt);font-weight:600;margin-bottom:6px"></div>
-          <div id="s-cpt-hon" style="font-size:10px;color:var(--tx2);line-height:1.7;margin-top:5px;border-top:1px solid rgba(255,255,255,.06);padding-top:6px"></div>
+        <div style="margin-top:12px;background:var(--bg3);border:1px solid var(--br);border-radius:6px;padding:12px">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:6px">CPT-TDF · Encomienda</div>
+          <div id="s-cpt" style="font-size:12px;color:var(--golt);font-weight:700"></div>
+          <div style="font-size:9px;color:var(--tx3);margin-top:3px">Vigente 11/04/2026 — 30/06/2026</div>
         </div>
         <button class="btn btn-r" style="width:100%;margin-top:12px;justify-content:center" onclick="motorGuardar(false)">Guardar y exportar PDF</button>
         <button class="btn" style="width:100%;margin-top:6px;justify-content:center" onclick="motorGuardar(true)">Guardar borrador</button>
@@ -1017,10 +986,6 @@ input,select,textarea,button{font-family:var(--font)}
 <div class="mb" id="mod-hon" onclick="closeBg(event,'mod-hon')">
   <div class="modal" id="mod-hon-inner" style="max-width:860px"></div>
 </div>
-<div id="motor-total-float">
-  <div><div class="tot-lbl">Total honorarios</div><div class="tot-ars" id="float-ars">ARS $ 0</div></div>
-  <div class="tot-val" id="float-tot">USD 0</div>
-</div>
 <div id="toast"><span>✓</span><span id="toast-msg">OK</span></div>
 <script>
 
@@ -1102,18 +1067,11 @@ async function fetchDolar(){
   var apis=[{url:'https://dolarapi.com/v1/dolares/oficial',fn:function(d){return d.venta;}},{url:'https://api.bluelytics.com.ar/v2/latest',fn:function(d){return d.oficial&&d.oficial.value_sell;}}];
   for(var i=0;i<apis.length;i++){
     try{var r=await fetch(apis[i].url,{signal:AbortSignal.timeout(6000)});if(!r.ok)continue;var d=await r.json();var v=apis[i].fn(d);
-      if(v&&v>100){
-        TC=v;
+      if(v&&v>100){TC=v;['mot-tc','cfg-tc'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=v;});
         var dbt=document.getElementById('db-tc');if(dbt)dbt.textContent='$'+v.toLocaleString('es-AR');
         var dbs=document.getElementById('db-tc-src');if(dbs)dbs.textContent='BNA oficial venta \u00b7 actualizado hoy';
         var badge=document.getElementById('tc-badge');if(badge)badge.textContent='\u2713 BNA $'+v.toLocaleString('es-AR');
-        var cfgEl=document.getElementById('cfg-tc');if(cfgEl)cfgEl.value=v;
-        // Si estamos editando un presupuesto, NO pisar el TC que el usuario ya tenía guardado
-        if(!_restaurandoEdicion&&!editandoId){
-          var motEl=document.getElementById('mot-tc');if(motEl)motEl.value=v;
-          recalc();
-        }
-        return;
+        recalc();return;
       }
     }catch(e){continue;}
   }
@@ -1133,8 +1091,6 @@ var ROLES=[
      ]},
      {nm:'Documentaci\u00f3n Municipal',items:[
        {id:'p_arq_mun',nm:'Plano de Arquitectura Municipal',tipo:'normal',inc:18,dsc:'Plano con escala y formato requerido por el Municipio — responsabilidad del Director de Proyecto'},
-       {id:'guia_aviso',nm:'Guía de Aviso de Obra',tipo:'m2price',inc:0,pricePerM2:3.0,dsc:'Cobra por m² de superficie nueva · rango orientativo: USD 1,50–USD 5,00/m² · Profesional 1º categoría (Arquitecto/Ingeniero)'},
-       {id:'ddj_mojones_proy',nm:'Declaración Jurada de Mojones',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'DD.JJ. de Deslinde y Amojonamiento — precio orientativo: $300.000–$500.000 ARS (USD 204–340 al TC actual)'},
      ]},
      {nm:'Documentaci\u00f3n Ejecutiva',items:[
        {id:'rep_est',nm:'Plano de Replanteo Estructura',tipo:'normal',inc:7,dsc:'Replanteo estructural escala 1:50 / 1:100'},
@@ -1169,14 +1125,13 @@ var ROLES=[
      {id:'rprov',nm:'Presentaciones Provinciales',tipo:'normal',inc:14,dsc:'DPOSS, EDELAP, CAMUZZI, Sec. Ambiental'},
    ]}]}]},
   ,
-  {id:'inf',nm:'Informante T\u00e9cnico',clr:'#fb923c',catdf:0.012,descuentable:true,
+  {id:'inf',nm:'Informante T\u00e9cnico',clr:'#fb923c',catdf:0.06,descuentable:true,
    dsc:'Relevamiento, informes y DD.JJ. CATDF: 4%-8%. Aplica descuento.',
    tareas:[{id:'ta_inf',nm:'Informe T\u00e9cnico',grupos:[{nm:null,items:[
      {id:'irelev',nm:'Relevamiento Arquitect\u00f3nico y Estructural',tipo:'normal',inc:22,dsc:'Medici\u00f3n y relevamiento de la construcci\u00f3n existente'},
      {id:'iplan_emp',nm:'Plano de Empadronamiento Municipal',tipo:'normal',inc:28,dsc:'Plano arquitect\u00f3nico para presentaci\u00f3n ante Municipio \u2014 empadronamiento y empadronamiento de refacciones'},
      {id:'iredac',nm:'Redacci\u00f3n del Informe T\u00e9cnico',tipo:'normal',inc:25,dsc:'Diagn\u00f3stico y recomendaciones'},
      {id:'iddj',nm:'Declaraci\u00f3n Jurada (DD.JJ.)',tipo:'normal',inc:13,dsc:'Ante Colegio o Municipio'},
-     {id:'ddj_mojones_inf',nm:'Declaraci\u00f3n Jurada de Mojones',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'DD.JJ. de Deslinde y Amojonamiento \u2014 precio orientativo: $300.000\u2013$500.000 ARS (USD 204\u2013340 al TC actual)'},
      {id:'ifoto',nm:'Registro Fotogr\u00e1fico Documentado',tipo:'normal',inc:12,dsc:'Planilla fotogr\u00e1fica numerada'},
    ]}]}]},
   ,{id:'calc',nm:'Calculista',clr:'#f59e0b',catdf:0.01,descuentable:true,
@@ -1198,16 +1153,7 @@ ROLES.forEach(function(r){
   });});});
 });
 
-var PRESETS={
-  catdf:{dir_proy:0.05,dir_obra:0.05,const:0.05,repr:0.035,inf:0.012,calc:0.01},
-  cpt:  {dir_proy:0.04,dir_obra:0.04,const:0.04,repr:0.03, inf:0.008,calc:0.009}
-};
-// NOTA presets inf: Para empadronamiento, % sobre vObraInf (m²sind × cu × cat)
-// CPT Mayo 2026: ~0.8% → $9.266/m² / ($1200/m²) = 0.77%
-// CATDF Jun 2026: ~1.2% → $14.600/m² prom / ($1200/m²) = 1.22%
-// El usuario puede ajustar desde el panel "Ajuste de honorarios por rol".
-// Valores CPT-TDF Mayo 2026 por m²
-var CPT_HON_REF={empArq:9266.40,empSan:2733.59,obraArq_proy:15444,obraArq_dir:9009,infViv:138996,infCat_men50:185328,infCat_may50:231660,consulta:30888,valorMod:15444};
+var PRESETS={catdf:{dir_proy:0.05,dir_obra:0.05,const:0.05,repr:0.035,inf:0.06,calc:0.01},cpt:{dir_proy:0.04,dir_obra:0.04,const:0.04,repr:0.03,inf:0.05,calc:0.009}};
 function aplicarPreset(tipo){
   var p=PRESETS[tipo];if(!p)return;
   ROLES.forEach(function(r){
@@ -1260,8 +1206,6 @@ function updateRenderPrice(rid,iid,val){
 
 /* ── MOTOR STATE ──────────────────────────────────────────────────────── */
 var S={};
-// Bandera global: mientras se restaura un presupuesto en edición, fetchDolar() no debe pisar el TC guardado
-var _restaurandoEdicion=false;
 function initS(){
   ROLES.forEach(function(r){
     if(!S[r.id])S[r.id]={on:false,open:false,tasks:{},subs:{}};
@@ -1271,31 +1215,6 @@ function initS(){
 }
 
 /* Build a single render row (no string escaping nightmares) */
-function makeM2PriceRow(it,on,roleId,tareaId,m2Nueva){
-  var price=it.pricePerM2||3.0;
-  var dis=on?'':' disabled';
-  var total=on?Math.round(m2Nueva*price):0;
-  var html='<div class="str-render">';
-  html+='<input type="checkbox" class="st-chk" id="it-'+it.id+'"'+(on?' checked':'')+' onchange="onItem(\''+roleId+'\',\''+tareaId+'\',\''+it.id+'\',this.checked)">';
-  html+='<div>';
-  html+='<div class="st-nm">'+it.nm+' <span style="background:rgba(45,212,191,.12);color:var(--tt);font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px">USD/m²</span></div>';
-  html+='<div class="st-dsc">'+it.dsc+'</div></div>';
-  html+='<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">';
-  html+='<input id="m2p-'+it.id+'" type="number" min="0.5" max="20" step="0.5" value="'+price+'"'+dis+' class="r-inp-p" style="width:52px" oninput="updateM2Price(\''+roleId+'\',\''+it.id+'\',this.value)" title="USD por m²">';
-  html+='<span style="font-size:9px;color:var(--tx3)">USD/m²</span>';
-  html+='</div>';
-  html+='<div class="st-usd" id="usd-'+it.id+'" style="color:'+(on?'var(--bt)':'var(--tx3)')+'">'+( on&&total>0?'USD '+total.toLocaleString():'—' )+'</div>';
-  html+='<div class="st-ars" id="ars-'+it.id+'">—</div>';
-  html+='</div>';
-  return html;
-}
-
-function updateM2Price(rid,iid,val){
-  var prc=Math.max(0.5,parseFloat(String(val).replace(',','.'))||3.0);
-  ROLES.forEach(function(r){if(r.id!==rid)return;r.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){if(it.id===iid)it.pricePerM2=prc;});});});});
-  recalc();
-}
-
 function makeRenderRow(it,on,roleId,tareaId){
   var qty=it.qty||1; var price=it.unitPrice||0;
   var dis=on?'':' disabled';
@@ -1343,8 +1262,7 @@ function buildRoles(){
         var ihtml='';
         grp.items.forEach(function(it){
           var on=st.subs[it.id];
-          var m2NuevaCur=getN('mot-m2',0);
-          ihtml+=it.tipo==='render'?makeRenderRow(it,on,role.id,tarea.id):it.tipo==='m2price'?makeM2PriceRow(it,on,role.id,tarea.id,m2NuevaCur):makeNormalRow(it,on,role.id,tarea.id);
+          ihtml+=it.tipo==='render'?makeRenderRow(it,on,role.id,tarea.id):makeNormalRow(it,on,role.id,tarea.id);
         });
         var glbl=grp.nm?'<div class="stg-lbl">'+grp.nm+'</div>':'';
         ghtml+='<div class="stg">'+glbl+ihtml+'</div>';
@@ -1423,13 +1341,8 @@ function selTarea(rid,tid,v){
 }
 
 /* ── RECALC ───────────────────────────────────────────────────────────── */
-var dirProyTotalUSD=0,dirProyTotalAfterDisc=0,calcTotalUSD=0,calcTotalAfterDisc=0,infTotalUSD=0,infTotalAfterDisc=0,infFinanciableUSD=0,infFinanciableAfterDisc=0;
-var INF_FINANCIABLES=['irelev','iplan_emp','iddj']; // subtareas de Informante Técnico que pueden financiarse en cuotas
-// Encomiendas CPT-TDF Ref.1 — Res. C.D. N°052/2026 — vigente 11/04/2026 al 30/06/2026
-var CPT_TAB=[[100,46000],[200,69000],[300,92000],[400,115000],[500,138000],[600,161000],[700,184000],[800,207000],[900,230000],[1000,253000],[1100,276000],[1200,299000],[1300,322000],[1400,345000],[1500,368000],[Infinity,391000]];
-// Ref.2 — Certificado de uso conforme
-var CPT_TAB_REF2=[[100,36000],[200,54000],[300,72000],[400,90000],[500,108000],[600,126000],[700,144000],[800,162000],[900,180000],[1000,198000],[Infinity,216000]];
-function cptRef2Val(m2){for(var i=0;i<CPT_TAB_REF2.length;i++)if(m2<=CPT_TAB_REF2[i][0])return CPT_TAB_REF2[i][1];return 216000;}
+var dirProyTotalUSD=0,dirProyTotalAfterDisc=0,calcTotalUSD=0,calcTotalAfterDisc=0;
+var CPT_TAB=[[100,46000],[200,69000],[300,92000],[400,115000],[500,138000],[600,161000],[700,184000],[800,207000],[1000,253000],[Infinity,322000]];
 function cptVal(m2){for(var i=0;i<CPT_TAB.length;i++)if(m2<=CPT_TAB[i][0])return CPT_TAB[i][1];return 322000;}
 function getN(id,def){var el=document.getElementById(id);if(!el)return def;var v=parseFloat(el.value);return isNaN(v)?def:v;}
 
@@ -1448,53 +1361,11 @@ function recalc(){
     var partes=[];if(m2>0)partes.push(m2+' nueva');if(m2dec>0)partes.push(m2dec+' decl.');if(m2sind>0)partes.push(m2sind+' sin decl.');
     vi.textContent='Sup. total: '+m2total+' m² ('+partes.join(' + ')+') × USD '+cu+'/m² × cat ×'+cat+' = USD '+Math.round(vObra).toLocaleString();
   }
-  // Encomienda Ref.1
   var cptEl=document.getElementById('s-cpt');
-  if(cptEl){var av=cptVal(m2total||m2);cptEl.textContent='$'+av.toLocaleString('es-AR')+' ≈ USD '+Math.round(av/tc).toLocaleString()+' ('+(m2total||m2)+'m²)';}
-  // Encomienda Ref.2
-  var cptEl2=document.getElementById('s-cpt-ref2');
-  if(cptEl2){var av2=cptRef2Val(m2total||m2);cptEl2.textContent='$'+av2.toLocaleString('es-AR')+' ≈ USD '+Math.round(av2/tc).toLocaleString();}
-  // Ref. CPT en ARS/m² según tipo
-  var cptHon=document.getElementById('s-cpt-hon');
-  if(cptHon){
-    var tipoCPT=document.getElementById('mot-tipo')?.value||'nueva';
-    var cptLines=[];
-    if(tipoCPT==='emp'||tipoCPT==='empref'){
-      var m2base=m2sind||m2;
-      if(m2base>0){cptLines.push('Empadron.Arq.: $'+CPT_HON_REF.empArq.toLocaleString('es-AR')+'/m² × '+m2base+' = <b style="color:var(--golt)">$'+Math.round(m2base*CPT_HON_REF.empArq).toLocaleString('es-AR')+'</b>');}
-      if(m2base>0){cptLines.push('Empadron.San.: $'+CPT_HON_REF.empSan.toLocaleString('es-AR')+'/m² × '+m2base+' = <b style="color:var(--golt)">$'+Math.round(m2base*CPT_HON_REF.empSan).toLocaleString('es-AR')+'</b>');}
-    } else if((tipoCPT==='nueva'||tipoCPT==='amp')&&m2>0){
-      cptLines.push('Proy.Arq.: $'+CPT_HON_REF.obraArq_proy.toLocaleString('es-AR')+'/m² × '+m2+' = <b style="color:var(--golt)">$'+Math.round(m2*CPT_HON_REF.obraArq_proy).toLocaleString('es-AR')+'</b>');
-      cptLines.push('Dir.Arq.: $'+CPT_HON_REF.obraArq_dir.toLocaleString('es-AR')+'/m² × '+m2+' = <b style="color:var(--golt)">$'+Math.round(m2*CPT_HON_REF.obraArq_dir).toLocaleString('es-AR')+'</b>');
-    }
-    // Agregar referencias CATDF (Junio 2026) — solo panel, nunca PDF
-    var catdfLines=[];
-    var cu2=getN('mot-cu',1200);
-    var cat2=parseFloat(document.getElementById('mot-cat')?.value)||1.0;
-    var vObraRef=m2*cu2*cat2; // base CATDF = sup nueva × costo × cat
-    if(tipoCPT==='emp'||tipoCPT==='empref'){
-      var m2base2=m2sind||m2;
-      var catdfEmpMin=Math.round(m2base2*11680);
-      var catdfEmpMax=Math.round(m2base2*17520);
-      catdfLines.push('Relevam./Empadron.: $'+catdfEmpMin.toLocaleString('es-AR')+' – $'+catdfEmpMax.toLocaleString('es-AR')+' ('+m2base2+'m² × $11.680–$17.520/m²)');
-    } else if((tipoCPT==='nueva'||tipoCPT==='amp')&&m2>0){
-      var catdfPMin=Math.round(vObraRef*0.03);
-      var catdfPMax=Math.round(vObraRef*0.05);
-      var catdfDMin=Math.round(vObraRef*0.05);
-      var catdfDMax=Math.round(vObraRef*0.05);
-      catdfLines.push('Proyecto (CATDF): USD '+Math.round(vObraRef*0.03).toLocaleString()+'–'+Math.round(vObraRef*0.05).toLocaleString()+' (3–5%)');
-      catdfLines.push('Dirección Obra (CATDF): USD '+Math.round(vObraRef*0.05).toLocaleString()+' (5%)');
-    } else if(tipoCPT==='inf'&&m2>0){
-      catdfLines.push('DDJJ/Inf.Téc. (CATDF): $'+Math.round(m2*29200).toLocaleString('es-AR')+' – $'+Math.round(m2*87600).toLocaleString('es-AR')+'/m²');
-    }
-    var html2='';
-    if(cptLines.length) html2+='<div style="font-size:8px;font-weight:700;color:var(--tx3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em">Ref. CPT Mayo 2026 (ARS/m²)</div>'+cptLines.join('<br>');
-    if(catdfLines.length) html2+='<div style="font-size:8px;font-weight:700;color:var(--bt);margin-top:6px;margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em">Ref. CATDF Arquitectos Jun 2026</div>'+catdfLines.map(function(l){return '<span style="color:var(--bt)">'+l+'</span>';}).join('<br>');
-    cptHon.innerHTML=html2;
-  }
+  if(cptEl){var av=cptVal(m2);cptEl.textContent=m2+' m\u00b2: $'+av.toLocaleString('es-AR')+' \u2248 USD '+Math.round(av/tc).toLocaleString();}
 
   var totalDesc=0,totalNoDesc=0,sumRows=[];
-  dirProyTotalUSD=0;infFinanciableUSD=0;
+  dirProyTotalUSD=0;
 
   ROLES.forEach(function(role){
     var st=S[role.id];if(!st)return;
@@ -1523,20 +1394,12 @@ function recalc(){
           usd=qty*prc;
           // Actualizar objeto
           it.qty=qty;it.unitPrice=prc;
-        } else if(it.tipo==='m2price'){
-          // Cobra por m² de superficie nueva × precio/m² editable
-          var m2pEl=document.getElementById('m2p-'+it.id);
-          var m2prc=m2pEl?Math.max(0.5,parseFloat(m2pEl.value)||it.pricePerM2||3.0):(it.pricePerM2||3.0);
-          it.pricePerM2=m2prc;
-          usd=m2*m2prc; // m2 = superficie nueva (del scope de recalc)
         }else{usd=vObraRole*it.pct;}
       }
       rs+=usd;
-      if(role.id==='inf'&&on&&INF_FINANCIABLES.indexOf(it.id)>=0)infFinanciableUSD+=usd;
       var ue=document.getElementById('usd-'+it.id),ae=document.getElementById('ars-'+it.id);
       if(ue){
         if(on&&it.tipo==='render'){ue.textContent='USD '+Math.round(usd).toLocaleString()+' ('+it.qty+'u \u00d7 $'+it.unitPrice+')';}
-        else if(on&&it.tipo==='m2price'){ue.textContent='USD '+Math.round(usd).toLocaleString()+' ('+m2+'m\u00b2 \u00d7 USD '+(it.pricePerM2||3)+')';}
         else{ue.textContent=on?'USD '+Math.round(usd).toLocaleString():'—';}
         ue.style.color=on?'var(--bt)':'var(--tx3)';
       }
@@ -1553,7 +1416,6 @@ function recalc(){
     }
     if(role.id==='dir_proy')dirProyTotalUSD=rs;
     if(role.id==='calc')calcTotalUSD=rs;
-    if(role.id==='inf')infTotalUSD=rs;
   });
 
   var descAmt=totalDesc*desc,afterDesc=totalDesc-descAmt+totalNoDesc;
@@ -1561,12 +1423,9 @@ function recalc(){
   var formaPago=document.getElementById('mot-forma-pago')?.value||'contado';
   var comisionAmt=0;
   if(formaPago==='tarjeta'){var comPct=getN('mot-comision',6.49)/100;comisionAmt=(afterDesc+gastos+ipcAmt)*comPct;}
-  var ajusteTC=getN('mot-ajuste-tc',0);
-  var fin=afterDesc+gastos+ipcAmt+comisionAmt+ajusteTC;
+  var fin=afterDesc+gastos+ipcAmt+comisionAmt;
   dirProyTotalAfterDisc=Math.round(dirProyTotalUSD*(1-desc));
   calcTotalAfterDisc=Math.round(calcTotalUSD*(1-desc)); // Calculista también aplica descuento
-  infTotalAfterDisc=Math.round(infTotalUSD*(1-desc)); // Informante Técnico también aplica descuento
-  infFinanciableAfterDisc=Math.round(infFinanciableUSD*(1-desc)); // Solo subtareas financiables del Inf.Técnico
 
   // Summary
   var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
@@ -1584,13 +1443,8 @@ function recalc(){
   var gl=document.getElementById('s-gast-lbl');if(gl)gl.textContent='Gastos ('+(gast*100).toFixed(1)+'%)';
   set('s-gast','USD '+N(gastos));
   set('s-ipc',ipcAmt>0?'+ USD '+N(ipcAmt):'—');
-  var rowAj=document.getElementById('row-ajuste-tc');if(rowAj)rowAj.style.display=ajusteTC!==0?'':'none';
-  set('s-ajuste-tc',ajusteTC>0?'+ USD '+N(ajusteTC):ajusteTC<0?'− USD '+N(Math.abs(ajusteTC)):'—');
   if(comisionAmt>0){set('s-tarj','+ USD '+N(comisionAmt));var tl2=document.getElementById('s-tarj-lbl');if(tl2)tl2.textContent='Comisi\u00f3n tarjeta ('+(getN('mot-comision',6.49)).toFixed(2)+'%)';}
   set('s-tot','USD '+N(fin));set('s-ars','ARS $ '+Math.round(fin*tc).toLocaleString('es-AR'));
-  // Actualizar total flotante mobile
-  var fTot=document.getElementById('float-tot');if(fTot)fTot.textContent='USD '+N(fin);
-  var fArs=document.getElementById('float-ars');if(fArs)fArs.textContent='ARS $ '+Math.round(fin*tc).toLocaleString('es-AR');
 
   var sr=document.getElementById('sum-roles');
   if(sr)sr.innerHTML=sumRows.length?sumRows.map(function(r){return '<div class="sum-row"><span class="sum-rn">'+r.nm+'</span><span class="sum-rv" style="color:'+(r.descuentable?'var(--bt)':'var(--golt)')+'">USD '+N(r.usd)+'</span></div>';}).join(''):'<div style="font-size:11px;color:var(--tx3);padding:4px 0">Seleccion\u00e1 roles \u2192</div>';
@@ -1602,8 +1456,7 @@ function recalc(){
   var dirOn=S['dir_proy']?.on;
   var formaPagoVal=document.getElementById('mot-forma-pago')?.value||'contado';
   var calcOn=S['calc']?.on;
-  var infOn=S['inf']?.on;
-  var mostrarCuotas=(dirOn||calcOn||infOn)&&formaPagoVal!=='contado';
+  var mostrarCuotas=(dirOn||calcOn)&&formaPagoVal!=='contado';
   var csec=document.getElementById('cuotas-section');if(csec)csec.style.display=mostrarCuotas?'':'none';
   if(mostrarCuotas)renderCuotas();
 }
@@ -1613,25 +1466,12 @@ function onFormaPago(){var v=document.getElementById('mot-forma-pago')?.value||'
 var cuotas=[{id:1,nm:'Anticipo',pct:40},{id:2,nm:'Aprobaci\u00f3n de anteproyecto',pct:20},{id:3,nm:'Presentaci\u00f3n plano municipal',pct:20},{id:4,nm:'Aprobaci\u00f3n de estructura',pct:10},{id:5,nm:'Entrega documentaci\u00f3n ejecutiva',pct:10}];
 function renderCuotas(){
   var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
-  var gastPctV=(parseFloat(document.getElementById('mot-gast-pct')?.value)||5)/100;
-  // CRÍTICO: aplicar descuento sobre el TOTAL combinado (no rol por rol)
-  // para que coincida exactamente con el cálculo de recalc() y evitar diferencia de USD 1
-  var ajusteTCv=getN('mot-ajuste-tc',0);
-  var totalFinanciableExacto=dirProyTotalUSD+calcTotalUSD+infFinanciableUSD;
-  var totalFinanciableConDesc=totalFinanciableExacto*(1-descPctV);
-  var baseGastos=totalFinanciableConDesc*gastPctV;
-  var base=Math.round(totalFinanciableConDesc+baseGastos+ajusteTCv);
-  // Valores redondeados para el detalle informativo (no afectan la base)
-  var baseDirProy=Math.round(dirProyTotalUSD*(1-descPctV));
-  var baseCalc=Math.round(calcTotalUSD*(1-descPctV));
-  var baseInf=Math.round(infFinanciableUSD*(1-descPctV));
+  var baseDirProy=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-descPctV));
+  var baseCalc=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-descPctV));
+  var base=baseDirProy+baseCalc;
   var ci=document.getElementById('cuotas-info');
-  var parts=[];
-  if(baseDirProy>0)parts.push('Dir. de Proyecto (USD '+Math.round(baseDirProy).toLocaleString()+')');
-  if(baseCalc>0)parts.push('Calculista (USD '+Math.round(baseCalc).toLocaleString()+')');
-  if(baseInf>0)parts.push('Inf.Técnico — Relev./Plano Emp./DDJJ (USD '+Math.round(baseInf).toLocaleString()+')');
-  if(baseGastos>0)parts.push('Gastos y gestiones (USD '+Math.round(baseGastos).toLocaleString()+')');
-  if(ci)ci.innerHTML='Base: <b>USD '+Math.round(base).toLocaleString()+'</b> = '+(parts.join(' + ')||'—')+(descPctV>0?' · con descuento':'')+'. Modificá nombre, % y cuotas.';
+  var calcStr=baseCalc>0?' + Calculista (USD '+Math.round(baseCalc).toLocaleString()+')':'';
+  if(ci)ci.innerHTML='Base: <b>USD '+Math.round(base).toLocaleString()+'</b> = Dir. de Proyecto'+calcStr+(descPctV>0?' · con descuento':'')+'. Modificá nombre, % y cuotas.';
   var tbody=document.getElementById('cuotas-rows');if(!tbody)return;
   tbody.innerHTML=cuotas.map(function(c,i){
     return '<div class="cq-row">'
@@ -1646,12 +1486,9 @@ function updCuotasTot(){
   var tot=cuotas.reduce(function(a,c){return a+(parseFloat(c.pct)||0);},0);
   var el=document.getElementById('cq-total');if(el){el.textContent='Total: '+tot.toFixed(0)+'% '+(tot===100?'\u2713':'  debe sumar 100%');el.className=tot===100?'cq-ok':'cq-err';}
   var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
-  var gastPctV=(parseFloat(document.getElementById('mot-gast-pct')?.value)||5)/100;
-  // Mismo cálculo que renderCuotas(): total combinado sin redondear por rol
-  var ajusteTCv2=getN('mot-ajuste-tc',0);
-  var totalFinanciableExacto=dirProyTotalUSD+calcTotalUSD+infFinanciableUSD;
-  var totalFinanciableConDesc=totalFinanciableExacto*(1-descPctV);
-  var base=Math.round(totalFinanciableConDesc*(1+gastPctV)+ajusteTCv2);
+  var baseDirProy=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-descPctV));
+  var baseCalc=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-descPctV));
+  var base=baseDirProy+baseCalc;
   document.querySelectorAll('.cq-usd').forEach(function(el,i){if(cuotas[i])el.textContent='USD '+Math.round(base*(cuotas[i].pct/100)).toLocaleString();});
 }
 function addCuota(){cuotas.push({id:Date.now(),nm:'Nueva cuota',pct:0});renderCuotas();}
@@ -1663,8 +1500,6 @@ function motorLimpiar(){
   ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{}};});
   cuotas=[{id:1,nm:'Anticipo',pct:40},{id:2,nm:'Aprobaci\u00f3n anteproyecto',pct:20},{id:3,nm:'Plano municipal',pct:20},{id:4,nm:'Estructura',pct:10},{id:5,nm:'Doc. ejecutiva',pct:10}];
   editandoId=null;
-  var codeEl=document.getElementById('mot-code');if(codeEl)codeEl.value='';
-  var revEl=document.getElementById('mot-rev');if(revEl)revEl.value='R01';
   buildRoles();toast('Motor limpiado');
 }
 function motorGuardar(draft){
@@ -1678,10 +1513,7 @@ function motorGuardar(draft){
   var tipo=gs('mot-tipo')||'nueva';
   var formaPago=gs('mot-forma-pago')||'contado';
   var comisionPct=formaPago==='tarjeta'?getN('mot-comision',6.49):0;
-  var ajusteTC2=getN('mot-ajuste-tc',0);
   var cliId=gs('mot-cli');
-  // Si el campo oculto está vacío pero hay texto, intentar matchear por nombre
-  if(!cliId){var txt=(document.getElementById('mot-cli-txt')||{}).value||'';var found=CLIENTES.find(function(c){return(c.ap+', '+c.nm)===txt;});if(found)cliId=String(found.id);}
   var cli=CLIENTES.find(function(c){return c.id==cliId;});
   var m2dec=getN('mot-m2-dec',0),m2sind=getN('mot-m2-sind',0);
   var m2total=m2+m2dec+m2sind;
@@ -1704,44 +1536,36 @@ function motorGuardar(draft){
           var qEl=document.getElementById('rqty-'+it.id),pEl=document.getElementById('rprc-'+it.id);
           var qty=qEl?Math.max(1,parseInt(qEl.value)||it.qty||1):(it.qty||1);
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
-          iusd=qty*prc;
-          items.push({id:it.id,nm:it.nm,inc:it.inc,pct:0,usd:Math.round(iusd),usdExact:iusd,tipo:'render',qty:qty,unitPrice:prc});
-        }else if(it.tipo==='m2price'){
-          var m2pEl=document.getElementById('m2p-'+it.id);
-          var m2prc=m2pEl?Math.max(0.5,parseFloat(m2pEl.value)||it.pricePerM2||3.0):(it.pricePerM2||3.0);
-          iusd=m2*m2prc; // m2 = superficie nueva
-          it.pricePerM2=m2prc;
-          items.push({id:it.id,nm:it.nm,inc:it.inc,pct:0,usd:Math.round(iusd),usdExact:iusd,tipo:'m2price',pricePerM2:m2prc,m2:m2});
+          iusd=Math.round(qty*prc);
+          items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'render',qty:qty,unitPrice:prc});
         }else{
-          iusd=vObraRole*it.pct;
-          items.push({id:it.id,nm:it.nm,inc:it.inc,pct:it.pct,usd:Math.round(iusd),usdExact:iusd,tipo:'normal'});
+          iusd=Math.round(vObraRole*it.pct);
+          items.push({nm:it.nm,inc:it.inc,pct:it.pct,usd:iusd,tipo:'normal'});
         }
       }
     });});});
     if(!items.length)return;
-    // Sumar valores EXACTOS (no los ya redondeados) para evitar diferencias de USD 1 por redondeo acumulado
-    var rs=items.reduce(function(a,b){return a+(b.usdExact!==undefined?b.usdExact:b.usd);},0);
+    var rs=items.reduce(function(a,b){return a+b.usd;},0);
     if(role.descuentable)totalDesc+=rs;else totalNoDesc+=rs;
     detalle.push({rol:role.nm,catdf:role.catdf,descuentable:role.descuentable,items:items,total:rs});
   });
   var descAmt=totalDesc*desc,after=totalDesc-descAmt+totalNoDesc,gastos=after*gast,ipcAmt=after*ipc;
   var comisionAmt=Math.round((after+gastos+ipcAmt)*(comisionPct/100));
-  var fin=after+gastos+ipcAmt+comisionAmt+ajusteTC2;
+  var fin=after+gastos+ipcAmt+comisionAmt;
   var hon={
     id:editandoId||Date.now(),
-    code:(function(){var c=document.getElementById('mot-code')?.value?.trim();if(c)return c;if(editandoId){var cur=HON_DATA.find(function(h){return h.id===editandoId;});if(cur&&cur.code)return cur.code;}var n=HON_DATA.length+1;var base='HON-'+String(n).padStart(4,'0');while(HON_DATA.find(function(h){return h.code===base&&(!editandoId||h.id!==editandoId);})){n++;base='HON-'+String(n).padStart(4,'0');}return base;})(),
-    rev:(function(){var r=document.getElementById('mot-rev')?.value?.trim();if(r)return r;if(!editandoId)return 'R01';var prev=HON_DATA.find(function(h){return h.id===editandoId;});if(!prev)return 'R01';var n=parseInt((prev.rev||'R01').replace('R',''))||1;return 'R'+String(n+1).padStart(2,'0');}()),roles:activeRoles.join(' + '),uso,tipo,m2,m2dec,m2sind,cu,cat,tc,
+    code:editandoId?HON_DATA.find(function(h){return h.id===editandoId;})?.code||('HON-'+String(HON_DATA.length+1).padStart(4,'0')):'HON-'+String(HON_DATA.length+1).padStart(4,'0'),
+    rev:'R01',roles:activeRoles.join(' + '),uso,tipo,m2,cu,cat,tc,
     descPct:desc*100,gastPct:gast*100,ipc:ipc*100,
     cliente:cli?cli.ap+', '+cli.nm:'—',cliId,
     usd:Math.round(fin),ars:Math.round(fin*tc),
     subtotalDesc:Math.round(totalDesc),subtotalNoDesc:Math.round(totalNoDesc),
-    descAmt:Math.round(descAmt),gastos:Math.round(gastos),comisionAmt,comisionPct,formaPago,ajusteTC:ajusteTC2,
+    descAmt:Math.round(descAmt),gastos:Math.round(gastos),comisionAmt,comisionPct,formaPago,
     detalle,cuotas:JSON.parse(JSON.stringify(cuotas)),
-    dirProyTotal:Math.round((dirProyTotalUSD+calcTotalUSD+infFinanciableUSD)*(1-desc)*(1+gast)+ajusteTC2),
+    dirProyTotal:Math.round(dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:dirProyTotalUSD),
     descTrab,excl,nota,catSec,catMzo,catParc,catUF,catDom,
     empresa:JSON.parse(JSON.stringify(EMPRESA)),
     estado:draft?'Borrador':'Enviado',
-    fechaMod:new Date().toLocaleString('es-AR'),
     pagos:[],
     fecha:new Date().toLocaleDateString('es-AR')
   };
@@ -1750,145 +1574,65 @@ function motorGuardar(draft){
     if(idx>=0)HON_DATA[idx]=hon;else HON_DATA.unshift(hon);
     editandoId=null;
   }else{HON_DATA.unshift(hon);}
-  guardarTodo(true);renderHon(HON_DATA);updateDashboard(); // true = sync inmediato a Firebase
-  if(draft){
-    toast('\u2713 Borrador guardado');
-  } else {
-    var honId=hon.id;
-    toast(hon.code+' guardado \u2014 USD '+Math.round(fin).toLocaleString());
-    if(confirm('\u00bfDescar\u00e1s el PDF de '+hon.code+'?')){
-      setTimeout(function(){generarPDF(honId);},300);
-    }
-    goTo('honorarios');
-  }
+  guardarTodo();renderHon(HON_DATA);updateDashboard();
+  toast(draft?'Borrador guardado':hon.code+' guardado \u2014 USD '+Math.round(fin).toLocaleString());
+  if(!draft)goTo('honorarios');
 }
-// Bandera global: mientras estamos restaurando un presupuesto en edición,
-// fetchDolar() no debe pisar el campo TC que el usuario ya tenía guardado.
-function _restaurarFormularioHon(hon,eraEnviado){
-  var sv=function(elId,v){var el=document.getElementById(elId);if(el&&v!==undefined&&v!==null&&v!=='')el.value=v;};
-
-  sv('mot-code',hon.code||'');
-  sv('mot-rev',hon.rev||'R01');
-  sv('mot-uso',hon.uso);
-  sv('mot-tipo',hon.tipo);
-  sv('mot-m2',hon.m2||0);
-  sv('mot-m2-dec',hon.m2dec||0);
-  sv('mot-m2-sind',hon.m2sind||0);
-  sv('mot-cu',hon.cu);
-  sv('mot-tc',hon.tc);
-  sv('mot-desc-pct',hon.descPct||0);
-  sv('mot-gast-pct',hon.gastPct!==undefined?hon.gastPct:5);
-  sv('mot-ipc',hon.ipc||0);
-  sv('mot-sec',hon.catSec);
-  sv('mot-mzo',hon.catMzo);
-  sv('mot-parc',hon.catParc);
-  sv('mot-uf',hon.catUF);
-  sv('mot-dom',hon.catDom);
-  sv('mot-desc-trab',hon.descTrab);
-  sv('mot-excl',hon.excl);
-  sv('mot-nota',hon.nota);
-  sv('mot-forma-pago',hon.formaPago||'contado');
-  sv('mot-comision',hon.comisionPct||6.49);
-  sv('mot-ajuste-tc',hon.ajusteTC||0);
-  onFormaPago();
-
-  // Cliente
-  var cliEl=document.getElementById('mot-cli');
-  if(cliEl&&hon.cliId)cliEl.value=String(hon.cliId);
-  var cliTxt=document.getElementById('mot-cli-txt');
-  if(cliTxt&&hon.cliId){
-    var cliObj=CLIENTES.find(function(c){return String(c.id)===String(hon.cliId);});
-    if(cliObj)cliTxt.value=cliObj.ap+', '+cliObj.nm;
-    else cliTxt.value=hon.cliente||'';
-  }
-
-  // Categoría
-  var catEl=document.getElementById('mot-cat');
-  if(catEl)catEl.value=String(hon.cat||1.0);
-
-  // Cuotas
-  if(hon.cuotas)cuotas=JSON.parse(JSON.stringify(hon.cuotas));
-
-  // Reconstruir estado S desde el detalle guardado (match por ID de subtarea, no por nombre)
-  ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{}};
-    r.tareas.forEach(function(t){S[r.id].tasks[t.id]=false;t.grupos.forEach(function(g){g.items.forEach(function(it){S[r.id].subs[it.id]=false;});});});
-  });
-
-  try{
-    (hon.detalle||[]).forEach(function(rolDet){
-      var role=ROLES.find(function(r){return r.nm===rolDet.rol;});
-      if(!role)return;
-      S[role.id].on=true;S[role.id].open=true;
-      // Restaurar el % CATDF/CPT que se usó realmente en este presupuesto (puede ser distinto al default)
-      if(rolDet.catdf!==undefined&&rolDet.catdf!==null){
-        role.catdf=rolDet.catdf;
-        role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
-          if(it.tipo==='normal')it.pct=role.catdf*(it.inc/100);
-        });});});
-      }
-      // Match por ID (presupuestos nuevos) con fallback por nombre (presupuestos viejos)
-      var idActivos={}, nombresActivos={};
-      (rolDet.items||[]).forEach(function(itDet){
-        if(itDet.id) idActivos[itDet.id]=itDet;
-        nombresActivos[itDet.nm]=itDet;
-      });
-      role.tareas.forEach(function(t){
-        var anyInTask=false;
-        t.grupos.forEach(function(g){g.items.forEach(function(it){
-          var itDet=idActivos[it.id]||nombresActivos[it.nm];
-          if(itDet){
-            S[role.id].subs[it.id]=true;
-            anyInTask=true;
-            if(it.tipo==='render'){
-              if(itDet.qty)it.qty=itDet.qty;
-              if(itDet.unitPrice!==undefined)it.unitPrice=itDet.unitPrice;
-            }
-            if(it.tipo==='m2price'&&itDet.pricePerM2!==undefined){it.pricePerM2=itDet.pricePerM2;}
-          }
-        });});
-        if(anyInTask)S[role.id].tasks[t.id]=true;
-      });
-    });
-  }catch(errRestore){
-    console.error('Error restaurando detalle:',errRestore);
-    toast('\u26a0 Algunos roles no se pudieron restaurar completamente',false);
-  }
-
-  // Re-aplicar el TC guardado por si fetchDolar() ya disparó y lo pisó
-  sv('mot-tc',hon.tc);
-
-  buildCatdfInputs(); // refleja los % CATDF/CPT restaurados (pueden ser distintos al default)
-  buildRoles();
-  recalc();
-  _restaurandoEdicion=false;
-  toast('\u270f Editando '+hon.code+(eraEnviado?' \u2014 revertido a Borrador':''));
-}
-
 function editarHon(id){
   id=isNaN(id)?id:Number(id); var hon=HON_DATA.find(function(h){return h.id==id;});if(!hon)return;
-  var eraEnviado=hon.estado!=='Borrador';
-  hon.estado='Borrador';
-  guardarTodo();
-  renderHon(HON_DATA);
+  // Revertir a borrador al editar (para que se pueda volver a guardar)
+  if(hon.estado!=='Borrador'){
+    hon.estado='Borrador';
+    guardarTodo();
+    renderHon(HON_DATA);
+    toast('✏ Editando — estado revertido a Borrador');
+  }
   editandoId=id;
+  // Restaurar datos en el formulario
+  var sv=function(elId,v){var el=document.getElementById(elId);if(el&&v!==undefined&&v!==null)el.value=v;};
+  sv('mot-uso',hon.uso);sv('mot-tipo',hon.tipo);sv('mot-m2',hon.m2);sv('mot-cu',hon.cu);
+  sv('mot-tc',hon.tc);sv('mot-desc-pct',hon.descPct||0);sv('mot-gast-pct',hon.gastPct||5);
+  sv('mot-ipc',hon.ipc||0);sv('mot-sec',hon.catSec);sv('mot-mzo',hon.catMzo);
+  sv('mot-parc',hon.catParc);sv('mot-uf',hon.catUF);sv('mot-dom',hon.catDom);
+  sv('mot-desc-trab',hon.descTrab);sv('mot-excl',hon.excl);sv('mot-nota',hon.nota);
+  sv('mot-forma-pago',hon.formaPago||'contado');sv('mot-comision',hon.comisionPct||6.49);
+  onFormaPago();
+  // Restaurar cliId
+  var cliEl=document.getElementById('mot-cli');if(cliEl&&hon.cliId){cliEl.value=hon.cliId;}
+  // Restaurar cat
+  var catEl=document.getElementById('mot-cat');if(catEl)catEl.value=String(hon.cat||1.0);
+  // Restaurar cuotas
+  if(hon.cuotas)cuotas=JSON.parse(JSON.stringify(hon.cuotas));
+  // Resetear estado
+  ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{}};});
+  // Restaurar checkboxes desde detalle
+  try{
+    if(hon.detalle){
+      hon.detalle.forEach(function(rolDet){
+        var role=ROLES.find(function(r){return r.nm===rolDet.rol;});
+        if(!role)return;
+        S[role.id].on=true;S[role.id].open=true;
+        rolDet.items.forEach(function(itDet){
+          role.tareas.forEach(function(t){
+            S[role.id].tasks[t.id]=true;
+            t.grupos.forEach(function(g){g.items.forEach(function(it){
+              if(it.nm===itDet.nm){
+                S[role.id].subs[it.id]=true;
+                if(it.tipo==='render'&&itDet.qty)it.qty=itDet.qty;
+                if(it.tipo==='render'&&itDet.unitPrice)it.unitPrice=itDet.unitPrice;
+              }
+            });});
+          });
+        });
+      });
+    }
+  }catch(errRestore){
+    console.error('Error restaurando detalle del presupuesto:',errRestore);
+    toast('\u26a0 Algunos datos no se pudieron restaurar — revisá los roles y subtareas',false);
+  }
   closeM('mod-hon');
-  _restaurandoEdicion=true;
-
-  // PASO 1: ir al motor (pobla el select de clientes, construye el form vacío)
   goTo('motor');
-
-  // PASO 2: esperar a que el navegador termine de pintar el DOM (2 frames = garantizado),
-  // en vez de un setTimeout arbitrario que puede fallar en dispositivos lentos.
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      _restaurarFormularioHon(hon,eraEnviado);
-    });
-  });
-  // Red de seguridad adicional: si por algún motivo los rAF no alcanzaron
-  // (carga muy pesada del DOM), reforzar la restauración a los 500ms.
-  setTimeout(function(){
-    if(_restaurandoEdicion){_restaurarFormularioHon(hon,eraEnviado);}
-  },500);
+  setTimeout(function(){buildRoles();toast('Editando '+hon.code+' \u2014 guard\u00e1 los cambios');},100);
 }
 
 /* ── HON LIST ─────────────────────────────────────────────────────────── */
@@ -1897,8 +1641,7 @@ function renderHon(data){
   var cnt=document.getElementById('hon-cnt');if(cnt)cnt.textContent=data.length+' registros';
   var sbn=document.getElementById('sb-hon');if(sbn)sbn.textContent=data.length;
   var body=document.getElementById('hon-body');if(!body)return;
-  if(!data.length){body.innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--tx3)">Sin presupuestos \u2014 cre\u00e1 el primero desde Motor Hon.</td></tr>';return;}
-  try{
+  if(!data.length){body.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--tx3)">Sin presupuestos \u2014 cre\u00e1 el primero desde Motor Hon.</td></tr>';return;}
   body.innerHTML=data.map(function(h){
     var isDraft=h.estado==='Borrador';
     return '<tr>'
@@ -1906,13 +1649,9 @@ function renderHon(data){
       +'<td style="cursor:pointer;max-width:170px;white-space:normal;font-size:11px" onclick="openHonDetail('+h.id+')">'+h.roles+'</td>'
       +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')">'+h.cliente+'</td>'
       +'<td style="cursor:pointer;max-width:140px;white-space:normal;font-size:11px" onclick="openHonDetail('+h.id+')">'+h.uso+'</td>'
-      +'<td style="cursor:pointer;text-align:center" onclick="openHonDetail('+h.id+')">'+(h.m2||0)+'</td>'
-      +'<td style="cursor:pointer;text-align:center;color:var(--tx3)" onclick="openHonDetail('+h.id+')">'+(h.m2dec||0)+'</td>'
-      +'<td style="cursor:pointer;text-align:center;color:var(--tx3)" onclick="openHonDetail('+h.id+')">'+(h.m2sind||0)+'</td>'
+      +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')">'+h.m2+' m\u00b2</td>'
       +'<td style="cursor:pointer;color:var(--bt);font-weight:700" onclick="openHonDetail('+h.id+')">USD '+h.usd.toLocaleString()+'</td>'
-      +(function(){try{var cobrado=(h.pagos||[]).reduce(function(a,p){return a+(p.montoUSD||0);},0);var pct=h.usd>0?Math.round(cobrado/h.usd*100):0;var color=cobrado>=h.usd?'var(--gt)':cobrado>0?'var(--golt)':'var(--tx3)';return cobrado>0?'<td style="color:'+color+';font-weight:600;cursor:pointer" onclick="openHonDetail('+h.id+')">USD '+Math.round(cobrado).toLocaleString()+' <span style="font-size:9px">('+pct+'%)</span></td>':'<td style="color:var(--tx3);cursor:pointer" onclick="openHonDetail('+h.id+')">\u2014</td>';}catch(e){return '<td style="color:var(--tx3)">\u2014</td>';}})() tion(){var cobrado=(h.pagos||[]).reduce(function(a,p){return a+(p.montoUSD||0);},0);var pct=h.usd>0?Math.round(cobrado/h.usd*100):0;var color=cobrado>=h.usd?'var(--gt)':cobrado>0?'var(--golt)':'var(--tx3)';return cobrado>0?'<td style="color:'+color+';font-weight:600;cursor:pointer" onclick="openHonDetail('+h.id+')">USD '+Math.round(cobrado).toLocaleString()+' <span style="font-size:9px">('+pct+'%)</span></td>':'<td style="color:var(--tx3);cursor:pointer" onclick="openHonDetail('+h.id+')">—</td>';})()
       +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')"><span class="bdg '+(ST[h.estado]||'b-dr')+'">'+h.estado+'</span></td>'
-      +'<td style="font-size:9px;color:var(--tx3);cursor:pointer" onclick="openHonDetail('+h.id+')">'+(h.fechaMod||h.fecha||'—')+'</td>'
       +'<td><div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap">'
       +'<button class="btn btn-sm btn-edit" title="Editar" data-hid="'+h.id+'" onclick="editarHon(+this.dataset.hid)">✏ Editar</button>'+(h.estado==='Borrador'?'<button class="btn btn-sm" style="color:var(--gt);border-color:rgba(74,222,128,.3)" data-hid="'+h.id+'" onclick="guardarDesdeListado(+this.dataset.hid)" title="Guardar cambios">💾 Guardar</button>':'')
       +'<button class="btn btn-sm" title="PDF" onclick="generarPDF('+h.id+')">PDF</button>'
@@ -1920,7 +1659,6 @@ function renderHon(data){
       +'<button class="btn btn-sm btn-del" title="Eliminar" onclick="eliminarHon('+h.id+')">🗑</button>'
       +'</div></td></tr>';
   }).join('');
-  }catch(eRender){console.error('renderHon error:',eRender);if(body)body.innerHTML='<tr><td colspan="13" style="text-align:center;padding:20px;color:var(--rt)">Error cargando presupuestos</td></tr>';}
 }
 renderHon(HON_DATA);
 function filtHon(v){var q=v.toLowerCase();renderHon(HON_DATA.filter(function(h){return(h.code+h.roles+h.cliente+h.uso).toLowerCase().includes(q);}));}
@@ -1951,7 +1689,7 @@ function openHonDetail(id){
       +'<span>'+rol.rol+'</span><span style="font-size:9px;opacity:.7;font-weight:400">'+(rol.descuentable?'Con descuento':'Sin descuento')+' \u00b7 CATDF '+(rol.catdf*100).toFixed(1)+'%</span></div>'
       +'<div style="font-size:10px;color:var(--tx3);margin-bottom:7px;font-style:italic">Subtotal del rol = USD '+N(rol.total)+'. Cada subtarea = USD '+N(rol.total)+' \u00d7 % del rol.</div>'
       +rol.items.map(function(it){
-        var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span>'):it.tipo==='m2price'?('<span style="color:var(--tt);font-size:10px">'+(it.m2||'?')+'m\u00b2 \u00d7 USD '+(it.pricePerM2||3)+'</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
+        var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
         var nmCol=it.tipo==='render'?it.nm+' <span style="background:rgba(212,168,67,.15);color:var(--golt);font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px">MERCADO</span>':it.nm;
         return '<div style="display:grid;grid-template-columns:1fr 80px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px">'
           +'<span style="color:var(--tx)">'+nmCol+'</span>'
@@ -1973,9 +1711,10 @@ function openHonDetail(id){
   if(h.cuotas&&h.cuotas.length&&h.dirProyTotal&&h.formaPago!=='contado'){
     cuotasHtml='<div style="margin-top:14px;background:rgba(96,165,250,.05);border:1px solid rgba(96,165,250,.2);border-radius:8px;padding:14px">'
       +'<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bt);margin-bottom:8px">Planilla de Cuotas \u2014 Base USD '+N(h.dirProyTotal)+'</div>'
-      +(function(){try{var cobrado=(h.pagos||[]).reduce(function(a,p){return a+(p.montoUSD||0);},0);var pct=h.usd>0?Math.round(cobrado/h.usd*100):0;var color=cobrado>=h.usd?'var(--gt)':cobrado>0?'var(--golt)':'var(--tx3)';return cobrado>0?'<td style="color:'+color+';font-weight:600;cursor:pointer" onclick="openHonDetail('+h.id+')">USD '+Math.round(cobrado).toLocaleString()+' <span style="font-size:9px">('+pct+'%)</span></td>':'<td style="color:var(--tx3);cursor:pointer" onclick="openHonDetail('+h.id+')">\u2014</td>';}catch(e){return '<td style="color:var(--tx3)">\u2014</td>';}})() tion(){var acum=0;return h.cuotas.map(function(c,ci){var m=(ci===h.cuotas.length-1)?Math.round(h.dirProyTotal-acum):Math.round(h.dirProyTotal*(c.pct/100));acum+=m;return'<div style="display:grid;grid-template-columns:1fr 60px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">'
+      +h.cuotas.map(function(c){return'<div style="display:grid;grid-template-columns:1fr 60px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">'
         +'<span style="color:var(--tx)">'+c.nm+'</span><span style="text-align:right;color:var(--golt);font-weight:600">'+c.pct+'%</span>'
-        +'<span style="text-align:right;color:var(--bt);font-weight:700">USD '+N(m)+'</span></div>';}).join('');})()+'</div>';
+        +'<span style="text-align:right;color:var(--bt);font-weight:700">USD '+N(h.dirProyTotal*(c.pct/100))+'</span></div>';}).join('')
+      +'</div>';
   }
   var isDraft=h.estado==='Borrador';
   var inner=document.getElementById('mod-hon-inner');
@@ -2001,7 +1740,7 @@ function openHonDetail(id){
     +'</div>'
     +'<div class="g3" style="margin-bottom:12px">'
     +'<div class="csm"><div class="sl">Tipo</div><div style="font-size:12px;margin-top:4px">'+(tl[h.tipo]||h.tipo)+'</div></div>'
-    +'<div class="csm"><div class="sl">Superficie</div><div style="font-size:14px;font-weight:700;color:var(--bt);margin-top:4px">'+(h.m2||0)+' nva'+(h.m2dec?' + '+h.m2dec+' decl.':'')+(h.m2sind?' + '+h.m2sind+' s/decl.':'')+' m\u00b2</div></div>'
+    +'<div class="csm"><div class="sl">Superficie</div><div style="font-size:18px;font-weight:700;color:var(--bt);margin-top:4px">'+h.m2+' m\u00b2</div></div>'
     +'<div class="csm"><div class="sl">Fecha \u00b7 TC</div><div style="font-size:12px;margin-top:4px">'+h.fecha+' \u00b7 $'+h.tc.toLocaleString('es-AR')+'</div></div>'
     +'</div>'
     +(h.descTrab?'<div class="csm" style="margin-bottom:12px"><div class="sl">Descripci\u00f3n del trabajo</div><div style="font-size:12px;color:var(--tx2);line-height:1.6;margin-top:4px">'+h.descTrab+'</div></div>':'')
@@ -2031,7 +1770,6 @@ function openHonDetail(id){
 
 
 function generarPDF(id){
-  try {
   // Asegurar logo y QR desde localStorage
   if(!EMPRESA.logo) EMPRESA.logo = localStorage.getItem('obraerp_logo')||'';
   if(!EMPRESA.qr)   EMPRESA.qr   = localStorage.getItem('obraerp_qr')||'';
@@ -2040,8 +1778,8 @@ function generarPDF(id){
   // Restaurar logo/QR — el presupuesto guardado los tiene nulos para ahorrar espacio
   if(!emp.logo) emp.logo = EMPRESA.logo || localStorage.getItem('obraerp_logo') || '';
   if(!emp.qr)   emp.qr   = EMPRESA.qr   || localStorage.getItem('obraerp_qr')   || '';
-  var C1=emp.brandColor1||EMPRESA.brandColor1||'#8a0e1e'; // color principal
-  var C2=emp.brandColor2||EMPRESA.brandColor2||'#c42d46'; // color secundario
+  var C1=emp.brandColor1||EMPRESA.brandColor1||''+C1+''; // color principal
+  var C2=emp.brandColor2||EMPRESA.brandColor2||''+C2+''; // color secundario
   var PFONT=emp.brandFont||EMPRESA.brandFont||'Montserrat'; // fuente
   const N=n=>Math.round(n).toLocaleString('es-AR');
   const tipo={nueva:'Obra nueva',amp:'Ampliación',ref:'Refacción',mod:'Modificación en ejec.',
@@ -2182,16 +1920,11 @@ function generarPDF(id){
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Revisión</div><div style="font-size:11pt;font-weight:700">'+h.rev+'</div></div>';
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Fecha de emisión</div><div style="font-size:11pt;font-weight:700">'+h.fecha+'</div></div>';
   d+='</div>';
-  d+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8pt;margin-top:8pt">';
+  d+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8pt;margin-top:8pt">';
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Tipo de encargo</div><div>'+( tipo[h.tipo]||h.tipo )+'</div></div>';
+  d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Superficie cubierta</div><div style="font-size:12pt;font-weight:700;color:'+C1+'">'+h.m2+' m\u00b2</div></div>';
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Estado</div><span class="badge '+( stClr[h.estado]||'badge-dr' )+'">'+h.estado+'</span></div>';
   d+='</div>';
-  d+='<div style="margin-top:8pt"><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:4pt">Superficie a intervenir</div>';
-  d+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6pt">';
-  d+='<div style="border:1px solid #ddd;border-radius:3pt;padding:5pt 6pt;text-align:center"><div style="font-size:7pt;color:#888;margin-bottom:2pt">Sup. nueva</div><div style="font-size:13pt;font-weight:700;color:'+C1+'">'+(h.m2||0)+' m\u00b2</div></div>';
-  d+='<div style="border:1px solid #ddd;border-radius:3pt;padding:5pt 6pt;text-align:center"><div style="font-size:7pt;color:#888;margin-bottom:2pt">Sup. existente declarada</div><div style="font-size:13pt;font-weight:700;color:#555">'+(h.m2dec||0)+' m\u00b2</div></div>';
-  d+='<div style="border:1px solid #ddd;border-radius:3pt;padding:5pt 6pt;text-align:center"><div style="font-size:7pt;color:#888;margin-bottom:2pt">Sup. existente sin declarar</div><div style="font-size:13pt;font-weight:700;color:#555">'+(h.m2sind||0)+' m\u00b2</div></div>';
-  d+='</div></div>';
   d+='</td></tr></table></div>';
 
   /* SECTION B — CLIENTE */
@@ -2233,28 +1966,23 @@ function generarPDF(id){
   d+='<td class="sec-desc">Detalle de honorarios por rol, tarea y subtarea. Los porcentajes reflejan la incidencia sobre los honorarios totales del rol.</td>';
   d+='<td class="sec-cont">';
   d+='<div style="font-size:8pt;color:#666;font-style:italic;margin-bottom:8pt;padding:5pt 8pt;background:#f8f8f8;border-radius:3pt">'
-    +'Cada rol calcula sus honorarios sobre la superficie que corresponde a su tarea (nueva, declarada o sin declarar) \u00d7 USD '+N(h.cu)+'/m\u00b2 \u00d7 categor\u00eda \u00d7'+h.cat+'. El detalle de cada rol indica su base espec\u00edfica.'
+    +'Valor de obra: '+h.m2+' m\u00b2 \u00d7 USD '+N(h.cu)+'/m\u00b2 \u00d7 cat \u00d7'+h.cat+' = '
+    +'<b>USD '+N(h.m2*h.cu*h.cat)+'</b>. '
+    +'Honorarios = % CATDF \u00d7 valor de obra \u00d7 % incidencia de cada subtarea.'
     +'</div>';
   (h.detalle||[]).forEach(function(rol){
-    var rolBaseM2 = (rol.rol==='Informante Técnico') ? (h.m2sind||0)
-                   : (rol.rol==='Calculista') ? ((h.m2||0)+(h.m2dec||0)+(h.m2sind||0))
-                   : (h.m2||0);
-    var rolBaseLbl = (rol.rol==='Informante Técnico') ? 'Sup. existente sin declarar'
-                    : (rol.rol==='Calculista') ? 'Sup. total'
-                    : 'Sup. nueva';
-    var rFm=Math.round(rolBaseM2*h.cu*h.cat*rol.catdf);
+    var rFm=Math.round(h.m2*h.cu*h.cat*rol.catdf);
     var clrRol=rol.descuentable?'#1e3a5f':'#1a3a2a';
     d+='<div class="rol-block">';
     d+='<div class="rol-head" style="background:'+clrRol+'">';
     d+=rol.rol;
     d+='<span class="desc-tag">CATDF '+(rol.catdf*100).toFixed(2)+'% &nbsp;\u00b7\u00a0'+(rol.descuentable?'Con descuento':'Sin descuento')+'</span>';
     d+='</div>';
-    d+='<div class="rol-fm">'+rolBaseLbl+': USD '+N(rolBaseM2*h.cu*h.cat)+' \u00d7 '+(rol.catdf*100).toFixed(2)+'% = USD '+N(rFm)+' del rol. Cada subtarea = USD '+N(rFm)+' \u00d7 % de incidencia.</div>';
+    d+='<div class="rol-fm">USD '+N(h.m2*h.cu*h.cat)+' \u00d7 '+(rol.catdf*100).toFixed(2)+'% = USD '+N(rFm)+' del rol. Cada subtarea = USD '+N(rFm)+' \u00d7 % de incidencia.</div>';
     d+='<table class="rol-tbl"><thead><tr>';
     d+='<th>Subtarea</th><th class="c">% del rol</th><th class="r">USD</th></tr></thead><tbody>';
     rol.items.forEach(function(it){
-      var colPct=it.tipo==='render'?(it.qty+'u \u00d7 USD '+it.unitPrice):it.tipo==='m2price'?((it.m2||'?')+'m\u00b2 \u00d7 USD '+(it.pricePerM2||3)):(it.inc+'%');
-      d+='<tr><td>'+it.nm+'</td><td class="c">'+colPct+'</td><td class="r">USD '+N(it.usd)+'</td></tr>';
+      d+='<tr><td>'+it.nm+'</td><td class="c">'+it.inc+'%</td><td class="r">USD '+N(it.usd)+'</td></tr>';
     });
     d+='</tbody></table>';
     d+='<div class="rol-sub">Subtotal '+rol.rol+': &nbsp;<b>USD '+N(rol.total)+'</b></div>';
@@ -2275,18 +2003,15 @@ function generarPDF(id){
 
   /* SECTION E — PLANILLA DE CUOTAS */
   if(h.cuotas&&h.cuotas.length&&h.dirProyTotal&&h.formaPago!=='contado'){
-    d+='<div class="sec"><div class="sec-head">E.&nbsp; Planilla de Cuotas \u2014 Honorarios Financiables</div>';
+    d+='<div class="sec"><div class="sec-head">E.&nbsp; Planilla de Cuotas \u2014 Direcci\u00f3n de Proyecto</div>';
     d+='<table class="sec-tbl"><tr>';
     d+='<td class="sec-desc">Esquema de pagos sobre los honorarios de Direcci\u00f3n de Proyecto. Base: <b>USD '+N(h.dirProyTotal)+'</b>.</td>';
     d+='<td class="sec-cont">';
     d+='<table class="cq-tbl"><thead><tr><th>#</th><th>Concepto</th><th class="r">%</th><th class="r">USD</th></tr></thead><tbody>';
-    var acumCuotas=0;
     h.cuotas.forEach(function(c,i){
       d+='<tr><td style="color:#888;font-size:8pt">'+(i+1)+'</td><td>'+c.nm+'</td>';
       d+='<td class="r" style="color:#b8700a">'+c.pct+'%</td>';
-      var montoCuota=(i===h.cuotas.length-1)?Math.round(h.dirProyTotal-acumCuotas):Math.round(h.dirProyTotal*(c.pct/100));
-      acumCuotas+=montoCuota;
-      d+='<td class="r">USD '+N(montoCuota)+'</td></tr>';
+      d+='<td class="r">USD '+N(h.dirProyTotal*(c.pct/100))+'</td></tr>';
     });
     d+='</tbody></table>';
     d+='</td></tr></table></div>';
@@ -2349,23 +2074,10 @@ function generarPDF(id){
     +'<style>'+css+'</style></head><body><div class="pg">'+d+'</div>'
     +'<script>window.onload=function(){window.print();}<\/script></body></html>';
 
-  // Generar PDF como Blob y abrir en nueva pestaña (sin popup blocker)
-  var blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  var url=URL.createObjectURL(blob);
-  // Método 1: abrir en nueva pestaña (funciona cuando el usuario lo inicia con click)
-  var a=document.createElement('a');
-  a.href=url;
-  a.target='_blank';
-  a.rel='noopener';
-  a.style.display='none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);
-  toast('PDF abierto \u2014 us\u00e1 Ctrl+P para imprimir o guardar como PDF');
-  } catch(pdfErr) {
-    console.error('Error generarPDF:', pdfErr);
-    toast('Error al generar PDF: ' + pdfErr.message, false);
-  }
+  const pw=window.open('','_blank','width=940,height=780');
+  pw.document.write(html);
+  pw.document.close();
+  toast('PDF listo \u2014 Ctrl+P para guardar como PDF');
 }
 
 
@@ -2384,17 +2096,7 @@ function goTo(id,btn,sb){
 }
 
 /* ── CLIENTES ─────────────────────────────────────────────────────────── */
-function populateCliSel(){
-  // Poblar datalist para autocompletado
-  var dl=document.getElementById('cli-datalist');
-  if(dl)dl.innerHTML=CLIENTES.map(function(c){return'<option value="'+c.ap+', '+c.nm+'" data-id="'+c.id+'">';}).join('');
-}
-function onCliInput(val){
-  // Buscar cliente por nombre y setear el ID oculto
-  var found=CLIENTES.find(function(c){return (c.ap+', '+c.nm)===val;});
-  var hidden=document.getElementById('mot-cli');
-  if(hidden)hidden.value=found?String(found.id):'';
-}
+function populateCliSel(){var sel=document.getElementById('mot-cli');if(!sel)return;sel.innerHTML='<option value="">— seleccionar —</option>'+CLIENTES.map(function(c){return'<option value="'+c.id+'">'+c.ap+', '+c.nm+'</option>';}).join('');}
 function renderCli(data){
   var cnt=document.getElementById('cli-cnt');if(cnt)cnt.textContent=data.length+' clientes';
   var db=document.getElementById('db-cli');if(db)db.textContent=CLIENTES.length;
@@ -2921,8 +2623,6 @@ function showSyncBar(msg, ok){
   bar.style.background=ok?'rgba(20,80,50,.95)':'rgba(30,60,110,.95)';
   bar.style.borderBottomColor=ok?'rgba(74,222,128,.3)':'rgba(96,165,250,.3)';
   if(ok)setTimeout(function(){bar.style.display='none';},2500);
-  // Timeout de seguridad: si no terminó en 8s, ocultar igual
-  if(!ok)setTimeout(function(){if(bar.style.display!=='none')bar.style.display='none';},8000);
 }
 function hideSyncBar(){var b=document.getElementById('sync-bar');if(b)b.style.display='none';}
 
@@ -3047,17 +2747,13 @@ async function fbSyncAll(){
     });
     await batch.commit();
     showSyncBar('\u2713 Sincronizado',true);
-  }catch(e){console.error('Sync error:',e);hideSyncBar();}
+  }catch(e){showSyncBar('Error de sync: '+e.message,false);console.error(e);}
 }
 
 async function fbLoadAll(){
   if(_syncMode!=='firebase'||!_db||!_uid)return;
   showSyncBar('Cargando datos...',false);
   try{
-    // Guardar copia local ANTES de pisarla con datos de la nube
-    var localHonBackup=JSON.parse(JSON.stringify(HON_DATA));
-    var localCliBackup=JSON.parse(JSON.stringify(CLIENTES));
-
     // Load empresa
     var empDoc=await _db.collection('users').doc(_uid).get();
     if(empDoc.exists){
@@ -3076,30 +2772,13 @@ async function fbLoadAll(){
     var honSnap=await _db.collection('users').doc(_uid).collection('honorarios').get();
     if(!honSnap.empty){
       HON_DATA=honSnap.docs.map(function(d){return d.data();});
+      HON_DATA.sort(function(a,b){return b.id-a.id;});
     }
-    // MERGE: si había presupuestos locales que no llegaron a la nube (guardado antes de cerrar sin conexión),
-    // los recuperamos en vez de perderlos. Un local "gana" sobre la nube si su id no existe en la nube.
-    localHonBackup.forEach(function(localH){
-      var enNube=HON_DATA.find(function(h){return h.id===localH.id;});
-      if(!enNube){
-        HON_DATA.push(localH); // recuperar presupuesto que no llegó a sincronizar
-      }
-    });
-    localCliBackup.forEach(function(localC){
-      var enNube=CLIENTES.find(function(c){return c.id===localC.id;});
-      if(!enNube)CLIENTES.push(localC);
-    });
-    HON_DATA.sort(function(a,b){return b.id-a.id;});
-
-    _guardarTodoOrig(); // guardar merge resultante en localStorage (sin re-disparar sync)
-    // Si hubo presupuestos recuperados que no estaban en la nube, subirlos ahora
-    var huboRecuperados=localHonBackup.some(function(localH){return !honSnap.docs.find(function(d){return d.data().id===localH.id;});});
-    if(huboRecuperados)fbSyncAll();
-
-    try{renderHon(HON_DATA);}catch(eRH){console.error('renderHon error:',eRH);}
-    try{renderCli(CLIENTES);}catch(eRC){console.error('renderCli error:',eRC);}
-    try{updateDashboard();}catch(eUD){console.error('updateDashboard error:',eUD);}
-    try{actualizarUIEmpresa();}catch(eUI){console.error('actualizarUI error:',eUI);}
+    guardarTodo(); // save to localStorage as cache
+    renderHon(HON_DATA);
+    renderCli(CLIENTES);
+    updateDashboard();
+    actualizarUIEmpresa();
     showSyncBar('\u2713 Datos cargados',true);
   }catch(e){showSyncBar('Error al cargar: '+e.message,false);console.error(e);}
 }
@@ -3177,25 +2856,19 @@ function setupRealtimeListeners(){
       });
       if(!snap.metadata.hasPendingWrites){
         HON_DATA.sort(function(a,b){return b.id-a.id;});
-        try{renderHon(HON_DATA);}catch(e){console.error('renderHon en listener:',e);}
-        try{updateDashboard();}catch(e){console.error('updateDashboard en listener:',e);}
-        try{_guardarTodoOrig();}catch(e){console.error('guardarTodo en listener:',e);}
+        renderHon(HON_DATA);updateDashboard();
+        guardarTodo();
       }
     },function(){});
 }
 
 /* ── OVERRIDE guardarTodo TO ALSO SYNC ─────────────────────────── */
 var _guardarTodoOrig=guardarTodo;
-guardarTodo=function(immediate){
-  try{_guardarTodoOrig();}catch(e){console.error('guardarTodo local error:',e);}
+guardarTodo=function(){
+  _guardarTodoOrig();
   if(_syncMode==='firebase'&&_uid){
     clearTimeout(guardarTodo._t);
-    var syncFn=function(){fbSyncAll().catch(function(e){console.error('fbSyncAll error:',e);hideSyncBar();});};
-    if(immediate){
-      syncFn();
-    }else{
-      guardarTodo._t=setTimeout(syncFn,1200);
-    }
+    guardarTodo._t=setTimeout(fbSyncAll,1200); // debounce 1.2s
   }
 };
 
@@ -3905,32 +3578,6 @@ function mostrarModalCodigo(codePreFill){
   m.classList.add('open');
 }
 
-function exportarCSV(){
-  var headers=['Código','Revisión','Roles','Cliente','Uso','Tipo','M² Nueva','M² Decl.','M² S/Decl.','Total USD','Cobrado USD','Gastos %','Descuento %','Estado','Fecha','Últ.Modif.'];
-  var rows=HON_DATA.map(function(h){
-    var cobrado=(h.pagos||[]).reduce(function(a,p){return a+(p.montoUSD||0);},0);
-    return [
-      h.code, h.rev||'R01', '"'+h.roles+'"', '"'+(h.cliente||'')+'"', '"'+(h.uso||'')+'"',
-      h.tipo||'', h.m2||0, h.m2dec||0, h.m2sind||0,
-      h.usd||0, Math.round(cobrado), h.gastPct||5, h.descPct||0,
-      h.estado||'', h.fecha||'', h.fechaMod||''
-    ].join(',');
-  });
-  var csv=headers.join(',')+'
-'+rows.join('
-');
-  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  a.href=url;
-  a.download='OBRAERP-honorarios-'+new Date().toISOString().split('T')[0]+'.csv';
-  a.style.display='none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
-  toast('CSV exportado — abrilo con Excel');
-}
-
 function estadoAbr(estado){
   var m={'borrador':'BO','enviado':'ENV','aprobado':'APR',
          'entregado':'ENT','rechazado':'REC','facturado':'FAC','archivado':'ARCH'};
@@ -4029,14 +3676,14 @@ function guardarDesdeListado(id){
   id=isNaN(id)?id:Number(id);
   var hon=HON_DATA.find(function(h){return h.id==id;});
   if(!hon)return;
-  // Si NO estamos editando este presupuesto en el Motor (form vacío/otro), 
-  // este botón solo re-sincroniza lo que ya hay guardado (no hay datos nuevos para leer).
-  if(editandoId!==id){
-    toast('Abrí "✏ Editar" primero, hacé los cambios y guardá desde el Motor',false);
-    return;
+  guardarTodo();
+  if(_db&&_uid){
+    var honToSave=Object.assign({},hon);
+    delete honToSave.logo;delete honToSave.qr;
+    _db.collection('users').doc(_uid).collection('honorarios').doc(String(id)).set(honToSave).catch(function(){});
   }
-  // Estamos editando este mismo presupuesto: releer el formulario real y guardar de verdad
-  motorGuardar(true);
+  renderHon(HON_DATA);
+  toast('\u2713 '+honCode(hon)+' guardado');
 }
 
 /* ════════════════════════════════════════════════════════════════════
