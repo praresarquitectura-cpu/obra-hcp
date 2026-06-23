@@ -517,6 +517,11 @@ input,select,textarea,button{font-family:var(--font)}
             <div class="pw"><input class="pi" type="number" id="mot-comision" value="6.49" step="0.01" oninput="recalc()"><span class="pu">%</span></div>
             <div style="font-size:9px;color:var(--golt);margin-top:3px">Se traslada al cliente</div>
           </div>
+          <div class="fg">
+            <label class="fl">Ajuste por cierre / TC</label>
+            <div class="pw"><input class="pi" type="number" id="mot-ajuste-tc" value="0" step="1" oninput="recalc()"><span class="pu">USD</span></div>
+            <div style="font-size:9px;color:var(--tt);margin-top:3px">+ o - para ajustar diferencia de TC al cobrar</div>
+          </div>
         </div>
         <div id="mot-val-obra" style="font-size:11px;color:var(--tx3);margin-top:4px"></div>
       </div>
@@ -577,6 +582,7 @@ input,select,textarea,button{font-family:var(--font)}
           <div class="trow"><span class="tl" id="s-gast-lbl">Gastos</span><span class="tv" id="s-gast">USD 0</span></div>
           <div class="trow" id="row-tarjeta" style="display:none"><span class="tl" id="s-tarj-lbl" style="color:var(--golt)">Comisión tarjeta</span><span class="tv" id="s-tarj" style="color:var(--golt)">USD 0</span></div>
           <div class="trow"><span class="tl">Ajuste IPC</span><span class="tv" id="s-ipc">—</span></div>
+          <div class="trow" id="row-ajuste-tc" style="display:none"><span class="tl" style="color:var(--tt)">Ajuste TC/cierre</span><span class="tv" id="s-ajuste-tc" style="color:var(--tt)">—</span></div>
           <div class="trow fin"><span class="tl">TOTAL</span><span class="tv" id="s-tot" style="color:var(--bt)">USD 0</span></div>
           <div class="tusd" id="s-ars">ARS $ 0</div>
         </div>
@@ -1530,7 +1536,8 @@ function recalc(){
   var formaPago=document.getElementById('mot-forma-pago')?.value||'contado';
   var comisionAmt=0;
   if(formaPago==='tarjeta'){var comPct=getN('mot-comision',6.49)/100;comisionAmt=(afterDesc+gastos+ipcAmt)*comPct;}
-  var fin=afterDesc+gastos+ipcAmt+comisionAmt;
+  var ajusteTC=getN('mot-ajuste-tc',0);
+  var fin=afterDesc+gastos+ipcAmt+comisionAmt+ajusteTC;
   dirProyTotalAfterDisc=Math.round(dirProyTotalUSD*(1-desc));
   calcTotalAfterDisc=Math.round(calcTotalUSD*(1-desc)); // Calculista también aplica descuento
   infTotalAfterDisc=Math.round(infTotalUSD*(1-desc)); // Informante Técnico también aplica descuento
@@ -1552,6 +1559,8 @@ function recalc(){
   var gl=document.getElementById('s-gast-lbl');if(gl)gl.textContent='Gastos ('+(gast*100).toFixed(1)+'%)';
   set('s-gast','USD '+N(gastos));
   set('s-ipc',ipcAmt>0?'+ USD '+N(ipcAmt):'—');
+  var rowAj=document.getElementById('row-ajuste-tc');if(rowAj)rowAj.style.display=ajusteTC!==0?'':'none';
+  set('s-ajuste-tc',ajusteTC>0?'+ USD '+N(ajusteTC):ajusteTC<0?'− USD '+N(Math.abs(ajusteTC)):'—');
   if(comisionAmt>0){set('s-tarj','+ USD '+N(comisionAmt));var tl2=document.getElementById('s-tarj-lbl');if(tl2)tl2.textContent='Comisi\u00f3n tarjeta ('+(getN('mot-comision',6.49)).toFixed(2)+'%)';}
   set('s-tot','USD '+N(fin));set('s-ars','ARS $ '+Math.round(fin*tc).toLocaleString('es-AR'));
 
@@ -1637,6 +1646,7 @@ function motorGuardar(draft){
   var tipo=gs('mot-tipo')||'nueva';
   var formaPago=gs('mot-forma-pago')||'contado';
   var comisionPct=formaPago==='tarjeta'?getN('mot-comision',6.49):0;
+  var ajusteTC2=getN('mot-ajuste-tc',0);
   var cliId=gs('mot-cli');
   var cli=CLIENTES.find(function(c){return c.id==cliId;});
   var m2dec=getN('mot-m2-dec',0),m2sind=getN('mot-m2-sind',0);
@@ -1682,7 +1692,7 @@ function motorGuardar(draft){
   });
   var descAmt=totalDesc*desc,after=totalDesc-descAmt+totalNoDesc,gastos=after*gast,ipcAmt=after*ipc;
   var comisionAmt=Math.round((after+gastos+ipcAmt)*(comisionPct/100));
-  var fin=after+gastos+ipcAmt+comisionAmt;
+  var fin=after+gastos+ipcAmt+comisionAmt+ajusteTC2;
   var hon={
     id:editandoId||Date.now(),
     code:editandoId?HON_DATA.find(function(h){return h.id===editandoId;})?.code||('HON-'+String(HON_DATA.length+1).padStart(4,'0')):'HON-'+String(HON_DATA.length+1).padStart(4,'0'),
@@ -1691,7 +1701,7 @@ function motorGuardar(draft){
     cliente:cli?cli.ap+', '+cli.nm:'—',cliId,
     usd:Math.round(fin),ars:Math.round(fin*tc),
     subtotalDesc:Math.round(totalDesc),subtotalNoDesc:Math.round(totalNoDesc),
-    descAmt:Math.round(descAmt),gastos:Math.round(gastos),comisionAmt,comisionPct,formaPago,
+    descAmt:Math.round(descAmt),gastos:Math.round(gastos),comisionAmt,comisionPct,formaPago,ajusteTC:ajusteTC2,
     detalle,cuotas:JSON.parse(JSON.stringify(cuotas)),
     dirProyTotal:Math.round((dirProyTotalUSD+calcTotalUSD+infFinanciableUSD)*(1-desc)*(1+gast)),
     descTrab,excl,nota,catSec,catMzo,catParc,catUF,catDom,
@@ -1734,6 +1744,7 @@ function _restaurarFormularioHon(hon,eraEnviado){
   sv('mot-nota',hon.nota);
   sv('mot-forma-pago',hon.formaPago||'contado');
   sv('mot-comision',hon.comisionPct||6.49);
+  sv('mot-ajuste-tc',hon.ajusteTC||0);
   onFormaPago();
 
   // Cliente
@@ -1969,8 +1980,8 @@ function generarPDF(id){
   // Restaurar logo/QR — el presupuesto guardado los tiene nulos para ahorrar espacio
   if(!emp.logo) emp.logo = EMPRESA.logo || localStorage.getItem('obraerp_logo') || '';
   if(!emp.qr)   emp.qr   = EMPRESA.qr   || localStorage.getItem('obraerp_qr')   || '';
-  var C1=emp.brandColor1||EMPRESA.brandColor1||''+C1+''; // color principal
-  var C2=emp.brandColor2||EMPRESA.brandColor2||''+C2+''; // color secundario
+  var C1=emp.brandColor1||EMPRESA.brandColor1||'#8a0e1e'; // color principal
+  var C2=emp.brandColor2||EMPRESA.brandColor2||'#c42d46'; // color secundario
   var PFONT=emp.brandFont||EMPRESA.brandFont||'Montserrat'; // fuente
   const N=n=>Math.round(n).toLocaleString('es-AR');
   const tipo={nueva:'Obra nueva',amp:'Ampliación',ref:'Refacción',mod:'Modificación en ejec.',
@@ -2213,7 +2224,7 @@ function generarPDF(id){
     h.cuotas.forEach(function(c,i){
       d+='<tr><td style="color:#888;font-size:8pt">'+(i+1)+'</td><td>'+c.nm+'</td>';
       d+='<td class="r" style="color:#b8700a">'+c.pct+'%</td>';
-      var montoCuota=(ci===h.cuotas.length-1)?Math.round(h.dirProyTotal-acumCuotas):Math.round(h.dirProyTotal*(c.pct/100));
+      var montoCuota=(i===h.cuotas.length-1)?Math.round(h.dirProyTotal-acumCuotas):Math.round(h.dirProyTotal*(c.pct/100));
       acumCuotas+=montoCuota;
       d+='<td class="r">USD '+N(montoCuota)+'</td></tr>';
     });
