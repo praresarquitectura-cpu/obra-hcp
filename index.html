@@ -1903,10 +1903,9 @@ function openHonDetail(id){
   if(h.cuotas&&h.cuotas.length&&h.dirProyTotal&&h.formaPago!=='contado'){
     cuotasHtml='<div style="margin-top:14px;background:rgba(96,165,250,.05);border:1px solid rgba(96,165,250,.2);border-radius:8px;padding:14px">'
       +'<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bt);margin-bottom:8px">Planilla de Cuotas \u2014 Base USD '+N(h.dirProyTotal)+'</div>'
-      +h.cuotas.map(function(c){return'<div style="display:grid;grid-template-columns:1fr 60px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">'
+      +(function(){var acum=0;return h.cuotas.map(function(c,ci){var m=(ci===h.cuotas.length-1)?Math.round(h.dirProyTotal-acum):Math.round(h.dirProyTotal*(c.pct/100));acum+=m;return'<div style="display:grid;grid-template-columns:1fr 60px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">'
         +'<span style="color:var(--tx)">'+c.nm+'</span><span style="text-align:right;color:var(--golt);font-weight:600">'+c.pct+'%</span>'
-        +'<span style="text-align:right;color:var(--bt);font-weight:700">USD '+N(h.dirProyTotal*(c.pct/100))+'</span></div>';}).join('')
-      +'</div>';
+        +'<span style="text-align:right;color:var(--bt);font-weight:700">USD '+N(m)+'</span></div>';}).join('');})()+'</div>';
   }
   var isDraft=h.estado==='Borrador';
   var inner=document.getElementById('mod-hon-inner');
@@ -2210,10 +2209,13 @@ function generarPDF(id){
     d+='<td class="sec-desc">Esquema de pagos sobre los honorarios de Direcci\u00f3n de Proyecto. Base: <b>USD '+N(h.dirProyTotal)+'</b>.</td>';
     d+='<td class="sec-cont">';
     d+='<table class="cq-tbl"><thead><tr><th>#</th><th>Concepto</th><th class="r">%</th><th class="r">USD</th></tr></thead><tbody>';
+    var acumCuotas=0;
     h.cuotas.forEach(function(c,i){
       d+='<tr><td style="color:#888;font-size:8pt">'+(i+1)+'</td><td>'+c.nm+'</td>';
       d+='<td class="r" style="color:#b8700a">'+c.pct+'%</td>';
-      d+='<td class="r">USD '+N(h.dirProyTotal*(c.pct/100))+'</td></tr>';
+      var montoCuota=(ci===h.cuotas.length-1)?Math.round(h.dirProyTotal-acumCuotas):Math.round(h.dirProyTotal*(c.pct/100));
+      acumCuotas+=montoCuota;
+      d+='<td class="r">USD '+N(montoCuota)+'</td></tr>';
     });
     d+='</tbody></table>';
     d+='</td></tr></table></div>';
