@@ -1909,7 +1909,7 @@ function renderHon(data){
       +'<td style="cursor:pointer;text-align:center;color:var(--tx3)" onclick="openHonDetail('+h.id+')">'+(h.m2dec||0)+'</td>'
       +'<td style="cursor:pointer;text-align:center;color:var(--tx3)" onclick="openHonDetail('+h.id+')">'+(h.m2sind||0)+'</td>'
       +'<td style="cursor:pointer;color:var(--bt);font-weight:700" onclick="openHonDetail('+h.id+')">USD '+h.usd.toLocaleString()+'</td>'
-      +(function(){var cobrado=(h.pagos||[]).reduce(function(a,p){return a+(p.montoUSD||0);},0);var pct=h.usd>0?Math.round(cobrado/h.usd*100):0;var color=cobrado>=h.usd?'var(--gt)':cobrado>0?'var(--golt)':'var(--tx3)';return cobrado>0?'<td style="color:'+color+';font-weight:600;cursor:pointer" onclick="openHonDetail('+h.id+')">USD '+Math.round(cobrado).toLocaleString()+' <span style="font-size:9px">('+pct+'%)</span></td>':'<td style="color:var(--tx3);cursor:pointer" onclick="openHonDetail('+h.id+')">—</td>';})()
+      +(function(){try{var cobrado=(h.pagos||[]).reduce(function(a,p){return a+(p.montoUSD||0);},0);var pct=h.usd>0?Math.round(cobrado/h.usd*100):0;var color=cobrado>=h.usd?'var(--gt)':cobrado>0?'var(--golt)':'var(--tx3)';return cobrado>0?'<td style="color:'+color+';font-weight:600;cursor:pointer" onclick="openHonDetail('+h.id+')">USD '+Math.round(cobrado).toLocaleString()+' <span style="font-size:9px">('+pct+'%)</span></td>':'<td style="color:var(--tx3);cursor:pointer" onclick="openHonDetail('+h.id+')">\u2014</td>';}catch(e){return '<td style="color:var(--tx3)">\u2014</td>';}})() tion(){var cobrado=(h.pagos||[]).reduce(function(a,p){return a+(p.montoUSD||0);},0);var pct=h.usd>0?Math.round(cobrado/h.usd*100):0;var color=cobrado>=h.usd?'var(--gt)':cobrado>0?'var(--golt)':'var(--tx3)';return cobrado>0?'<td style="color:'+color+';font-weight:600;cursor:pointer" onclick="openHonDetail('+h.id+')">USD '+Math.round(cobrado).toLocaleString()+' <span style="font-size:9px">('+pct+'%)</span></td>':'<td style="color:var(--tx3);cursor:pointer" onclick="openHonDetail('+h.id+')">—</td>';})()
       +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')"><span class="bdg '+(ST[h.estado]||'b-dr')+'">'+h.estado+'</span></td>'
       +'<td style="font-size:9px;color:var(--tx3);cursor:pointer" onclick="openHonDetail('+h.id+')">'+(h.fechaMod||h.fecha||'—')+'</td>'
       +'<td><div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap">'
@@ -1971,7 +1971,7 @@ function openHonDetail(id){
   if(h.cuotas&&h.cuotas.length&&h.dirProyTotal&&h.formaPago!=='contado'){
     cuotasHtml='<div style="margin-top:14px;background:rgba(96,165,250,.05);border:1px solid rgba(96,165,250,.2);border-radius:8px;padding:14px">'
       +'<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bt);margin-bottom:8px">Planilla de Cuotas \u2014 Base USD '+N(h.dirProyTotal)+'</div>'
-      +(function(){var acum=0;return h.cuotas.map(function(c,ci){var m=(ci===h.cuotas.length-1)?Math.round(h.dirProyTotal-acum):Math.round(h.dirProyTotal*(c.pct/100));acum+=m;return'<div style="display:grid;grid-template-columns:1fr 60px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">'
+      +(function(){try{var cobrado=(h.pagos||[]).reduce(function(a,p){return a+(p.montoUSD||0);},0);var pct=h.usd>0?Math.round(cobrado/h.usd*100):0;var color=cobrado>=h.usd?'var(--gt)':cobrado>0?'var(--golt)':'var(--tx3)';return cobrado>0?'<td style="color:'+color+';font-weight:600;cursor:pointer" onclick="openHonDetail('+h.id+')">USD '+Math.round(cobrado).toLocaleString()+' <span style="font-size:9px">('+pct+'%)</span></td>':'<td style="color:var(--tx3);cursor:pointer" onclick="openHonDetail('+h.id+')">\u2014</td>';}catch(e){return '<td style="color:var(--tx3)">\u2014</td>';}})() tion(){var acum=0;return h.cuotas.map(function(c,ci){var m=(ci===h.cuotas.length-1)?Math.round(h.dirProyTotal-acum):Math.round(h.dirProyTotal*(c.pct/100));acum+=m;return'<div style="display:grid;grid-template-columns:1fr 60px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">'
         +'<span style="color:var(--tx)">'+c.nm+'</span><span style="text-align:right;color:var(--golt);font-weight:600">'+c.pct+'%</span>'
         +'<span style="text-align:right;color:var(--bt);font-weight:700">USD '+N(m)+'</span></div>';}).join('');})()+'</div>';
   }
@@ -2919,6 +2919,8 @@ function showSyncBar(msg, ok){
   bar.style.background=ok?'rgba(20,80,50,.95)':'rgba(30,60,110,.95)';
   bar.style.borderBottomColor=ok?'rgba(74,222,128,.3)':'rgba(96,165,250,.3)';
   if(ok)setTimeout(function(){bar.style.display='none';},2500);
+  // Timeout de seguridad: si no terminó en 8s, ocultar igual
+  if(!ok)setTimeout(function(){if(bar.style.display!=='none')bar.style.display='none';},8000);
 }
 function hideSyncBar(){var b=document.getElementById('sync-bar');if(b)b.style.display='none';}
 
@@ -3043,7 +3045,7 @@ async function fbSyncAll(){
     });
     await batch.commit();
     showSyncBar('\u2713 Sincronizado',true);
-  }catch(e){showSyncBar('Error de sync: '+e.message,false);console.error(e);}
+  }catch(e){console.error('Sync error:',e);hideSyncBar();}
 }
 
 async function fbLoadAll(){
@@ -3092,10 +3094,10 @@ async function fbLoadAll(){
     var huboRecuperados=localHonBackup.some(function(localH){return !honSnap.docs.find(function(d){return d.data().id===localH.id;});});
     if(huboRecuperados)fbSyncAll();
 
-    renderHon(HON_DATA);
-    renderCli(CLIENTES);
-    updateDashboard();
-    actualizarUIEmpresa();
+    try{renderHon(HON_DATA);}catch(eRH){console.error('renderHon error:',eRH);}
+    try{renderCli(CLIENTES);}catch(eRC){console.error('renderCli error:',eRC);}
+    try{updateDashboard();}catch(eUD){console.error('updateDashboard error:',eUD);}
+    try{actualizarUIEmpresa();}catch(eUI){console.error('actualizarUI error:',eUI);}
     showSyncBar('\u2713 Datos cargados',true);
   }catch(e){showSyncBar('Error al cargar: '+e.message,false);console.error(e);}
 }
@@ -3182,13 +3184,14 @@ function setupRealtimeListeners(){
 /* ── OVERRIDE guardarTodo TO ALSO SYNC ─────────────────────────── */
 var _guardarTodoOrig=guardarTodo;
 guardarTodo=function(immediate){
-  _guardarTodoOrig();
+  try{_guardarTodoOrig();}catch(e){console.error('guardarTodo local error:',e);}
   if(_syncMode==='firebase'&&_uid){
     clearTimeout(guardarTodo._t);
+    var syncFn=function(){fbSyncAll().catch(function(e){console.error('fbSyncAll error:',e);hideSyncBar();});};
     if(immediate){
-      fbSyncAll(); // guardado inmediato, sin esperar debounce
+      syncFn();
     }else{
-      guardarTodo._t=setTimeout(fbSyncAll,1200); // debounce 1.2s para autoguardados menores
+      guardarTodo._t=setTimeout(syncFn,1200);
     }
   }
 };
