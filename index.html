@@ -1898,6 +1898,7 @@ function renderHon(data){
   var sbn=document.getElementById('sb-hon');if(sbn)sbn.textContent=data.length;
   var body=document.getElementById('hon-body');if(!body)return;
   if(!data.length){body.innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--tx3)">Sin presupuestos \u2014 cre\u00e1 el primero desde Motor Hon.</td></tr>';return;}
+  try{
   body.innerHTML=data.map(function(h){
     var isDraft=h.estado==='Borrador';
     return '<tr>'
@@ -1919,6 +1920,7 @@ function renderHon(data){
       +'<button class="btn btn-sm btn-del" title="Eliminar" onclick="eliminarHon('+h.id+')">🗑</button>'
       +'</div></td></tr>';
   }).join('');
+  }catch(eRender){console.error('renderHon error:',eRender);if(body)body.innerHTML='<tr><td colspan="13" style="text-align:center;padding:20px;color:var(--rt)">Error cargando presupuestos</td></tr>';}
 }
 renderHon(HON_DATA);
 function filtHon(v){var q=v.toLowerCase();renderHon(HON_DATA.filter(function(h){return(h.code+h.roles+h.cliente+h.uso).toLowerCase().includes(q);}));}
@@ -3175,8 +3177,9 @@ function setupRealtimeListeners(){
       });
       if(!snap.metadata.hasPendingWrites){
         HON_DATA.sort(function(a,b){return b.id-a.id;});
-        renderHon(HON_DATA);updateDashboard();
-        _guardarTodoOrig(); // solo localStorage, NO re-sync a Firebase (evita loop)
+        try{renderHon(HON_DATA);}catch(e){console.error('renderHon en listener:',e);}
+        try{updateDashboard();}catch(e){console.error('updateDashboard en listener:',e);}
+        try{_guardarTodoOrig();}catch(e){console.error('guardarTodo en listener:',e);}
       }
     },function(){});
 }
