@@ -1091,7 +1091,7 @@ var ROLES=[
      ]},
      {nm:'Documentaci\u00f3n Municipal',items:[
        {id:'p_arq_mun',nm:'Plano de Arquitectura Municipal',tipo:'normal',inc:18,dsc:'Plano con escala y formato requerido por el Municipio — responsabilidad del Director de Proyecto'},
-       {id:'guia_aviso',nm:'Gu\u00eda de Aviso de Obra',tipo:'m2price',inc:0,pricePerM2:3.0,dsc:'Por m\u00b2 nueva \u00b7 USD 1,50\u20135,00/m\u00b2'},
+       {id:'guia_aviso',nm:'Gu\u00eda de Aviso de Obra',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'Gesti\u00f3n Gu\u00eda de Aviso ante Municipio'},
        {id:'ddj_mojones_proy',nm:'Declaraci\u00f3n Jurada de Mojones',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'DD.JJ. Deslinde y Amojonamiento'},
      ]},
      {nm:'Documentaci\u00f3n Ejecutiva',items:[
@@ -1218,28 +1218,6 @@ function initS(){
 }
 
 /* Build a single render row (no string escaping nightmares) */
-function makeM2PriceRow(it,on,roleId,tareaId,m2Nueva){
-  var price=it.pricePerM2||3.0;
-  var dis=on?'':' disabled';
-  var total=on?Math.round(m2Nueva*price):0;
-  var h='<div class="str-render">';
-  h+='<input type="checkbox" class="st-chk" id="it-'+it.id+'"'+(on?' checked':'')+' onchange="onItem(''+roleId+'',''+tareaId+'',''+it.id+'',this.checked)">';
-  h+='<div><div class="st-nm">'+it.nm+' <span style="background:rgba(45,212,191,.12);color:var(--tt);font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px">USD/m²</span></div>';
-  h+='<div class="st-dsc">'+it.dsc+'</div></div>';
-  h+='<div style="display:flex;align-items:center;gap:4px">';
-  h+='<input id="m2p-'+it.id+'" type="number" min="0.5" max="20" step="0.5" value="'+price+'"'+dis+' class="r-inp-p" style="width:52px" oninput="updateM2Price(''+roleId+'',''+it.id+'',this.value)">';
-  h+='<span style="font-size:9px;color:var(--tx3)">USD/m²</span>';
-  h+='</div>';
-  h+='<div class="st-usd" id="usd-'+it.id+'" style="color:'+(on?'var(--bt)':'var(--tx3)')+'">'+( on&&total>0?'USD '+total.toLocaleString():'—' )+'</div>';
-  h+='<div class="st-ars" id="ars-'+it.id+'">—</div>';
-  h+='</div>';
-  return h;
-}
-function updateM2Price(rid,iid,val){
-  var prc=Math.max(0.5,parseFloat(String(val).replace(',','.'))||3.0);
-  ROLES.forEach(function(r){if(r.id!==rid)return;r.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){if(it.id===iid)it.pricePerM2=prc;});});});});
-  recalc();
-}
 function makeRenderRow(it,on,roleId,tareaId){
   var qty=it.qty||1; var price=it.unitPrice||0;
   var dis=on?'':' disabled';
@@ -1419,11 +1397,6 @@ function recalc(){
           usd=qty*prc;
           // Actualizar objeto
           it.qty=qty;it.unitPrice=prc;
-        }else if(it.tipo==='m2price'){
-          var m2pEl=document.getElementById('m2p-'+it.id);
-          var m2prc=m2pEl?Math.max(0.5,parseFloat(m2pEl.value)||it.pricePerM2||3.0):(it.pricePerM2||3.0);
-          it.pricePerM2=m2prc;
-          usd=m2*m2prc;
         }else{usd=vObraRole*it.pct;}
       }
       rs+=usd;
@@ -1567,16 +1540,10 @@ function motorGuardar(draft){
           var qty=qEl?Math.max(1,parseInt(qEl.value)||it.qty||1):(it.qty||1);
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
           iusd=Math.round(qty*prc);
-          items.push({id:it.id,nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'render',qty:qty,unitPrice:prc});
-        }else if(it.tipo==='m2price'){
-          var _m2pEl=document.getElementById('m2p-'+it.id);
-          var _m2prc=_m2pEl?Math.max(0.5,parseFloat(_m2pEl.value)||it.pricePerM2||3.0):(it.pricePerM2||3.0);
-          it.pricePerM2=_m2prc;
-          iusd=m2*_m2prc;
-          items.push({id:it.id,nm:it.nm,inc:0,pct:0,usd:Math.round(iusd),tipo:'m2price',pricePerM2:_m2prc,m2:m2});
+          items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'render',qty:qty,unitPrice:prc});
         }else{
           iusd=Math.round(vObraRole*it.pct);
-          items.push({id:it.id,nm:it.nm,inc:it.inc,pct:it.pct,usd:iusd,tipo:'normal'});
+          items.push({nm:it.nm,inc:it.inc,pct:it.pct,usd:iusd,tipo:'normal'});
         }
       }
     });});});
@@ -1656,7 +1623,6 @@ function editarHon(id){
                 S[role.id].subs[it.id]=true;
                 if(it.tipo==='render'&&itDet.qty)it.qty=itDet.qty;
                 if(it.tipo==='render'&&itDet.unitPrice)it.unitPrice=itDet.unitPrice;
-                if(it.tipo==='m2price'&&itDet.pricePerM2)it.pricePerM2=itDet.pricePerM2;
               }
             });});
           });
@@ -1815,8 +1781,8 @@ function generarPDF(id){
   // Restaurar logo/QR — el presupuesto guardado los tiene nulos para ahorrar espacio
   if(!emp.logo) emp.logo = EMPRESA.logo || localStorage.getItem('obraerp_logo') || '';
   if(!emp.qr)   emp.qr   = EMPRESA.qr   || localStorage.getItem('obraerp_qr')   || '';
-  var C1=emp.brandColor1||EMPRESA.brandColor1||'#8a0e1e'; // color principal
-  var C2=emp.brandColor2||EMPRESA.brandColor2||'#c42d46'; // color secundario
+  var C1=emp.brandColor1||EMPRESA.brandColor1||''+C1+''; // color principal
+  var C2=emp.brandColor2||EMPRESA.brandColor2||''+C2+''; // color secundario
   var PFONT=emp.brandFont||EMPRESA.brandFont||'Montserrat'; // fuente
   const N=n=>Math.round(n).toLocaleString('es-AR');
   const tipo={nueva:'Obra nueva',amp:'Ampliación',ref:'Refacción',mod:'Modificación en ejec.',
@@ -2111,15 +2077,10 @@ function generarPDF(id){
     +'<style>'+css+'</style></head><body><div class="pg">'+d+'</div>'
     +'<script>window.onload=function(){window.print();}<\/script></body></html>';
 
-  try{
-    var _blob=new Blob([html],{type:'text/html;charset=utf-8'});
-    var _burl=URL.createObjectURL(_blob);
-    var _a=document.createElement('a');
-    _a.href=_burl;_a.target='_blank';_a.rel='noopener';_a.style.display='none';
-    document.body.appendChild(_a);_a.click();
-    setTimeout(function(){document.body.removeChild(_a);URL.revokeObjectURL(_burl);},2000);
-    toast('PDF abierto \u2014 us\u00e1 Ctrl+P para imprimir');
-  }catch(e){toast('Error PDF: '+e.message,false);}
+  const pw=window.open('','_blank','width=940,height=780');
+  pw.document.write(html);
+  pw.document.close();
+  toast('PDF listo \u2014 Ctrl+P para guardar como PDF');
 }
 
 
