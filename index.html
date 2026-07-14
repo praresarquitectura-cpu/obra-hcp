@@ -318,6 +318,7 @@ input,select,textarea,button{font-family:var(--font)}
     <button class="nb" onclick="goTo('honorarios',this)">Honorarios</button>
     <button class="nb" onclick="goTo('motor',this)">Motor Hon.</button>
     <button class="nb" onclick="goTo('computo',this)">Cómputo</button>
+    <button class="nb" onclick="goTo('precios',this)">Precios</button>
     <button class="nb" onclick="goTo('config',this)">Config</button>
     <button class="nb" id="nb-admin" onclick="goTo('admin',this)" style="display:none;color:var(--rt)">Admin</button>
   </div>
@@ -611,6 +612,66 @@ input,select,textarea,button{font-family:var(--font)}
       <button onclick="document.getElementById('cp-resumen-card').style.display='none'" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:18px">×</button>
     </div>
     <div id="cp-resumen"></div>
+  </div>
+</section>
+<section id="s-precios" class="scr">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <div>
+      <div class="pgt">Listado de Precios</div>
+      <div class="pgs">Materiales · Equipos · Mano de Obra — Municipalidad Ushuaia 2026</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <span id="pr-fecha-mod" style="font-size:10px;color:var(--tx3)">Sin modificaciones</span>
+      <button class="btn" style="background:var(--bt);color:#fff;font-size:11px;padding:6px 12px" onclick="prGuardar()">&#128190; Guardar cambios</button>
+      <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 10px" onclick="prExportar()">CSV</button>
+    </div>
+  </div>
+
+  <!-- Tabs de categorías -->
+  <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px" id="pr-tabs"></div>
+
+  <!-- Tabla de precios -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="display:grid;grid-template-columns:60px 1fr 80px 120px 120px 100px 80px;background:var(--bg4);padding:8px 10px;font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--br)">
+      <div>Código</div>
+      <div>Descripción</div>
+      <div style="text-align:center">Unidad</div>
+      <div style="text-align:right">Precio Unit.</div>
+      <div style="text-align:center">Medida Comerc.</div>
+      <div>Fuente</div>
+      <div style="text-align:center">Acciones</div>
+    </div>
+    <div id="pr-tabla" style="max-height:70vh;overflow-y:auto"></div>
+  </div>
+
+  <!-- Agregar ítem -->
+  <div class="card" style="margin-top:12px">
+    <div class="csec">+ Agregar insumo</div>
+    <div class="g4" style="margin-top:10px">
+      <div class="fg"><label class="fl">Código</label><input class="fi" type="text" id="pr-new-cod" placeholder="ej: 1001" style="font-size:11px"></div>
+      <div class="fg"><label class="fl">Descripción</label><input class="fi" type="text" id="pr-new-nom" placeholder="Nombre del material" style="font-size:11px"></div>
+      <div class="fg"><label class="fl">Categoría</label>
+        <select class="fis" id="pr-new-cat" style="font-size:11px">
+          <option>HORMIGONES</option><option>AGREGADOS</option><option>PERFILES GALVANIZADOS</option>
+          <option>PERFILES HIERRO NEGRO</option><option>BARRAS Y MALLAS</option><option>FIJACIONES</option>
+          <option>CONSTRUCCIÓN EN SECO</option><option>AISLACIONES</option><option>BLOQUES</option>
+          <option>CEMENTOS Y MORTEROS</option><option>CHAPAS</option><option>PLACAS CEMENTICIAS</option>
+          <option>PLACAS DE YESO</option><option>MADERAS</option><option>PINTURAS</option>
+          <option>SOLADOS</option><option>QUÍMICOS CONSTRUCCIÓN</option><option>EQUIPOS</option>
+          <option>MANO DE OBRA</option><option>OTROS</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Unidad</label>
+        <select class="fis" id="pr-new-un" style="font-size:11px">
+          <option>m²</option><option>m³</option><option>ml</option><option>m</option>
+          <option>un</option><option>kg</option><option>lt</option><option>hs</option><option>gl</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Precio unit. ($/un)</label><div class="pw"><input class="pi" type="number" id="pr-new-precio" placeholder="0" step="1" min="0"><span class="pu">$</span></div></div>
+      <div class="fg"><label class="fl">Medida Comercial</label><input class="fi" type="text" id="pr-new-medida" placeholder="ej: bolsa 25kg, barra 6m" style="font-size:11px"></div>
+      <div class="fg"><label class="fl">Fuente / Proveedor</label><input class="fi" type="text" id="pr-new-fuente" placeholder="ej: IMCOFUE, MercadoLibre" style="font-size:11px"></div>
+    </div>
+    <button class="btn" style="background:var(--gt);color:#fff;font-size:12px;padding:8px;margin-top:10px;max-width:200px" onclick="prAgregar()">+ Agregar al listado</button>
   </div>
 </section>
 <section id="s-config" class="scr">
@@ -1914,7 +1975,7 @@ function generarPDF(id){
 
 
 /* ── NAV ──────────────────────────────────────────────────────────────── */
-var SM={dashboard:'s-dashboard',clientes:'s-clientes',obras:'s-obras',honorarios:'s-honorarios',motor:'s-motor',computo:'s-computo',config:'s-config',admin:'s-admin'};
+var SM={dashboard:'s-dashboard',clientes:'s-clientes',obras:'s-obras',honorarios:'s-honorarios',motor:'s-motor',computo:'s-computo',precios:'s-precios',config:'s-config',admin:'s-admin'};
 function goTo(id,btn,sb){
   document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on');});
   var t=SM[id];if(t)document.getElementById(t).classList.add('on');
@@ -1923,6 +1984,7 @@ function goTo(id,btn,sb){
   if(sb)sb.classList.add('on');
   document.getElementById('main').scrollTop=0;
   if(id==='motor')motorInit();
+  if(id==='precios')prRender();
   if(id==='config'){setTimeout(function(){loadEmpresaToForm();actualizarUIEmpresa();},60);}
 }
 
@@ -2758,7 +2820,7 @@ var PLANES = {
     precio_mensual: 25,
     precio_anual: 200,
     color:'var(--golt)',
-    modulos:['dashboard','clientes','obras','honorarios','motor','computo','config'],
+    modulos:['dashboard','clientes','obras','honorarios','motor','computo','precios','config'],
     descripcion:'Todo Base + Cómputo + Materiales + Mano de obra + Presupuesto de obra'
   },
   admin: {
@@ -5066,6 +5128,343 @@ function cpPDF(){
 (function(){var s=document.createElement('style');s.textContent='.cp-di{background:var(--bg3);border:1px solid var(--br);border-radius:4px;padding:2px 5px;color:var(--tx);font-size:10px;width:100%;min-width:0}.cp-di:focus{outline:none;border-color:var(--bt)}.cp-item:hover{border-color:rgba(96,165,250,.15)}';document.head.appendChild(s);})();
 
 
+
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   MÓDULO LISTADO DE PRECIOS — OBRAERP
+   Fuente: Municipalidad de Ushuaia 2026 + IMCOFUE + MercadoLibre
+   ══════════════════════════════════════════════════════════════════════ */
+
+// ─── Base de datos de precios (editable por el usuario) ─────────────
+// Cada ítem: {cod, nom, cat, un, pu, medida, fuente, modif}
+// modif: timestamp de última modificación
+var PR_DATA = [
+// ── HORMIGONES (fuente: MASCIOTRA) ──
+{cod:'101',nom:'Hormigón H8 200kg',cat:'HORMIGONES',un:'m³',pu:0,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'102',nom:'Hormigón H13 250kg',cat:'HORMIGONES',un:'m³',pu:410800,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'103',nom:'Hormigón H17 300kg',cat:'HORMIGONES',un:'m³',pu:438200,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'104',nom:'Hormigón H21 350kg',cat:'HORMIGONES',un:'m³',pu:467200,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'105',nom:'Hormigón H25 380kg',cat:'HORMIGONES',un:'m³',pu:476900,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'106',nom:'Hormigón H30 420kg',cat:'HORMIGONES',un:'m³',pu:488300,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'107',nom:'Hormigón H35 420kg',cat:'HORMIGONES',un:'m³',pu:511500,medida:'m³',fuente:'MASCIOTRA',modif:0},
+// ── AGREGADOS (fuente: MASCIOTRA) ──
+{cod:'201',nom:'Arena',cat:'AGREGADOS',un:'m³',pu:76000,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'202',nom:'Arena mixta',cat:'AGREGADOS',un:'m³',pu:76000,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'204',nom:'Arena tapa caño',cat:'AGREGADOS',un:'m³',pu:51400,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'205',nom:'Relleno Seleccionado',cat:'AGREGADOS',un:'m³',pu:47700,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'206',nom:'Relleno Común',cat:'AGREGADOS',un:'m³',pu:35800,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'207',nom:'Piedra',cat:'AGREGADOS',un:'m³',pu:76500,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'209',nom:'Piedra Bola',cat:'AGREGADOS',un:'m³',pu:57800,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'210',nom:'Piedra Grillada',cat:'AGREGADOS',un:'m³',pu:76600,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'211',nom:'Tierra Negra',cat:'AGREGADOS',un:'m³',pu:59700,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'212',nom:'Piedra Triturada',cat:'AGREGADOS',un:'m³',pu:100000,medida:'m³',fuente:'MASCIOTRA',modif:0},
+{cod:'213',nom:'Piedra Laja Negra Irregular tipo pirca',cat:'AGREGADOS',un:'m²',pu:40311,medida:'m²',fuente:'IMCOFUE',modif:0},
+// ── PERFILES GALVANIZADOS (fuente: IMCOFUE — precio por ml calculado de barra 6m) ──
+{cod:'301',nom:'PGU 100x0.92mm (Montante)',cat:'PERFILES GALVANIZADOS',un:'m',pu:4004,medida:'barra 6m = $24.024',fuente:'IMCOFUE',modif:0},
+{cod:'302',nom:'PGC 100x0.92mm (Solera)',cat:'PERFILES GALVANIZADOS',un:'m',pu:4862,medida:'barra 6m = $29.173',fuente:'IMCOFUE',modif:0},
+{cod:'303',nom:'PGU 100x1.29mm (Montante reforzado)',cat:'PERFILES GALVANIZADOS',un:'m',pu:5290,medida:'barra 6m = $31.739',fuente:'IMCOFUE',modif:0},
+{cod:'304',nom:'PGC 100x1.29mm (Solera reforzada)',cat:'PERFILES GALVANIZADOS',un:'m',pu:6538,medida:'barra 6m = $39.230',fuente:'IMCOFUE',modif:0},
+{cod:'305',nom:'PGU 70x0.92mm (Montante)',cat:'PERFILES GALVANIZADOS',un:'m',pu:3912,medida:'barra 6m = $23.471',fuente:'IMCOFUE',modif:0},
+{cod:'306',nom:'PGC 70x0.92mm (Solera)',cat:'PERFILES GALVANIZADOS',un:'m',pu:4725,medida:'barra 6m = $28.352',fuente:'IMCOFUE',modif:0},
+{cod:'307',nom:'PGU 150x0.9mm (Montante)',cat:'PERFILES GALVANIZADOS',un:'m',pu:5421,medida:'barra 6m = $32.527',fuente:'IMCOFUE',modif:0},
+{cod:'309',nom:'PGU 150x1.29mm (Montante reforzado)',cat:'PERFILES GALVANIZADOS',un:'m',pu:7372,medida:'barra 6m = $44.233',fuente:'IMCOFUE',modif:0},
+{cod:'310',nom:'PGC 150x1.29mm (Solera reforzada)',cat:'PERFILES GALVANIZADOS',un:'m',pu:8319,medida:'barra 6m = $49.912',fuente:'IMCOFUE',modif:0},
+{cod:'311',nom:'PGO Omega 0.92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:3009,medida:'barra 3m = $9.027',fuente:'IMCOFUE',modif:0},
+{cod:'312',nom:'Fleje Cruz San Andrés 50mm E0.94mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:1220,medida:'rollo 100m = $121.958',fuente:'IMCOFUE',modif:0},
+{cod:'313',nom:'Montante 70mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:2006,medida:'barra 2.6m = $5.216',fuente:'IMCOFUE',modif:0},
+{cod:'314',nom:'Solera 70mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1849,medida:'barra 2.6m = $4.807',fuente:'IMCOFUE',modif:0},
+{cod:'315',nom:'Montante 35mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1534,medida:'barra 2.6m = $3.989',fuente:'IMCOFUE',modif:0},
+{cod:'316',nom:'Solera 35mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1360,medida:'barra 2.6m = $3.536',fuente:'IMCOFUE',modif:0},
+{cod:'317',nom:'Omega 12.5mm Clasica E0.52mm (Cielorraso)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1541,medida:'barra 2.6m = $4.006',fuente:'PLAVE',modif:0},
+{cod:'318',nom:'Cantonera E0.38mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:927,medida:'barra 2.6m = $2.411',fuente:'IMCOFUE',modif:0},
+{cod:'320',nom:'Perfil L Perimetral Cielorraso 15/16"',cat:'PERFILES GALVANIZADOS',un:'m',pu:1051,medida:'barra 3m = $3.154',fuente:'BARBIERI',modif:0},
+{cod:'321',nom:'Perfil Travesaño Cielorraso 15/16"',cat:'PERFILES GALVANIZADOS',un:'m',pu:1746,medida:'barra 0.61m = $1.065',fuente:'BARBIERI',modif:0},
+{cod:'322',nom:'Perfil T Larguero Cielorraso 15/16"',cat:'PERFILES GALVANIZADOS',un:'m',pu:1980,medida:'barra 3.66m = $7.247',fuente:'IMCOFUE',modif:0},
+{cod:'323',nom:'Montante 100mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:2266,medida:'barra 2.6m = $5.891',fuente:'IMCOFUE',modif:0},
+{cod:'324',nom:'Solera 100mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:2266,medida:'barra 2.6m = $5.891',fuente:'IMCOFUE',modif:0},
+// ── PERFILES HIERRO NEGRO (fuente: IMCOFUE/TORRENT) ──
+{cod:'401',nom:'Tubo Redondo 7/8 x 1.60mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:2389,medida:'barra 6m = $14.332',fuente:'METALURG',modif:0},
+{cod:'404',nom:'Tubo Redondo 2 x 1.60mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:6014,medida:'barra 6m = $36.087',fuente:'IMCOFUE',modif:0},
+{cod:'405',nom:'Tubo Redondo 2 x 2mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:6927,medida:'barra 6m = $41.559',fuente:'TORRENT',modif:0},
+{cod:'407',nom:'Tubo Redondo 3 x 2.00mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:10529,medida:'barra 6m = $63.174',fuente:'IMCOFUE',modif:0},
+{cod:'408',nom:'Tubo Redondo 3 x 3.2mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:16292,medida:'barra 6m = $97.750',fuente:'PROVECOM',modif:0},
+{cod:'414',nom:'Tubo Rectangular 40x80 x2mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:10512,medida:'barra 6m = $63.074',fuente:'IMCOFUE',modif:0},
+{cod:'419',nom:'Tubo Rectangular 60x100 x2.00mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:13581,medida:'barra 6m = $81.488',fuente:'TORRENT',modif:0},
+{cod:'423',nom:'Tubo Cuadrado 20x20 x1.60mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:270,medida:'barra 6m = $1.623',fuente:'IMCOFUE',modif:0},
+{cod:'426',nom:'Tubo Cuadrado 40x40 x2.00mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:6631,medida:'barra 6m = $39.783',fuente:'IMCOFUE',modif:0},
+{cod:'430',nom:'Tubo Cuadrado 100x100 x2.00mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:16884,medida:'barra 6m = $101.306',fuente:'IMCOFUE',modif:0},
+{cod:'431',nom:'Tubo Cuadrado 100x100 x2.50mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:20931,medida:'barra 6m = $125.588',fuente:'IMCOFUE',modif:0},
+{cod:'445',nom:'Perfil UPN 100mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:27726,medida:'barra 12m = $332.708',fuente:'IMCOFUE',modif:0},
+{cod:'454',nom:'Perfil Ángulo Hierro 1 x 3/16"',cat:'PERFILES HIERRO NEGRO',un:'m',pu:4994,medida:'barra 6m = $29.965',fuente:'IMCOFUE',modif:0},
+{cod:'456',nom:'Perfil Ángulo Hierro 1.1/2x3/16"',cat:'PERFILES HIERRO NEGRO',un:'m',pu:7916,medida:'barra 6m = $47.497',fuente:'IMCOFUE',modif:0},
+{cod:'461',nom:'Perfil Ángulo Hierro 1.1/4 x1/8"',cat:'PERFILES HIERRO NEGRO',un:'m',pu:4446,medida:'barra 6m = $26.678',fuente:'IMCOFUE',modif:0},
+{cod:'463',nom:'Planchuela Hierro 1.1/2x3/16"',cat:'PERFILES HIERRO NEGRO',un:'m',pu:4600,medida:'barra 6m = $27.598',fuente:'IMCOFUE',modif:0},
+{cod:'467',nom:'Planchuela Hierro 2x3/16"',cat:'PERFILES HIERRO NEGRO',un:'m',pu:5949,medida:'barra 6m = $35.692',fuente:'IMCOFUE',modif:0},
+{cod:'469',nom:'Tubo Rectangular 60x20 x1.6mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:6011,medida:'barra 6m = $36.064',fuente:'IMCOFUE',modif:0},
+{cod:'470',nom:'Tubo Rectangular 60x40 x2mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:8466,medida:'barra 6m = $50.797',fuente:'IMCOFUE',modif:0},
+// ── BARRAS Y MALLAS ──
+{cod:'501',nom:'Fe Ø5',cat:'BARRAS Y MALLAS',un:'m',pu:423,medida:'barra 6m = $2.540',fuente:'CREASTEEL',modif:0},
+{cod:'502',nom:'Fe Ø6',cat:'BARRAS Y MALLAS',un:'m',pu:558,medida:'barra 12m = $6.700',fuente:'IMCOFUE',modif:0},
+{cod:'503',nom:'Fe Ø8',cat:'BARRAS Y MALLAS',un:'m',pu:968,medida:'barra 12m = $11.611',fuente:'IMCOFUE',modif:0},
+{cod:'505',nom:'Fe Ø12',cat:'BARRAS Y MALLAS',un:'m',pu:2165,medida:'barra 12m = $25.978',fuente:'IMCOFUE',modif:0},
+{cod:'507',nom:'Malla Electrosoldada 50x50x3mm',cat:'BARRAS Y MALLAS',un:'m²',pu:11010,medida:'panel 3.6m² = $39.636',fuente:'MERCADOLIBRE',modif:0},
+{cod:'508',nom:'Malla Sima 4mm 2x6m (12m²)',cat:'BARRAS Y MALLAS',un:'m²',pu:74062,medida:'panel 12m²',fuente:'IMCOFUE',modif:0},
+{cod:'509',nom:'Malla Sima 5mm Q131 2.40x6m',cat:'BARRAS Y MALLAS',un:'m²',pu:6166,medida:'panel 14.4m² = $88.796',fuente:'IMCOFUE',modif:0},
+{cod:'510',nom:'Malla Sima 6mm Q188 2.40x6m',cat:'BARRAS Y MALLAS',un:'m²',pu:8483,medida:'panel 14.4m² = $122.162',fuente:'IMCOFUE',modif:0},
+{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m',cat:'BARRAS Y MALLAS',un:'m²',pu:16551,medida:'panel 14.4m² = $238.328',fuente:'IMCOFUE',modif:0},
+{cod:'519',nom:'Electrodos 2.5',cat:'BARRAS Y MALLAS',un:'kg',pu:1226,medida:'kg',fuente:'IMCOFUE',modif:0},
+{cod:'520',nom:'Hierro Liso 7/16"',cat:'BARRAS Y MALLAS',un:'m',pu:3912,medida:'barra 6m = $23.471',fuente:'IMCOFUE',modif:0},
+{cod:'521',nom:'Malla Electrosoldada 25x25x2.6mm',cat:'BARRAS Y MALLAS',un:'m²',pu:20055,medida:'m²',fuente:'MERCADOLIBRE',modif:0},
+// ── FIJACIONES ──
+{cod:'601',nom:'Tornillo T1 Mecha 8x9/16" (autoperforante placa-perfil)',cat:'FIJACIONES',un:'un',pu:28,medida:'caja 100un = $2.836',fuente:'IMCOFUE',modif:0},
+{cod:'602',nom:'Tornillo T1 Aguja 8x9/16"',cat:'FIJACIONES',un:'un',pu:29,medida:'caja 100un = $2.927',fuente:'IMCOFUE',modif:0},
+{cod:'603',nom:'Tornillo T2 Aguja 6x1" (perfil-perfil fino)',cat:'FIJACIONES',un:'un',pu:21,medida:'caja 100un = $2.119',fuente:'IMCOFUE',modif:0},
+{cod:'604',nom:'Tornillo T2 Mecha 6x1 1/8"',cat:'FIJACIONES',un:'un',pu:29,medida:'caja 100un = $2.920',fuente:'IMCOFUE',modif:0},
+{cod:'606',nom:'Tornillo autoperf mecha hexag φ4.8x19 (10x3/4")',cat:'FIJACIONES',un:'un',pu:59,medida:'caja 350un = $20.736',fuente:'MERCADOLIBRE',modif:0},
+{cod:'609',nom:'Tornillo autoperf mecha c/arandela φ6.3x50 p/chapa',cat:'FIJACIONES',un:'un',pu:115,medida:'caja 100un = $11.505',fuente:'MERCADOLIBRE',modif:0},
+{cod:'610',nom:'Clavo punta París 3"',cat:'FIJACIONES',un:'kg',pu:1914,medida:'bolsa 3kg = $5.742',fuente:'MERCADOLIBRE',modif:0},
+{cod:'611',nom:'Varilla roscada 1/2" x 1m',cat:'FIJACIONES',un:'un',pu:5565,medida:'un',fuente:'BULONERA',modif:0},
+{cod:'613',nom:'Anclaje Fisher Broca perno hormigón FWA',cat:'FIJACIONES',un:'un',pu:1934,medida:'caja 10un = $19.343',fuente:'MERCADOLIBRE',modif:0},
+// ── CONSTRUCCIÓN EN SECO (accesorios) ──
+{cod:'701',nom:'Cinta Tramada Autoadhesiva 50mm',cat:'CONSTRUCCIÓN EN SECO',un:'m',pu:74,medida:'rollo 45m = $3.322',fuente:'IMCOFUE',modif:0},
+{cod:'702',nom:'Cinta Papel Microperforada 50mm',cat:'CONSTRUCCIÓN EN SECO',un:'m',pu:68,medida:'rollo 75m = $5.101',fuente:'IMCOFUE',modif:0},
+{cod:'703',nom:'Masilla para Yeso',cat:'CONSTRUCCIÓN EN SECO',un:'kg',pu:1478,medida:'balde 28kg = $41.374',fuente:'IMCOFUE',modif:0},
+{cod:'704',nom:'Enduido Interior',cat:'CONSTRUCCIÓN EN SECO',un:'lt',pu:6273,medida:'lt',fuente:'IMCOFUE',modif:0},
+{cod:'705',nom:'Masilla para placa cementicia Superboard',cat:'CONSTRUCCIÓN EN SECO',un:'kg',pu:13992,medida:'balde 15kg = $209.882',fuente:'MERCADOLIBRE',modif:0},
+// ── AISLACIONES ──
+{cod:'801',nom:'Membrana espuma polietileno 5mm',cat:'AISLACIONES',un:'m²',pu:1202,medida:'rollo 20m² = $24.036',fuente:'IMCOFUE',modif:0},
+{cod:'803',nom:'Film nylon polietileno 200μ',cat:'AISLACIONES',un:'m²',pu:808,medida:'m²',fuente:'IMCOFUE',modif:0},
+{cod:'804',nom:'Lana de vidrio 50mm sin papel',cat:'AISLACIONES',un:'m²',pu:5316,medida:'m²',fuente:'IMCOFUE',modif:0},
+{cod:'805',nom:'Lana de vidrio 50mm con aluminio',cat:'AISLACIONES',un:'m²',pu:8365,medida:'m²',fuente:'IMCOFUE',modif:0},
+{cod:'806',nom:'Lana de vidrio 50mm con papel kraft',cat:'AISLACIONES',un:'m²',pu:6073,medida:'m²',fuente:'IMCOFUE',modif:0},
+{cod:'807',nom:'Membrana Hidrófuga Wichi/Tyvek',cat:'AISLACIONES',un:'m²',pu:1417,medida:'rollo 30m² = $42.510',fuente:'IMCOFUE',modif:0},
+{cod:'808',nom:'Poliestireno expandido 50mm',cat:'AISLACIONES',un:'m²',pu:16129,medida:'m²',fuente:'IMCOFUE',modif:0},
+{cod:'809',nom:'Poliestireno expandido 25mm',cat:'AISLACIONES',un:'m²',pu:8021,medida:'m²',fuente:'IMCOFUE',modif:0},
+{cod:'815',nom:'Manto geotextil 200gr drenante',cat:'AISLACIONES',un:'m²',pu:3134,medida:'rollo 200m² = $626.800',fuente:'MERCADOLIBRE',modif:0},
+{cod:'816',nom:'Lana de vidrio 100mm con aluminio',cat:'AISLACIONES',un:'m²',pu:14964,medida:'m²',fuente:'IMCOFUE',modif:0},
+{cod:'817',nom:'Lana de vidrio 100mm con papel kraft',cat:'AISLACIONES',un:'m²',pu:11700,medida:'m²',fuente:'IMCOFUE',modif:0},
+// ── BLOQUES ──
+{cod:'901',nom:'Bloque H° 19x19x40',cat:'BLOQUES',un:'un',pu:3200,medida:'un',fuente:'IMCOFUE',modif:0},
+{cod:'902',nom:'Bloque H° 14x19x40',cat:'BLOQUES',un:'un',pu:2890,medida:'un',fuente:'IMCOFUE',modif:0},
+// ── CEMENTOS Y MORTEROS ──
+{cod:'1001',nom:'Cemento portland',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:656,medida:'bolsa 25kg = $16.400',fuente:'IMCOFUE',modif:0},
+{cod:'1002',nom:'Pegamento Weber Superflex',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:1657,medida:'bolsa 25kg = $41.417',fuente:'IMCOFUE',modif:0},
+{cod:'1008',nom:'Revoque 3en1 weber mix E',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:1039,medida:'bolsa 30kg = $31.160',fuente:'MERCADOLIBRE',modif:0},
+{cod:'1010',nom:'Weber block gris para bloques',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:420,medida:'bolsa 30kg = $12.599',fuente:'SODIMAC',modif:0},
+// ── CHAPAS ──
+{cod:'1101',nom:'Chapa Acanalada Galvanizada calibre 25',cat:'CHAPAS',un:'m²',pu:13983,medida:'2.75m² = $38.452',fuente:'IMCOFUE',modif:0},
+{cod:'1105',nom:'Chapa Lisa prepintada negra N25',cat:'CHAPAS',un:'m²',pu:17236,medida:'2.98m² = $51.308',fuente:'IMCOFUE',modif:0},
+{cod:'1106',nom:'Chapa Galvanizada Lisa N25 (0.5mm)',cat:'CHAPAS',un:'m²',pu:12302,medida:'2.98m² = $36.621',fuente:'IMCOFUE',modif:0},
+{cod:'1107',nom:'Metal desplegado 150x300 6mm',cat:'CHAPAS',un:'m²',pu:37464,medida:'4.5m² = $168.590',fuente:'IMCOFUE',modif:0},
+{cod:'1109',nom:'Chapa Galvanizada Lisa N18 (1.25mm)',cat:'CHAPAS',un:'m²',pu:30740,medida:'2.98m² = $91.508',fuente:'IMCOFUE',modif:0},
+{cod:'1110',nom:'Chapa Galvanizada Lisa N14 (2mm)',cat:'CHAPAS',un:'m²',pu:47090,medida:'2.98m² = $140.179',fuente:'IMCOFUE',modif:0},
+{cod:'1112',nom:'Chapa Lisa 3/16" (4.75mm)',cat:'CHAPAS',un:'m²',pu:103643,medida:'4.5m² = $466.393',fuente:'IMCOFUE',modif:0},
+// ── PLACAS CEMENTICIAS ──
+{cod:'1201',nom:'Placa cementicia 10mm 2.40x1.20m Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:24349,medida:'panel 2.88m² = $70.125',fuente:'IMCOFUE',modif:0},
+{cod:'1202',nom:'Placa cementicia 8mm 2.40x1.20m Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:20777,medida:'panel 2.88m² = $59.838',fuente:'IMCOFUE',modif:0},
+{cod:'1203',nom:'Siding cedral 8mm 0.20x3.6m Eternit',cat:'PLACAS CEMENTICIAS',un:'m²',pu:43018,medida:'panel 0.72m² = $30.973',fuente:'IMCOFUE',modif:0},
+{cod:'1204',nom:'Placa cementicia 6mm 2.40x1.20m Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:18930,medida:'panel 2.88m² = $54.519',fuente:'IMCOFUE',modif:0},
+// ── PLACAS DE YESO ──
+{cod:'1301',nom:'Placa de yeso 12.5 Std 1.20x2.40m Durlock',cat:'PLACAS DE YESO',un:'m²',pu:8067,medida:'panel 2.88m² = $23.232',fuente:'IMCOFUE',modif:0},
+{cod:'1302',nom:'Placa de yeso 9.5 Std 1.20x2.40m Durlock',cat:'PLACAS DE YESO',un:'m²',pu:7491,medida:'panel 2.88m² = $21.575',fuente:'MERCADOLIBRE',modif:0},
+{cod:'1303',nom:'Placa de yeso 12.5 Antihumedad Durlock',cat:'PLACAS DE YESO',un:'m²',pu:18896,medida:'panel 3.12m² = $58.957',fuente:'IMCOFUE',modif:0},
+{cod:'1304',nom:'Placa de yeso 12.5 Resist Fuego Durlock',cat:'PLACAS DE YESO',un:'m²',pu:11395,medida:'panel 2.88m² = $32.818',fuente:'IMCOFUE',modif:0},
+// ── MADERAS ──
+{cod:'1401',nom:'Tablero OSB 9.5mm Estructural 1.22x2.44m',cat:'MADERAS',un:'m²',pu:9287,medida:'panel 2.98m² = $27.647',fuente:'IMCOFUE',modif:0},
+{cod:'1402',nom:'Terciado Fenólico Pino 15mm C+/C 1.22x2.44m',cat:'MADERAS',un:'m²',pu:14704,medida:'panel 2.98m² = $43.770',fuente:'IMCOFUE',modif:0},
+{cod:'1403',nom:'Terciado Fenólico Pino 18mm C+/C 1.22x2.44m',cat:'MADERAS',un:'m²',pu:16176,medida:'panel 2.98m² = $48.154',fuente:'IMCOFUE',modif:0},
+{cod:'1415',nom:'Tabla de Lenga 1" x 6"',cat:'MADERAS',un:'m',pu:630,medida:'tabla 12m = $7.559',fuente:'IMCOFUE',modif:0},
+{cod:'1416',nom:'Tabla de Lenga 4" x 2"',cat:'MADERAS',un:'m',pu:840,medida:'tabla 8m = $6.719',fuente:'IMCOFUE',modif:0},
+// ── PINTURAS ──
+{cod:'1501',nom:'Látex interior lavable',cat:'PINTURAS',un:'lt',pu:12680,medida:'lt',fuente:'IMCOFUE',modif:0},
+{cod:'1502',nom:'Látex exterior',cat:'PINTURAS',un:'lt',pu:12596,medida:'lt',fuente:'IMCOFUE',modif:0},
+{cod:'1503',nom:'Pintura Epoxi Alto Tránsito',cat:'PINTURAS',un:'lt',pu:36378,medida:'lata 4lt = $145.510',fuente:'MERCADOLIBRE',modif:0},
+{cod:'1504',nom:'Sellador Fijador al agua premium alba',cat:'PINTURAS',un:'lt',pu:8398,medida:'lt',fuente:'IMCOFUE',modif:0},
+{cod:'1505',nom:'Aguarrás',cat:'PINTURAS',un:'lt',pu:9261,medida:'lt',fuente:'IMCOFUE',modif:0},
+{cod:'1506',nom:'Protector para madera Cetol',cat:'PINTURAS',un:'lt',pu:25910,medida:'lt',fuente:'IMCOFUE',modif:0},
+{cod:'1507',nom:'Protector hidrorepelente incoloro para piedra',cat:'PINTURAS',un:'lt',pu:10725,medida:'bidon 20lt = $214.500',fuente:'MERCADOLIBRE',modif:0},
+{cod:'1508',nom:'Esmalte Sintético Tersuave 3en1',cat:'PINTURAS',un:'lt',pu:21164,medida:'lata 4lt = $84.655',fuente:'MERCADOLIBRE',modif:0},
+{cod:'1511',nom:'Desengrasante Fosfatizante',cat:'PINTURAS',un:'lt',pu:13596,medida:'bidon 5lt = $67.978',fuente:'IMCOFUE',modif:0},
+{cod:'1512',nom:'Convertidor de óxido',cat:'PINTURAS',un:'lt',pu:22869,medida:'lt',fuente:'IMCOFUE',modif:0},
+{cod:'1516',nom:'Pintura Vial amarilla',cat:'PINTURAS',un:'lt',pu:29618,medida:'lt',fuente:'PINTURERÍA MAFER',modif:0},
+{cod:'1517',nom:'Recubrimiento acrílico Recufloor canchas',cat:'PINTURAS',un:'lt',pu:16544,medida:'lata 4lt = $66.176',fuente:'MERCADOLIBRE',modif:0},
+{cod:'1518',nom:'Diluyente Epoxi',cat:'PINTURAS',un:'lt',pu:13353,medida:'lt',fuente:'PINTURERÍA',modif:0},
+{cod:'1519',nom:'Esmalte epoxi bicomponente',cat:'PINTURAS',un:'lt',pu:33844,medida:'lt',fuente:'MERCADOLIBRE',modif:0},
+{cod:'1521',nom:'Fondo anticorrosivo epoxi',cat:'PINTURAS',un:'lt',pu:32999,medida:'lt',fuente:'MERCADOLIBRE',modif:0},
+// ── SOLADOS ──
+{cod:'1701',nom:'Cemento de contacto Fortex 101',cat:'SOLADOS',un:'lt',pu:10763,medida:'bidon 18lt = $193.740',fuente:'MERCADOLIBRE',modif:0},
+{cod:'1714',nom:'Adhesivo poliuretánico p/piso caucho',cat:'SOLADOS',un:'kg',pu:27370,medida:'balde 22kg = $602.140',fuente:'PINTUREX',modif:0},
+{cod:'1715',nom:'Cinta de unión p/césped Ultrabond Turf Tape 30cm',cat:'SOLADOS',un:'m',pu:4000,medida:'rollo 10m = $39.998',fuente:'MERCADOLIBRE',modif:0},
+{cod:'1716',nom:'Endurecedor de superficie Sealkrete',cat:'SOLADOS',un:'kg',pu:3374,medida:'balde 20kg = $67.474',fuente:'IMCOFUE',modif:0},
+{cod:'1829',nom:'Baldosa de Caucho Molido 0.5x0.5m',cat:'SOLADOS',un:'m²',pu:47700,medida:'m²',fuente:'MAXXUMA',modif:0},
+{cod:'1831',nom:'Adoquín Pcr Uni-Stone Ps8 Gris',cat:'SOLADOS',un:'un',pu:1981,medida:'un',fuente:'IMCOFUE',modif:0},
+{cod:'1832',nom:'Adoquín Pcr Uni-Stone Ps6',cat:'SOLADOS',un:'un',pu:1680,medida:'un',fuente:'IMCOFUE',modif:0},
+{cod:'1833',nom:'Césped Sintético Rollo 20mm',cat:'SOLADOS',un:'m²',pu:14595,medida:'m²',fuente:'MERCADOLIBRE',modif:0},
+{cod:'1842',nom:'Baldosa cementicia Señalización Trebolillos 30x30',cat:'SOLADOS',un:'un',pu:7916,medida:'un',fuente:'IMCOFUE',modif:0},
+{cod:'1843',nom:'Baldosa cementicia Podotáctil 4 Vainillas 30x30',cat:'SOLADOS',un:'un',pu:7916,medida:'un',fuente:'IMCOFUE',modif:0},
+// ── EQUIPOS (fuente: MASCIOTRA) ──
+{cod:'3201',nom:'Retroexcavadora',cat:'EQUIPOS',un:'hh',pu:125000,medida:'hh (mín. 2hs)',fuente:'MASCIOTRA',modif:0},
+{cod:'3202',nom:'Camión volcador 6m³',cat:'EQUIPOS',un:'hh',pu:198200,medida:'hh',fuente:'MASCIOTRA',modif:0},
+{cod:'3203',nom:'Motocompresor',cat:'EQUIPOS',un:'hh',pu:312300,medida:'hh (valor x día)',fuente:'MASCIOTRA',modif:0},
+{cod:'3204',nom:'Retroexcavadora con oruga 120/130',cat:'EQUIPOS',un:'hh',pu:156400,medida:'hh',fuente:'MASCIOTRA',modif:0},
+{cod:'3205',nom:'Vibrocompactador manual 7 HP',cat:'EQUIPOS',un:'hh',pu:93900,medida:'hh',fuente:'MASCIOTRA',modif:0},
+{cod:'3206',nom:'Retroexcavadora c/oruga E 80 HP',cat:'EQUIPOS',un:'hh',pu:119000,medida:'hh',fuente:'MASCIOTRA',modif:0},
+{cod:'3208',nom:'Autoelevador 2.5tn',cat:'EQUIPOS',un:'hh',pu:77000,medida:'hh',fuente:'MASCIOTRA',modif:0},
+{cod:'3209',nom:'Volquete 5m³',cat:'EQUIPOS',un:'hh',pu:121180,medida:'hh (incluye acceso relleno sanitario)',fuente:'MASCIOTRA',modif:0},
+{cod:'3210',nom:'Retroexcavadora c/martillo E 80 HP',cat:'EQUIPOS',un:'hh',pu:193800,medida:'hh',fuente:'MASCIOTRA',modif:0},
+{cod:'3211',nom:'Retroexcavadora c/martillo 210 (grande)',cat:'EQUIPOS',un:'hh',pu:231100,medida:'hh',fuente:'MASCIOTRA',modif:0},
+// ── MANO DE OBRA (fuente: Planilla MO Municipalidad Ushuaia 2026 / UOCRA) ──
+{cod:'MO1',nom:'Oficial Especializado',cat:'MANO DE OBRA',un:'hs',pu:26067,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
+{cod:'MO2',nom:'Oficial',cat:'MANO DE OBRA',un:'hs',pu:22299,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
+{cod:'MO3',nom:'Medio Oficial',cat:'MANO DE OBRA',un:'hs',pu:20608,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
+{cod:'MO4',nom:'Ayudante',cat:'MANO DE OBRA',un:'hs',pu:18968,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
+];
+
+// Historial de modificaciones (se guarda en Firebase)
+var PR_HISTORIAL = [];
+
+// Categorías únicas
+function prCategorias(){
+  var cats=[];
+  PR_DATA.forEach(function(p){if(cats.indexOf(p.cat)<0)cats.push(p.cat);});
+  return cats.sort();
+}
+
+var PR_CAT_ACTIVA = null;
+
+function prRender(){
+  var cats=prCategorias();
+  if(!PR_CAT_ACTIVA) PR_CAT_ACTIVA=cats[0];
+  // Tabs
+  var tabs=document.getElementById('pr-tabs');
+  if(tabs) tabs.innerHTML=cats.map(function(c){
+    return '<button onclick="prSetCat(\''+c+'\')" style="font-size:10px;padding:5px 10px;border-radius:5px;border:1px solid '+(c===PR_CAT_ACTIVA?'var(--bt)':'var(--br)')+';background:'+(c===PR_CAT_ACTIVA?'rgba(96,165,250,.15)':'var(--bg3)')+';color:'+(c===PR_CAT_ACTIVA?'var(--bt)':'var(--tx3)')+';cursor:pointer;white-space:nowrap">'+c+'</button>';
+  }).join('');
+  // Tabla
+  var tabla=document.getElementById('pr-tabla');
+  if(!tabla)return;
+  var rows=PR_DATA.filter(function(p){return p.cat===PR_CAT_ACTIVA;});
+  if(!rows.length){tabla.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3);font-size:12px">Sin ítems en esta categoría</div>';return;}
+  tabla.innerHTML=rows.map(function(p,i){
+    var fi=PR_DATA.indexOf(p);
+    var modifStr=p.modif?new Date(p.modif).toLocaleDateString('es-AR'):'—';
+    return '<div style="display:grid;grid-template-columns:60px 1fr 80px 120px 120px 100px 80px;padding:7px 10px;border-bottom:1px solid var(--br);align-items:center;font-size:11px'+(p.modif?' background:rgba(74,222,128,.04)':'')+'">'
+      +'<div style="color:var(--tx3);font-size:10px">'+p.cod+'</div>'
+      +'<div><input type="text" value="'+p.nom+'" oninput="prUpdNom('+fi+',this.value)" style="background:transparent;border:none;color:var(--tx);font-size:11px;width:100%;outline:none;cursor:text" onfocus="this.style.background=\'var(--bg3)\'" onblur="this.style.background=\'transparent\'"></div>'
+      +'<div style="text-align:center;color:var(--tx3)">'+p.un+'</div>'
+      +'<div style="text-align:right"><div class="pw" style="justify-content:flex-end"><input class="pi" type="number" value="'+p.pu+'" step="1" min="0" oninput="prUpdPU('+fi+',+this.value)" style="width:90px;text-align:right"><span class="pu">$</span></div></div>'
+      +'<div style="text-align:center;color:var(--tx3);font-size:10px">'+p.medida+'</div>'
+      +'<div style="font-size:10px;color:var(--tx3)">'+p.fuente+'<br><span style="color:'+(p.modif?'var(--gt)':'var(--tx3)')+'">'+modifStr+'</span></div>'
+      +'<div style="text-align:center"><button onclick="prEliminar('+fi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px" title="Eliminar">✕</button></div>'
+      +'</div>';
+  }).join('');
+}
+
+function prSetCat(cat){PR_CAT_ACTIVA=cat;prRender();}
+
+function prUpdNom(i,val){
+  if(!PR_DATA[i])return;
+  PR_DATA[i].nom=val;
+  PR_DATA[i].modif=Date.now();
+  prRegistrarHistorial(i,'nombre',val);
+}
+function prUpdPU(i,val){
+  if(!PR_DATA[i])return;
+  PR_DATA[i].pu=val;
+  PR_DATA[i].modif=Date.now();
+  prRegistrarHistorial(i,'precio',val);
+  // Sincronizar con CP_PRECIOS_MAT si corresponde
+  prSincronizarConCatalogo();
+}
+function prEliminar(i){
+  if(!confirm('¿Eliminar "'+PR_DATA[i].nom+'"?'))return;
+  PR_DATA.splice(i,1);
+  prRender();
+}
+function prAgregar(){
+  var cod=document.getElementById('pr-new-cod').value.trim();
+  var nom=document.getElementById('pr-new-nom').value.trim();
+  var cat=document.getElementById('pr-new-cat').value;
+  var un=document.getElementById('pr-new-un').value;
+  var pu=+(document.getElementById('pr-new-precio').value||0);
+  var medida=document.getElementById('pr-new-medida').value.trim();
+  var fuente=document.getElementById('pr-new-fuente').value.trim();
+  if(!nom){toast('Ingresá un nombre',false);return;}
+  PR_DATA.push({cod:cod,nom:nom,cat:cat,un:un,pu:pu,medida:medida,fuente:fuente,modif:Date.now()});
+  PR_CAT_ACTIVA=cat;
+  ['pr-new-cod','pr-new-nom','pr-new-precio','pr-new-medida','pr-new-fuente'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value='';
+  });
+  prRender();
+  toast('\u2713 Ítem agregado');
+}
+
+function prRegistrarHistorial(i,campo,val){
+  var p=PR_DATA[i];
+  PR_HISTORIAL.push({ts:Date.now(),cod:p.cod,nom:p.nom,campo:campo,valor:val});
+  // Actualizar etiqueta de fecha
+  var el=document.getElementById('pr-fecha-mod');
+  if(el) el.textContent='Última modif: '+new Date().toLocaleString('es-AR');
+}
+
+// Sincronizar precios editados con el catálogo de cómputo
+function prSincronizarConCatalogo(){
+  if(typeof CP_PRECIOS_MAT==='undefined')return;
+  PR_DATA.forEach(function(p){
+    // Mapear por código o nombre aproximado
+    var key=p.cod;
+    if(CP_PRECIOS_MAT[key]!==undefined) CP_PRECIOS_MAT[key]=p.pu;
+  });
+}
+
+// Guardar en Firebase
+function prGuardar(){
+  var data={items:PR_DATA,historial:PR_HISTORIAL.slice(-100),ts:Date.now()};
+  localStorage.setItem('obraerp_precios',JSON.stringify(data));
+  if(_db&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('precios')
+      .set(data).then(function(){toast('\u2713 Precios guardados en la nube');})
+      .catch(function(e){toast('\u2713 Guardado local ('+e.message+')');});
+  }else{toast('\u2713 Precios guardados');}
+}
+
+// Cargar desde Firebase al iniciar
+function prCargar(){
+  if(_db&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('precios')
+      .get().then(function(doc){
+        if(doc.exists){
+          var d=doc.data();
+          if(d.items&&d.items.length){PR_DATA=d.items;}
+          if(d.historial){PR_HISTORIAL=d.historial;}
+          prSincronizarConCatalogo();
+        }
+      }).catch(function(){
+        var loc=localStorage.getItem('obraerp_precios');
+        if(loc){var d=JSON.parse(loc);if(d.items)PR_DATA=d.items;if(d.historial)PR_HISTORIAL=d.historial;prSincronizarConCatalogo();}
+      });
+  }else{
+    var loc=localStorage.getItem('obraerp_precios');
+    if(loc){var d=JSON.parse(loc);if(d.items)PR_DATA=d.items;if(d.historial)PR_HISTORIAL=d.historial;prSincronizarConCatalogo();}
+  }
+}
+
+// Exportar CSV
+function prExportar(){
+  var header='Código,Descripción,Categoría,Unidad,Precio Unit.,Medida Comercial,Fuente,Última Modif.\n';
+  var rows=PR_DATA.map(function(p){
+    var modif=p.modif?new Date(p.modif).toLocaleDateString('es-AR'):'';
+    return '"'+p.cod+'","'+p.nom+'","'+p.cat+'","'+p.un+'",'+p.pu+',"'+p.medida+'","'+p.fuente+'","'+modif+'"';
+  }).join('\n');
+  var csv=header+rows;
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='precios_ushuaia_2026.csv';a.style.display='none';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);
+  toast('\u2713 CSV exportado');
+}
 
 
 /* ── BRAND CUSTOMIZATION ───────────────────────────────────────────── */
