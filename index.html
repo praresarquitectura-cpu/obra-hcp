@@ -594,38 +594,19 @@ input,select,textarea,button{font-family:var(--font)}
 <section id="s-computo" class="scr">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
     <div>
-      <div class="pgt">Cómputo y Presupuesto de Obra</div>
-      <div class="pgs">Rubros e ítems libres · Cómputo por dimensiones · Material + Mano de obra</div>
+      <div class="pgt">Cómputo y Presupuesto</div>
+      <div class="pgs">Base de precios 2026 Municipalidad Ushuaia · Rubros e ítems libres</div>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <input id="cp-obra-nom" class="fi" type="text" placeholder="Nombre de la obra..." style="font-size:11px;padding:6px 10px;width:220px">
+      <input id="cp-obra-nom" class="fi" type="text" placeholder="Nombre de la obra..." style="font-size:11px;padding:6px 10px;width:200px">
       <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 10px" onclick="cpCargarPorNombre()">&#128194; Cargar</button>
       <button class="btn" style="background:var(--gt);color:#fff;font-size:11px;padding:6px 12px" onclick="cpAgregarRubro()">+ Rubro</button>
       <button class="btn" style="background:var(--bt);color:#fff;font-size:11px;padding:6px 12px" onclick="cpGuardar()">&#128190; Guardar</button>
       <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 12px" onclick="cpPDF()">PDF</button>
     </div>
   </div>
-
-  <!-- Jornales -->
-  <div class="card" style="margin-bottom:12px">
-    <div class="csec" style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-      &#9881; Jornales de referencia (ARS/día) <span style="font-size:10px;color:var(--tx3)">· clic para expandir</span>
-    </div>
-    <div style="display:none">
-      <div class="g4" style="margin-top:10px">
-        <div class="fg"><label class="fl">Oficial Especializado</label><div class="pw"><input class="pi" type="number" id="jor-ofEsp" value="13663" step="100"><span class="pu">$/día</span></div></div>
-        <div class="fg"><label class="fl">Oficial</label><div class="pw"><input class="pi" type="number" id="jor-of" value="11881" step="100"><span class="pu">$/día</span></div></div>
-        <div class="fg"><label class="fl">Ayudante</label><div class="pw"><input class="pi" type="number" id="jor-ay" value="8645" step="100"><span class="pu">$/día</span></div></div>
-        <div class="fg"><label class="fl">Medio Oficial</label><div class="pw"><input class="pi" type="number" id="jor-mo" value="9392" step="100"><span class="pu">$/día</span></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Rubros e ítems -->
   <div id="cp-rubros"></div>
-
-  <!-- Totales -->
-  <div class="card" style="margin-top:14px" id="cp-totales-card" style="display:none">
+  <div class="card" id="cp-totales-card" style="display:none;margin-top:14px">
     <div class="csec">Resumen del Presupuesto</div>
     <div id="cp-totales"></div>
   </div>
@@ -1940,7 +1921,6 @@ function goTo(id,btn,sb){
   if(sb)sb.classList.add('on');
   document.getElementById('main').scrollTop=0;
   if(id==='motor')motorInit();
-  if(id==='computo')cpPoblarObrasSel();
   if(id==='config'){setTimeout(function(){loadEmpresaToForm();actualizarUIEmpresa();},60);}
 }
 
@@ -3715,207 +3695,314 @@ var CP_MATS = [
 // MÓDULO CÓMPUTO Y PRESUPUESTO — Sistema libre de rubros e ítems
 // ══════════════════════════════════════════════════════════════════════════
 
-var CP_OBRA_ID = null; // ID de la obra actualmente cargada
-var CP_RUBROS = [];    // [{id, nom, items:[{id,nom,un,dims:[],moHH,moRol,matPU,qty}]}]
+
+/* ══════════════════════════════════════════════════════════════════════
+   MÓDULO CÓMPUTO Y PRESUPUESTO — OBRAERP
+   Base de datos: Análisis de Precios 2026 Municipalidad Ushuaia
+   ══════════════════════════════════════════════════════════════════════ */
+
+// ── BASE DE DATOS DE ÍTEMS (desde planilla Municipalidad Ushuaia 2026) ──
+var CP_DB = [
+  // 100 - TRABAJOS PRELIMINARES
+  {cod:'101',nom:'Cartel de Obra 1,00x1,50 con Estructura',un:'gl',puMat:211773,puMO:120469,puTotal:452275},
+  {cod:'102',nom:'Cartel de Obra 2,00x3,50 con Estructura',un:'gl',puMat:718025,puMO:240937,puTotal:1302531},
+  // 200 - DEMOLICION Y RETIROS
+  {cod:'201',nom:'Demolición (global con equipos)',un:'gl',puMat:0,puMO:0,puTotal:0},
+  {cod:'202',nom:'Retiros varios',un:'gl',puMat:0,puMO:0,puTotal:0},
+  // 300 - MOVIMIENTO DE SUELO
+  {cod:'301',nom:'Excavación, Nivelación y Compactación',un:'m³',puMat:0,puMO:4127,puTotal:53613},
+  {cod:'302',nom:'Terraplen con aporte de material',un:'m³',puMat:52995,puMO:4127,puTotal:100996},
+  {cod:'303',nom:'Drenaje PVC ø160mm',un:'ml',puMat:173328,puMO:7920,puTotal:258624},
+  // 400 - SOLADOS
+  {cod:'401',nom:'Pavimento Articulado 6cm',un:'m²',puMat:80424,puMO:23145,puTotal:148213},
+  {cod:'402',nom:'Pavimento Articulado 8cm',un:'m²',puMat:94258,puMO:23145,puTotal:177045},
+  {cod:'403',nom:'Cordón de Contención 0,10x0,20m',un:'ml',puMat:12539,puMO:18070,puTotal:41857},
+  {cod:'404',nom:'Contrapiso de 10cm',un:'m²',puMat:120891,puMO:20300,puTotal:191366},
+  {cod:'405',nom:'Consolidacion de Sendero',un:'m³',puMat:11562,puMO:7587,puTotal:26085},
+  {cod:'406',nom:'Platea para playón deportivo',un:'m²',puMat:66478,puMO:21082,puTotal:118906},
+  {cod:'407',nom:'Baldosa de Caucho Molido 50cm',un:'m²',puMat:61288,puMO:24427,puTotal:116502},
+  {cod:'408',nom:'Baldosa de Pórfido',un:'m²',puMat:9054,puMO:24427,puTotal:45909},
+  {cod:'409',nom:'Césped Sintético',un:'m²',puMat:20383,puMO:3960,puTotal:33007},
+  {cod:'410',nom:'Vereda de H° peinado esp=10cm',un:'m²',puMat:63231,puMO:21082,puTotal:114518},
+  {cod:'411',nom:'Solado guia y de prevención 30x30cm',un:'ml',puMat:29693,puMO:16507,puTotal:62885},
+  {cod:'412',nom:'Vado Trapezoidal',un:'un',puMat:375072,puMO:82533,puTotal:620675},
+  {cod:'413',nom:'Pegado de Cesped Sintético',un:'m²',puMat:4905,puMO:3960,puTotal:12089},
+  {cod:'414',nom:'Traslado y colocación de pavimento articulado',un:'m²',puMat:4068,puMO:23145,puTotal:55155},
+  // 500 - MUROS Y REVESTIMIENTOS
+  {cod:'501',nom:'Muro de contencion de bloques de H°',un:'m²',puMat:130373,puMO:104832,puTotal:320710},
+  {cod:'503',nom:'Muro lineal de bloques de H°',un:'ml',puMat:99090,puMO:120469,puTotal:299986},
+  {cod:'504',nom:'Revestimiento de madera para banco corrido',un:'ml',puMat:13486,puMO:61900,puTotal:103556},
+  {cod:'505',nom:'Revestimiento de piedra',un:'m²',puMat:71569,puMO:26790,puTotal:133655},
+  // 600 - CERCOS
+  {cod:'601',nom:'Cerco perimetral de cancha - Alto',un:'ml',puMat:327279,puMO:226184,puTotal:754108},
+  {cod:'602',nom:'Cerco de plaza',un:'ml',puMat:44937,puMO:336668,puTotal:524831},
+  {cod:'603',nom:'Reparación parapelotas - Altura 2,50m',un:'ml',puMat:129033,puMO:226184,puTotal:486182},
+  {cod:'604',nom:'Cerco lateral de parapelotas - Altura 2,50m',un:'ml',puMat:69647,puMO:235667,puTotal:418997},
+  {cod:'605',nom:'Reparación parapelotas CON PARANTE - 1,20m',un:'ml',puMat:83364,puMO:226184,puTotal:424462},
+  {cod:'606',nom:'Jaula de acceso a cancha',un:'ml',puMat:258568,puMO:125183,puTotal:522016},
+  {cod:'607',nom:'Cerco cancha - Paño inf malla ø6 / sup electrosoldada',un:'ml',puMat:95600,puMO:226184,puTotal:440998},
+  {cod:'608',nom:'Cerco cancha - paño superior malla ø8',un:'ml',puMat:69454,puMO:113092,puTotal:249764},
+  {cod:'609',nom:'Cerco - reemplazo tubo cuadrado 100x100',un:'ml',puMat:19412,puMO:31783,puTotal:70049},
+  {cod:'610',nom:'Cerco - reparacion soldadura de caño',un:'ml',puMat:2359,puMO:6879,puTotal:12672},
+  {cod:'611',nom:'Baranda de contención',un:'ml',puMat:65768,puMO:60234,puTotal:171918},
+  // 700 - ESCALERAS Y BARANDAS
+  {cod:'701',nom:'Escalera de H° A° 1,50m de ancho',un:'ml',puMat:252222,puMO:32847,puTotal:392499},
+  {cod:'702',nom:'Escalera Metálica 1,50m de ancho',un:'ml',puMat:297711,puMO:301171,puTotal:817519},
+  {cod:'703',nom:'Baranda Metálica h:0,90m',un:'ml',puMat:23907,puMO:60234,puTotal:115344},
+  // 800 - PINTURA
+  {cod:'801',nom:'Latex Interior',un:'m²',puMat:3410,puMO:12380,puTotal:21674},
+  {cod:'802',nom:'Latex Exterior',un:'m²',puMat:3393,puMO:12380,puTotal:21651},
+  {cod:'803',nom:'Protector para madera',un:'m²',puMat:11403,puMO:14443,puTotal:35322},
+  {cod:'804',nom:'Esmalte Sintético',un:'m²',puMat:7988,puMO:16174,puTotal:33091},
+  {cod:'805',nom:'Protector impermeabilizante para piedra',un:'m²',puMat:2166,puMO:12380,puTotal:19994},
+  {cod:'806',nom:'Demarcación de cancha',un:'m²',puMat:5848,puMO:10317,puTotal:22126},
+  {cod:'807',nom:'Pintura Epoxi Alto Transito',un:'m²',puMat:16045,puMO:12380,puTotal:38751},
+  {cod:'808',nom:'Pintura para demarcación vial acrilica',un:'m²',puMat:11966,puMO:0,puTotal:16172},
+  // 900 - INSTALACION ELECTRICA
+  {cod:'901',nom:'Instalación General',un:'gl',puMat:367097,puMO:0,puTotal:496124},
+  {cod:'902',nom:'Luminaria IEP F05 CNX c/zanjeo (cada 9m)',un:'un',puMat:760069,puMO:210435,puTotal:1367987},
+  {cod:'903',nom:'Luminaria STRADA c/columna y zanjeo (cada 30m)',un:'un',puMat:1329679,puMO:329162,puTotal:2537977},
+  {cod:'904',nom:'Luminarias triple GARDEN ECOTREBOL 300w (cada 15m)',un:'un',puMat:1242214,puMO:289586,puTotal:2280747},
+  {cod:'905',nom:'Luminarias triple GARDEN ECOTREBOL 600w (cada 20m)',un:'un',puMat:1603460,puMO:289586,puTotal:2768964},
+  // 1000 - EQUIPAMIENTO
+  {cod:'1001',nom:'Cartel de Plaza',un:'un',puMat:200450,puMO:368068,puTotal:778290},
+  {cod:'1002',nom:'Cartel Prohibido Trepar 0,30x0,40m',un:'un',puMat:5369,puMO:9484,puTotal:20331},
+  {cod:'1003',nom:'Cestos P80',un:'un',puMat:111138,puMO:240937,puTotal:482335},
+  {cod:'1004',nom:'Arcos con aro',un:'un',puMat:634446,puMO:285535,puTotal:1251054},
+  {cod:'1005',nom:'Banco metalico BT-01',un:'un',puMat:145137,puMO:165066,puTotal:423696},
+  {cod:'1006',nom:'Banco B2000',un:'un',puMat:142279,puMO:278872,puTotal:576715},
+  {cod:'1007',nom:'Banco B400',un:'un',puMat:67641,puMO:139436,puTotal:283630},
+  // 2000 - ESTRUCTURA DE HORMIGON
+  {cod:'2001',nom:'Encofrado',un:'gl',puMat:18271,puMO:87941,puTotal:145922},
+  // ── ÍTEMS DE REFACCION / VIVIENDA (uso frecuente en Ushuaia) ──
+  {cod:'R01',nom:'Demolición de piso cerámico',un:'m²',puMat:0,puMO:3500,puTotal:4500},
+  {cod:'R02',nom:'Demolición de cielorraso',un:'m²',puMat:0,puMO:4200,puTotal:5400},
+  {cod:'R03',nom:'Extracción de revoques',un:'m²',puMat:0,puMO:5800,puTotal:7500},
+  {cod:'R04',nom:'Demolición instalación eléctrica',un:'gl',puMat:0,puMO:18000,puTotal:23000},
+  {cod:'R05',nom:'Tabique galvanizado 70mm con lana de vidrio 80mm',un:'m²',puMat:65000,puMO:35000,puTotal:130000},
+  {cod:'R06',nom:'Tabique galvanizado 70mm con placa cementicia 12mm',un:'m²',puMat:55000,puMO:30000,puTotal:110000},
+  {cod:'R07',nom:'Cielorraso doble placa cementicia',un:'m²',puMat:45000,puMO:28000,puTotal:95000},
+  {cod:'R08',nom:'Cielorraso doble placa de yeso',un:'m²',puMat:38000,puMO:25000,puTotal:85000},
+  {cod:'R09',nom:'Revoque grueso exterior (mezcla)',un:'m²',puMat:18000,puMO:22000,puTotal:55000},
+  {cod:'R10',nom:'Revoque fino interior',un:'m²',puMat:12000,puMO:18000,puTotal:42000},
+  {cod:'R11',nom:'Colocación de piso cerámico',un:'m²',puMat:45000,puMO:22000,puTotal:90000},
+  {cod:'R12',nom:'Colocación de revestimiento cerámico',un:'m²',puMat:48000,puMO:25000,puTotal:95000},
+  {cod:'R13',nom:'Instalación sanitaria cloacal (ramal)',un:'ml',puMat:35000,puMO:28000,puTotal:85000},
+  {cod:'R14',nom:'Instalación eléctrica clase industrial',un:'gl',puMat:180000,puMO:120000,puTotal:420000},
+  {cod:'R15',nom:'Campana de Acero Inoxidable 1,2m',un:'un',puMat:280000,puMO:45000,puTotal:430000},
+  {cod:'R16',nom:'Conducto de Ventilación Acero Inoxidable',un:'ml',puMat:35000,puMO:18000,puTotal:70000},
+  {cod:'R17',nom:'Aislación exterior con revoque',un:'m²',puMat:85000,puMO:40000,puTotal:165000},
+  {cod:'R18',nom:'Estructura galvanizada 35mm c/chapas muros',un:'m²',puMat:55000,puMO:28000,puTotal:115000},
+  {cod:'R19',nom:'Pintura Epoxi Alimenticia Industrial',un:'m²',puMat:20000,puMO:12000,puTotal:42000},
+  {cod:'R20',nom:'Aislación lana de vidrio 100mm',un:'m²',puMat:14964,puMO:8000,puTotal:30000},
+  {cod:'R21',nom:'Malla Fe 8mm (carpeta)',un:'m²',puMat:16551,puMO:6000,puTotal:30000},
+  {cod:'R22',nom:'Carpeta H°30',un:'m²',puMat:55000,puMO:18000,puTotal:95000},
+  {cod:'R23',nom:'Impermeabilizante membrana hidrófuga',un:'m²',puMat:25000,puMO:15000,puTotal:55000},
+  {cod:'R24',nom:'Replanteo de obra',un:'gl',puMat:0,puMO:15000,puTotal:20000},
+];
+
+// ── Estado del módulo ──────────────────────────────────────────────────
+var CP_OBRA_ID = null;
+var CP_RUBROS = [];
 var CP_NEXT_ID = 1;
+var CP_COEF_MAY = 1.372; // coeficiente mayoración MO (gastos+beneficio+fin+IVA aprox)
+var CP_COEF_MAT = 1.372; // coeficiente mayoración Materiales
 
-var CP_UNIDADES = ['m²','m³','ml','un','kg','tn','gl','m','cm','dm²'];
-var CP_ROLES_MO = ['ofEsp','of','mo','ay'];
-var CP_ROLES_NM = {ofEsp:'Oficial Esp.',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'};
+function cpNuevoId(){ return 'x'+(CP_NEXT_ID++); }
 
-function cpGetJor(){
-  return {
-    ofEsp:+(document.getElementById('jor-ofEsp')?.value||13663),
-    of:+(document.getElementById('jor-of')?.value||11881),
-    mo:+(document.getElementById('jor-mo')?.value||9392),
-    ay:+(document.getElementById('jor-ay')?.value||8645)
-  };
+// Buscar en DB
+function cpBuscarDB(q){
+  if(!q||q.length<2) return [];
+  var ql=q.toLowerCase();
+  return CP_DB.filter(function(it){
+    return it.nom.toLowerCase().includes(ql)||it.cod.toLowerCase().includes(ql);
+  }).slice(0,8);
 }
 
-function cpNuevoId(){ return CP_NEXT_ID++; }
-
-// ── Calcular cantidad según dimensiones ──────────────────────────────────
+// Calcular qty según dimensiones y unidad
 function cpCalcQty(dims, un){
   if(!dims||!dims.length) return 0;
-  var total = 0;
+  var total=0;
   dims.forEach(function(d){
-    var l=d.l||0, a=d.a||0, h=d.h||0, q=d.q||1, sust=d.sust?-1:1;
-    var val = 0;
-    if(un==='m²')      val=l*a*q;
-    else if(un==='m³') val=l*a*h*q;
-    else if(un==='ml') val=l*q;
-    else               val=q; // un, kg, gl, etc
-    total += val * sust;
+    var l=+(d.l||0), a=+(d.a||0), h=+(d.h||0), q=+(d.q||1);
+    var v=0;
+    if(un==='m²') v=l*a*q;
+    else if(un==='m³') v=l*a*h*q;
+    else if(un==='ml'||un==='m') v=l*q;
+    else v=q; // un, kg, gl, etc
+    total += d.sust ? -v : v;
   });
   return Math.max(0, Math.round(total*100)/100);
 }
 
-// ── Columnas de dimensión según unidad ───────────────────────────────────
-function cpColsPorUnidad(un){
-  if(un==='m²')      return ['Descripción','Largo (m)','Ancho (m)','Cant.','Sust.'];
-  if(un==='m³')      return ['Descripción','Largo (m)','Ancho (m)','Alto (m)','Cant.','Sust.'];
-  if(un==='ml')      return ['Descripción','Largo (m)','Cant.','Sust.'];
-  return ['Descripción','Cantidad']; // un, kg, gl, etc
-}
-
-// ── Render de un ítem de dimensión ───────────────────────────────────────
-function cpRenderDimRow(iid, did, d, un){
-  var h = '<div class="cp-dim-row" id="cpd-'+iid+'-'+did+'" style="display:grid;gap:4px;align-items:center;margin-bottom:3px;font-size:11px;'
-  var cols = cpColsPorUnidad(un);
-  // Grid según columnas
-  var gridCols = cols.length + 1; // +1 para botón borrar
-  h += 'grid-template-columns:2fr '+Array(cols.length-1).fill('80px').join(' ')+' 50px 30px">';
-  h += '<input class="cp-dim-inp" type="text" placeholder="Descripción" value="'+(d.desc||'')+'" oninput="cpUpdDim(\''+iid+'\',\''+did+'\',\'desc\',this.value)" style="font-size:10px">';
-  if(un==='m²'||un==='m³'||un==='ml'){
-    h += '<input class="cp-dim-inp" type="number" placeholder="Largo" value="'+(d.l||'')+'" step="0.01" oninput="cpUpdDim(\''+iid+'\',\''+did+'\',\'l\',+this.value)">';
+// Render de fila de dimensión
+function cpRenderDimRow(iid, d, un){
+  var base='display:flex;gap:4px;align-items:center;margin-bottom:3px;font-size:11px;flex-wrap:wrap';
+  var h='<div style="'+base+'" id="cpd-'+iid+'-'+d.id+'">';
+  h+='<input class="cp-di" type="text" placeholder="Descripción" value="'+(d.desc||'')+'" oninput="cpUpdDim(\''+iid+'\',\''+d.id+'\',\'desc\',this.value)" style="flex:2;min-width:100px">';
+  if(un==='m²'||un==='m³'||un==='ml'||un==='m'){
+    h+='<input class="cp-di" type="number" placeholder="Largo" value="'+(d.l||'')+'" step="0.01" oninput="cpUpdDim(\''+iid+'\',\''+d.id+'\',\'l\',+this.value)" style="width:72px">';
   }
   if(un==='m²'||un==='m³'){
-    h += '<input class="cp-dim-inp" type="number" placeholder="Ancho" value="'+(d.a||'')+'" step="0.01" oninput="cpUpdDim(\''+iid+'\',\''+did+'\',\'a\',+this.value)">';
+    h+='<input class="cp-di" type="number" placeholder="Ancho" value="'+(d.a||'')+'" step="0.01" oninput="cpUpdDim(\''+iid+'\',\''+d.id+'\',\'a\',+this.value)" style="width:72px">';
   }
   if(un==='m³'){
-    h += '<input class="cp-dim-inp" type="number" placeholder="Alto" value="'+(d.h||'')+'" step="0.01" oninput="cpUpdDim(\''+iid+'\',\''+did+'\',\'h\',+this.value)">';
+    h+='<input class="cp-di" type="number" placeholder="Alto" value="'+(d.h||'')+'" step="0.01" oninput="cpUpdDim(\''+iid+'\',\''+d.id+'\',\'h\',+this.value)" style="width:72px">';
   }
-  h += '<input class="cp-dim-inp" type="number" placeholder="Cant." value="'+(d.q||1)+'" min="0" step="1" oninput="cpUpdDim(\''+iid+'\',\''+did+'\',\'q\',+this.value)">';
-  h += '<input type="checkbox" '+(d.sust?' checked':'')+' title="Sustraer" onchange="cpUpdDim(\''+iid+'\',\''+did+'\',\'sust\',this.checked)" style="width:20px;height:20px;cursor:pointer">';
-  h += '<button onclick="cpBorrarDim(\''+iid+'\',\''+did+'\')" style="background:none;border:none;color:var(--rt);font-size:14px;cursor:pointer;padding:0">×</button>';
-  h += '</div>';
+  h+='<input class="cp-di" type="number" placeholder="Cant" value="'+(d.q||1)+'" min="0" step="1" oninput="cpUpdDim(\''+iid+'\',\''+d.id+'\',\'q\',+this.value)" style="width:60px">';
+  h+='<label title="Sustraer" style="font-size:10px;color:var(--rt);display:flex;align-items:center;gap:2px"><input type="checkbox" '+(d.sust?'checked':'')+' onchange="cpUpdDim(\''+iid+'\',\''+d.id+'\',\'sust\',this.checked)"> -</label>';
+  h+='<button onclick="cpBorrarDim(\''+iid+'\',\''+d.id+'\')" style="background:none;border:none;color:var(--rt);font-size:16px;cursor:pointer;padding:0;line-height:1">×</button>';
+  h+='</div>';
   return h;
 }
 
-// ── Render un ítem completo ───────────────────────────────────────────────
-function cpRenderItem(rid, item){
-  var jor = cpGetJor();
-  var moJor = jor[item.moRol||'ay']||0;
-  var moCosto = Math.round((item.moHH||0)/8 * moJor);
-  var qty = cpCalcQty(item.dims, item.un);
-  var matTotal = Math.round(qty * (item.matPU||0));
-  var moTotal = Math.round(qty * moCosto);
-  var total = matTotal + moTotal;
+// Render de un ítem
+function cpRenderItem(rid, it){
+  var qty=cpCalcQty(it.dims, it.un);
+  var puMat=+(it.puMat||0), puMO=+(it.puMO||0), puTotal=+(it.puTotal||0);
+  var totMat=Math.round(qty*puMat), totMO=Math.round(qty*puMO), totTotal=Math.round(qty*puTotal);
 
-  var h = '<div class="cp-item card" id="cpi-'+item.id+'" style="margin-bottom:8px;padding:12px">';
-  // Header del ítem
-  h += '<div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px">';
-  h += '<input class="cp-item-nom fi" type="text" placeholder="Nombre del ítem..." value="'+item.nom+'" oninput="cpUpdItem(\''+item.id+'\',\'nom\',this.value)" style="flex:1;min-width:180px;font-weight:600">';
-  h += '<select class="fis" style="width:80px;font-size:11px" onchange="cpUpdItem(\''+item.id+'\',\'un\',this.value)">';
-  CP_UNIDADES.forEach(function(u){ h += '<option value="'+u+'"'+(u===item.un?' selected':'')+'>'+u+'</option>'; });
-  h += '</select>';
-  h += '<button onclick="cpBorrarItem(\''+rid+'\',\''+item.id+'\')" style="background:none;border:1px solid var(--rt);color:var(--rt);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button>';
-  h += '</div>';
+  var h='<div class="card cp-item" id="cpi-'+it.id+'" style="margin-bottom:8px;padding:10px">';
+  // Cabecera del ítem
+  h+='<div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px">';
+  // Nombre con autocompletado
+  h+='<div style="flex:1;min-width:180px;position:relative">';
+  h+='<input class="fi cp-nom-inp" type="text" placeholder="Nombre del ítem o código (ej: 401, Vereda...)" value="'+it.nom+'" id="cpnom-'+it.id+'" oninput="cpNomInput(\''+it.id+'\',this.value)" onfocus="cpNomInput(\''+it.id+'\',this.value)" onblur="setTimeout(function(){cpOcultarSug(\''+it.id+'\')},200)" style="width:100%;font-weight:600;font-size:12px">';
+  h+='<div id="cpsug-'+it.id+'" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg3);border:1px solid var(--bt);border-radius:5px;z-index:200;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.4)"></div>';
+  h+='</div>';
+  h+='<select class="fis" style="width:80px;font-size:11px" onchange="cpCambiarUnidad(\''+it.id+'\',this.value)">';
+  ['m²','m³','ml','m','un','kg','tn','gl'].forEach(function(u){h+='<option value="'+u+'"'+(u===it.un?' selected':'')+'>'+u+'</option>';});
+  h+='</select>';
+  h+='<button onclick="cpBorrarItem(\''+rid+'\',\''+it.id+'\')" style="background:none;border:1px solid var(--rt);color:var(--rt);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button>';
+  h+='</div>';
 
   // Dimensiones
-  h += '<div style="background:var(--bg);border-radius:6px;padding:8px;margin-bottom:8px">';
-  h += '<div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">DIMENSIONES</div>';
-  h += '<div id="cp-dims-'+item.id+'">';
-  (item.dims||[]).forEach(function(d){ h += cpRenderDimRow(item.id, d.id, d, item.un); });
-  h += '</div>';
-  h += '<button onclick="cpAgregarDim(\''+item.id+'\')" style="font-size:10px;background:none;border:1px dashed var(--br);color:var(--tx3);padding:3px 10px;border-radius:4px;cursor:pointer;margin-top:2px">+ Medida</button>';
-  h += '<div style="text-align:right;font-weight:700;color:var(--bt);margin-top:6px;font-size:13px">'+qty.toLocaleString('es-AR',{maximumFractionDigits:2})+' <span style="font-size:10px;color:var(--tx3)">'+item.un+'</span></div>';
-  h += '</div>';
+  h+='<div style="background:var(--bg);border-radius:6px;padding:8px;margin-bottom:8px">';
+  h+='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">DIMENSIONES</div>';
+  h+='<div id="cpdims-'+it.id+'">'+(it.dims||[]).map(function(d){return cpRenderDimRow(it.id,d,it.un);}).join('')+'</div>';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">';
+  h+='<button onclick="cpAgregarDim(\''+it.id+'\')" style="font-size:10px;background:none;border:1px dashed var(--br);color:var(--tx3);padding:3px 10px;border-radius:4px;cursor:pointer">+ Medida</button>';
+  h+='<div style="font-weight:800;color:var(--bt);font-size:14px">'+qty.toLocaleString('es-AR',{maximumFractionDigits:2})+' <span style="font-size:10px;color:var(--tx3)">'+it.un+'</span></div>';
+  h+='</div></div>';
 
-  // Precios
-  h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">';
-  // Mano de obra
-  h += '<div style="background:var(--bg);border-radius:6px;padding:8px">';
-  h += '<div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--golt);text-transform:uppercase;margin-bottom:6px">MANO DE OBRA</div>';
-  h += '<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px"><select class="fis" style="font-size:10px;flex:1" onchange="cpUpdItem(\''+item.id+'\',\'moRol\',this.value)">';
-  CP_ROLES_MO.forEach(function(r){ h+='<option value="'+r+'"'+(r===(item.moRol||'ay')?' selected':'')+'>'+CP_ROLES_NM[r]+'</option>'; });
-  h += '</select></div>';
-  h += '<div style="display:flex;gap:4px;align-items:center"><input class="cp-dim-inp" type="number" placeholder="HH/'+item.un+'" value="'+(item.moHH||'')+'" step="0.1" min="0" oninput="cpUpdItem(\''+item.id+'\',\'moHH\',+this.value)" style="width:70px"><span style="font-size:9px;color:var(--tx3)">HH/'+item.un+'</span></div>';
-  h += '<div style="font-size:10px;color:var(--tx3);margin-top:4px">$'+moJor.toLocaleString()+'/día → $'+moCosto.toLocaleString()+'/'+item.un+'</div>';
-  h += '<div style="font-weight:700;color:var(--golt);font-size:12px;margin-top:4px">$'+moTotal.toLocaleString()+'</div>';
-  h += '</div>';
-  // Material
-  h += '<div style="background:var(--bg);border-radius:6px;padding:8px">';
-  h += '<div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--gt);text-transform:uppercase;margin-bottom:6px">MATERIALES</div>';
-  h += '<div style="display:flex;gap:4px;align-items:center"><div class="pw" style="flex:1"><input class="pi" type="number" placeholder="$/'+item.un+'" value="'+(item.matPU||'')+'" step="1" min="0" oninput="cpUpdItem(\''+item.id+'\',\'matPU\',+this.value)"><span class="pu">$/'+item.un+'</span></div></div>';
-  h += '<div style="font-weight:700;color:var(--gt);font-size:12px;margin-top:8px">$'+matTotal.toLocaleString()+'</div>';
-  h += '</div>';
+  // Precios — 3 columnas
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">';
+  // Materiales
+  h+='<div style="background:var(--bg);border-radius:6px;padding:8px">';
+  h+='<div style="font-size:9px;font-weight:700;color:var(--gt);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">MAT $/'+it.un+'</div>';
+  h+='<div class="pw"><input class="pi" type="number" value="'+puMat+'" min="0" step="100" oninput="cpUpdItem(\''+it.id+'\',\'puMat\',+this.value)"><span class="pu">$</span></div>';
+  h+='<div style="font-size:11px;font-weight:700;color:var(--gt);margin-top:4px">$'+totMat.toLocaleString()+'</div>';
+  h+='</div>';
+  // MO
+  h+='<div style="background:var(--bg);border-radius:6px;padding:8px">';
+  h+='<div style="font-size:9px;font-weight:700;color:var(--golt);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">MO $/'+it.un+'</div>';
+  h+='<div class="pw"><input class="pi" type="number" value="'+puMO+'" min="0" step="100" oninput="cpUpdItem(\''+it.id+'\',\'puMO\',+this.value)"><span class="pu">$</span></div>';
+  h+='<div style="font-size:11px;font-weight:700;color:var(--golt);margin-top:4px">$'+totMO.toLocaleString()+'</div>';
+  h+='</div>';
   // Total
-  h += '<div style="background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:6px;padding:8px;display:flex;flex-direction:column;justify-content:center;align-items:center">';
-  h += '<div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--bt);text-transform:uppercase;margin-bottom:4px">TOTAL ÍTEM</div>';
-  h += '<div style="font-weight:800;color:var(--bt);font-size:15px">$'+total.toLocaleString()+'</div>';
-  h += '<div style="font-size:9px;color:var(--tx3);margin-top:2px">'+qty.toLocaleString('es-AR',{maximumFractionDigits:2})+' '+item.un+'</div>';
-  h += '</div>';
-  h += '</div>'; // grid precios
-  h += '</div>'; // cp-item
+  h+='<div style="background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:6px;padding:8px">';
+  h+='<div style="font-size:9px;font-weight:700;color:var(--bt);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">TOTAL $/'+it.un+'</div>';
+  h+='<div class="pw"><input class="pi" type="number" value="'+puTotal+'" min="0" step="100" oninput="cpUpdItem(\''+it.id+'\',\'puTotal\',+this.value)" style="border-color:var(--bt)"><span class="pu">$</span></div>';
+  h+='<div style="font-size:13px;font-weight:800;color:var(--bt);margin-top:4px">$'+totTotal.toLocaleString()+'</div>';
+  h+='</div>';
+  h+='</div>';
+  h+='</div>';
   return h;
 }
 
-// ── Render un rubro completo ──────────────────────────────────────────────
+// Render rubro
 function cpRenderRubro(rub){
-  var totalRub = 0;
+  var totMat=0,totMO=0,totTotal=0;
   rub.items.forEach(function(it){
-    var qty = cpCalcQty(it.dims, it.un);
-    var jor = cpGetJor();
-    var moJor = jor[it.moRol||'ay']||0;
-    var moCosto = Math.round((it.moHH||0)/8*moJor);
-    totalRub += Math.round(qty*(it.matPU||0)) + Math.round(qty*moCosto);
+    var qty=cpCalcQty(it.dims,it.un);
+    totMat+=Math.round(qty*(it.puMat||0));
+    totMO+=Math.round(qty*(it.puMO||0));
+    totTotal+=Math.round(qty*(it.puTotal||0));
   });
-
-  var h = '<div class="card" id="cpr-'+rub.id+'" style="margin-bottom:12px">';
-  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">';
-  h += '<div style="width:4px;height:32px;background:var(--rt);border-radius:2px;flex-shrink:0"></div>';
-  h += '<input class="fi" type="text" value="'+rub.nom+'" placeholder="Nombre del rubro..." oninput="cpUpdRubro(\''+rub.id+'\',\'nom\',this.value)" style="flex:1;font-weight:700;font-size:14px;text-transform:uppercase">';
-  h += '<div style="font-size:12px;color:var(--bt);font-weight:700;flex-shrink:0">$'+totalRub.toLocaleString()+'</div>';
-  h += '<button onclick="cpBorrarRubro(\''+rub.id+'\')" style="background:none;border:1px solid var(--rt);color:var(--rt);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px;flex-shrink:0">✕ Rubro</button>';
-  h += '</div>';
-  h += '<div id="cp-items-'+rub.id+'">';
-  rub.items.forEach(function(it){ h += cpRenderItem(rub.id, it); });
-  h += '</div>';
-  h += '<button onclick="cpAgregarItem(\''+rub.id+'\')" style="font-size:11px;background:none;border:1px dashed var(--bt);color:var(--bt);padding:5px 14px;border-radius:5px;cursor:pointer;margin-top:4px;width:100%">+ Agregar ítem al rubro</button>';
-  h += '</div>';
+  var h='<div class="card" id="cpr-'+rub.id+'" style="margin-bottom:12px">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">';
+  h+='<div style="width:4px;height:32px;background:var(--rt);border-radius:2px;flex-shrink:0"></div>';
+  h+='<input class="fi" type="text" value="'+rub.nom+'" placeholder="NOMBRE DEL RUBRO" oninput="cpUpdRubro(\''+rub.id+'\',this.value)" style="flex:1;font-weight:700;font-size:13px;text-transform:uppercase;min-width:160px">';
+  h+='<div style="font-size:11px;color:var(--bt);font-weight:700;flex-shrink:0">$'+totTotal.toLocaleString()+'</div>';
+  h+='<button onclick="cpBorrarRubro(\''+rub.id+'\')" style="background:none;border:1px solid var(--rt);color:var(--rt);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px;flex-shrink:0">✕ Rubro</button>';
+  h+='</div>';
+  h+='<div id="cpitms-'+rub.id+'">'+rub.items.map(function(it){return cpRenderItem(rub.id,it);}).join('')+'</div>';
+  h+='<button onclick="cpAgregarItem(\''+rub.id+'\')" style="font-size:11px;background:none;border:1px dashed var(--bt);color:var(--bt);padding:5px;border-radius:5px;cursor:pointer;margin-top:4px;width:100%">+ Agregar ítem al rubro</button>';
+  h+='</div>';
   return h;
 }
 
-// ── Render completo ───────────────────────────────────────────────────────
+// Render principal
 function cpRender(){
-  var cont = document.getElementById('cp-rubros');
-  if(!cont) return;
-  cont.innerHTML = CP_RUBROS.map(cpRenderRubro).join('');
+  var cont=document.getElementById('cp-rubros');if(!cont)return;
+  cont.innerHTML=CP_RUBROS.map(cpRenderRubro).join('');
   cpActualizarTotales();
 }
 
 function cpActualizarTotales(){
-  var card = document.getElementById('cp-totales-card');
-  var cont = document.getElementById('cp-totales');
-  if(!cont) return;
-  var totalMO=0, totalMat=0;
-  var jor = cpGetJor();
+  var totMat=0,totMO=0,totTotal=0;
   CP_RUBROS.forEach(function(rub){
     rub.items.forEach(function(it){
-      var qty = cpCalcQty(it.dims, it.un);
-      var moJor = jor[it.moRol||'ay']||0;
-      var moCosto = Math.round((it.moHH||0)/8*moJor);
-      totalMat += Math.round(qty*(it.matPU||0));
-      totalMO += Math.round(qty*moCosto);
+      var qty=cpCalcQty(it.dims,it.un);
+      totMat+=Math.round(qty*(it.puMat||0));
+      totMO+=Math.round(qty*(it.puMO||0));
+      totTotal+=Math.round(qty*(it.puTotal||0));
     });
   });
-  var total = totalMat + totalMO;
-  if(card) card.style.display = total>0?'':'none';
-  cont.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px">'
-    +'<div style="text-align:center"><div style="font-size:10px;color:var(--golt);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Mano de Obra</div><div style="font-size:20px;font-weight:800;color:var(--golt)">$'+totalMO.toLocaleString()+'</div></div>'
-    +'<div style="text-align:center"><div style="font-size:10px;color:var(--gt);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Materiales</div><div style="font-size:20px;font-weight:800;color:var(--gt)">$'+totalMat.toLocaleString()+'</div></div>'
-    +'<div style="text-align:center;background:rgba(96,165,250,.1);border-radius:8px;padding:8px"><div style="font-size:10px;color:var(--bt);font-weight:700;text-transform:uppercase;letter-spacing:.08em">TOTAL GENERAL</div><div style="font-size:24px;font-weight:800;color:var(--bt)">$'+total.toLocaleString()+'</div></div>'
+  var el=document.getElementById('cp-totales');if(!el)return;
+  var show=totTotal>0;
+  var card=document.getElementById('cp-totales-card');if(card)card.style.display=show?'':'none';
+  el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px">'
+    +'<div style="text-align:center"><div style="font-size:9px;color:var(--gt);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">MATERIALES</div><div style="font-size:20px;font-weight:800;color:var(--gt)">$'+totMat.toLocaleString()+'</div></div>'
+    +'<div style="text-align:center"><div style="font-size:9px;color:var(--golt);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">MANO DE OBRA</div><div style="font-size:20px;font-weight:800;color:var(--golt)">$'+totMO.toLocaleString()+'</div></div>'
+    +'<div style="text-align:center;background:rgba(96,165,250,.1);border-radius:8px;padding:8px"><div style="font-size:9px;color:var(--bt);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">TOTAL GENERAL</div><div style="font-size:24px;font-weight:800;color:var(--bt)">$'+totTotal.toLocaleString()+'</div></div>'
     +'</div>';
 }
 
-// ── Mutaciones de datos ───────────────────────────────────────────────────
+// ── Autocompletado ─────────────────────────────────────────────────────
+function cpNomInput(iid, val){
+  var sug=document.getElementById('cpsug-'+iid);if(!sug)return;
+  var res=cpBuscarDB(val);
+  if(!res.length||val.length<2){sug.style.display='none';return;}
+  sug.innerHTML=res.map(function(it){
+    return '<div onclick="cpSeleccionarDB(\''+iid+'\',\''+it.cod+'\')" style="padding:7px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--br)" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'\'">'
+      +'<span style="color:var(--tx3);margin-right:6px">'+it.cod+'</span>'
+      +'<b>'+it.nom+'</b>'
+      +'<span style="float:right;color:var(--bt)">'+it.un+'</span>'
+      +'</div>';
+  }).join('');
+  sug.style.display='block';
+}
+function cpOcultarSug(iid){
+  var sug=document.getElementById('cpsug-'+iid);if(sug)sug.style.display='none';
+}
+function cpSeleccionarDB(iid, cod){
+  var db=CP_DB.find(function(x){return x.cod===cod;});if(!db)return;
+  var it=null;
+  CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)it=f;});
+  if(!it)return;
+  it.nom=db.nom; it.un=db.un; it.puMat=db.puMat; it.puMO=db.puMO; it.puTotal=db.puTotal;
+  if(it.un!==db.un) it.dims=[];
+  cpRender();
+}
+
+// ── Mutaciones ─────────────────────────────────────────────────────────
 function cpAgregarRubro(){
-  CP_RUBROS.push({id:'r'+cpNuevoId(), nom:'NUEVO RUBRO', items:[]});
+  CP_RUBROS.push({id:cpNuevoId(),nom:'NUEVO RUBRO',items:[]});
   cpRender();
 }
 function cpBorrarRubro(rid){
-  if(!confirm('¿Eliminar rubro y todos sus ítems?')) return;
-  CP_RUBROS = CP_RUBROS.filter(function(r){return r.id!==rid;});
+  if(!confirm('¿Eliminar rubro y todos sus ítems?'))return;
+  CP_RUBROS=CP_RUBROS.filter(function(r){return r.id!==rid;});
   cpRender();
 }
-function cpUpdRubro(rid, campo, val){
-  var r=CP_RUBROS.find(function(r){return r.id===rid;});if(r)r[campo]=val;
+function cpUpdRubro(rid,val){
+  var r=CP_RUBROS.find(function(r){return r.id===rid;});if(r)r.nom=val;
   cpActualizarTotales();
 }
 function cpAgregarItem(rid){
   var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;
-  r.items.push({id:'i'+cpNuevoId(),nom:'',un:'m²',dims:[],moHH:0,moRol:'ay',matPU:0});
+  r.items.push({id:cpNuevoId(),nom:'',un:'m²',dims:[],puMat:0,puMO:0,puTotal:0});
   cpRender();
 }
 function cpBorrarItem(rid,iid){
@@ -3923,131 +4010,112 @@ function cpBorrarItem(rid,iid){
   r.items=r.items.filter(function(it){return it.id!==iid;});
   cpRender();
 }
-function cpUpdItem(iid, campo, val){
-  var it=null;
-  CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)it=f;});
-  if(!it)return;
-  it[campo]=val;
-  if(campo==='un'){it.dims=[];} // reset dims al cambiar unidad
-  cpRender();
+function cpUpdItem(iid,campo,val){
+  var it=null;CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)it=f;});
+  if(!it)return;it[campo]=val;cpActualizarTotales();
+}
+function cpCambiarUnidad(iid,un){
+  var it=null;CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)it=f;});
+  if(!it)return;it.un=un;it.dims=[];cpRender();
 }
 function cpAgregarDim(iid){
-  var it=null;
-  CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)it=f;});
-  if(!it)return;
-  it.dims.push({id:'d'+cpNuevoId(),desc:'',l:0,a:0,h:0,q:1,sust:false});
-  cpRender();
+  var it=null;CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)it=f;});
+  if(!it)return;it.dims.push({id:cpNuevoId(),desc:'',l:0,a:0,h:0,q:1,sust:false});cpRender();
 }
 function cpBorrarDim(iid,did){
-  var it=null;
-  CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)it=f;});
-  if(!it)return;
-  it.dims=it.dims.filter(function(d){return d.id!==did;});
-  cpRender();
+  var it=null;CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)it=f;});
+  if(!it)return;it.dims=it.dims.filter(function(d){return d.id!==did;});cpRender();
 }
 function cpUpdDim(iid,did,campo,val){
-  var it=null;
-  CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)it=f;});
-  if(!it)return;
-  var d=it.dims.find(function(d){return d.id===did;});if(!d)return;
-  d[campo]=val;
-  cpRender();
+  var it=null;CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)it=f;});
+  if(!it)return;var d=it.dims.find(function(d){return d.id===did;});if(!d)return;d[campo]=val;cpRender();
 }
 
-// ── Guardar / Cargar por obra ─────────────────────────────────────────────
-function cpGuardar(){
-  var nomEl=document.getElementById('cp-obra-nom');var nomObra=nomEl?nomEl.value.trim():'';if(!CP_OBRA_ID&&!nomObra){toast('Escribí el nombre de la obra primero',false);return;}
-  if(!CP_OBRA_ID&&nomObra){var obraId=nomObra.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,40);CP_OBRA_ID=obraId;}
-  var data={rubros:CP_RUBROS,nextId:CP_NEXT_ID};
-  // Guardar en localStorage
-  localStorage.setItem('cp_obra_'+CP_OBRA_ID, JSON.stringify(data));
-  // Guardar en Firebase si está disponible
+// ── Guardar / Cargar ───────────────────────────────────────────────────
+function cpCargarPorNombre(){
+  var el=document.getElementById('cp-obra-nom');
+  var nom=(el?el.value:'').trim();
+  if(!nom){toast('Escribí el nombre de la obra',false);return;}
+  CP_OBRA_ID=nom.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,40);
+  toast('Cargando...');
   if(_db&&_uid){
-    _db.collection('users').doc(_uid).collection('computos').doc(String(CP_OBRA_ID))
-      .set(data).then(function(){toast('\u2713 Cómputo guardado en la nube');})
-      .catch(function(e){toast('Guardado local (sin sync: '+e.message+')');});
-  }else{
-    toast('\u2713 Cómputo guardado');
-  }
-}
-function cpCargarObra(obraId,nomObra){
-  if(!obraId){CP_OBRA_ID=null;CP_RUBROS=[];cpRender();return;}
-  CP_OBRA_ID=obraId;
-  if(nomObra){var el=document.getElementById('cp-obra-nom');if(el)el.value=nomObra;}
-  toast('Cargando cómputo...');
-  // Intentar desde Firebase primero
-  if(_db&&_uid){
-    _db.collection('users').doc(_uid).collection('computos').doc(String(obraId))
+    _db.collection('users').doc(_uid).collection('computos').doc(CP_OBRA_ID)
       .get().then(function(doc){
-        if(doc.exists){
-          var d=doc.data();
-          CP_RUBROS=d.rubros||[];
-          CP_NEXT_ID=d.nextId||1;
-          cpRender();
-          toast('Cómputo cargado');
-        }else{
-          // No existe en nube, intentar local
-          var local=localStorage.getItem('cp_obra_'+obraId);
-          if(local){var d=JSON.parse(local);CP_RUBROS=d.rubros||[];CP_NEXT_ID=d.nextId||1;}
-          else{CP_RUBROS=[];CP_NEXT_ID=1;}
-          cpRender();
-        }
+        if(doc.exists){var d=doc.data();CP_RUBROS=d.rubros||[];CP_NEXT_ID=d.nextId||1;}
+        else{var loc=localStorage.getItem('cp_'+CP_OBRA_ID);if(loc){var d=JSON.parse(loc);CP_RUBROS=d.rubros||[];CP_NEXT_ID=d.nextId||1;}else{CP_RUBROS=[];CP_NEXT_ID=1;}}
+        cpRender();toast('\u2713 Listo');
       }).catch(function(){
-        var local=localStorage.getItem('cp_obra_'+obraId);
-        if(local){var d=JSON.parse(local);CP_RUBROS=d.rubros||[];CP_NEXT_ID=d.nextId||1;}
+        var loc=localStorage.getItem('cp_'+CP_OBRA_ID);
+        if(loc){var d=JSON.parse(loc);CP_RUBROS=d.rubros||[];CP_NEXT_ID=d.nextId||1;}
         else{CP_RUBROS=[];CP_NEXT_ID=1;}
         cpRender();
       });
   }else{
-    var local=localStorage.getItem('cp_obra_'+obraId);
-    if(local){var d=JSON.parse(local);CP_RUBROS=d.rubros||[];CP_NEXT_ID=d.nextId||1;}
+    var loc=localStorage.getItem('cp_'+CP_OBRA_ID);
+    if(loc){var d=JSON.parse(loc);CP_RUBROS=d.rubros||[];CP_NEXT_ID=d.nextId||1;}
     else{CP_RUBROS=[];CP_NEXT_ID=1;}
     cpRender();
   }
 }
-function cpPoblarObrasSel(){
-  // Nada que poblar — el usuario escribe el nombre de la obra
-}
-function cpCargarPorNombre(){
-  var nom=(document.getElementById('cp-obra-nom')?.value||'').trim();
-  if(!nom){toast('Escribí el nombre de la obra',false);return;}
-  // Usar el nombre como ID (normalizado)
-  var obraId=nom.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,40);
-  CP_OBRA_ID=obraId;
-  cpCargarObra(obraId,nom);
+function cpGuardar(){
+  var el=document.getElementById('cp-obra-nom');
+  var nom=(el?el.value:'').trim();
+  if(!nom&&!CP_OBRA_ID){toast('Escribí el nombre de la obra primero',false);return;}
+  if(nom&&!CP_OBRA_ID) CP_OBRA_ID=nom.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,40);
+  var data={rubros:CP_RUBROS,nextId:CP_NEXT_ID};
+  localStorage.setItem('cp_'+CP_OBRA_ID,JSON.stringify(data));
+  if(_db&&_uid){
+    _db.collection('users').doc(_uid).collection('computos').doc(CP_OBRA_ID)
+      .set(data).then(function(){toast('\u2713 Guardado en la nube');})
+      .catch(function(e){toast('\u2713 Guardado local ('+e.message+')');});
+  }else{toast('\u2713 Guardado');}
 }
 
-// PDF del cómputo
+// ── PDF ─────────────────────────────────────────────────────────────────
 function cpPDF(){
-  if(!CP_RUBROS.length){toast('Sin datos para imprimir',false);return;}
-  var jor=cpGetJor();
-  var css='*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:9pt;color:#111;padding:20px}h1{font-size:13pt;margin-bottom:4px}h2{font-size:10pt;background:#222;color:#fff;padding:4px 8px;margin:12px 0 4px}table{width:100%;border-collapse:collapse;margin-bottom:8px}th{background:#f0f0f0;font-size:8pt;padding:3px 5px;border:1px solid #ccc;text-align:left}td{font-size:8pt;padding:3px 5px;border:1px solid #eee}.r{text-align:right}.tot{font-weight:700;background:#e8f0fe}.grd{color:#1a6632}.mo{color:#92400e}.blu{color:#1e3a8a}';
-  var d='<h1>C\u00f3mputo y Presupuesto de Obra</h1><hr style="margin:6px 0">';
-  var totMO=0,totMat=0;
+  if(!CP_RUBROS.length||!CP_RUBROS.some(function(r){return r.items.length;})){
+    toast('Sin datos para PDF',false);return;
+  }
+  var obraEl=document.getElementById('cp-obra-nom');
+  var obraNom=(obraEl?obraEl.value:'') || 'Obra';
+  var css='*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:9pt;color:#111;padding:20px}h1{font-size:13pt;font-weight:700;margin-bottom:2px}.sub{font-size:9pt;color:#555;margin-bottom:12px}h2{font-size:10pt;font-weight:700;background:#1e293b;color:#fff;padding:4px 8px;margin:12px 0 4px;border-radius:3px}table{width:100%;border-collapse:collapse;margin-bottom:4px}th{background:#f1f5f9;font-size:8pt;padding:3px 5px;border:1px solid #cbd5e1;text-align:left}td{font-size:8pt;padding:3px 5px;border:1px solid #e2e8f0}.r{text-align:right}.tot{font-weight:700;background:#e8f0fe}.mat{color:#166534}.mo{color:#92400e}.tot-row{font-weight:800;background:#dbeafe}.gd{font-size:8pt;color:#64748b;font-style:italic;padding:2px 5px}hr{border:none;border-top:1px solid #e2e8f0;margin:8px 0}';
+  var d='<h1>C\u00f3mputo y Presupuesto de Obra</h1><div class="sub">'+obraNom+' &mdash; Municipalidad de Ushuaia &mdash; Precios 2026</div><hr>';
+  var totMat=0,totMO=0,totTotal=0;
   CP_RUBROS.forEach(function(rub){
-    var rubMO=0,rubMat=0;
+    if(!rub.items.length)return;
+    var rMat=0,rMO=0,rTotal=0;
     d+='<h2>'+rub.nom+'</h2>';
-    d+='<table><thead><tr><th>Ítem</th><th>Unidad</th><th class="r">Cantidad</th><th class="r">Mat. $/un</th><th class="r">Mat. Total</th><th class="r">MO HH/un</th><th class="r">MO $/un</th><th class="r">MO Total</th><th class="r">Total</th></tr></thead><tbody>';
+    d+='<table><thead><tr><th>Ítem</th><th>Un.</th><th class="r">Cantidad</th><th class="r">Mat $/un</th><th class="r">Mat Total</th><th class="r">MO $/un</th><th class="r">MO Total</th><th class="r">Total $/un</th><th class="r">TOTAL</th></tr></thead><tbody>';
     rub.items.forEach(function(it){
+      if(!it.nom)return;
       var qty=cpCalcQty(it.dims,it.un);
-      var moJor=jor[it.moRol||'ay']||0;
-      var moCosto=Math.round((it.moHH||0)/8*moJor);
-      var mat=Math.round(qty*(it.matPU||0));
-      var mo=Math.round(qty*moCosto);
-      rubMat+=mat;rubMO+=mo;
+      var mat=Math.round(qty*(it.puMat||0)),mo=Math.round(qty*(it.puMO||0)),tot=Math.round(qty*(it.puTotal||0));
+      rMat+=mat;rMO+=mo;rTotal+=tot;
       d+='<tr><td>'+it.nom+'</td><td>'+it.un+'</td><td class="r">'+qty.toLocaleString('es-AR',{maximumFractionDigits:2})+'</td>';
-      d+='<td class="r grd">$'+(it.matPU||0).toLocaleString()+'</td><td class="r grd">$'+mat.toLocaleString()+'</td>';
-      d+='<td class="r mo">'+(it.moHH||0)+'</td><td class="r mo">$'+moCosto.toLocaleString()+'</td><td class="r mo">$'+mo.toLocaleString()+'</td>';
-      d+='<td class="r blu"><b>$'+(mat+mo).toLocaleString()+'</b></td></tr>';
+      d+='<td class="r mat">$'+(it.puMat||0).toLocaleString()+'</td><td class="r mat">$'+mat.toLocaleString()+'</td>';
+      d+='<td class="r mo">$'+(it.puMO||0).toLocaleString()+'</td><td class="r mo">$'+mo.toLocaleString()+'</td>';
+      d+='<td class="r">$'+(it.puTotal||0).toLocaleString()+'</td><td class="r"><b>$'+tot.toLocaleString()+'</b></td></tr>';
+      // Detalle dimensiones
+      if(it.dims&&it.dims.length){
+        d+='<tr><td colspan="9" class="gd">Dimensiones: '+(it.dims.map(function(dim){
+          var txt=dim.desc||'';
+          if(it.un==='m²') txt+=' '+dim.l+'×'+dim.a+'×'+dim.q;
+          else if(it.un==='m³') txt+=' '+dim.l+'×'+dim.a+'×'+dim.h+'×'+dim.q;
+          else if(it.un==='ml'||it.un==='m') txt+=' '+dim.l+'×'+dim.q;
+          else txt+=' '+dim.q;
+          if(dim.sust) txt+=' (-)';
+          return txt.trim();
+        }).join(' | '))+'</td></tr>';
+      }
     });
-    d+='<tr class="tot"><td colspan="4">Subtotal '+rub.nom+'</td><td class="r grd">$'+rubMat.toLocaleString()+'</td><td colspan="2"></td><td class="r mo">$'+rubMO.toLocaleString()+'</td><td class="r blu">$'+(rubMat+rubMO).toLocaleString()+'</td></tr>';
+    d+='<tr class="tot"><td colspan="4">Subtotal '+rub.nom+'</td><td class="r mat">$'+rMat.toLocaleString()+'</td><td></td><td class="r mo">$'+rMO.toLocaleString()+'</td><td></td><td class="r">$'+rTotal.toLocaleString()+'</td></tr>';
     d+='</tbody></table>';
-    totMat+=rubMat;totMO+=rubMO;
+    totMat+=rMat;totMO+=rMO;totTotal+=rTotal;
   });
-  d+='<table><tr class="tot"><td><b>TOTAL GENERAL</b></td><td class="r grd"><b>Mat: $'+totMat.toLocaleString()+'</b></td><td class="r mo"><b>MO: $'+totMO.toLocaleString()+'</b></td><td class="r blu"><b>TOTAL: $'+(totMat+totMO).toLocaleString()+'</b></td></tr></table>';
-  var fullHtml='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
+  d+='<hr><table><tr class="tot-row"><td><b>TOTAL GENERAL</b></td><td class="r mat"><b>Mat: $'+totMat.toLocaleString()+'</b></td><td class="r mo"><b>MO: $'+totMO.toLocaleString()+'</b></td><td class="r" style="color:#1e3a8a"><b>TOTAL: $'+totTotal.toLocaleString()+'</b></td></tr></table>';
+  var full='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
   try{
-    var blob=new Blob([fullHtml],{type:'text/html;charset=utf-8'});
+    var blob=new Blob([full],{type:'text/html;charset=utf-8'});
     var url=URL.createObjectURL(blob);
     var a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.style.display='none';
     document.body.appendChild(a);a.click();
@@ -4055,12 +4123,13 @@ function cpPDF(){
   }catch(e){toast('Error PDF: '+e.message,false);}
 }
 
-// CSS adicional para los inputs del cómputo
+// CSS extra para el módulo
 (function(){
   var s=document.createElement('style');
-  s.textContent='.cp-dim-inp{background:var(--bg3);border:1px solid var(--br);border-radius:4px;padding:3px 6px;color:var(--tx);font-size:10px;width:100%}.cp-dim-inp:focus{outline:none;border-color:var(--bt)}.cp-item-nom{background:var(--bg3);border:1px solid var(--br);border-radius:5px;padding:5px 8px;color:var(--tx);font-size:12px}.cp-item-nom:focus{outline:none;border-color:var(--bt)}';
+  s.textContent='.cp-di{background:var(--bg3);border:1px solid var(--br);border-radius:4px;padding:3px 6px;color:var(--tx);font-size:10px;width:100%;min-width:0}.cp-di:focus{outline:none;border-color:var(--bt)}.cp-nom-inp:focus{outline:none;border-color:var(--bt)}.cp-item:hover{border-color:rgba(96,165,250,.2)}';
   document.head.appendChild(s);
 })();
+
 
 
 
