@@ -4196,9 +4196,544 @@ var CP_CATALOGO = [
 },
 ];
 
+// ═══════════════════════════════════════════════════════════════════════
+// CATÁLOGO EXTENDIDO — Demolición, Tabiques PGC/PGU, Cerramientos
+// Ushuaia TDF 2026 — PRARES ARQUITECTURA
+// ═══════════════════════════════════════════════════════════════════════
+
+// Precios adicionales a CP_PRECIOS_MAT
+var CP_PRECIOS_EXTRA = {
+  // ─── PERFILES STEEL FRAMING — PRECIOS IMCOFUE ($/barra de 6m) ───────
+  // PGU = Montante (alma) · PGC = Solera (ala)
+  // Los rendimientos en el catálogo están en ml → el sistema calcula barras automáticamente
+  'PGU70_092_6m':23471,'PGC70_092_6m':28352,   // 70mm E0.92mm
+  'PGU70_129_6m':0,'PGC70_129_6m':37867,        // 70mm E1.29mm (PGU no listado, usar 092)
+  'PGU100_092_6m':24189,'PGC100_092_6m':29173,  // 100mm E0.92mm
+  'PGU100_129_6m':31739,'PGC100_129_6m':39230,  // 100mm E1.29mm (reforzado)
+  // Precio por metro lineal (para cálculo interno: precio_barra / 6m)
+  'PGU70_092_ml':3912,'PGC70_092_ml':4725,
+  'PGU70_129_ml':5000,'PGC70_129_ml':6311,
+  'PGU100_092_ml':4032,'PGC100_092_ml':4862,
+  'PGU100_129_ml':5290,'PGC100_129_ml':6538,
+  // PERFILES GALVANIZADOS — todos los anchos ($/m)
+  'PGU35_052':1534,'PGC35_052':1360,
+  'PGU50_052':2006,'PGC50_052':1849,
+  'PGU70_052':2266,'PGC70_052':2266,
+  'PGU100_092':4004,'PGC100_092':4829,
+  'PGU100_129':5254,'PGC100_129':6494,
+  // RUNNER/SOLERA (mismos perfiles usados como solera)
+  'SOL35':1360,'SOL50':1849,'SOL70':2266,'SOL100':4829,
+  // TORNILLOS ($/100 unidades o $/unidad)
+  'torn_T1_25':28,    // Autoperforante T1 25mm (placa-perfil) $/un
+  'torn_T2_25':32,    // Autoperforante T2 25mm (perfil-perfil fino) $/un
+  'torn_T3_38':45,    // Autotaladrante T3 38mm (perfil grueso) $/un
+  'torn_wafer':25,    // Wafer 25mm terminación $/un
+  // PLACAS ($/m2)
+  'placa_yeso_12':8500,    // Placa de yeso 12mm
+  'placa_cem_10':12800,    // Placa cementicia 10mm
+  'placa_cem_12':14200,    // Placa cementicia 12mm
+  'placa_magn_10':18500,   // Placa de magnesia/OSB 10mm
+  // LANA DE VIDRIO ($/m2)
+  'lana_50mm':5316,
+  'lana_80mm':8200,
+  'lana_100mm':14964,
+  // AISLANTES / COMPLEMENTOS
+  'banda_acust':850,       // Banda acústica para soleras $/m
+  'film_barrera':808,      // Film barrera de vapor 200μ $/m2
+  'cinta_papel':320,       // Cinta de papel para juntas $/m
+  'masilla_junt':2800,     // Masilla para juntas $/kg
+  'esquinero_metalic':450, // Esquinero metálico galvanizado $/m
+  // HERRAMIENTA MENOR / EQUIPOS
+  'atornillador':3500,     // Atornillador inalámbrico $/hh (amortización + seguro)
+  'amoladora':2800,        // Amoladora 4.5" $/hh
+  'nivel_laser':1200,      // Nivel láser $/hh
+  'taladro':2200,          // Taladro percutor $/hh
+  'andamio_tubul':1800,    // Andamio tubular $/hh
+  // DEMOLICION
+  'martillo_demo':85000,   // Martillo demoledor eléctrico $/hh
+  'volquete_5m3':121180,   // Volquete 5m3 $/hh (ya estaba en CP_PRECIOS_MAT)
+  // MADERA PARA ENCOFRADO / APUNTALAMIENTO
+  'tabla_pino_1x6':840,   // Tabla pino 1"x6" $/m
+  'puntal_madera':2500,    // Puntal madera 3m $/un
+  // SELLADORES
+  'sellador_siliconico':4800,  // Sellador silicónico neutro $/320ml
+  'espuma_poliuret':6200,      // Espuma poliuretano 750ml $/un
+};
+
+// Fusionar con CP_PRECIOS_MAT al cargar
+function cpMlABarras(ml, largo_barra){
+  // Convierte metros lineales a cantidad de barras (con 10% de desperdicio)
+  largo_barra = largo_barra || 6;
+  return Math.ceil(ml * 1.10 / largo_barra);
+}
+
+function cpMergePrecios(){
+  Object.keys(CP_PRECIOS_EXTRA).forEach(function(k){
+    CP_PRECIOS_MAT[k] = CP_PRECIOS_EXTRA[k];
+  });
+  // Mapear precios de perfiles por ml (desde IMCOFUE 2026)
+  CP_PRECIOS_MAT['PGU35_052'] = 1534;   // estimado (no listado en IMCOFUE)
+  CP_PRECIOS_MAT['PGC35_052'] = 1360;
+  CP_PRECIOS_MAT['PGU50_052'] = 2006;
+  CP_PRECIOS_MAT['PGC50_052'] = 1849;
+  CP_PRECIOS_MAT['PGU70_052'] = 3912;   // IMCOFUE: PGU70x0.92 = $23.471/6m = $3.912/ml
+  CP_PRECIOS_MAT['PGC70_052'] = 4725;   // IMCOFUE: PGC70x0.92 = $28.352/6m = $4.725/ml
+  CP_PRECIOS_MAT['PGU100_092'] = 4032;  // IMCOFUE: PGU100x0.92 = $24.189/6m = $4.032/ml
+  CP_PRECIOS_MAT['PGC100_092'] = 4862;  // IMCOFUE: PGC100x0.92 = $29.173/6m = $4.862/ml
+  CP_PRECIOS_MAT['PGU100_129'] = 5290;  // IMCOFUE: PGU100x1.29 = $31.739/6m = $5.290/ml
+  CP_PRECIOS_MAT['PGC100_129'] = 6538;  // IMCOFUE: PGC100x1.29 = $39.230/6m = $6.538/ml
+  // IMPORTANTE: en el resumen de compra el sistema muestra ml
+  // El usuario ve: "PGU 70mm: 37,44 ml → necesitás 7 barras de 6m"
+  // Esta nota se muestra en cpVerResumen y PDF
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// CATÁLOGO EXTENDIDO — agregar a CP_CATALOGO
+// ═══════════════════════════════════════════════════════════════════════
+var CP_CATALOGO_EXTRA = [
+
+// ══════════════════════════════════════════════════
+// DEMOLICIÓN Y RETIROS — detalle completo
+// ══════════════════════════════════════════════════
+{cod:'D01',nom:'Demolición piso cerámico / porcelanato',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.04,esEquipo:true},
+  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'hh',rend:0.15,esEquipo:true},
+ ],
+ mo:[{rol:'ay',hh:0.5},{rol:'of',hh:0.2}]
+},
+{cod:'D02',nom:'Demolición de cielorraso (placas yeso/cemento)',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.02,esEquipo:true},
+ ],
+ mo:[{rol:'ay',hh:0.4},{rol:'of',hh:0.1}]
+},
+{cod:'D03',nom:'Demolición tabique liviano (placa+perfil)',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.02,esEquipo:true},
+ ],
+ mo:[{rol:'ay',hh:0.5},{rol:'of',hh:0.2}]
+},
+{cod:'D04',nom:'Demolición tabique de mampostería (bloques)',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[
+  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'hh',rend:0.5,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.10,esEquipo:true},
+ ],
+ mo:[{rol:'ay',hh:1.2},{rol:'of',hh:0.5}]
+},
+{cod:'D05',nom:'Picado y extracción de revoques (interior)',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[
+  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'hh',rend:0.2,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.03,esEquipo:true},
+ ],
+ mo:[{rol:'ay',hh:0.8},{rol:'of',hh:0.2}]
+},
+{cod:'D06',nom:'Demolición instalación eléctrica existente',un:'gl',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[],
+ mo:[{rol:'of',hh:8},{rol:'ay',hh:8}]
+},
+{cod:'D07',nom:'Demolición instalación sanitaria existente',un:'gl',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[
+  {id:'volquete_5m3',nom:'Volquete 5m³',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:12},{rol:'ay',hh:8}]
+},
+{cod:'D08',nom:'Retiro de carpinterías (puertas/ventanas)',un:'un',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[],
+ mo:[{rol:'of',hh:1.5},{rol:'ay',hh:1.5}]
+},
+{cod:'D09',nom:'Demolición carpeta de hormigón',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[
+  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'hh',rend:0.4,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.08,esEquipo:true},
+ ],
+ mo:[{rol:'ay',hh:1.0},{rol:'of',hh:0.3}]
+},
+{cod:'D10',nom:'Acarreo y clasificación de escombros',un:'m³',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[
+  {id:'volquete_5m3',nom:'Volquete 5m³',un:'hh',rend:0.5,esEquipo:true},
+ ],
+ mo:[{rol:'ay',hh:1.5}]
+},
+
+// ══════════════════════════════════════════════════
+// TABIQUES LIVIANOS — PGC/PGU 35mm
+// ══════════════════════════════════════════════════
+{cod:'T35A',nom:'Tabique PGC/PGU 35mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU35_052',nom:'Montante PGU 35mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC35_052',nom:'Solera PGC 35mm E0.52mm',un:'m',rend:2.2},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
+  {id:'torn_T1_25',nom:'Tornillo autoperforante T1 25mm',un:'un',rend:24},
+  {id:'torn_T2_25',nom:'Tornillo autoperforante T2 25mm (perfil-perfil)',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica soleras y montantes',un:'m',rend:4.0},
+  {id:'cinta_papel',nom:'Cinta de papel para juntas',un:'m',rend:3.5},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.8},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.8,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.2},{rol:'ay',hh:0.8}]
+},
+{cod:'T35B',nom:'Tabique PGC/PGU 35mm — 1 placa yeso c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU35_052',nom:'Montante PGU 35mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC35_052',nom:'Solera PGC 35mm E0.52mm',un:'m',rend:2.2},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
+  {id:'lana_50mm',nom:'Lana de Vidrio 50mm (con aluminio)',un:'m²',rend:1.05},
+  {id:'torn_T1_25',nom:'Tornillo autoperforante T1 25mm',un:'un',rend:24},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm (perfil-perfil)',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.5},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.8},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.9,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.4},{rol:'ay',hh:0.9}]
+},
+{cod:'T35C',nom:'Tabique PGC/PGU 35mm — 1 placa cementicia c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU35_052',nom:'Montante PGU 35mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC35_052',nom:'Solera PGC 35mm E0.52mm',un:'m',rend:2.2},
+  {id:'placa_cem_10',nom:'Placa cementicia 10mm',un:'m²',rend:2.1},
+  {id:'torn_T1_25',nom:'Tornillo autoperforante T1 25mm',un:'un',rend:28},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm (perfil-perfil)',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'malla_Q131',nom:'Malla fibra vidrio juntas (opcional)',un:'m',rend:2.0},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5" (corte placa)',un:'hh',rend:0.2,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.4},{rol:'ay',hh:1.0}]
+},
+
+// ══════════════════════════════════════════════════
+// TABIQUES LIVIANOS — PGC/PGU 50mm
+// ══════════════════════════════════════════════════
+{cod:'T50A',nom:'Tabique PGC/PGU 50mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU50_052',nom:'Montante PGU 50mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC50_052',nom:'Solera PGC 50mm E0.52mm',un:'m',rend:2.2},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.5},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.8},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.8,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.2},{rol:'ay',hh:0.8}]
+},
+{cod:'T50B',nom:'Tabique PGC/PGU 50mm — 1 placa yeso c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU50_052',nom:'Montante PGU 50mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC50_052',nom:'Solera PGC 50mm E0.52mm',un:'m',rend:2.2},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
+  {id:'lana_50mm',nom:'Lana de Vidrio 50mm',un:'m²',rend:1.05},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.5},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.8},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.9,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.4},{rol:'ay',hh:0.9}]
+},
+{cod:'T50C',nom:'Tabique PGC/PGU 50mm — 1 placa cementicia c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU50_052',nom:'Montante PGU 50mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC50_052',nom:'Solera PGC 50mm E0.52mm',un:'m',rend:2.2},
+  {id:'placa_cem_10',nom:'Placa cementicia 10mm',un:'m²',rend:2.1},
+  {id:'lana_50mm',nom:'Lana de Vidrio 50mm',un:'m²',rend:1.05},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:28},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5"',un:'hh',rend:0.2,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.5},{rol:'ay',hh:1.0}]
+},
+
+// ══════════════════════════════════════════════════
+// TABIQUES LIVIANOS — PGC/PGU 70mm
+// ══════════════════════════════════════════════════
+{cod:'T70A',nom:'Tabique PGC/PGU 70mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU70_052',nom:'Montante PGU 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC70_052',nom:'Solera PGC 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.5},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.8},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.8,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.3},{rol:'ay',hh:0.9}]
+},
+{cod:'T70B',nom:'Tabique PGC/PGU 70mm — 1 placa yeso c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU70_052',nom:'Montante PGU 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC70_052',nom:'Solera PGC 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
+  {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.5},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.8},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.9,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.5},{rol:'ay',hh:1.0}]
+},
+{cod:'T70C',nom:'Tabique PGC/PGU 70mm — doble placa yeso c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU70_052',nom:'Montante PGU 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC70_052',nom:'Solera PGC 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm (doble c/lado)',un:'m²',rend:4.2},
+  {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm (1ra placa)',un:'un',rend:24},
+  {id:'torn_T1_25',nom:'Tornillo T1 42mm (2da placa)',un:'un',rend:24},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm (perfil-perfil)',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:5.0},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:1.2},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.2,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.8},{rol:'ay',hh:1.2}]
+},
+{cod:'T70D',nom:'Tabique PGC/PGU 70mm — 1 placa cementicia c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU70_052',nom:'Montante PGU 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC70_052',nom:'Solera PGC 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'placa_cem_12',nom:'Placa cementicia 12mm',un:'m²',rend:2.1},
+  {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:28},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5"',un:'hh',rend:0.3,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.6},{rol:'ay',hh:1.1}]
+},
+
+// ══════════════════════════════════════════════════
+// TABIQUES LIVIANOS — PGC/PGU 100mm
+// ══════════════════════════════════════════════════
+{cod:'T100A',nom:'Tabique PGC/PGU 100mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU100_092',nom:'Montante PGU 100mm E0.92mm',un:'m',rend:3.2},
+  {id:'PGC100_092',nom:'Solera PGC 100mm E0.92mm',un:'m',rend:2.2},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:28},
+  {id:'torn_T3_38',nom:'Tornillo autotaladrante T3 38mm (perfil grueso)',un:'un',rend:10},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.5},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.8},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.4},{rol:'ay',hh:1.0}]
+},
+{cod:'T100B',nom:'Tabique PGC/PGU 100mm — 1 placa yeso c/lado + lana vidrio 100mm',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU100_092',nom:'Montante PGU 100mm E0.92mm',un:'m',rend:3.2},
+  {id:'PGC100_092',nom:'Solera PGC 100mm E0.92mm',un:'m',rend:2.2},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
+  {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:28},
+  {id:'torn_T3_38',nom:'Tornillo T3 38mm (perfil grueso)',un:'un',rend:10},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.5},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.8},
+  {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.05},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.6},{rol:'ay',hh:1.1}]
+},
+{cod:'T100C',nom:'Tabique PGC/PGU 100mm — doble placa cementicia c/lado + lana vidrio 100mm',un:'m²',cat:'TABIQUES LIVIANOS',
+ mats:[
+  {id:'PGU100_129',nom:'Montante PGU 100mm E1.29mm (reforzado)',un:'m',rend:3.2},
+  {id:'PGC100_129',nom:'Solera PGC 100mm E1.29mm (reforzado)',un:'m',rend:2.2},
+  {id:'placa_cem_12',nom:'Placa cementicia 12mm (doble c/lado)',un:'m²',rend:4.2},
+  {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
+  {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.05},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm (1ra placa)',un:'un',rend:28},
+  {id:'torn_T3_38',nom:'Tornillo T3 38mm (2da placa + perfil grueso)',un:'un',rend:32},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.4,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5" (corte placa)',un:'hh',rend:0.3,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:2.0},{rol:'ay',hh:1.4}]
+},
+
+// ══════════════════════════════════════════════════
+// CIELORRASO LIVIANO — PGC/PGU
+// ══════════════════════════════════════════════════
+{cod:'CR01',nom:'Cielorraso PGU 35mm — 1 placa yeso (sin aislación)',un:'m²',cat:'CIELORRASO LIVIANO',
+ mats:[
+  {id:'PGU35_052',nom:'Montante PGU 35mm (estructura horizontal)',un:'m',rend:4.0},
+  {id:'PGC35_052',nom:'Solera PGC 35mm (perímetro)',un:'m',rend:1.5},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:1.05},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:18},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm (perfil-perfil)',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica perímetro',un:'m',rend:1.5},
+  {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:2.0},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.6},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.9,esEquipo:true},
+  {id:'andamio_tubul',nom:'Andamio tubular',un:'hh',rend:1.0,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.15,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.5},{rol:'ay',hh:1.2}]
+},
+{cod:'CR02',nom:'Cielorraso PGU 35mm — 1 placa yeso + lana vidrio 50mm (aislación térmica)',un:'m²',cat:'CIELORRASO LIVIANO',
+ mats:[
+  {id:'PGU35_052',nom:'Montante PGU 35mm',un:'m',rend:4.0},
+  {id:'PGC35_052',nom:'Solera PGC 35mm (perímetro)',un:'m',rend:1.5},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:1.05},
+  {id:'lana_50mm',nom:'Lana de Vidrio 50mm',un:'m²',rend:1.05},
+  {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.05},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:18},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica perímetro',un:'m',rend:1.5},
+  {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:2.0},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.6},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
+  {id:'andamio_tubul',nom:'Andamio tubular',un:'hh',rend:1.2,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.15,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.8},{rol:'ay',hh:1.4}]
+},
+{cod:'CR03',nom:'Cielorraso PGU 35mm — 1 placa cementicia (zona húmeda)',un:'m²',cat:'CIELORRASO LIVIANO',
+ mats:[
+  {id:'PGU35_052',nom:'Montante PGU 35mm',un:'m',rend:4.0},
+  {id:'PGC35_052',nom:'Solera PGC 35mm (perímetro)',un:'m',rend:1.5},
+  {id:'placa_cem_10',nom:'Placa cementicia 10mm',un:'m²',rend:1.05},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:22},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
+  {id:'banda_acust',nom:'Banda acústica perímetro',un:'m',rend:1.5},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5"',un:'hh',rend:0.2,esEquipo:true},
+  {id:'andamio_tubul',nom:'Andamio tubular',un:'hh',rend:1.2,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.15,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.6},{rol:'ay',hh:1.3}]
+},
+
+// ══════════════════════════════════════════════════
+// CERRAMIENTO DE VANOS
+// ══════════════════════════════════════════════════
+{cod:'CV01',nom:'Cerramiento vano con tabique PGC/PGU 70mm — yeso + lana 80mm',un:'m²',cat:'CERRAMIENTO DE VANOS',
+ mats:[
+  {id:'PGU70_052',nom:'Montante PGU 70mm',un:'m',rend:3.5},
+  {id:'PGC70_052',nom:'Solera PGC 70mm (perímetro vano)',un:'m',rend:2.5},
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
+  {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:26},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:10},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:5.0},
+  {id:'espuma_poliuret',nom:'Espuma poliuretano (sello perímetro)',un:'un',rend:0.3},
+  {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.5},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.8},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.15,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.8},{rol:'ay',hh:1.2}]
+},
+{cod:'CV02',nom:'Cerramiento vano con tabique PGC/PGU 100mm — cementicia + lana 100mm',un:'m²',cat:'CERRAMIENTO DE VANOS',
+ mats:[
+  {id:'PGU100_092',nom:'Montante PGU 100mm E0.92mm',un:'m',rend:3.5},
+  {id:'PGC100_092',nom:'Solera PGC 100mm E0.92mm',un:'m',rend:2.5},
+  {id:'placa_cem_12',nom:'Placa cementicia 12mm',un:'m²',rend:2.1},
+  {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
+  {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.05},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:28},
+  {id:'torn_T3_38',nom:'Tornillo T3 38mm (perfil grueso)',un:'un',rend:12},
+  {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:5.0},
+  {id:'espuma_poliuret',nom:'Espuma poliuretano (sello perímetro)',un:'un',rend:0.3},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.2,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5"',un:'hh',rend:0.3,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.15,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:2.0},{rol:'ay',hh:1.4}]
+},
+{cod:'CV03',nom:'Cerramiento vano — tapado con mampostería de bloques',un:'m²',cat:'CERRAMIENTO DE VANOS',
+ mats:[
+  {id:'bloque_19x40',nom:'Bloque H° 19x19x40',un:'un',rend:13},
+  {id:'cemento',nom:'Cemento portland',un:'kg',rend:12},
+  {id:'arena',nom:'Arena',un:'m³',rend:0.03},
+  {id:'fe6',nom:'Fe ø6 (encadenado horizontal)',un:'m',rend:4},
+  {id:'H21',nom:'Hormigón H21 (viga encadenado)',un:'m³',rend:0.02},
+  {id:'martillo_demo',nom:'Martillo demoledor (ranura anclaje)',un:'hh',rend:0.2,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:3.5},{rol:'ay',hh:2.0}]
+},
+{cod:'CV04',nom:'Colocación de marco y puerta (vano nuevo o existente)',un:'un',cat:'CERRAMIENTO DE VANOS',
+ mats:[
+  {id:'espuma_poliuret',nom:'Espuma poliuretano 750ml',un:'un',rend:1.5},
+  {id:'sellador_siliconico',nom:'Sellador silicónico neutro 320ml',un:'un',rend:1.0},
+  {id:'torn_T3_38',nom:'Tornillo autotaladrante T3 (fijación marco)',un:'un',rend:12},
+  {id:'taladro',nom:'Taladro percutor',un:'hh',rend:0.3,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:3.0},{rol:'ay',hh:2.0}]
+},
+{cod:'CV05',nom:'Colocación de ventana (marco aluminio, vano existente)',un:'un',cat:'CERRAMIENTO DE VANOS',
+ mats:[
+  {id:'espuma_poliuret',nom:'Espuma poliuretano 750ml',un:'un',rend:1.0},
+  {id:'sellador_siliconico',nom:'Sellador silicónico neutro 320ml',un:'un',rend:2.0},
+  {id:'torn_T3_38',nom:'Tornillo autotaladrante T3 (fijación)',un:'un',rend:8},
+  {id:'taladro',nom:'Taladro percutor',un:'hh',rend:0.3,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:2.5},{rol:'ay',hh:1.5}]
+},
+
+// ══════════════════════════════════════════════════
+// REVESTIMIENTO EXTERIOR — muros steel framing
+// ══════════════════════════════════════════════════
+{cod:'RE01',nom:'Revestimiento exterior — chapa galvanizada N25 sobre PGU',un:'m²',cat:'REVESTIMIENTO EXTERIOR',
+ mats:[
+  {id:'PGU35_052',nom:'Montante PGU 35mm (subestructura)',un:'m',rend:3.0},
+  {id:'chapa_galv_N25',nom:'Chapa Galvanizada Lisa N25 (0.5mm)',un:'m²',rend:1.10},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:16},
+  {id:'torn_wafer',nom:'Tornillo Wafer autotaladrante (chapa)',un:'un',rend:12},
+  {id:'sellador_siliconico',nom:'Sellador silicónico (juntas)',un:'un',rend:0.3},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.5,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5" (corte chapa)',un:'hh',rend:0.2,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:0.8},{rol:'ay',hh:0.6}]
+},
+{cod:'RE02',nom:'Revestimiento exterior — lana vidrio 100mm + barrera vapor + chapa',un:'m²',cat:'REVESTIMIENTO EXTERIOR',
+ mats:[
+  {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
+  {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.10},
+  {id:'chapa_galv_N25',nom:'Chapa Galvanizada Lisa N25',un:'m²',rend:1.10},
+  {id:'PGU35_052',nom:'Montante PGU 35mm (subestructura)',un:'m',rend:3.0},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:16},
+  {id:'torn_wafer',nom:'Tornillo Wafer (chapa)',un:'un',rend:12},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.7,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5"',un:'hh',rend:0.2,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.2},{rol:'ay',hh:0.9}]
+},
+];
+
+
+// Fusionar catálogos y precios
+CP_CATALOGO = CP_CATALOGO.concat(CP_CATALOGO_EXTRA);
+
+
 
 /* ══ MÓDULO CÓMPUTO Y PRESUPUESTO v7 ══════════════════════════════════ */
 var CP_OBRA_ID=null,CP_RUBROS=[],CP_NID=1;
+cpMergePrecios();
 function cpNID(){return 'n'+(CP_NID++);}
 
 function cpCalcPU(cat){
@@ -4450,7 +4985,15 @@ function cpVerResumen(){
     if(!arr.length)return'';
     return'<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:700;color:'+color+';text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">'+tit+'</div>'
       +'<table style="width:100%;font-size:10px;border-collapse:collapse"><thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:3px 5px">Descripci\u00f3n</th><th style="text-align:center;padding:3px 5px">Un</th><th style="text-align:right;padding:3px 5px">Cantidad</th><th style="text-align:right;padding:3px 5px">$/un</th><th style="text-align:right;padding:3px 5px">Subtotal</th></tr></thead><tbody>'
-      +arr.map(function(m){return'<tr style="border-bottom:1px solid var(--br)"><td style="padding:3px 5px">'+m.nom+'</td><td style="text-align:center;padding:3px 5px;color:var(--tx3)">'+m.un+'</td><td style="text-align:right;padding:3px 5px;font-weight:600">'+m.cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td style="text-align:right;padding:3px 5px;color:var(--tx3)">$'+m.pu.toLocaleString()+'</td><td style="text-align:right;padding:3px 5px;font-weight:700;color:'+color+'">$'+m.sub.toLocaleString()+'</td></tr>';}).join('')
+      +arr.map(function(m){
+        var extras='';
+        // Para perfiles (ml): mostrar barras necesarias
+        if(m.un==='m'||m.un==='ml'){
+          var barras=Math.ceil(m.cant*1.10/6);
+          extras='<span style="font-size:9px;color:var(--tx3);margin-left:4px">('+barras+' barras 6m c/10%)</span>';
+        }
+        return'<tr style="border-bottom:1px solid var(--br)"><td style="padding:3px 5px">'+m.nom+extras+'</td><td style="text-align:center;padding:3px 5px;color:var(--tx3)">'+m.un+'</td><td style="text-align:right;padding:3px 5px;font-weight:600">'+m.cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td style="text-align:right;padding:3px 5px;color:var(--tx3)">$'+m.pu.toLocaleString()+'</td><td style="text-align:right;padding:3px 5px;font-weight:700;color:'+color+'">$'+m.sub.toLocaleString()+'</td></tr>';
+      }).join('')
       +'</tbody></table></div>';
   }
   var mArr=Object.values(matMap).filter(function(m){return!m.esEquipo&&!m.isMO;});
