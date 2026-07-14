@@ -318,6 +318,7 @@ input,select,textarea,button{font-family:var(--font)}
     <button class="nb" onclick="goTo('honorarios',this)">Honorarios</button>
     <button class="nb" onclick="goTo('motor',this)">Motor Hon.</button>
     <button class="nb" onclick="goTo('computo',this)">Cómputo</button>
+    <button class="nb" onclick="goTo('sistemas',this)">Sistemas</button>
     <button class="nb" onclick="goTo('precios',this)">Precios</button>
     <button class="nb" onclick="goTo('config',this)">Config</button>
     <button class="nb" id="nb-admin" onclick="goTo('admin',this)" style="display:none;color:var(--rt)">Admin</button>
@@ -612,6 +613,56 @@ input,select,textarea,button{font-family:var(--font)}
       <button onclick="document.getElementById('cp-resumen-card').style.display='none'" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:18px">×</button>
     </div>
     <div id="cp-resumen"></div>
+  </div>
+</section>
+<section id="s-sistemas" class="scr">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <div><div class="pgt">Sistemas Constructivos</div>
+    <div class="pgs">Arm&#225; cada muro, tabique, piso o techo capa por capa &#183; de afuera hacia adentro</div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <select id="sc-tipo" class="fis" style="font-size:11px" onchange="scFiltrar(this.value)">
+        <option value="">Todos los tipos</option>
+        <option value="MURO">Muros</option><option value="TABIQUE">Tabiques</option>
+        <option value="PISO">Pisos</option><option value="TECHO">Techos</option>
+        <option value="CIELORRASO">Cielorrasos</option><option value="ESTRUCTURA">Estructuras</option>
+      </select>
+      <button class="btn" style="background:var(--gt);color:#fff;font-size:11px;padding:6px 12px" onclick="scNuevo()">+ Nuevo sistema</button>
+      <button class="btn" style="background:var(--bt);color:#fff;font-size:11px;padding:6px 12px" onclick="scGuardar()">&#128190; Guardar</button>
+    </div>
+  </div>
+  <div id="sc-lista"></div>
+  <div id="sc-editor" style="display:none">
+    <div class="card" style="border:1px solid var(--bt)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="csec" style="margin:0">Constructor de Sistema — capa por capa</div>
+        <button onclick="scCerrarEditor()" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:20px">&#215;</button>
+      </div>
+      <div class="g4" style="margin-bottom:14px">
+        <div class="fg"><label class="fl">Nombre del sistema</label>
+          <input class="fi" id="sc-nom" type="text" placeholder="Ej: Muro ext. mampost&#233;ria + durlock int." style="font-size:12px;font-weight:600"></div>
+        <div class="fg"><label class="fl">Tipo</label>
+          <select class="fis" id="sc-tipo-ed" style="font-size:11px">
+            <option value="MURO">Muro</option><option value="TABIQUE">Tabique</option>
+            <option value="PISO">Piso</option><option value="TECHO">Techo</option>
+            <option value="CIELORRASO">Cielorraso</option><option value="ESTRUCTURA">Estructura</option>
+          </select></div>
+        <div class="fg"><label class="fl">Espesor total estimado</label>
+          <div class="pw"><input class="pi" type="number" id="sc-esp" placeholder="ej: 250" min="0" step="5"><span class="pu">mm</span></div></div>
+        <div class="fg"><label class="fl">Descripci&#243;n / Nota</label>
+          <input class="fi" id="sc-nota" type="text" placeholder="Notas adicionales" style="font-size:11px"></div>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Capas &#8212; de afuera hacia adentro</div>
+      <div id="sc-capas"></div>
+      <button onclick="scAgregarCapa()" style="width:100%;font-size:11px;background:none;border:1px dashed var(--bt);color:var(--bt);padding:8px;border-radius:5px;cursor:pointer;margin-top:6px">+ Agregar capa</button>
+      <div id="sc-totales" style="margin-top:14px;background:var(--bg);border-radius:6px;padding:10px;display:none">
+        <div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Resumen de materiales por m&#178;</div>
+        <div id="sc-totales-tabla"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button onclick="scCalcular()" class="btn" style="background:var(--gt);color:#fff;flex:1;font-size:12px;padding:10px">Calcular sistema</button>
+        <button onclick="scGuardarSistema()" class="btn" style="background:var(--bt);color:#fff;flex:1;font-size:12px;padding:10px">&#128190; Guardar sistema</button>
+      </div>
+    </div>
   </div>
 </section>
 <section id="s-precios" class="scr">
@@ -1984,6 +2035,7 @@ function goTo(id,btn,sb){
   if(sb)sb.classList.add('on');
   document.getElementById('main').scrollTop=0;
   if(id==='motor')motorInit();
+  if(id==='sistemas'){scFiltrar('');}
   if(id==='precios')prRender();
   if(id==='config'){setTimeout(function(){loadEmpresaToForm();actualizarUIEmpresa();},60);}
 }
@@ -2820,7 +2872,7 @@ var PLANES = {
     precio_mensual: 25,
     precio_anual: 200,
     color:'var(--golt)',
-    modulos:['dashboard','clientes','obras','honorarios','motor','computo','precios','config'],
+    modulos:['dashboard','clientes','obras','honorarios','motor','computo','sistemas','precios','config'],
     descripcion:'Todo Base + Cómputo + Materiales + Mano de obra + Presupuesto de obra'
   },
   admin: {
@@ -3778,7 +3830,7 @@ var CP_PRECIOS_MAT = {
   'arena':76000,'arena_mixta':76000,'relleno_sel':47700,'relleno_com':35800,
   'piedra_bola':57800,'piedra_grill':76600,'piedra_trit':100000,'piedra_laja':40311,
   // PERFILES GALVANIZADOS ($/m)
-  'PGU100_092':4004,'PGC100_092':4829,'PGU100_129':5254,'PGC100_129':6494,
+  'PGC100_092_mont':4004,'PGU100_092_sol':4829,'PGU100_129':5254,'PGC100_129':6494,
   'mont70':2006,'sol70':1849,'mont35':1534,'sol35':1360,
   'mont100':2266,'sol100':2266,
   // HIERRO NEGRO ($/m)
@@ -3844,7 +3896,7 @@ var CP_CATALOGO = [
  cat:'TRABAJOS PRELIMINARES',
  mats:[
   {id:'chapa_galv_N25',nom:'Chapa Galvanizada Lisa N25 (0,5mm)',un:'m²',rend:1.5},
-  {id:'PGC100_092',nom:'PGC 100x0.92mm',un:'m',rend:17},
+  {id:'PGU100_092_sol',nom:'PGC 100x0.92mm',un:'m',rend:17},
   {id:'PGU100_129',nom:'PGU 100x1.29mm',un:'m',rend:6},
   {id:'H13',nom:'Hormigón H13',un:'m³',rend:0.07},
  ],
@@ -3854,7 +3906,7 @@ var CP_CATALOGO = [
  cat:'TRABAJOS PRELIMINARES',
  mats:[
   {id:'chapa_galv_N25',nom:'Chapa Galvanizada Lisa N25 (0,5mm)',un:'m²',rend:7},
-  {id:'PGC100_092',nom:'PGC 100x0.92mm',un:'m',rend:25},
+  {id:'PGU100_092_sol',nom:'PGC 100x0.92mm',un:'m',rend:25},
   {id:'PGU100_129',nom:'PGU 100x1.29mm',un:'m',rend:13},
   {id:'H13',nom:'Hormigón H13',un:'m³',rend:0.51},
  ],
@@ -4280,8 +4332,8 @@ var CP_PRECIOS_EXTRA = {
   // PERFILES GALVANIZADOS — todos los anchos ($/m)
   'PGU35_052':1534,'PGC35_052':1360,
   'PGU50_052':2006,'PGC50_052':1849,
-  'PGU70_052':2266,'PGC70_052':2266,
-  'PGU100_092':4004,'PGC100_092':4829,
+  'PGC70_052_mont':2266,'PGU70_052_sol':2266,
+  'PGC100_092_mont':4004,'PGU100_092_sol':4829,
   'PGU100_129':5254,'PGC100_129':6494,
   // RUNNER/SOLERA (mismos perfiles usados como solera)
   'SOL35':1360,'SOL50':1849,'SOL70':2266,'SOL100':4829,
@@ -4338,10 +4390,10 @@ function cpMergePrecios(){
   CP_PRECIOS_MAT['PGC35_052'] = 1360;
   CP_PRECIOS_MAT['PGU50_052'] = 2006;
   CP_PRECIOS_MAT['PGC50_052'] = 1849;
-  CP_PRECIOS_MAT['PGU70_052'] = 3912;   // IMCOFUE: PGU70x0.92 = $23.471/6m = $3.912/ml
-  CP_PRECIOS_MAT['PGC70_052'] = 4725;   // IMCOFUE: PGC70x0.92 = $28.352/6m = $4.725/ml
-  CP_PRECIOS_MAT['PGU100_092'] = 4032;  // IMCOFUE: PGU100x0.92 = $24.189/6m = $4.032/ml
-  CP_PRECIOS_MAT['PGC100_092'] = 4862;  // IMCOFUE: PGC100x0.92 = $29.173/6m = $4.862/ml
+  CP_PRECIOS_MAT['PGC70_052_mont'] = 3912;   // IMCOFUE: PGU70x0.92 = $23.471/6m = $3.912/ml
+  CP_PRECIOS_MAT['PGU70_052_sol'] = 4725;   // IMCOFUE: PGC70x0.92 = $28.352/6m = $4.725/ml
+  CP_PRECIOS_MAT['PGC100_092_mont'] = 4032;  // IMCOFUE: PGU100x0.92 = $24.189/6m = $4.032/ml
+  CP_PRECIOS_MAT['PGU100_092_sol'] = 4862;  // IMCOFUE: PGC100x0.92 = $29.173/6m = $4.862/ml
   CP_PRECIOS_MAT['PGU100_129'] = 5290;  // IMCOFUE: PGU100x1.29 = $31.739/6m = $5.290/ml
   CP_PRECIOS_MAT['PGC100_129'] = 6538;  // IMCOFUE: PGC100x1.29 = $39.230/6m = $6.538/ml
   // IMPORTANTE: en el resumen de compra el sistema muestra ml
@@ -4423,8 +4475,8 @@ var CP_CATALOGO_EXTRA = [
 // ══════════════════════════════════════════════════
 {cod:'T35A',nom:'Tabique PGC/PGU 35mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGU 35mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC35_052',nom:'Solera PGC 35mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU35_052',nom:'Montante PGC 35mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC35_052',nom:'Solera PGU 35mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'torn_T1_25',nom:'Tornillo autoperforante T1 25mm',un:'un',rend:24},
   {id:'torn_T2_25',nom:'Tornillo autoperforante T2 25mm (perfil-perfil)',un:'un',rend:8},
@@ -4438,8 +4490,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'T35B',nom:'Tabique PGC/PGU 35mm — 1 placa yeso c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGU 35mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC35_052',nom:'Solera PGC 35mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU35_052',nom:'Montante PGC 35mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC35_052',nom:'Solera PGU 35mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'lana_50mm',nom:'Lana de Vidrio 50mm (con aluminio)',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo autoperforante T1 25mm',un:'un',rend:24},
@@ -4454,8 +4506,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'T35C',nom:'Tabique PGC/PGU 35mm — 1 placa cementicia c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGU 35mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC35_052',nom:'Solera PGC 35mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU35_052',nom:'Montante PGC 35mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC35_052',nom:'Solera PGU 35mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_cem_10',nom:'Placa cementicia 10mm',un:'m²',rend:2.1},
   {id:'torn_T1_25',nom:'Tornillo autoperforante T1 25mm',un:'un',rend:28},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm (perfil-perfil)',un:'un',rend:8},
@@ -4473,8 +4525,8 @@ var CP_CATALOGO_EXTRA = [
 // ══════════════════════════════════════════════════
 {cod:'T50A',nom:'Tabique PGC/PGU 50mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU50_052',nom:'Montante PGU 50mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC50_052',nom:'Solera PGC 50mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU50_052',nom:'Montante PGC 50mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC50_052',nom:'Solera PGU 50mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
@@ -4488,8 +4540,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'T50B',nom:'Tabique PGC/PGU 50mm — 1 placa yeso c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU50_052',nom:'Montante PGU 50mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC50_052',nom:'Solera PGC 50mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU50_052',nom:'Montante PGC 50mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC50_052',nom:'Solera PGU 50mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'lana_50mm',nom:'Lana de Vidrio 50mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
@@ -4504,8 +4556,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'T50C',nom:'Tabique PGC/PGU 50mm — 1 placa cementicia c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU50_052',nom:'Montante PGU 50mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC50_052',nom:'Solera PGC 50mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU50_052',nom:'Montante PGC 50mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC50_052',nom:'Solera PGU 50mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_cem_10',nom:'Placa cementicia 10mm',un:'m²',rend:2.1},
   {id:'lana_50mm',nom:'Lana de Vidrio 50mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:28},
@@ -4523,8 +4575,8 @@ var CP_CATALOGO_EXTRA = [
 // ══════════════════════════════════════════════════
 {cod:'T70A',nom:'Tabique PGC/PGU 70mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU70_052',nom:'Montante PGU 70mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC70_052',nom:'Solera PGC 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGC70_052_mont',nom:'Montante PGC 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGU70_052_sol',nom:'Solera PGU 70mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
@@ -4538,8 +4590,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'T70B',nom:'Tabique PGC/PGU 70mm — 1 placa yeso c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU70_052',nom:'Montante PGU 70mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC70_052',nom:'Solera PGC 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGC70_052_mont',nom:'Montante PGC 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGU70_052_sol',nom:'Solera PGU 70mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
@@ -4554,8 +4606,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'T70C',nom:'Tabique PGC/PGU 70mm — doble placa yeso c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU70_052',nom:'Montante PGU 70mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC70_052',nom:'Solera PGC 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGC70_052_mont',nom:'Montante PGC 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGU70_052_sol',nom:'Solera PGU 70mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm (doble c/lado)',un:'m²',rend:4.2},
   {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm (1ra placa)',un:'un',rend:24},
@@ -4571,8 +4623,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'T70D',nom:'Tabique PGC/PGU 70mm — 1 placa cementicia c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU70_052',nom:'Montante PGU 70mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC70_052',nom:'Solera PGC 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGC70_052_mont',nom:'Montante PGC 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGU70_052_sol',nom:'Solera PGU 70mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_cem_12',nom:'Placa cementicia 12mm',un:'m²',rend:2.1},
   {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:28},
@@ -4590,8 +4642,8 @@ var CP_CATALOGO_EXTRA = [
 // ══════════════════════════════════════════════════
 {cod:'T100A',nom:'Tabique PGC/PGU 100mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU100_092',nom:'Montante PGU 100mm E0.92mm',un:'m',rend:3.2},
-  {id:'PGC100_092',nom:'Solera PGC 100mm E0.92mm',un:'m',rend:2.2},
+  {id:'PGC100_092_mont',nom:'Montante PGC 100mm E0.92mm',un:'m',rend:3.2},
+  {id:'PGU100_092_sol',nom:'Solera PGU 100mm E0.92mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:28},
   {id:'torn_T3_38',nom:'Tornillo autotaladrante T3 38mm (perfil grueso)',un:'un',rend:10},
@@ -4605,8 +4657,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'T100B',nom:'Tabique PGC/PGU 100mm — 1 placa yeso c/lado + lana vidrio 100mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU100_092',nom:'Montante PGU 100mm E0.92mm',un:'m',rend:3.2},
-  {id:'PGC100_092',nom:'Solera PGC 100mm E0.92mm',un:'m',rend:2.2},
+  {id:'PGC100_092_mont',nom:'Montante PGC 100mm E0.92mm',un:'m',rend:3.2},
+  {id:'PGU100_092_sol',nom:'Solera PGU 100mm E0.92mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:28},
@@ -4622,8 +4674,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'T100C',nom:'Tabique PGC/PGU 100mm — doble placa cementicia c/lado + lana vidrio 100mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU100_129',nom:'Montante PGU 100mm E1.29mm (reforzado)',un:'m',rend:3.2},
-  {id:'PGC100_129',nom:'Solera PGC 100mm E1.29mm (reforzado)',un:'m',rend:2.2},
+  {id:'PGU100_129',nom:'Montante PGC 100mm E1.29mm (reforzado)',un:'m',rend:3.2},
+  {id:'PGC100_129',nom:'Solera PGU 100mm E1.29mm (reforzado)',un:'m',rend:2.2},
   {id:'placa_cem_12',nom:'Placa cementicia 12mm (doble c/lado)',un:'m²',rend:4.2},
   {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
   {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.05},
@@ -4642,8 +4694,8 @@ var CP_CATALOGO_EXTRA = [
 // ══════════════════════════════════════════════════
 {cod:'CR01',nom:'Cielorraso PGU 35mm — 1 placa yeso (sin aislación)',un:'m²',cat:'CIELORRASO LIVIANO',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGU 35mm (estructura horizontal)',un:'m',rend:4.0},
-  {id:'PGC35_052',nom:'Solera PGC 35mm (perímetro)',un:'m',rend:1.5},
+  {id:'PGU35_052',nom:'Montante PGC 35mm (estructura horizontal)',un:'m',rend:4.0},
+  {id:'PGC35_052',nom:'Solera PGU 35mm (perímetro)',un:'m',rend:1.5},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:18},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm (perfil-perfil)',un:'un',rend:8},
@@ -4658,8 +4710,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'CR02',nom:'Cielorraso PGU 35mm — 1 placa yeso + lana vidrio 50mm (aislación térmica)',un:'m²',cat:'CIELORRASO LIVIANO',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGU 35mm',un:'m',rend:4.0},
-  {id:'PGC35_052',nom:'Solera PGC 35mm (perímetro)',un:'m',rend:1.5},
+  {id:'PGU35_052',nom:'Montante PGC 35mm',un:'m',rend:4.0},
+  {id:'PGC35_052',nom:'Solera PGU 35mm (perímetro)',un:'m',rend:1.5},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:1.05},
   {id:'lana_50mm',nom:'Lana de Vidrio 50mm',un:'m²',rend:1.05},
   {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.05},
@@ -4676,8 +4728,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'CR03',nom:'Cielorraso PGU 35mm — 1 placa cementicia (zona húmeda)',un:'m²',cat:'CIELORRASO LIVIANO',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGU 35mm',un:'m',rend:4.0},
-  {id:'PGC35_052',nom:'Solera PGC 35mm (perímetro)',un:'m',rend:1.5},
+  {id:'PGU35_052',nom:'Montante PGC 35mm',un:'m',rend:4.0},
+  {id:'PGC35_052',nom:'Solera PGU 35mm (perímetro)',un:'m',rend:1.5},
   {id:'placa_cem_10',nom:'Placa cementicia 10mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:22},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
@@ -4695,8 +4747,8 @@ var CP_CATALOGO_EXTRA = [
 // ══════════════════════════════════════════════════
 {cod:'CV01',nom:'Cerramiento vano con tabique PGC/PGU 70mm — yeso + lana 80mm',un:'m²',cat:'CERRAMIENTO DE VANOS',
  mats:[
-  {id:'PGU70_052',nom:'Montante PGU 70mm',un:'m',rend:3.5},
-  {id:'PGC70_052',nom:'Solera PGC 70mm (perímetro vano)',un:'m',rend:2.5},
+  {id:'PGC70_052_mont',nom:'Montante PGC 70mm',un:'m',rend:3.5},
+  {id:'PGU70_052_sol',nom:'Solera PGU 70mm (perímetro vano)',un:'m',rend:2.5},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:26},
@@ -4712,8 +4764,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'CV02',nom:'Cerramiento vano con tabique PGC/PGU 100mm — cementicia + lana 100mm',un:'m²',cat:'CERRAMIENTO DE VANOS',
  mats:[
-  {id:'PGU100_092',nom:'Montante PGU 100mm E0.92mm',un:'m',rend:3.5},
-  {id:'PGC100_092',nom:'Solera PGC 100mm E0.92mm',un:'m',rend:2.5},
+  {id:'PGC100_092_mont',nom:'Montante PGC 100mm E0.92mm',un:'m',rend:3.5},
+  {id:'PGU100_092_sol',nom:'Solera PGU 100mm E0.92mm',un:'m',rend:2.5},
   {id:'placa_cem_12',nom:'Placa cementicia 12mm',un:'m²',rend:2.1},
   {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
   {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.05},
@@ -4762,7 +4814,7 @@ var CP_CATALOGO_EXTRA = [
 // ══════════════════════════════════════════════════
 {cod:'RE01',nom:'Revestimiento exterior — chapa galvanizada N25 sobre PGU',un:'m²',cat:'REVESTIMIENTO EXTERIOR',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGU 35mm (subestructura)',un:'m',rend:3.0},
+  {id:'PGU35_052',nom:'Montante PGC 35mm (subestructura)',un:'m',rend:3.0},
   {id:'chapa_galv_N25',nom:'Chapa Galvanizada Lisa N25 (0.5mm)',un:'m²',rend:1.10},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:16},
   {id:'torn_wafer',nom:'Tornillo Wafer autotaladrante (chapa)',un:'un',rend:12},
@@ -4777,7 +4829,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
   {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.10},
   {id:'chapa_galv_N25',nom:'Chapa Galvanizada Lisa N25',un:'m²',rend:1.10},
-  {id:'PGU35_052',nom:'Montante PGU 35mm (subestructura)',un:'m',rend:3.0},
+  {id:'PGU35_052',nom:'Montante PGC 35mm (subestructura)',un:'m',rend:3.0},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:16},
   {id:'torn_wafer',nom:'Tornillo Wafer (chapa)',un:'un',rend:12},
   {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.7,esEquipo:true},
@@ -5161,28 +5213,28 @@ var PR_DATA = [
 {cod:'212',nom:'Piedra Triturada',cat:'AGREGADOS',un:'m³',pu:100000,medida:'m³',fuente:'MASCIOTRA',modif:0},
 {cod:'213',nom:'Piedra Laja Negra Irregular tipo pirca',cat:'AGREGADOS',un:'m²',pu:40311,medida:'m²',fuente:'IMCOFUE',modif:0},
 // ── PERFILES GALVANIZADOS (fuente: IMCOFUE — precio por ml calculado de barra 6m) ──
-{cod:'301',nom:'PGU 100x0.92mm (Montante)',cat:'PERFILES GALVANIZADOS',un:'m',pu:4004,medida:'barra 6m = $24.024',fuente:'IMCOFUE',modif:0},
-{cod:'302',nom:'PGC 100x0.92mm (Solera)',cat:'PERFILES GALVANIZADOS',un:'m',pu:4862,medida:'barra 6m = $29.173',fuente:'IMCOFUE',modif:0},
-{cod:'303',nom:'PGU 100x1.29mm (Montante reforzado)',cat:'PERFILES GALVANIZADOS',un:'m',pu:5290,medida:'barra 6m = $31.739',fuente:'IMCOFUE',modif:0},
-{cod:'304',nom:'PGC 100x1.29mm (Solera reforzada)',cat:'PERFILES GALVANIZADOS',un:'m',pu:6538,medida:'barra 6m = $39.230',fuente:'IMCOFUE',modif:0},
-{cod:'305',nom:'PGU 70x0.92mm (Montante)',cat:'PERFILES GALVANIZADOS',un:'m',pu:3912,medida:'barra 6m = $23.471',fuente:'IMCOFUE',modif:0},
-{cod:'306',nom:'PGC 70x0.92mm (Solera)',cat:'PERFILES GALVANIZADOS',un:'m',pu:4725,medida:'barra 6m = $28.352',fuente:'IMCOFUE',modif:0},
-{cod:'307',nom:'PGU 150x0.9mm (Montante)',cat:'PERFILES GALVANIZADOS',un:'m',pu:5421,medida:'barra 6m = $32.527',fuente:'IMCOFUE',modif:0},
-{cod:'309',nom:'PGU 150x1.29mm (Montante reforzado)',cat:'PERFILES GALVANIZADOS',un:'m',pu:7372,medida:'barra 6m = $44.233',fuente:'IMCOFUE',modif:0},
-{cod:'310',nom:'PGC 150x1.29mm (Solera reforzada)',cat:'PERFILES GALVANIZADOS',un:'m',pu:8319,medida:'barra 6m = $49.912',fuente:'IMCOFUE',modif:0},
+{cod:'301',nom:'PGC 100x0.92mm (Montante)',cat:'PERFILES GALVANIZADOS',un:'m',pu:4004,medida:'barra 6m = $24.024',fuente:'IMCOFUE',modif:0},
+{cod:'302',nom:'PGU 100x0.92mm (Solera)',cat:'PERFILES GALVANIZADOS',un:'m',pu:4862,medida:'barra 6m = $29.173',fuente:'IMCOFUE',modif:0},
+{cod:'303',nom:'PGC 100x1.29mm (Montante reforzado)',cat:'PERFILES GALVANIZADOS',un:'m',pu:5290,medida:'barra 6m = $31.739',fuente:'IMCOFUE',modif:0},
+{cod:'304',nom:'PGU 100x1.29mm (Solera reforzada)',cat:'PERFILES GALVANIZADOS',un:'m',pu:6538,medida:'barra 6m = $39.230',fuente:'IMCOFUE',modif:0},
+{cod:'305',nom:'PGC 70x0.92mm (Montante)',cat:'PERFILES GALVANIZADOS',un:'m',pu:3912,medida:'barra 6m = $23.471',fuente:'IMCOFUE',modif:0},
+{cod:'306',nom:'PGU 70x0.92mm (Solera)',cat:'PERFILES GALVANIZADOS',un:'m',pu:4725,medida:'barra 6m = $28.352',fuente:'IMCOFUE',modif:0},
+{cod:'307',nom:'PGC 150x0.9mm (Montante)',cat:'PERFILES GALVANIZADOS',un:'m',pu:5421,medida:'barra 6m = $32.527',fuente:'IMCOFUE',modif:0},
+{cod:'309',nom:'PGC 150x1.29mm (Montante reforzado)',cat:'PERFILES GALVANIZADOS',un:'m',pu:7372,medida:'barra 6m = $44.233',fuente:'IMCOFUE',modif:0},
+{cod:'310',nom:'PGU 150x1.29mm (Solera reforzada)',cat:'PERFILES GALVANIZADOS',un:'m',pu:8319,medida:'barra 6m = $49.912',fuente:'IMCOFUE',modif:0},
 {cod:'311',nom:'PGO Omega 0.92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:3009,medida:'barra 3m = $9.027',fuente:'IMCOFUE',modif:0},
 {cod:'312',nom:'Fleje Cruz San Andrés 50mm E0.94mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:1220,medida:'rollo 100m = $121.958',fuente:'IMCOFUE',modif:0},
-{cod:'313',nom:'Montante 70mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:2006,medida:'barra 2.6m = $5.216',fuente:'IMCOFUE',modif:0},
-{cod:'314',nom:'Solera 70mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1849,medida:'barra 2.6m = $4.807',fuente:'IMCOFUE',modif:0},
-{cod:'315',nom:'Montante 35mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1534,medida:'barra 2.6m = $3.989',fuente:'IMCOFUE',modif:0},
-{cod:'316',nom:'Solera 35mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1360,medida:'barra 2.6m = $3.536',fuente:'IMCOFUE',modif:0},
+{cod:'313',nom:'PGC Montante 70mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:2006,medida:'barra 2.6m = $5.216',fuente:'IMCOFUE',modif:0},
+{cod:'314',nom:'PGU Solera 70mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1849,medida:'barra 2.6m = $4.807',fuente:'IMCOFUE',modif:0},
+{cod:'315',nom:'PGC Montante 35mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1534,medida:'barra 2.6m = $3.989',fuente:'IMCOFUE',modif:0},
+{cod:'316',nom:'PGU Solera 35mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1360,medida:'barra 2.6m = $3.536',fuente:'IMCOFUE',modif:0},
 {cod:'317',nom:'Omega 12.5mm Clasica E0.52mm (Cielorraso)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1541,medida:'barra 2.6m = $4.006',fuente:'PLAVE',modif:0},
 {cod:'318',nom:'Cantonera E0.38mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:927,medida:'barra 2.6m = $2.411',fuente:'IMCOFUE',modif:0},
 {cod:'320',nom:'Perfil L Perimetral Cielorraso 15/16"',cat:'PERFILES GALVANIZADOS',un:'m',pu:1051,medida:'barra 3m = $3.154',fuente:'BARBIERI',modif:0},
 {cod:'321',nom:'Perfil Travesaño Cielorraso 15/16"',cat:'PERFILES GALVANIZADOS',un:'m',pu:1746,medida:'barra 0.61m = $1.065',fuente:'BARBIERI',modif:0},
 {cod:'322',nom:'Perfil T Larguero Cielorraso 15/16"',cat:'PERFILES GALVANIZADOS',un:'m',pu:1980,medida:'barra 3.66m = $7.247',fuente:'IMCOFUE',modif:0},
-{cod:'323',nom:'Montante 100mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:2266,medida:'barra 2.6m = $5.891',fuente:'IMCOFUE',modif:0},
-{cod:'324',nom:'Solera 100mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:2266,medida:'barra 2.6m = $5.891',fuente:'IMCOFUE',modif:0},
+{cod:'323',nom:'PGC Montante 100mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:2266,medida:'barra 2.6m = $5.891',fuente:'IMCOFUE',modif:0},
+{cod:'324',nom:'PGU Solera 100mm E0.52mm (Drywall)',cat:'PERFILES GALVANIZADOS',un:'m',pu:2266,medida:'barra 2.6m = $5.891',fuente:'IMCOFUE',modif:0},
 // ── PERFILES HIERRO NEGRO (fuente: IMCOFUE/TORRENT) ──
 {cod:'401',nom:'Tubo Redondo 7/8 x 1.60mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:2389,medida:'barra 6m = $14.332',fuente:'METALURG',modif:0},
 {cod:'404',nom:'Tubo Redondo 2 x 1.60mm',cat:'PERFILES HIERRO NEGRO',un:'m',pu:6014,medida:'barra 6m = $36.087',fuente:'IMCOFUE',modif:0},
@@ -5464,6 +5516,501 @@ function prExportar(){
   document.body.appendChild(a);a.click();
   setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);
   toast('\u2713 CSV exportado');
+}
+
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   MÓDULO SISTEMAS CONSTRUCTIVOS — OBRAERP
+   Armado de muros/tabiques/pisos/techos capa por capa
+   ══════════════════════════════════════════════════════════════════════ */
+
+// Catálogo de materiales para capas (indexado por categoría)
+var SC_MAT_CATS = {
+  'REVESTIMIENTO EXTERIOR': [
+    {nom:'Chapa galvanizada lisa N25 (0.5mm)',un:'m²',cod:'1106',rend:1.05},
+    {nom:'Chapa galvanizada lisa N18 (1.25mm)',un:'m²',cod:'1109',rend:1.05},
+    {nom:'Chapa acanalada galvanizada C25',un:'m²',cod:'1101',rend:1.10},
+    {nom:'Chapa acanalada prepintada negra C25',un:'m²',cod:'1102',rend:1.10},
+    {nom:'Placa cementicia 10mm Superboard',un:'m²',cod:'1201',rend:1.05},
+    {nom:'Placa cementicia 8mm Superboard',un:'m²',cod:'1202',rend:1.05},
+    {nom:'Siding cedral 8mm Eternit',un:'m²',cod:'1203',rend:1.10},
+    {nom:'OSB 9.5mm Estructural',un:'m²',cod:'1401',rend:1.05},
+    {nom:'Revoque grueso exterior (cemento+arena)',un:'m²',cod:'R_REV_G'},
+    {nom:'Ceresita + revoque grueso',un:'m²',cod:'R_CERES'},
+    {nom:'Piedra laja negra tipo pirca',un:'m²',cod:'213',rend:1.10},
+    {nom:'Tabla de lenga 1"x6"',un:'m',cod:'1415',rend:1.10},
+    {nom:'Madera plástica 1"',un:'m²',cod:'1604',rend:1.05},
+  ],
+  'MEMBRANA / AISLACION HIDROFUGA': [
+    {nom:'Membrana hidrófuga Wichi/Tyvek',un:'m²',cod:'807',rend:1.10},
+    {nom:'Film nylon polietileno 200μ',un:'m²',cod:'803',rend:1.10},
+    {nom:'Espuma polietileno 5mm',un:'m²',cod:'801',rend:1.05},
+  ],
+  'AISLACION TERMICA': [
+    {nom:'Lana de vidrio 50mm sin papel',un:'m²',cod:'804',rend:1.05},
+    {nom:'Lana de vidrio 50mm con aluminio',un:'m²',cod:'805',rend:1.05},
+    {nom:'Lana de vidrio 50mm con papel kraft',un:'m²',cod:'806',rend:1.05},
+    {nom:'Lana de vidrio 100mm con aluminio',un:'m²',cod:'816',rend:1.05},
+    {nom:'Lana de vidrio 100mm con papel kraft',un:'m²',cod:'817',rend:1.05},
+    {nom:'Poliestireno expandido 50mm',un:'m²',cod:'808',rend:1.05},
+    {nom:'Poliestireno expandido 25mm',un:'m²',cod:'809',rend:1.05},
+  ],
+  'ESTRUCTURA GALVANIZADA': [
+    {nom:'PGC Montante 35mm E0.52mm (vertical)',un:'m',cod:'315',rend:3.2,nota:'3.2 m/m² típico'},
+    {nom:'PGU Solera 35mm E0.52mm (horizontal)',un:'m',cod:'316',rend:2.2,nota:'2.2 m/m² típico'},
+    {nom:'PGC Montante 70mm E0.52mm (vertical)',un:'m',cod:'313',rend:3.2,nota:'3.2 m/m² típico'},
+    {nom:'PGU Solera 70mm E0.52mm (horizontal)',un:'m',cod:'314',rend:2.2,nota:'2.2 m/m² típico'},
+    {nom:'PGC Montante 100mm E0.92mm (vertical)',un:'m',cod:'301',rend:3.2,nota:'3.2 m/m² típico'},
+    {nom:'PGU Solera 100mm E0.92mm (horizontal)',un:'m',cod:'302',rend:2.2,nota:'2.2 m/m² típico'},
+    {nom:'PGC Montante 100mm E1.29mm reforzado',un:'m',cod:'303',rend:3.2},
+    {nom:'PGU Solera 100mm E1.29mm reforzada',un:'m',cod:'304',rend:2.2},
+    {nom:'PGC Montante 150mm E0.9mm',un:'m',cod:'307',rend:3.2},
+    {nom:'PGU Solera 150mm E1.29mm',un:'m',cod:'309',rend:2.2},
+  ],
+  'ESTRUCTURA MADERA': [
+    {nom:'Tirante pino cepillado 2"x4"',un:'m',cod:'TIR_2x4',rend:2.5},
+    {nom:'Tirante pino cepillado 2"x6"',un:'m',cod:'TIR_2x6',rend:2.5},
+    {nom:'Tabla de lenga 4"x2" (separador)',un:'m',cod:'1416',rend:2.0},
+  ],
+  'ESTRUCTURA HORMIGÓN': [
+    {nom:'Hormigón H21 (columnas/vigas)',un:'m³',cod:'104',rend:0.05},
+    {nom:'Hormigón H25 (estructural)',un:'m³',cod:'105',rend:0.05},
+    {nom:'Fe ø8 (armadura)',un:'m',cod:'503',rend:8.0},
+    {nom:'Fe ø12 (armadura principal)',un:'m',cod:'505',rend:4.0},
+    {nom:'Fe ø6 (estribos/encadenados)',un:'m',cod:'502',rend:6.0},
+    {nom:'Malla Q188 6mm',un:'m²',cod:'510',rend:1.05},
+    {nom:'Malla Q335 8mm',un:'m²',cod:'511',rend:1.05},
+  ],
+  'ESTRUCTURA METÁLICA': [
+    {nom:'Tubo cuadrado 40x40x2mm',un:'m',cod:'426',rend:2.5},
+    {nom:'Tubo cuadrado 100x100x2mm',un:'m',cod:'430',rend:1.5},
+    {nom:'Tubo rectangular 60x40x2mm',un:'m',cod:'470',rend:2.0},
+    {nom:'Perfil UPN 100mm',un:'m',cod:'445',rend:1.0},
+    {nom:'Perfil ángulo 1"x3/16"',un:'m',cod:'454',rend:3.0},
+  ],
+  'MAMPOSTERÍA': [
+    {nom:'Bloque H° 19x19x40',un:'un',cod:'901',rend:13,nota:'13 un/m²'},
+    {nom:'Bloque H° 14x19x40',un:'un',cod:'902',rend:13,nota:'13 un/m²'},
+    {nom:'Cemento portland (junta)',un:'kg',cod:'1001',rend:8},
+    {nom:'Arena (junta)',un:'m³',cod:'201',rend:0.025},
+    {nom:'Weber block gris',un:'kg',cod:'1010',rend:8},
+  ],
+  'HIERRO EN MAMPOSTERÍA': [
+    {nom:'Fe ø8 cada hilada (1 hierro horizontal)',un:'m',cod:'503',rend:1.05,nota:'1 barra c/hilada'},
+    {nom:'Fe ø6 cada 2 hiladas (2 hierros)',un:'m',cod:'502',rend:2.10,nota:'2 barras c/2 hiladas'},
+    {nom:'Fe ø6 cada hilada (1 hierro)',un:'m',cod:'502',rend:1.05,nota:'1 barra c/hilada'},
+  ],
+  'PLACA INTERIOR': [
+    {nom:'Placa de yeso 12.5mm Std Durlock',un:'m²',cod:'1301',rend:1.05},
+    {nom:'Placa de yeso 9.5mm Std Durlock',un:'m²',cod:'1302',rend:1.05},
+    {nom:'Placa de yeso 12.5mm Antihumedad',un:'m²',cod:'1303',rend:1.05},
+    {nom:'Placa de yeso 12.5mm Resist Fuego',un:'m²',cod:'1304',rend:1.05},
+    {nom:'Placa cementicia 10mm Superboard',un:'m²',cod:'1201',rend:1.05},
+    {nom:'Placa cementicia 8mm Superboard',un:'m²',cod:'1202',rend:1.05},
+    {nom:'OSB 9.5mm Estructural',un:'m²',cod:'1401',rend:1.05},
+  ],
+  'REVOQUE INTERIOR': [
+    {nom:'Revoque grueso interior (cemento+arena)',un:'m²',cod:'R_REV_G_INT'},
+    {nom:'Revoque fino interior (weber mix E)',un:'m²',cod:'R_REV_F'},
+    {nom:'Revoque 3en1 weber mix E',un:'kg',cod:'1008',rend:12},
+    {nom:'Enlucido de yeso',un:'m²',cod:'R_YESO'},
+  ],
+  'REVESTIMIENTO INTERIOR': [
+    {nom:'Cerámico (colocación)',un:'m²',cod:'R_CERAM'},
+    {nom:'Porcelanato (colocación)',un:'m²',cod:'R_PORC'},
+    {nom:'Pintura látex interior',un:'m²',cod:'R_PINTURA'},
+    {nom:'Pintura epoxi',un:'m²',cod:'R_EPOXI'},
+    {nom:'Weber Superflex (pegamento)',un:'kg',cod:'1002',rend:5},
+  ],
+  'TORNILLERÍA / FIJACIONES': [
+    {nom:'Tornillo T1 autoperf mecha (placa-perfil)',un:'un',cod:'601',rend:24,nota:'24 un/m²'},
+    {nom:'Tornillo T2 aguja (perfil-perfil)',un:'un',cod:'603',rend:8,nota:'8 un/m²'},
+    {nom:'Tornillo autoperf hexag p/chapa',un:'un',cod:'606',rend:16,nota:'16 un/m²'},
+    {nom:'Anclaje Fisher FWA (a hormigón)',un:'un',cod:'613',rend:4},
+    {nom:'Clavo punta París 3"',un:'kg',cod:'610',rend:0.1},
+  ],
+  'IMPERMEABILIZANTE / SELLADOR': [
+    {nom:'Ceresita + cemento (junta horizontal)',un:'m²',cod:'R_CERES'},
+    {nom:'Membrana hidrófuga Wichi/Tyvek',un:'m²',cod:'807',rend:1.10},
+    {nom:'Film nylon 200μ',un:'m²',cod:'803',rend:1.10},
+  ],
+  'PISO - BASE': [
+    {nom:'Hormigón H13 (contrapiso 10cm)',un:'m³',cod:'102',rend:0.10},
+    {nom:'Hormigón H21 (carpeta/platea)',un:'m³',cod:'104',rend:0.08},
+    {nom:'Malla Sima 4mm (carpeta)',un:'m²',cod:'508',rend:1.05},
+    {nom:'Malla Q188 6mm',un:'m²',cod:'510',rend:1.05},
+    {nom:'Film nylon 200μ (barrera vapor)',un:'m²',cod:'803',rend:1.10},
+    {nom:'Arena (nivelación)',un:'m³',cod:'201',rend:0.03},
+  ],
+  'PISO - TERMINACIÓN': [
+    {nom:'Cerámico (colocación+pegamento)',un:'m²',cod:'R_CERAM'},
+    {nom:'Porcelanato (colocación+pegamento)',un:'m²',cod:'R_PORC'},
+    {nom:'Baldosa caucho molido 0.5x0.5m',un:'m²',cod:'1829',rend:1.05},
+    {nom:'Adoquín Ps6',un:'un',cod:'1832',rend:45},
+    {nom:'Adoquín Ps8',un:'un',cod:'1831',rend:45},
+    {nom:'Césped sintético 20mm',un:'m²',cod:'1833',rend:1.05},
+    {nom:'Piso flotante madera (colocación)',un:'m²',cod:'R_FLOTANTE'},
+  ],
+  'TECHO - ESTRUCTURA': [
+    {nom:'Hormigón H25 (losa)',un:'m³',cod:'105',rend:0.15},
+    {nom:'Malla Q335 8mm (armadura losa)',un:'m²',cod:'511',rend:1.05},
+    {nom:'Chapa acanalada galvanizada C25 (cubierta)',un:'m²',cod:'1101',rend:1.10},
+    {nom:'Chapa T101 prepintada (cubierta)',un:'m²',cod:'1103',rend:1.10},
+  ],
+  'TECHO - AISLACION': [
+    {nom:'Lana de vidrio 100mm con aluminio',un:'m²',cod:'816',rend:1.05},
+    {nom:'Lana de vidrio 50mm con aluminio',un:'m²',cod:'805',rend:1.05},
+    {nom:'Poliestireno expandido 50mm',un:'m²',cod:'808',rend:1.05},
+    {nom:'Film nylon 200μ (barrera vapor)',un:'m²',cod:'803',rend:1.10},
+  ],
+};
+
+// Precios fijos para subcómputos (precio total por m² del ítem)
+var SC_PU_ESPECIALES = {
+  'R_REV_G': {nom:'Revoque grueso exterior',pu:35000},
+  'R_CERES': {nom:'Ceresita + junta',pu:8000},
+  'R_REV_G_INT': {nom:'Revoque grueso interior',pu:28000},
+  'R_REV_F': {nom:'Revoque fino interior',pu:18000},
+  'R_YESO': {nom:'Enlucido de yeso',pu:12000},
+  'R_CERAM': {nom:'Cerámico col. c/pegamento',pu:55000},
+  'R_PORC': {nom:'Porcelanato col. c/pegamento',pu:65000},
+  'R_PINTURA': {nom:'Pintura látex 2 manos',pu:22000},
+  'R_EPOXI': {nom:'Pintura epoxi 2 manos',pu:40000},
+  'R_FLOTANTE': {nom:'Piso flotante colocación',pu:45000},
+  'TIR_2x4': {nom:'Tirante pino 2"x4"',pu:3500},
+  'TIR_2x6': {nom:'Tirante pino 2"x6"',pu:4800},
+};
+
+// Estado del módulo
+var SC_SISTEMAS = [];  // lista de sistemas guardados
+var SC_EDIT_IDX = -1; // índice del sistema en edición (-1 = nuevo)
+var SC_CAPAS = [];     // capas del sistema en edición
+var SC_NID = 1;
+function scNID(){ return 'sc'+(SC_NID++); }
+
+// ── Render lista de sistemas ──────────────────────────────────────────
+function scFiltrar(tipo){
+  var filtered = tipo ? SC_SISTEMAS.filter(function(s){return s.tipo===tipo;}) : SC_SISTEMAS;
+  var lista = document.getElementById('sc-lista');
+  if(!lista) return;
+  if(!filtered.length){
+    lista.innerHTML='<div style="padding:30px;text-align:center;color:var(--tx3);font-size:12px">Sin sistemas guardados. Creá el primero con "+ Nuevo sistema".</div>';
+    return;
+  }
+  lista.innerHTML = filtered.map(function(s,i){
+    var idx = SC_SISTEMAS.indexOf(s);
+    var totalMat = 0;
+    (s.capas||[]).forEach(function(c){
+      totalMat += Math.round((c.rend||1) * scGetPU(c.cod));
+    });
+    return '<div class="card" style="margin-bottom:10px">'
+      +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+      +'<div style="background:var(--'+scTipoColor(s.tipo)+');border-radius:4px;padding:2px 8px;font-size:9px;font-weight:700;color:#fff;flex-shrink:0">'+s.tipo+'</div>'
+      +'<div style="flex:1;min-width:150px"><div style="font-weight:700;font-size:13px">'+s.nom+'</div>'
+      +(s.nota?'<div style="font-size:10px;color:var(--tx3)">'+s.nota+'</div>':'')
+      +'</div>'
+      +(s.esp?'<div style="font-size:11px;color:var(--tx3);flex-shrink:0">'+s.esp+' mm</div>':'')
+      +'<div style="font-size:11px;color:var(--bt);font-weight:700;flex-shrink:0">$'+totalMat.toLocaleString()+'/m²</div>'
+      +'<button onclick="scEditar('+idx+')" style="background:none;border:1px solid var(--bt);color:var(--bt);border-radius:5px;padding:4px 10px;cursor:pointer;font-size:11px">Editar</button>'
+      +'<button onclick="scUsarEnComputo('+idx+')" style="background:var(--bt);border:none;color:#fff;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:11px">Usar en Cómputo</button>'
+      +'<button onclick="scEliminar('+idx+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:16px;padding:0">×</button>'
+      +'</div>'
+      +'<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">'
+      +(s.capas||[]).map(function(c,ci){
+        return '<span style="background:var(--bg4);border-radius:4px;padding:2px 7px;font-size:9px;color:var(--tx3)">'
+          +(ci+1)+'. '+c.nom+'</span>';
+      }).join('')
+      +'</div></div>';
+  }).join('');
+}
+
+function scTipoColor(tipo){
+  var m={MURO:'rt',TABIQUE:'bt',PISO:'gt',TECHO:'golt',CIELORRASO:'tt',ESTRUCTURA:'tx3'};
+  return m[tipo]||'tx3';
+}
+
+function scGetPU(cod){
+  if(!cod) return 0;
+  if(SC_PU_ESPECIALES[cod]) return SC_PU_ESPECIALES[cod].pu;
+  if(typeof PR_DATA !== 'undefined'){
+    var p = PR_DATA.find(function(x){return x.cod===cod;});
+    if(p) return p.pu||0;
+  }
+  if(typeof CP_PRECIOS_MAT !== 'undefined' && CP_PRECIOS_MAT[cod]) return CP_PRECIOS_MAT[cod];
+  return 0;
+}
+
+// ── Editor de sistema ─────────────────────────────────────────────────
+function scNuevo(){
+  SC_EDIT_IDX = -1;
+  SC_CAPAS = [];
+  document.getElementById('sc-nom').value='';
+  document.getElementById('sc-tipo-ed').value='MURO';
+  document.getElementById('sc-esp').value='';
+  document.getElementById('sc-nota').value='';
+  document.getElementById('sc-editor').style.display='';
+  document.getElementById('sc-totales').style.display='none';
+  scRenderCapas();
+  document.getElementById('sc-editor').scrollIntoView({behavior:'smooth'});
+}
+
+function scEditar(idx){
+  var s = SC_SISTEMAS[idx];
+  if(!s) return;
+  SC_EDIT_IDX = idx;
+  SC_CAPAS = JSON.parse(JSON.stringify(s.capas||[]));
+  document.getElementById('sc-nom').value = s.nom||'';
+  document.getElementById('sc-tipo-ed').value = s.tipo||'MURO';
+  document.getElementById('sc-esp').value = s.esp||'';
+  document.getElementById('sc-nota').value = s.nota||'';
+  document.getElementById('sc-editor').style.display='';
+  document.getElementById('sc-totales').style.display='none';
+  scRenderCapas();
+  document.getElementById('sc-editor').scrollIntoView({behavior:'smooth'});
+}
+
+function scCerrarEditor(){
+  document.getElementById('sc-editor').style.display='none';
+  SC_CAPAS=[];SC_EDIT_IDX=-1;
+}
+
+// ── Render capas en el editor ─────────────────────────────────────────
+function scRenderCapas(){
+  var cont = document.getElementById('sc-capas');
+  if(!cont) return;
+  if(!SC_CAPAS.length){
+    cont.innerHTML='<div style="padding:16px;text-align:center;color:var(--tx3);font-size:11px;border:1px dashed var(--br);border-radius:6px">Sin capas. Agregá la primera capa con el botón de abajo.<br><small>Pensalo de afuera hacia adentro.</small></div>';
+    return;
+  }
+  cont.innerHTML = SC_CAPAS.map(function(c,i){
+    var pu = scGetPU(c.cod);
+    var subtotal = Math.round((c.rend||1)*pu);
+    return '<div style="background:var(--bg);border-radius:6px;padding:10px;margin-bottom:8px;border-left:3px solid var(--bt)">'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">'
+      +'<div style="background:var(--bt);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">'+(i+1)+'</div>'
+      +'<div style="flex:1;font-weight:600;font-size:12px">Capa '+(i+1)+'</div>'
+      +'<button onclick="scMoverCapa('+i+',-1)" style="background:none;border:1px solid var(--br);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:11px;color:var(--tx3)" title="Subir">↑</button>'
+      +'<button onclick="scMoverCapa('+i+',1)" style="background:none;border:1px solid var(--br);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:11px;color:var(--tx3)" title="Bajar">↓</button>'
+      +'<button onclick="scBorrarCapa('+i+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:16px;padding:0;line-height:1">×</button>'
+      +'</div>'
+      // Selector de categoría
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">'
+      +'<div><label style="font-size:9px;color:var(--tx3);text-transform:uppercase;font-weight:700;display:block;margin-bottom:3px">Categoría</label>'
+      +'<select class="fis" style="font-size:10px;width:100%" onchange="scCambiarCatCapa('+i+',this.value)">'
+      +Object.keys(SC_MAT_CATS).map(function(cat){
+        return '<option value="'+cat+'"'+(c.catSel===cat?' selected':'')+'>'+cat+'</option>';
+      }).join('')
+      +'</select></div>'
+      // Selector de material
+      +'<div><label style="font-size:9px;color:var(--tx3);text-transform:uppercase;font-weight:700;display:block;margin-bottom:3px">Material</label>'
+      +'<select class="fis" style="font-size:10px;width:100%" onchange="scCambiarMatCapa('+i+',this.value)">'
+      +(SC_MAT_CATS[c.catSel]||[]).map(function(m,mi){
+        return '<option value="'+mi+'"'+(c.matIdx===mi?' selected':'')+'>'+m.nom+'</option>';
+      }).join('')
+      +'</select></div>'
+      +'</div>'
+      // Nombre libre + rendimiento + esp
+      +'<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:6px">'
+      +'<div><label style="font-size:9px;color:var(--tx3);text-transform:uppercase;font-weight:700;display:block;margin-bottom:3px">Nombre (editable)</label>'
+      +'<input class="fi" type="text" value="'+c.nom+'" oninput="scUpdCapa('+i+',\'nom\',this.value)" style="font-size:10px;width:100%"></div>'
+      +'<div><label style="font-size:9px;color:var(--tx3);text-transform:uppercase;font-weight:700;display:block;margin-bottom:3px">Unidad</label>'
+      +'<input class="fi" type="text" value="'+c.un+'" oninput="scUpdCapa('+i+',\'un\',this.value)" style="font-size:10px;width:100%"></div>'
+      +'<div><label style="font-size:9px;color:var(--tx3);text-transform:uppercase;font-weight:700;display:block;margin-bottom:3px">Rend/m²</label>'
+      +'<input class="fi" type="number" value="'+(c.rend||1)+'" step="0.01" oninput="scUpdCapa('+i+',\'rend\',+this.value)" style="font-size:10px;width:100%"></div>'
+      +'<div><label style="font-size:9px;color:var(--tx3);text-transform:uppercase;font-weight:700;display:block;margin-bottom:3px">Esp. (mm)</label>'
+      +'<input class="fi" type="number" value="'+(c.esp||0)+'" step="5" oninput="scUpdCapa('+i+',\'esp\',+this.value)" style="font-size:10px;width:100%"></div>'
+      +'</div>'
+      // Subtotal de la capa
+      +(pu>0?'<div style="text-align:right;margin-top:6px;font-size:11px;color:var(--bt);font-weight:700">$'+pu.toLocaleString()+'/'+c.un+' × '+(c.rend||1)+' = <b>$'+subtotal.toLocaleString()+'/m²</b></div>':'')
+      +(c.nota?'<div style="font-size:10px;color:var(--tx3);margin-top:4px">ℹ '+c.nota+'</div>':'')
+      +'</div>';
+  }).join('');
+}
+
+function scAgregarCapa(){
+  var primerCat = Object.keys(SC_MAT_CATS)[0];
+  var primerMat = SC_MAT_CATS[primerCat][0];
+  SC_CAPAS.push({
+    id: scNID(),
+    catSel: primerCat,
+    matIdx: 0,
+    nom: primerMat.nom,
+    un: primerMat.un,
+    cod: primerMat.cod,
+    rend: primerMat.rend||1,
+    esp: 0,
+    nota: primerMat.nota||''
+  });
+  scRenderCapas();
+}
+
+function scBorrarCapa(i){
+  SC_CAPAS.splice(i,1);
+  scRenderCapas();
+}
+
+function scMoverCapa(i, dir){
+  var j = i+dir;
+  if(j<0||j>=SC_CAPAS.length) return;
+  var tmp=SC_CAPAS[i];SC_CAPAS[i]=SC_CAPAS[j];SC_CAPAS[j]=tmp;
+  scRenderCapas();
+}
+
+function scCambiarCatCapa(i, cat){
+  SC_CAPAS[i].catSel = cat;
+  SC_CAPAS[i].matIdx = 0;
+  var mat = (SC_MAT_CATS[cat]||[])[0];
+  if(mat){
+    SC_CAPAS[i].nom=mat.nom;SC_CAPAS[i].un=mat.un;
+    SC_CAPAS[i].cod=mat.cod;SC_CAPAS[i].rend=mat.rend||1;
+    SC_CAPAS[i].nota=mat.nota||'';
+  }
+  scRenderCapas();
+}
+
+function scCambiarMatCapa(i, miStr){
+  var mi=+miStr;
+  SC_CAPAS[i].matIdx=mi;
+  var mat=(SC_MAT_CATS[SC_CAPAS[i].catSel]||[])[mi];
+  if(mat){
+    SC_CAPAS[i].nom=mat.nom;SC_CAPAS[i].un=mat.un;
+    SC_CAPAS[i].cod=mat.cod;SC_CAPAS[i].rend=mat.rend||1;
+    SC_CAPAS[i].nota=mat.nota||'';
+  }
+  scRenderCapas();
+}
+
+function scUpdCapa(i, campo, val){
+  SC_CAPAS[i][campo]=val;
+  scRenderCapas();
+}
+
+// ── Calcular el sistema ───────────────────────────────────────────────
+function scCalcular(){
+  var totDiv = document.getElementById('sc-totales');
+  var totTab = document.getElementById('sc-totales-tabla');
+  if(!totDiv||!totTab) return;
+
+  var espTotal=0, totPU=0;
+  var rows = SC_CAPAS.map(function(c,i){
+    var pu=scGetPU(c.cod);
+    var cant=Math.round((c.rend||1)*100)/100;
+    var sub=Math.round(cant*pu);
+    totPU+=sub;
+    espTotal+=+(c.esp||0);
+    return '<tr style="border-bottom:1px solid var(--br)">'
+      +'<td style="padding:4px 6px;font-size:10px;color:var(--tx3)">'+(i+1)+'</td>'
+      +'<td style="padding:4px 6px;font-size:11px">'+c.nom+'</td>'
+      +'<td style="text-align:center;padding:4px 6px;font-size:10px;color:var(--tx3)">'+c.un+'</td>'
+      +'<td style="text-align:right;padding:4px 6px;font-size:11px;font-weight:600">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td>'
+      +'<td style="text-align:right;padding:4px 6px;font-size:10px;color:var(--tx3)">$'+(pu||0).toLocaleString()+'</td>'
+      +'<td style="text-align:right;padding:4px 6px;font-size:11px;font-weight:700;color:var(--bt)">$'+sub.toLocaleString()+'</td>'
+      +(c.esp?'<td style="text-align:center;padding:4px 6px;font-size:10px;color:var(--tx3)">'+c.esp+' mm</td>':'<td></td>')
+      +'</tr>';
+  }).join('');
+
+  var CUT = totPU;
+  var conGastos = Math.round(CUT*1.372);
+
+  totTab.innerHTML='<table style="width:100%;border-collapse:collapse">'
+    +'<thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:4px 6px;font-size:9px;color:var(--tx3)">#</th>'
+    +'<th style="text-align:left;padding:4px 6px;font-size:9px;color:var(--tx3)">Material</th>'
+    +'<th style="text-align:center;padding:4px 6px;font-size:9px;color:var(--tx3)">Un</th>'
+    +'<th style="text-align:right;padding:4px 6px;font-size:9px;color:var(--tx3)">Cant/m²</th>'
+    +'<th style="text-align:right;padding:4px 6px;font-size:9px;color:var(--tx3)">$/un</th>'
+    +'<th style="text-align:right;padding:4px 6px;font-size:9px;color:var(--tx3)">Subtotal</th>'
+    +'<th style="text-align:center;padding:4px 6px;font-size:9px;color:var(--tx3)">Esp.</th>'
+    +'</thead><tbody>'+rows+'</tbody>'
+    +'<tfoot><tr style="background:var(--bg4)">'
+    +'<td colspan="5" style="padding:5px 6px;font-weight:700;font-size:11px">TOTAL CUT (sin gastos)</td>'
+    +'<td style="text-align:right;padding:5px 6px;font-weight:800;font-size:12px;color:var(--bt)">$'+CUT.toLocaleString()+'/m²</td>'
+    +'<td style="text-align:center;padding:5px 6px;font-size:10px;color:var(--tx3)">'+(espTotal||'—')+' mm</td>'
+    +'</tr>'
+    +'<tr style="background:rgba(96,165,250,.1)">'
+    +'<td colspan="5" style="padding:5px 6px;font-weight:700;font-size:11px">TOTAL c/gastos (×1.372)</td>'
+    +'<td style="text-align:right;padding:5px 6px;font-weight:800;font-size:14px;color:var(--bt)">$'+conGastos.toLocaleString()+'/m²</td>'
+    +'<td></td></tr></tfoot></table>';
+
+  totDiv.style.display='';
+  totDiv.scrollIntoView({behavior:'smooth'});
+}
+
+// ── Guardar sistema ───────────────────────────────────────────────────
+function scGuardarSistema(){
+  var nom=(document.getElementById('sc-nom')||{}).value||'';
+  if(!nom.trim()){toast('Ingresá un nombre para el sistema',false);return;}
+  var s={
+    id:scNID(),nom:nom.trim(),
+    tipo:(document.getElementById('sc-tipo-ed')||{}).value||'MURO',
+    esp:+(document.getElementById('sc-esp')||{}).value||0,
+    nota:(document.getElementById('sc-nota')||{}).value||'',
+    capas:JSON.parse(JSON.stringify(SC_CAPAS)),
+    ts:Date.now()
+  };
+  if(SC_EDIT_IDX>=0) SC_SISTEMAS[SC_EDIT_IDX]=s;
+  else SC_SISTEMAS.push(s);
+  scCerrarEditor();
+  scFiltrar('');
+  toast('\u2713 Sistema guardado');
+}
+
+function scEliminar(idx){
+  if(!confirm('¿Eliminar sistema "'+SC_SISTEMAS[idx].nom+'"?'))return;
+  SC_SISTEMAS.splice(idx,1);
+  scFiltrar('');
+}
+
+// Usar sistema en cómputo: agrega cada capa como ítem del rubro activo
+function scUsarEnComputo(idx){
+  var s=SC_SISTEMAS[idx];
+  if(!s){return;}
+  // Ir al módulo cómputo
+  var btn=document.querySelector('[onclick*="computo"]');
+  goTo('computo',btn);
+  if(!CP_RUBROS.length){
+    CP_RUBROS.push({id:cpNID(),nom:s.tipo+': '+s.nom,items:[]});
+  }
+  var rub=CP_RUBROS[CP_RUBROS.length-1];
+  s.capas.forEach(function(c){
+    var pu=scGetPU(c.cod);
+    var item={id:cpNID(),nom:c.nom,un:'m²',dims:[],mats:[],mo:[]};
+    // Agregar como material directo
+    item.mats.push({id:c.cod||'',nom:c.nom,un:c.un,rend:c.rend||1,pu:pu,esEquipo:false});
+    rub.items.push(item);
+  });
+  cpRender();
+  toast('\u2713 Sistema cargado en Cómputo — completá las dimensiones');
+}
+
+// ── Guardar/Cargar Firebase ───────────────────────────────────────────
+function scGuardar(){
+  var data={sistemas:SC_SISTEMAS,nextId:SC_NID,ts:Date.now()};
+  localStorage.setItem('obraerp_sistemas',JSON.stringify(data));
+  if(_db&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('sistemas')
+      .set(data).then(function(){toast('\u2713 Sistemas guardados en la nube');})
+      .catch(function(e){toast('\u2713 Guardado local');});
+  }else{toast('\u2713 Sistemas guardados');}
+}
+
+function scCargar(){
+  if(_db&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('sistemas')
+      .get().then(function(doc){
+        if(doc.exists){var d=doc.data();SC_SISTEMAS=d.sistemas||[];SC_NID=d.nextId||1;}
+        else{var loc=localStorage.getItem('obraerp_sistemas');if(loc){var d=JSON.parse(loc);SC_SISTEMAS=d.sistemas||[];SC_NID=d.nextId||1;}}
+        scFiltrar('');
+      }).catch(function(){
+        var loc=localStorage.getItem('obraerp_sistemas');
+        if(loc){var d=JSON.parse(loc);SC_SISTEMAS=d.sistemas||[];SC_NID=d.nextId||1;}
+        scFiltrar('');
+      });
+  }else{
+    var loc=localStorage.getItem('obraerp_sistemas');
+    if(loc){var d=JSON.parse(loc);SC_SISTEMAS=d.sistemas||[];SC_NID=d.nextId||1;}
+    scFiltrar('');
+  }
 }
 
 
