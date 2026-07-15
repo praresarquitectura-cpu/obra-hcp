@@ -5081,7 +5081,7 @@ function cpRenderItem(rid,it){
   var h='<div class="card cp-item" id="cpi-'+it.id+'" style="margin-bottom:8px;padding:10px">';
   h+='<div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px">';
   h+='<div style="flex:1;min-width:180px;position:relative">';
-  h+='<input class="fi" type="text" placeholder="Nombre o c\u00f3d. (ej: 404, R05, Contrapiso...)" value="'+it.nom+'" id="cpn-'+it.id+'" oninput="cpNI(\''+it.id+'\',this.value)" onfocus="cpNI(\''+it.id+'\',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();cpAutoSel('"+it.id+"',this.value);}" onblur="setTimeout(function(){var s=document.getElementById(\'cps-'+it.id+'\');if(s)s.style.display=\'none\'},400)" style="width:100%;font-weight:600;font-size:12px">';
+  h+='<input class="fi" type="text" placeholder="Nombre o c\u00f3d. (ej: 404, R05, Contrapiso...)" value="'+it.nom+'" id="cpn-'+it.id+'" oninput="cpNI(\''+it.id+'\',this.value)" onfocus="cpNI(\''+it.id+'\',this.value)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();cpAutoSel(\''+it.id+'\',this.value);}" onblur="setTimeout(function(){var s=document.getElementById(\'cps-'+it.id+'\');if(s)s.style.display=\'none\'},400)" style="width:100%;font-weight:600;font-size:12px">';
   h+='<div id="cps-'+it.id+'" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg3);border:1px solid var(--bt);border-radius:5px;z-index:200;max-height:220px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5)"></div></div>';
   h+='<select class="fis" style="width:80px;font-size:11px" onchange="cpCU(\''+it.id+'\',this.value)">';
   // Unidades permitidas para este ítem si viene del catálogo, sino todas
