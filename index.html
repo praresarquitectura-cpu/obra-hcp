@@ -647,7 +647,7 @@ input,select,textarea,button{font-family:var(--font)}
             <option value="CIELORRASO">Cielorraso</option><option value="ESTRUCTURA">Estructura</option>
           </select></div>
         <div class="fg"><label class="fl">Espesor total estimado</label>
-          <div class="pw"><input class="pi" type="number" id="sc-esp" placeholder="ej: 250" min="0" step="5"><span class="pu">mm</span></div></div>
+          <div class="pw"><input class="pi" type="text" inputmode="decimal" id="sc-esp" placeholder="ej: 250"><span class="pu">mm</span></div></div>
         <div class="fg"><label class="fl">Descripci&#243;n / Nota</label>
           <input class="fi" id="sc-nota" type="text" placeholder="Notas adicionales" style="font-size:11px"></div>
       </div>
@@ -718,7 +718,7 @@ input,select,textarea,button{font-family:var(--font)}
           <option>un</option><option>kg</option><option>lt</option><option>hs</option><option>gl</option>
         </select>
       </div>
-      <div class="fg"><label class="fl">Precio unit. ($/un)</label><div class="pw"><input class="pi" type="number" id="pr-new-precio" placeholder="0" step="1" min="0"><span class="pu">$</span></div></div>
+      <div class="fg"><label class="fl">Precio unit. ($/un)</label><div class="pw"><input class="pi" type="text" inputmode="decimal" id="pr-new-precio" placeholder="0"><span class="pu">$</span></div></div>
       <div class="fg"><label class="fl">Medida Comercial</label><input class="fi" type="text" id="pr-new-medida" placeholder="ej: bolsa 25kg, barra 6m" style="font-size:11px"></div>
       <div class="fg"><label class="fl">Fuente / Proveedor</label><input class="fi" type="text" id="pr-new-fuente" placeholder="ej: IMCOFUE, MercadoLibre" style="font-size:11px"></div>
     </div>
@@ -5435,15 +5435,32 @@ function cpFindItem(iid){
   return found;
 }
 
+function parseARNum(s){
+  s=(s==null?'':String(s)).trim();
+  if(s==='')return NaN;
+  var neg=s.charAt(0)==='-';
+  if(neg)s=s.slice(1);
+  var hasComma=s.indexOf(',')>-1;
+  var hasDot=s.indexOf('.')>-1;
+  if(hasComma){
+    s=s.replace(/\./g,'').replace(',','.');
+  }else if(hasDot){
+    var parts=s.split('.');
+    if(parts.length>2||parts[parts.length-1].length===3){s=s.replace(/\./g,'');}
+  }
+  var v=parseFloat(s);
+  if(isNaN(v))return NaN;
+  return neg?-v:v;
+}
 function cpRenderDim(iid,d,un){
   var isVano=!!d.sust;
   var h='<div id="cpd-'+iid+'-'+d.id+'" style="display:flex;gap:3px;align-items:center;margin-bottom:3px;flex-wrap:wrap;padding:'+(isVano?'3px 4px':'0')+';border-radius:4px;background:'+(isVano?'rgba(196,45,70,.08)':'transparent')+'">';
   if(isVano)h+='<span style="font-size:9px;color:var(--rt);font-weight:700;white-space:nowrap">− VANO</span>';
   h+='<input class="cp-di" placeholder="Descripci\u00f3n" value="'+(d.desc||'')+'" oninput="cpUD(\''+iid+'\',\''+d.id+'\',\'desc\',this.value)" style="flex:2;min-width:90px">';
-  if(un==='m\u00b2'||un==='m\u00b3'||un==='ml'||un==='m')h+='<input class="cp-di" type="number" placeholder="'+(isVano?'Ancho vano':'Largo')+'" value="'+(d.l||'')+'" step="0.01" oninput="cpUD(\''+iid+'\',\''+d.id+'\',\'l\',+this.value)" style="width:68px">';
-  if(un==='m\u00b2'||un==='m\u00b3')h+='<input class="cp-di" type="number" placeholder="'+(isVano?'Alto vano':'Ancho')+'" value="'+(d.a||'')+'" step="0.01" oninput="cpUD(\''+iid+'\',\''+d.id+'\',\'a\',+this.value)" style="width:68px">';
-  if(un==='m\u00b3')h+='<input class="cp-di" type="number" placeholder="Alto" value="'+(d.h||'')+'" step="0.01" oninput="cpUD(\''+iid+'\',\''+d.id+'\',\'h\',+this.value)" style="width:68px">';
-  h+='<input class="cp-di" type="number" placeholder="Cant" value="'+(d.q||1)+'" min="0" step="1" oninput="cpUD(\''+iid+'\',\''+d.id+'\',\'q\',+this.value)" style="width:55px">';
+  if(un==='m\u00b2'||un==='m\u00b3'||un==='ml'||un==='m')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="'+(isVano?'Ancho vano':'Largo')+'" value="'+(d.l?String(d.l).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'l\',isNaN(v)?0:v);" style="width:68px">';
+  if(un==='m\u00b2'||un==='m\u00b3')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="'+(isVano?'Alto vano':'Ancho')+'" value="'+(d.a?String(d.a).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'a\',isNaN(v)?0:v);" style="width:68px">';
+  if(un==='m\u00b3')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="Alto" value="'+(d.h?String(d.h).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'h\',isNaN(v)?0:v);" style="width:68px">';
+  h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="Cant" value="'+String(d.q||1).replace('.',',')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'q\',(isNaN(v)||v<0)?1:v);" style="width:55px">';
   h+='<label style="font-size:10px;color:var(--rt);white-space:nowrap;cursor:pointer"><input type="checkbox" '+(d.sust?'checked':'')+' onchange="cpUD(\''+iid+'\',\''+d.id+'\',\'sust\',this.checked)"> Vano/Abertura (descuenta)</label>';
   h+='<button onclick="cpBD(\''+iid+'\',\''+d.id+'\')" style="background:none;border:none;color:var(--rt);font-size:16px;cursor:pointer;padding:0;line-height:1">\u00d7</button>';
   return h+'</div>';
@@ -5461,9 +5478,9 @@ function cpRenderMats(it){
     h+='<tr style="border-bottom:1px solid var(--br);background:'+(m.esEquipo?'rgba(251,146,60,.06)':'')+'">';
     h+='<td style="padding:3px 5px"><div style="display:flex;align-items:center;gap:3px"><input class="cp-di" value="'+m.nom+'" oninput="cpUM(\''+it.id+'\','+mi+',\'nom\',this.value)" style="width:100%;min-width:110px;background:transparent;border:none;color:var(--tx);font-size:10px;padding:0">'+(m.sinPrecio?'<span title="Sin precio — ingresalo manualmente" style="color:var(--rt);font-weight:700;font-size:11px;flex-shrink:0;cursor:help">!</span>':'')+' </div></td>';
     h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">'+m.un+'</td>';
-    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="\'+m.rend+\'" onfocus="this.select()" onblur="var v=parseFloat(this.value.replace(/,/,\'.\'));if(!isNaN(v)&&v>0)cpUM(\''+it.id+'\','+mi+',\'rend\',+this.value);" style="width:75px;text-align:right"></td>';
+    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="\'+m.rend+\'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>0)cpUM(\''+it.id+'\','+mi+',\'rend\',v);" style="width:75px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--bt);font-weight:600">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td>';
-    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="numeric" value="\'+pu.toLocaleString(\'es-AR\')+\'" onfocus="this.select()" onblur="var v=+this.value.replace(/[^0-9.]/g,\'\');if(!isNaN(v))cpUM(\''+it.id+'\','+mi+',\'pu\',+this.value);" style="width:95px;text-align:right"></td>';
+    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="\'+pu.toLocaleString(\'es-AR\')+\'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUM(\''+it.id+'\','+mi+',\'pu\',v);" style="width:95px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:'+(m.esEquipo?'var(--golt)':'var(--gt)')+';font-weight:700">$'+sub.toLocaleString()+'</td>';
     h+='<td><button onclick="cpBorrarMat(\''+it.id+'\','+mi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px;padding:0">\u00d7</button></td></tr>';
   });
@@ -5475,9 +5492,9 @@ function cpRenderMats(it){
     h+='<tr style="border-bottom:1px solid var(--br);background:rgba(251,191,36,.05)">';
     h+='<td style="padding:3px 5px;color:var(--golt)">\u2692 MO \u2014 '+rn+'</td>';
     h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">hs</td>';
-    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="\'+m.hh+\'" onfocus="this.select()" onblur="var v=parseFloat(this.value.replace(/,/,\'.\'));if(!isNaN(v)&&v>=0)cpUMO(\''+it.id+'\','+mi+',\'hh\',+this.value);" style="width:75px;text-align:right"></td>';
+    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="\'+m.hh+\'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUMO(\''+it.id+'\','+mi+',\'hh\',v);" style="width:75px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:600">'+hs.toLocaleString('es-AR',{maximumFractionDigits:2})+' hs</td>';
-    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="numeric" value="\'+pu.toLocaleString(\'es-AR\')+\'" onfocus="this.select()" onblur="var v=+this.value.replace(/[^0-9.]/g,\'\');if(!isNaN(v))cpUMO(\''+it.id+'\','+mi+',\'pu\',+this.value);" style="width:95px;text-align:right"></td>';
+    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="\'+pu.toLocaleString(\'es-AR\')+\'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUMO(\''+it.id+'\','+mi+',\'pu\',v);" style="width:95px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:700">$'+sub.toLocaleString()+'</td>';
     h+='<td><button onclick="cpBorrarMO(\''+it.id+'\','+mi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px;padding:0">\u00d7</button></td></tr>';
   });
@@ -6522,7 +6539,7 @@ function prRender(){
       +'<div style="color:var(--tx3);font-size:10px">'+p.cod+'</div>'
       +'<div><input type="text" value="'+p.nom+'" oninput="prUpdNom('+fi+',this.value)" style="background:transparent;border:none;color:var(--tx);font-size:11px;width:100%;outline:none;cursor:text" onfocus="this.style.background=\'var(--bg3)\'" onblur="this.style.background=\'transparent\'"></div>'
       +'<div style="text-align:center;color:var(--tx3)">'+p.un+'</div>'
-      +'<div style="text-align:right"><div class="pw" style="justify-content:flex-end"><input class="pi" type="number" value="'+p.pu+'" step="1" min="0" oninput="prUpdPU('+fi+',+this.value)" style="width:150px;text-align:right;font-size:13px"><span class="pu">$</span></div></div>'
+      +'<div style="text-align:right"><div class="pw" style="justify-content:flex-end"><input class="pi" type="text" inputmode="decimal" value="'+(p.pu||0).toLocaleString('es-AR')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)prUpdPU('+fi+',v);" style="width:150px;text-align:right;font-size:13px"><span class="pu">$</span></div></div>'
       +'<div style="text-align:center;color:var(--tx3);font-size:10px">'+p.medida+'</div>'
       +'<div style="font-size:10px;color:var(--tx3)">'+p.fuente+'<br><span style="color:'+(p.modif?'var(--gt)':'var(--tx3)')+'">'+modifStr+'</span></div>'
       +'<div style="text-align:center"><button onclick="prEliminar('+fi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px" title="Eliminar">✕</button></div>'
@@ -6556,7 +6573,7 @@ function prAgregar(){
   var nom=document.getElementById('pr-new-nom').value.trim();
   var cat=document.getElementById('pr-new-cat').value;
   var un=document.getElementById('pr-new-un').value;
-  var pu=+(document.getElementById('pr-new-precio').value||0);
+  var pu=parseARNum(document.getElementById('pr-new-precio').value)||0;
   var medida=document.getElementById('pr-new-medida').value.trim();
   var fuente=document.getElementById('pr-new-fuente').value.trim();
   if(!nom){toast('Ingresá un nombre',false);return;}
@@ -7069,7 +7086,7 @@ function scGuardarSistema(){
   var s={
     id:scNID(),nom:nom.trim(),
     tipo:(document.getElementById('sc-tipo-ed')||{}).value||'MURO',
-    esp:+(document.getElementById('sc-esp')||{}).value||0,
+    esp:parseARNum((document.getElementById('sc-esp')||{}).value)||0,
     nota:(document.getElementById('sc-nota')||{}).value||'',
     capas:JSON.parse(JSON.stringify(SC_CAPAS)),
     ts:Date.now()
