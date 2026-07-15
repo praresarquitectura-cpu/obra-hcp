@@ -323,7 +323,7 @@ input,select,textarea,button{font-family:var(--font)}
     <button class="nb" onclick="goTo('config',this)">Config</button>
     <button class="nb" id="nb-admin" onclick="goTo('admin',this)" style="display:none;color:var(--rt)">Admin</button>
   </div>
-  <div class="nav-r"><span class="tag">TDF</span><div class="av">AV</div></div>
+  <div class="nav-r"><div id="obra-activa-badge" style="display:none;align-items:center;gap:6px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.3);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--bt);font-weight:600;margin-right:10px;cursor:pointer" onclick="goTo('computo')" title="Ir al Cómputo de esta obra"><span>🏗</span><span id="obra-activa-nombre"></span><button onclick="event.stopPropagation();salirObraActiva()" title="Salir de la obra" style="background:none;border:none;color:var(--bt);cursor:pointer;font-size:14px;padding:0;margin-left:2px;line-height:1">×</button></div><span class="tag">TDF</span><div class="av">AV</div></div>
 </nav>
 <div id="sb-overlay" onclick="toggleSidebar()"></div>
 <div id="wrap">
@@ -418,8 +418,9 @@ input,select,textarea,button{font-family:var(--font)}
   </div>
 </section>
 <section id="s-obras" class="scr">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="pgt">Obras</div><div class="pgs">Registro técnico</div></div><button class="btn btn-r">+ Nueva obra</button></div>
-  <div id="obras-list" style="margin-top:18px"></div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px"><div><div class="pgt">Obras</div><div class="pgs">Registro técnico · Fichas de obra y acceso directo a Cómputo</div></div><button class="btn btn-r" onclick="openObraMod()">+ Nueva obra</button></div>
+  <div class="tb" style="margin-top:12px"><input class="si" type="text" placeholder="Buscar obra…" oninput="filtObras(this.value)"><span id="obras-cnt" style="margin-left:auto;font-size:10.5px;color:var(--tx3)"></span></div>
+  <div class="g3" id="obras-list" style="margin-top:12px"></div>
 </section>
 <section id="s-honorarios" class="scr">
   <div style="display:flex;justify-content:space-between;align-items:flex-start">
@@ -597,9 +598,15 @@ input,select,textarea,button{font-family:var(--font)}
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
     <div><div class="pgt">Cómputo y Presupuesto</div>
     <div class="pgs">Precios 2026 Municipalidad Ushuaia · Desglose materiales y MO · Firebase</div></div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <input id="cp-obra-nom" class="fi" type="text" placeholder="Nombre de la obra..." style="font-size:11px;padding:6px 10px;width:200px">
-      <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 10px" onclick="cpCargar()">&#128194; Cargar</button>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <div id="cp-obra-manual" style="display:flex;gap:6px">
+        <input id="cp-obra-nom" class="fi" type="text" placeholder="Nombre de la obra..." style="font-size:11px;padding:6px 10px;width:200px">
+        <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 10px" onclick="cpCargar()">&#128194; Cargar</button>
+      </div>
+      <div id="cp-obra-vinculada" style="display:none;align-items:center;gap:6px;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.25);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--bt);font-weight:600">
+        <span>&#127959;</span><span id="cp-obra-vinculada-nombre"></span>
+        <button onclick="goTo('obras')" style="background:none;border:none;color:var(--bt);text-decoration:underline;cursor:pointer;font-size:11px;padding:0;margin-left:4px">Cambiar</button>
+      </div>
       <button class="btn" style="background:var(--gt);color:#fff;font-size:11px;padding:6px 12px" onclick="cpAgregarRubro()">+ Rubro</button>
       <button class="btn" style="background:var(--bt);color:#fff;font-size:11px;padding:6px 12px" onclick="cpGuardar()">&#128190; Guardar</button>
       <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 10px" onclick="cpVerResumen()">&#128203; Resumen</button>
@@ -910,6 +917,40 @@ input,select,textarea,button{font-family:var(--font)}
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-cli')">Cancelar</button><button class="btn btn-r" onclick="saveCli()">Guardar</button></div>
   </div>
 </div>
+<div class="mb" id="mod-obra" onclick="closeBg(event,'mod-obra')">
+  <div class="modal">
+    <div class="mt2">Obra</div><div class="msub" id="mod-obra-title">Nueva obra</div>
+    <div class="g2">
+      <div class="fg"><label class="fl">Nombre de la obra</label><input class="fi" id="ob-nombre" placeholder="Vivienda Unifamiliar Belgrano"></div>
+      <div class="fg"><label class="fl">Titular / Propietario</label><input class="fi" id="ob-titular" placeholder="Juan Pérez"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><label class="fl">Dirección</label><input class="fi" id="ob-direccion" placeholder="Av. Cramer 2345, Ushuaia"></div>
+      <div class="fg"><label class="fl">Teléfono</label><input class="fi" id="ob-telefono" placeholder="(2901) 15-123456"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><label class="fl">Comitente / Empresa constructora</label><input class="fi" id="ob-comitente" placeholder="Opcional"></div>
+      <div class="fg"><label class="fl">N° de expediente municipal</label><input class="fi" id="ob-expediente" placeholder="Ej: 1234/2026"></div>
+    </div>
+    <div class="g3">
+      <div class="fg"><label class="fl">Superficie proyectada (m²)</label><input class="fi" type="text" inputmode="decimal" id="ob-superficie" placeholder="120"></div>
+      <div class="fg"><label class="fl">Tipo de obra</label><select class="fis" id="ob-tipo"><option value="Nueva">Obra nueva</option><option value="Refacción">Refacción</option><option value="Ampliación">Ampliación</option><option value="Demolición">Demolición</option></select></div>
+      <div class="fg"><label class="fl">Estado</label><select class="fis" id="ob-estado"><option value="En proyecto">En proyecto</option><option value="En ejecución">En ejecución</option><option value="Paralizada">Paralizada</option><option value="Finalizada">Finalizada</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">Fecha de inicio</label><input class="fi" type="date" id="ob-fecha"></div>
+    <input type="hidden" id="ob-edit-id" value="">
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-obra')">Cancelar</button><button class="btn btn-r" onclick="saveObra()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="mb" id="mod-sc-picker" onclick="closeBg(event,'mod-sc-picker')">
+  <div class="modal" style="max-width:640px">
+    <div class="mt2">Agregar Sistema Constructivo</div>
+    <div class="msub">Elegí un sistema de tu biblioteca para sumarlo como ítem del rubro</div>
+    <div id="sc-picker-lista" style="margin-top:12px;max-height:50vh;overflow-y:auto"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-sc-picker')">Cancelar</button></div>
+  </div>
+</div>
 <div class="mb" id="mod-hon" onclick="closeBg(event,'mod-hon')">
   <div class="modal" id="mod-hon-inner" style="max-width:860px"></div>
 </div>
@@ -934,6 +975,8 @@ function parseNum(v){
 let EMPRESA={nombre:'PRARES ARQUITECTURA',titulo:'',nombreCompleto:'',matricula:'',rpc:'',cuit:'',catdfMat:'',cptMat:'',email:'',tel:'',dir:'',logo:null,qr:null,ptoVenta:'0001',tipoComp:'C',condIVA:'Monotributista',brandColor1:'#8a0e1e',brandColor2:'#c42d46',brandFont:'Montserrat'};
 let CLIENTES=[];
 let HON_DATA=[];
+let OBRAS_DATA=[];
+var OBRA_ACTIVA=null;
 let editandoId=null;
 
 function guardarTodo(){
@@ -946,6 +989,7 @@ function guardarTodo(){
     else localStorage.removeItem('obraerp_qr');
     localStorage.setItem('obraerp_clientes',JSON.stringify(CLIENTES));
     localStorage.setItem('obraerp_hon',JSON.stringify(HON_DATA));
+    localStorage.setItem('obraerp_obras',JSON.stringify(OBRAS_DATA));
   }catch(e){toast('Sin espacio: imágenes no guardadas',false);}
 }
 function cargarTodo(){
@@ -955,6 +999,7 @@ function cargarTodo(){
     var qs=localStorage.getItem('obraerp_qr');if(qs)EMPRESA.qr=qs;
     var cs=localStorage.getItem('obraerp_clientes');if(cs)CLIENTES=JSON.parse(cs);
     var hs=localStorage.getItem('obraerp_hon');if(hs)HON_DATA=JSON.parse(hs);
+    var os=localStorage.getItem('obraerp_obras');if(os)OBRAS_DATA=JSON.parse(os);
   }catch(e){console.warn('Error cargando:',e);}
 }
 function saveEmpresa(){
@@ -2035,6 +2080,7 @@ function goTo(id,btn,sb){
   if(sb)sb.classList.add('on');
   document.getElementById('main').scrollTop=0;
   if(id==='motor')motorInit();
+  if(id==='computo')cpEntrarConObraActiva();
   if(id==='sistemas'){scFiltrar('');}
   if(id==='precios')prRender();
   if(id==='config'){setTimeout(function(){loadEmpresaToForm();actualizarUIEmpresa();},60);}
@@ -2100,17 +2146,151 @@ function saveCli(){
 }
 
 /* ── OBRAS ────────────────────────────────────────────────────────────── */
-(function(){
-  var ob=[{code:'OB-0001',nm:'Vivienda Unifamiliar Belgrano',addr:'Av. Cramer 2345, Ushuaia',pct:68,val:'USD 120.000',est:'En ejecuci\u00f3n'},{code:'OB-0002',nm:'Oficinas Centro C\u00edvico',addr:'San Mart\u00edn 1864, Ushuaia',pct:31,val:'USD 280.000',est:'Fundaciones'}];
-  var cols=['var(--red2)','var(--bt)'];
-  document.getElementById('obras-list').innerHTML=ob.map(function(o,i){
-    return'<div class="obi"><div style="font-size:9.5px;font-weight:700;letter-spacing:.08em;background:var(--bg4);color:var(--tx3);padding:4px 7px;border-radius:4px;text-align:center">'+o.code+'</div>'
-      +'<div><div style="font-size:13px;font-weight:600">'+o.nm+'</div><div style="font-size:10.5px;color:var(--tx3);margin-top:2px">'+o.addr+'</div></div>'
-      +'<div><div style="font-size:9.5px;text-align:right;color:var(--tx3);margin-bottom:3px">'+o.pct+'%</div><div style="height:3px;background:var(--br);border-radius:2px"><div style="height:100%;border-radius:2px;width:'+o.pct+'%;background:'+cols[i]+'"></div></div></div>'
-      +'<div><div style="text-align:right;font-size:13px;font-weight:600">'+o.val+'</div></div>'
-      +'<span class="bdg '+(o.est==='En ejecuci\u00f3n'?'b-act':'b-en')+'">'+o.est+'</span></div>';
-  }).join('');
-})();
+function obraEstadoBadge(est){
+  var map={'En proyecto':'b-dr','En ejecución':'b-act','Paralizada':'b-en','Finalizada':'b-ent'};
+  return map[est]||'b-dr';
+}
+function renderObras(data){
+  data=data||OBRAS_DATA;
+  var cnt=document.getElementById('obras-cnt');if(cnt)cnt.textContent=data.length+' obra'+(data.length===1?'':'s');
+  var grid=document.getElementById('obras-list');if(!grid)return;
+  grid.innerHTML=data.length?data.map(function(o){
+    return '<div class="cc"><div style="display:flex;justify-content:space-between;align-items:flex-start">'
+      +'<span class="bdg '+obraEstadoBadge(o.estado)+'">'+(o.estado||'En proyecto')+'</span>'
+      +'<button class="btn btn-del btn-sm" style="margin-top:-4px" onclick="event.stopPropagation();eliminarObra(\''+o.id+'\')" title="Eliminar obra">×</button></div>'
+      +'<div style="font-size:13px;font-weight:600;margin:6px 0 2px">'+o.nombre+'</div>'
+      +'<div style="font-size:10.5px;color:var(--tx3);margin-bottom:4px">📍 '+(o.direccion||'—')+'</div>'
+      +(o.titular?'<div style="font-size:10.5px;color:var(--tx2);margin-bottom:2px">👤 '+o.titular+'</div>':'')
+      +'<div style="font-size:10px;color:var(--tx3);margin-top:6px">'+(o.tipoObra||'Nueva')+(o.superficie?' · '+o.superficie+' m²':'')+'</div>'
+      +'</div>';
+  }).join(''):'<div style="padding:30px;text-align:center;color:var(--tx3);font-size:12px;grid-column:1/-1">Sin obras — creá la primera con "+ Nueva obra".</div>';
+  setTimeout(function(){
+    var grid=document.getElementById('obras-list');if(!grid)return;
+    grid.onclick=function(e){
+      var card=e.target.closest('.cc');if(!card)return;
+      if(e.target.closest('.btn-del'))return;
+      var idx=Array.from(grid.children).indexOf(card);
+      if(idx>=0&&data[idx])abrirDetalleObra(data[idx].id);
+    };
+  },50);
+}
+function filtObras(v){
+  var q=(v||'').toLowerCase();
+  renderObras(q?OBRAS_DATA.filter(function(o){return(o.nombre+' '+(o.direccion||'')+' '+(o.titular||'')).toLowerCase().includes(q);}):OBRAS_DATA);
+}
+function openObraMod(){
+  document.getElementById('ob-edit-id').value='';
+  document.getElementById('mod-obra-title').textContent='Nueva obra';
+  ['ob-nombre','ob-titular','ob-direccion','ob-telefono','ob-comitente','ob-expediente','ob-superficie','ob-fecha'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('ob-tipo').value='Nueva';
+  document.getElementById('ob-estado').value='En proyecto';
+  document.getElementById('mod-obra').classList.add('open');
+}
+function editarObra(id){
+  var o=OBRAS_DATA.find(function(x){return x.id==id;});if(!o)return;
+  document.getElementById('ob-edit-id').value=o.id;
+  document.getElementById('mod-obra-title').textContent='Editar obra';
+  document.getElementById('ob-nombre').value=o.nombre||'';
+  document.getElementById('ob-titular').value=o.titular||'';
+  document.getElementById('ob-direccion').value=o.direccion||'';
+  document.getElementById('ob-telefono').value=o.telefono||'';
+  document.getElementById('ob-comitente').value=o.comitente||'';
+  document.getElementById('ob-expediente').value=o.expediente||'';
+  document.getElementById('ob-superficie').value=o.superficie||'';
+  document.getElementById('ob-fecha').value=o.fechaInicio||'';
+  document.getElementById('ob-tipo').value=o.tipoObra||'Nueva';
+  document.getElementById('ob-estado').value=o.estado||'En proyecto';
+  document.getElementById('mod-obra').classList.add('open');
+}
+function saveObra(){
+  var nombre=document.getElementById('ob-nombre').value.trim();
+  if(!nombre){toast('Ingresá el nombre de la obra',false);return;}
+  var editId=document.getElementById('ob-edit-id').value;
+  var o={
+    id: editId || Date.now(),
+    nombre:nombre,
+    titular:document.getElementById('ob-titular').value.trim(),
+    direccion:document.getElementById('ob-direccion').value.trim(),
+    telefono:document.getElementById('ob-telefono').value.trim(),
+    comitente:document.getElementById('ob-comitente').value.trim(),
+    expediente:document.getElementById('ob-expediente').value.trim(),
+    superficie:parseARNum(document.getElementById('ob-superficie').value)||0,
+    tipoObra:document.getElementById('ob-tipo').value,
+    estado:document.getElementById('ob-estado').value,
+    fechaInicio:document.getElementById('ob-fecha').value,
+    ts:editId?(OBRAS_DATA.find(function(x){return x.id==editId;})||{}).ts||Date.now():Date.now()
+  };
+  if(editId){
+    var idx=OBRAS_DATA.findIndex(function(x){return x.id==editId;});
+    if(idx>=0)OBRAS_DATA[idx]=o;
+  }else{
+    OBRAS_DATA.unshift(o);
+  }
+  renderObras(OBRAS_DATA);
+  closeM('mod-obra');
+  guardarTodo();
+  if(_db&&_uid)fbSave('obras',o.id,o);
+  if(OBRA_ACTIVA&&OBRA_ACTIVA.id==o.id){OBRA_ACTIVA=o;renderObraActivaBadge();}
+  toast('✓ '+o.nombre+' guardada');
+}
+function eliminarObra(id){
+  var o=OBRAS_DATA.find(function(x){return x.id==id;});if(!o)return;
+  if(!confirm('¿Eliminar la obra "'+o.nombre+'"? (los cómputos guardados de esta obra no se borran)'))return;
+  OBRAS_DATA=OBRAS_DATA.filter(function(x){return x.id!==id;});
+  renderObras(OBRAS_DATA);
+  guardarTodo();
+  if(_db&&_uid)fbDelete('obras',id);
+  if(OBRA_ACTIVA&&OBRA_ACTIVA.id==id)salirObraActiva();
+  toast('Obra eliminada');
+}
+function abrirDetalleObra(id){
+  var o=OBRAS_DATA.find(function(x){return x.id==id;});if(!o)return;
+  var m=document.getElementById('mod-obra-det');
+  if(!m){m=document.createElement('div');m.id='mod-obra-det';m.className='mb';m.onclick=function(e){if(e.target===m)m.classList.remove('open');};var inner=document.createElement('div');inner.className='modal';inner.style.cssText='max-width:600px';m.appendChild(inner);document.body.appendChild(m);}
+  var html='<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">'
+    +'<div><div style="font-size:17px;font-weight:800;color:var(--tx)">'+o.nombre+'</div>'
+    +'<div style="font-size:11px;color:var(--tx3);margin-top:3px">📍 '+(o.direccion||'—')+'</div></div>'
+    +'<button class="btn btn-sm" onclick="closeM(\'mod-obra-det\')">✕</button></div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11.5px;color:var(--tx2);margin-bottom:16px">'
+    +'<div>👤 Titular: <b>'+(o.titular||'—')+'</b></div>'
+    +'<div>📞 Teléfono: <b>'+(o.telefono||'—')+'</b></div>'
+    +'<div>🏢 Comitente/Empresa: <b>'+(o.comitente||'—')+'</b></div>'
+    +'<div>📄 Expediente: <b>'+(o.expediente||'—')+'</b></div>'
+    +'<div>📐 Superficie: <b>'+(o.superficie?o.superficie+' m²':'—')+'</b></div>'
+    +'<div>🏗 Tipo: <b>'+(o.tipoObra||'Nueva')+'</b></div>'
+    +'<div>📅 Inicio: <b>'+(o.fechaInicio||'—')+'</b></div>'
+    +'<div>Estado: <span class="bdg '+obraEstadoBadge(o.estado)+'">'+(o.estado||'En proyecto')+'</span></div>'
+    +'</div>';
+  html+='<div style="display:flex;flex-direction:column;gap:8px">'
+    +'<button class="btn btn-r" style="width:100%" onclick="setObraActiva(\''+o.id+'\');closeM(\'mod-obra-det\');goTo(\'computo\')">📐 Entrar — Ir al Cómputo de esta obra</button>'
+    +'<button class="btn" style="width:100%;background:var(--bg3);border:1px solid var(--br)" onclick="closeM(\'mod-obra-det\');goTo(\'sistemas\')">🧱 Ir a Sistemas Constructivos</button>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button class="btn" style="flex:1" onclick="closeM(\'mod-obra-det\');editarObra(\''+o.id+'\')">✏ Editar</button>'
+    +'<button class="btn btn-del" style="flex:1" onclick="closeM(\'mod-obra-det\');eliminarObra(\''+o.id+'\')">🗑 Eliminar</button>'
+    +'</div></div>';
+  m.querySelector('.modal').innerHTML=html;
+  m.classList.add('open');
+}
+function setObraActiva(id){
+  var o=OBRAS_DATA.find(function(x){return x.id==id;});if(!o)return;
+  OBRA_ACTIVA=o;
+  renderObraActivaBadge();
+  toast('🏗 Obra activa: '+o.nombre);
+}
+function salirObraActiva(){
+  OBRA_ACTIVA=null;
+  renderObraActivaBadge();
+  cpUpdateHeaderUI();
+  toast('Saliste del modo obra');
+}
+function renderObraActivaBadge(){
+  var b=document.getElementById('obra-activa-badge');
+  var nm=document.getElementById('obra-activa-nombre');
+  if(!b||!nm)return;
+  if(OBRA_ACTIVA){b.style.display='flex';nm.textContent=OBRA_ACTIVA.nombre;}
+  else{b.style.display='none';nm.textContent='';}
+  cpUpdateHeaderUI();
+}
 
 /* ── DASHBOARD ────────────────────────────────────────────────────────── */
 function updateDashboard(){
@@ -2417,6 +2597,7 @@ function toast(msg,ok){if(ok===undefined)ok=true;var e=document.getElementById('
 
 /* ── ARRANQUE ─────────────────────────────────────────────────────────── */
 cargarTodo();
+setTimeout(function(){renderObras(OBRAS_DATA);scCargar();},0);
 // Verificar trial local
 (function(){
   var trialExp = localStorage.getItem('obraerp_trial_expires');
@@ -2690,6 +2871,10 @@ async function fbSyncAll(){
       if(hd.empresa){hd.empresa.logo=null;hd.empresa.qr=null;}
       batch.set(_db.collection('users').doc(_uid).collection('honorarios').doc(String(h.id)),hd);
     });
+    // Save obras
+    OBRAS_DATA.forEach(function(o){
+      batch.set(_db.collection('users').doc(_uid).collection('obras').doc(String(o.id)),o);
+    });
     await batch.commit();
     showSyncBar('\u2713 Sincronizado',true);
   }catch(e){showSyncBar('Error de sync: '+e.message,false);console.error(e);}
@@ -2719,9 +2904,18 @@ async function fbLoadAll(){
       HON_DATA=honSnap.docs.map(function(d){return d.data();});
       HON_DATA.sort(function(a,b){return b.id-a.id;});
     }
+    // Load obras
+    var obrasSnap=await _db.collection('users').doc(_uid).collection('obras').get();
+    if(!obrasSnap.empty){
+      OBRAS_DATA=obrasSnap.docs.map(function(d){return d.data();});
+      OBRAS_DATA.sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+    }
+    // Load sistemas constructivos (biblioteca global) desde la nube
+    scCargar();
     guardarTodo(); // save to localStorage as cache
     renderHon(HON_DATA);
     renderCli(CLIENTES);
+    renderObras(OBRAS_DATA);
     updateDashboard();
     actualizarUIEmpresa();
     showSyncBar('\u2713 Datos cargados',true);
@@ -5569,8 +5763,44 @@ function cpRenderRubro(rub){
   h+='<button onclick="cpBR(\''+rub.id+'\')" style="background:none;border:1px solid var(--rt);color:var(--rt);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px;flex-shrink:0">\u2715 Rubro</button></div>';
   h+='<div id="cpis-'+rub.id+'">'+rub.items.map(function(it){return cpRenderItem(rub.id,it);}).join('')+'</div>';
   h+='<button onclick="cpAI(\''+rub.id+'\')" style="font-size:11px;background:none;border:1px dashed var(--bt);color:var(--bt);padding:5px;border-radius:5px;cursor:pointer;margin-top:4px;width:100%">+ Agregar \u00edtem al rubro</button>';
+  h+='<button onclick="cpAbrirPickerSistema(\''+rub.id+'\')" style="font-size:11px;background:none;border:1px dashed var(--gt);color:var(--gt);padding:5px;border-radius:5px;cursor:pointer;margin-top:4px;width:100%">+ Agregar Sistema Constructivo</button>';
   h+='</div>';
   return h;
+}
+
+var CP_PICKER_RID=null;
+function cpAbrirPickerSistema(rid){
+  CP_PICKER_RID=rid;
+  var lista=document.getElementById('sc-picker-lista');
+  if(!lista)return;
+  if(!SC_SISTEMAS.length){
+    lista.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3);font-size:12px">No ten\u00e9s sistemas constructivos guardados todav\u00eda.<br><button class="btn btn-sm" style="margin-top:8px" onclick="closeM(\'mod-sc-picker\');goTo(\'sistemas\')">Ir a Sistemas Constructivos \u2192</button></div>';
+  }else{
+    lista.innerHTML=SC_SISTEMAS.map(function(s,i){
+      var puM2=(s.capas||[]).reduce(function(a,c){return a+((c.rend||1)*scGetPU(c.cod));},0);
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--br);cursor:pointer" onclick="cpElegirSistema('+i+')" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'\'">'
+        +'<div><div style="font-size:12px;font-weight:600">'+s.nom+'</div><div style="font-size:10px;color:var(--tx3);margin-top:2px">'+s.tipo+' \u00b7 '+(s.capas||[]).length+' capas'+(s.esp?' \u00b7 '+s.esp+'mm':'')+'</div></div>'
+        +'<div style="font-size:12px;font-weight:700;color:var(--bt)">$'+Math.round(puM2).toLocaleString()+'/m\u00b2</div></div>';
+    }).join('');
+  }
+  document.getElementById('mod-sc-picker').classList.add('open');
+}
+function cpElegirSistema(idx){
+  var s=SC_SISTEMAS[idx];if(!s||!CP_PICKER_RID)return;
+  var r=CP_RUBROS.find(function(r){return r.id===CP_PICKER_RID;});
+  if(!r){closeM('mod-sc-picker');return;}
+  var mats=(s.capas||[]).map(function(c){
+    return {id:c.cod||('sc_'+c.id),nom:c.nom,un:c.un||'m\u00b2',rend:c.rend||1,pu:scGetPU(c.cod)||0,esEquipo:false};
+  });
+  r.items.push({
+    id:cpNID(),nom:s.nom+' ('+s.tipo+')',un:'m\u00b2',
+    unidades_permitidas:['m\u00b2'],
+    dims:[{id:cpNID(),desc:'',l:0,a:0,h:0,q:1,sust:false}],
+    mats:mats,mo:[]
+  });
+  closeM('mod-sc-picker');
+  cpRender();
+  toast('\u2713 Sistema "'+s.nom+'" agregado \u2014 completa Largo y Ancho del muro');
 }
 
 function cpRender(){var c=document.getElementById('cp-rubros');if(c)c.innerHTML=CP_RUBROS.map(cpRenderRubro).join('');}
@@ -5665,11 +5895,11 @@ function cpAgregarMat(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id
 function cpAgregarEquipo(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'',nom:'Nuevo equipo',un:'hh',rend:1,pu:0,esEquipo:true});cpRender();}
 function cpAgregarMO(iid){var it=cpFindItem(iid);if(!it)return;it.mo.push({rol:'of',hh:1,pu:CP_PRECIOS_MAT['of']||22299});cpRender();}
 
-function cpCargar(){
+function cpCargar(obraIdOverride,nomOverride){
   var el=document.getElementById('cp-obra-nom');
-  var nom=(el?el.value:'').trim();
-  if(!nom){toast('Escrib\u00ed el nombre de la obra',false);return;}
-  CP_OBRA_ID=nom.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,40);
+  var nom=(nomOverride!=null)?nomOverride:(el?el.value:'').trim();
+  if(!nom&&!obraIdOverride){toast('Escrib\u00ed el nombre de la obra',false);return;}
+  CP_OBRA_ID=obraIdOverride!=null?String(obraIdOverride):nom.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,40);
   if(_db&&_uid){
     _db.collection('users').doc(_uid).collection('computos').doc(CP_OBRA_ID).get()
       .then(function(doc){
@@ -5700,6 +5930,26 @@ function cpGuardar(){
       .set(data).then(function(){toast('\u2713 Guardado en la nube');})
       .catch(function(e){toast('\u2713 Guardado local ('+e.message+')');});
   }else{toast('\u2713 Guardado');}
+}
+
+function cpUpdateHeaderUI(){
+  var manual=document.getElementById('cp-obra-manual');
+  var vinc=document.getElementById('cp-obra-vinculada');
+  var vincNm=document.getElementById('cp-obra-vinculada-nombre');
+  if(!manual||!vinc)return;
+  if(OBRA_ACTIVA){
+    manual.style.display='none';
+    vinc.style.display='flex';
+    if(vincNm)vincNm.textContent=OBRA_ACTIVA.nombre;
+  }else{
+    manual.style.display='flex';
+    vinc.style.display='none';
+  }
+}
+function cpEntrarConObraActiva(){
+  cpUpdateHeaderUI();
+  if(!OBRA_ACTIVA)return;
+  cpCargar(OBRA_ACTIVA.id, OBRA_ACTIVA.nombre);
 }
 
 function cpVerResumen(){
