@@ -4990,6 +4990,22 @@ function cpQty(dims,un){
   return Math.max(0,Math.round(t*100)/100);
 }
 
+function cpAutoSel(iid,val){
+  if(!val||val.length<2) return;
+  var res=cpBuscar(val);
+  if(res.length===0){
+    toast('No encontrado en cat\u00e1logo \u2014 ingres\u00e1 materiales manualmente',false);
+    return;
+  }
+  if(res.length===1){
+    cpSel(iid,res[0].cod);
+    return;
+  }
+  // Varios resultados: mostrar dropdown
+  cpNI(iid,val);
+  var s=document.getElementById('cps-'+iid);
+  if(s) s.style.display='block';
+}
 function cpBuscar(q){
   if(!q||q.length<2)return[];
   var ql=q.toLowerCase();
@@ -5065,13 +5081,14 @@ function cpRenderItem(rid,it){
   var h='<div class="card cp-item" id="cpi-'+it.id+'" style="margin-bottom:8px;padding:10px">';
   h+='<div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px">';
   h+='<div style="flex:1;min-width:180px;position:relative">';
-  h+='<input class="fi" type="text" placeholder="Nombre o c\u00f3d. (ej: 404, R05, Contrapiso...)" value="'+it.nom+'" id="cpn-'+it.id+'" oninput="cpNI(\''+it.id+'\',this.value)" onfocus="cpNI(\''+it.id+'\',this.value)" onblur="setTimeout(function(){var s=document.getElementById(\'cps-'+it.id+'\');if(s)s.style.display=\'none\'},250)" style="width:100%;font-weight:600;font-size:12px">';
+  h+='<input class="fi" type="text" placeholder="Nombre o c\u00f3d. (ej: 404, R05, Contrapiso...)" value="'+it.nom+'" id="cpn-'+it.id+'" oninput="cpNI(\''+it.id+'\',this.value)" onfocus="cpNI(\''+it.id+'\',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();cpAutoSel('"+it.id+"',this.value);}" onblur="setTimeout(function(){var s=document.getElementById(\'cps-'+it.id+'\');if(s)s.style.display=\'none\'},400)" style="width:100%;font-weight:600;font-size:12px">';
   h+='<div id="cps-'+it.id+'" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg3);border:1px solid var(--bt);border-radius:5px;z-index:200;max-height:220px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5)"></div></div>';
   h+='<select class="fis" style="width:80px;font-size:11px" onchange="cpCU(\''+it.id+'\',this.value)">';
   // Unidades permitidas para este ítem si viene del catálogo, sino todas
   var unis_item=it.unidades_permitidas||['m\u00b2','m\u00b3','ml','m','un','kg','tn','gl','hs','lt','kg'];
   unis_item.forEach(function(u){h+='<option value="'+u+'"'+(u===it.un?' selected':'')+'>'+u+'</option>';});
   h+='</select>';
+  h+='<button onclick="cpAutoSel(\''+it.id+'\',document.getElementById(\'cpn-'+it.id+'\').value)" title="Buscar en cat\u00e1logo" style="background:none;border:1px solid var(--tx3);color:var(--tx3);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:12px;flex-shrink:0">&#128269;</button>';
   h+='<button onclick="cpBI(\''+rid+'\',\''+it.id+'\')" style="background:none;border:1px solid var(--rt);color:var(--rt);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px;flex-shrink:0">\u2715</button></div>';
   h+='<div style="background:var(--bg);border-radius:6px;padding:8px;margin-bottom:8px">';
   h+='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">DIMENSIONES</div>';
