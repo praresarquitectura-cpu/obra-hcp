@@ -4385,6 +4385,12 @@ function cpMergePrecios(){
   Object.keys(CP_PRECIOS_EXTRA).forEach(function(k){
     CP_PRECIOS_MAT[k] = CP_PRECIOS_EXTRA[k];
   });
+  // Mapear TODOS los items de PR_DATA a CP_PRECIOS_MAT por código
+  if(typeof PR_DATA!=='undefined'){
+    PR_DATA.forEach(function(p){
+      if(p.cod&&p.pu>0) CP_PRECIOS_MAT[p.cod]=p.pu;
+    });
+  }
   // Mapear precios de perfiles por ml (desde IMCOFUE 2026)
   CP_PRECIOS_MAT['PGU35_052'] = 1534;   // estimado (no listado en IMCOFUE)
   CP_PRECIOS_MAT['PGC35_052'] = 1360;
@@ -4948,8 +4954,13 @@ function cpNID(){return 'n'+(CP_NID++);}
 
 function cpCalcPU(cat){
   var m=0,o=0;
-  (cat.mats||[]).forEach(function(x){if(!x.esEquipo)m+=(CP_PRECIOS_MAT[x.id]||0)*x.rend;});
-  (cat.mo||[]).forEach(function(x){o+=(CP_PRECIOS_MAT[x.rol]||0)*x.hh;});
+  function _pu(id){
+    if(CP_PRECIOS_MAT[id]>0) return CP_PRECIOS_MAT[id];
+    if(typeof PR_DATA!=='undefined'){var p=PR_DATA.find(function(x){return x.cod===String(id);});if(p&&p.pu>0)return p.pu;}
+    return 0;
+  }
+  (cat.mats||[]).forEach(function(x){if(!x.esEquipo)m+=_pu(x.id)*x.rend;});
+  (cat.mo||[]).forEach(function(x){o+=_pu(x.rol)*x.hh;});
   return {puMat:Math.round(m),puMO:Math.round(o),puTotal:Math.round((m+o)*CP_FACTOR_GASTOS)};
 }
 
