@@ -5003,11 +5003,11 @@ function cpRenderMats(it){
     var cant=Math.round(qty*m.rend*1000)/1000;
     var sub=Math.round(cant*pu);
     h+='<tr style="border-bottom:1px solid var(--br);background:'+(m.esEquipo?'rgba(251,146,60,.06)':'')+'">';
-    h+='<td style="padding:3px 5px"><input class="cp-di" value="'+m.nom+'" oninput="cpUM(\''+it.id+'\','+mi+',\'nom\',this.value)" style="width:100%;min-width:110px;background:transparent;border:none;color:var(--tx);font-size:10px;padding:0"></td>';
+    h+='<td style="padding:3px 5px"><div style="display:flex;align-items:center;gap:3px"><input class="cp-di" value="'+m.nom+'" oninput="cpUM(\''+it.id+'\','+mi+',\'nom\',this.value)" style="width:100%;min-width:110px;background:transparent;border:none;color:var(--tx);font-size:10px;padding:0">'+(m.sinPrecio?'<span title="Sin precio — ingresalo manualmente" style="color:var(--rt);font-weight:700;font-size:11px;flex-shrink:0;cursor:help">!</span>':'')+' </div></td>';
     h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">'+m.un+'</td>';
-    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="number" value="'+m.rend+'" step="0.001" oninput="cpUM(\''+it.id+'\','+mi+',\'rend\',+this.value)" style="width:65px;text-align:right"></td>';
+    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="\'+m.rend+\'" onfocus="this.select()" onblur="var v=parseFloat(this.value.replace(/,/,\'.\'));if(!isNaN(v)&&v>0)cpUM(\''+it.id+'\','+mi+',\'rend\',+this.value);" style="width:75px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--bt);font-weight:600">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td>';
-    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="number" value="'+pu+'" step="100" oninput="cpUM(\''+it.id+'\','+mi+',\'pu\',+this.value)" style="width:80px;text-align:right"></td>';
+    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="numeric" value="\'+pu.toLocaleString(\'es-AR\')+\'" onfocus="this.select()" onblur="var v=+this.value.replace(/[^0-9.]/g,\'\');if(!isNaN(v))cpUM(\''+it.id+'\','+mi+',\'pu\',+this.value);" style="width:95px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:'+(m.esEquipo?'var(--golt)':'var(--gt)')+';font-weight:700">$'+sub.toLocaleString()+'</td>';
     h+='<td><button onclick="cpBorrarMat(\''+it.id+'\','+mi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px;padding:0">\u00d7</button></td></tr>';
   });
@@ -5019,9 +5019,9 @@ function cpRenderMats(it){
     h+='<tr style="border-bottom:1px solid var(--br);background:rgba(251,191,36,.05)">';
     h+='<td style="padding:3px 5px;color:var(--golt)">\u2692 MO \u2014 '+rn+'</td>';
     h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">hs</td>';
-    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="number" value="'+m.hh+'" step="0.05" oninput="cpUMO(\''+it.id+'\','+mi+',\'hh\',+this.value)" style="width:65px;text-align:right"></td>';
+    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="\'+m.hh+\'" onfocus="this.select()" onblur="var v=parseFloat(this.value.replace(/,/,\'.\'));if(!isNaN(v)&&v>=0)cpUMO(\''+it.id+'\','+mi+',\'hh\',+this.value);" style="width:75px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:600">'+hs.toLocaleString('es-AR',{maximumFractionDigits:2})+' hs</td>';
-    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="number" value="'+pu+'" step="100" oninput="cpUMO(\''+it.id+'\','+mi+',\'pu\',+this.value)" style="width:80px;text-align:right"></td>';
+    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="numeric" value="\'+pu.toLocaleString(\'es-AR\')+\'" onfocus="this.select()" onblur="var v=+this.value.replace(/[^0-9.]/g,\'\');if(!isNaN(v))cpUMO(\''+it.id+'\','+mi+',\'pu\',+this.value);" style="width:95px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:700">$'+sub.toLocaleString()+'</td>';
     h+='<td><button onclick="cpBorrarMO(\''+it.id+'\','+mi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px;padding:0">\u00d7</button></td></tr>';
   });
@@ -5119,18 +5119,26 @@ function cpSel(iid,cod){
   it.un=cat.un;
   it.dims=[];
   it.unidades_permitidas=cat.unidades_permitidas||null;
+  // Función helper: busca precio en PR_DATA, CP_PRECIOS_MAT, o fallback
+  function _getPU(id, fallback){
+    if(typeof PR_DATA!=='undefined'){
+      var p=PR_DATA.find(function(x){return x.cod===String(id);});
+      if(p&&p.pu>0) return p.pu;
+    }
+    if(typeof CP_PRECIOS_MAT!=='undefined'&&CP_PRECIOS_MAT[id]>0) return CP_PRECIOS_MAT[id];
+    return fallback||0;
+  }
   // Cargar materiales (separando equipos de materiales)
   it.mats=(cat.mats||[]).filter(function(m){return !m.esEquipo;}).map(function(m){
-    var pu=m.pu||(typeof CP_PRECIOS_MAT!=='undefined'?CP_PRECIOS_MAT[m.id]||0:0);
-    // Buscar precio actualizado en PR_DATA
-    if(typeof PR_DATA!=='undefined'){var p=PR_DATA.find(function(x){return x.cod===String(m.id);});if(p&&p.pu>0)pu=p.pu;}
-    return {id:m.id,nom:m.nom,un:m.un,rend:m.rend||1,pu:pu,esEquipo:false};
+    var pu=_getPU(m.id, m.pu||0);
+    return {id:m.id,nom:m.nom,un:m.un,rend:m.rend||1,pu:pu,esEquipo:false,
+            sinPrecio:pu===0}; // marca si no tiene precio
   });
   // Cargar equipos por separado
   var equip_items=(cat.mats||[]).filter(function(m){return m.esEquipo;}).map(function(m){
-    var pu=m.pu||(typeof CP_PRECIOS_MAT!=='undefined'?CP_PRECIOS_MAT[m.id]||0:0);
-    if(typeof PR_DATA!=='undefined'){var p=PR_DATA.find(function(x){return x.cod===String(m.id);});if(p&&p.pu>0)pu=p.pu;}
-    return {id:m.id,nom:m.nom,un:m.un||'hh',rend:m.rend||1,pu:pu,esEquipo:true};
+    var pu=_getPU(m.id, m.pu||0);
+    return {id:m.id,nom:m.nom,un:m.un||'hh',rend:m.rend||1,pu:pu,esEquipo:true,
+            sinPrecio:pu===0};
   });
   // Unir materiales + equipos
   it.mats=it.mats.concat(equip_items);
@@ -5503,7 +5511,27 @@ var PR_DATA = [
 {cod:'MO1',nom:'Oficial Especializado',cat:'MANO DE OBRA',un:'hs',pu:26067,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
 {cod:'MO2',nom:'Oficial',cat:'MANO DE OBRA',un:'hs',pu:22299,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
 {cod:'MO3',nom:'Medio Oficial',cat:'MANO DE OBRA',un:'hs',pu:20608,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
-{cod:'MO4',nom:'Ayudante',cat:'MANO DE OBRA',un:'hs',pu:18968,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
+{cod:'MO4',nom:'Ayudante',cat:'MANO DE OBRA',un:'hs',pu:18968,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},,
+
+// ── MATERIALES ESPECIALES (de APUs Municipalidad) ──
+{cod:'2202',nom:'Impresión sobre vinilo laminado',cat:'IMPRESIÓN Y CARTELERÍA',un:'m²',pu:32000,medida:'m²',fuente:'Planilla Municipalidad Ushuaia 2026',modif:0},
+{cod:'2305',nom:'Tubo PVC ø160x3.2mm 4m RAM',cat:'PVC CAÑOS',un:'m',pu:19808,medida:'barra 4m = $79.232',fuente:'Planilla Municipalidad Ushuaia 2026',modif:0},
+{cod:'1832',nom:'Adoquín Pcr Uni-Stone Ps6',cat:'SOLADOS',un:'un',pu:1680,medida:'un',fuente:'Planilla Municipalidad Ushuaia 2026',modif:0},
+{cod:'3201',nom:'Retroexcavadora oruga',cat:'EQUIPOS',un:'hh',pu:119000,medida:'hh',fuente:'MASCIOTRA',modif:0},
+{cod:'3203',nom:'Motocompresor',cat:'EQUIPOS',un:'hh',pu:312300,medida:'hh (valor x día)',fuente:'MASCIOTRA',modif:0},
+{cod:'3206',nom:'Retroexcavadora E 80 HP',cat:'EQUIPOS',un:'hh',pu:119000,medida:'hh',fuente:'MASCIOTRA',modif:0},
+{cod:'3207',nom:'Autoelevador telescópico JCB',cat:'EQUIPOS',un:'hh',pu:162100,medida:'hh',fuente:'MASCIOTRA',modif:0},
+{cod:'3208',nom:'Autoelevador 2.5tn',cat:'EQUIPOS',un:'hh',pu:77000,medida:'hh',fuente:'MASCIOTRA',modif:0},
+{cod:'3211',nom:'Retroexcavadora c/martillo 210 grande',cat:'EQUIPOS',un:'hh',pu:231100,medida:'hh',fuente:'MASCIOTRA',modif:0},
+{cod:'atornillador',nom:'Atornillador inalámbrico (amortización)',cat:'EQUIPOS',un:'hh',pu:3500,medida:'hh',fuente:'Estimado uso profesional',modif:0},
+{cod:'amoladora',nom:'Amoladora 4.5" (amortización)',cat:'EQUIPOS',un:'hh',pu:2800,medida:'hh',fuente:'Estimado uso profesional',modif:0},
+{cod:'nivel_laser',nom:'Nivel láser (amortización)',cat:'EQUIPOS',un:'hh',pu:1200,medida:'hh',fuente:'Estimado uso profesional',modif:0},
+{cod:'taladro',nom:'Taladro percutor (amortización)',cat:'EQUIPOS',un:'hh',pu:2200,medida:'hh',fuente:'Estimado uso profesional',modif:0},
+{cod:'andamio_tubul',nom:'Andamio tubular (alquiler)',cat:'EQUIPOS',un:'hh',pu:1800,medida:'hh',fuente:'Estimado mercado local',modif:0},
+{cod:'martillo_demo',nom:'Martillo demoledor eléctrico (amortización)',cat:'EQUIPOS',un:'hh',pu:85000,medida:'hh',fuente:'Estimado uso profesional',modif:0},
+{cod:'tabla_pino',nom:'Tabla pino encofrado 1"x6"',cat:'MADERAS',un:'m',pu:840,medida:'tabla 12m',fuente:'Estimado mercado local',modif:0},
+{cod:'clavo_pp_3',nom:'Clavo punta París 3"',cat:'FIJACIONES',un:'kg',pu:1914,medida:'bolsa 3kg',fuente:'Planilla Municipalidad Ushuaia 2026',modif:0},
+
 ];
 
 // Historial de modificaciones (se guarda en Firebase)
