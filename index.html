@@ -4405,6 +4405,18 @@ function cpMergePrecios(){
   // IMPORTANTE: en el resumen de compra el sistema muestra ml
   // El usuario ve: "PGU 70mm: 37,44 ml → necesitás 7 barras de 6m"
   // Esta nota se muestra en cpVerResumen y PDF
+  // Precios de los materiales de la planilla Municipalidad (fallback hardcoded)
+  var _fallback={
+    '2202':32000,'1106':12302,'302':4829,'303':5254,'601':28,'102':410800,
+    '201':76000,'202':76000,'205':47700,'209':57800,'210':76600,'803':808,
+    '2305':19808,'1832':1680,'1831':1981,'1829':47700,'1833':14595,
+    '501':3200,'502':2890,'1001':656,'1002':1657,'1008':1039,'1010':420,
+    '1106':12302,'1101':13983,'1201':24349,'1202':20777,'1301':8067,'1302':7491,
+    '1401':9287,'1501':12680,'1502':12596,'1503':36378,'1506':25910,'1508':21164,
+    '3202':198200,'3209':121180,'3210':193800,'3201':119000,'3205':93900,
+    'MO1':26067,'MO2':22299,'MO3':20608,'MO4':18968
+  };
+  Object.keys(_fallback).forEach(function(k){if(!CP_PRECIOS_MAT[k])CP_PRECIOS_MAT[k]=_fallback[k];});
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -5130,13 +5142,18 @@ function cpSel(iid,cod){
   it.un=cat.un;
   it.dims=[];
   it.unidades_permitidas=cat.unidades_permitidas||null;
-  // Función helper: busca precio en PR_DATA, CP_PRECIOS_MAT, o fallback
+  // Función helper: busca precio en PR_DATA y CP_PRECIOS_MAT
   function _getPU(id, fallback){
+    // 1. Buscar en PR_DATA por código exacto
     if(typeof PR_DATA!=='undefined'){
       var p=PR_DATA.find(function(x){return x.cod===String(id);});
       if(p&&p.pu>0) return p.pu;
     }
-    if(typeof CP_PRECIOS_MAT!=='undefined'&&CP_PRECIOS_MAT[id]>0) return CP_PRECIOS_MAT[id];
+    // 2. Buscar en CP_PRECIOS_MAT (por ID clave o código)
+    if(typeof CP_PRECIOS_MAT!=='undefined'){
+      if(CP_PRECIOS_MAT[id]>0) return CP_PRECIOS_MAT[id];
+      if(CP_PRECIOS_MAT[String(id)]>0) return CP_PRECIOS_MAT[String(id)];
+    }
     return fallback||0;
   }
   // Cargar materiales (separando equipos de materiales)
@@ -5664,13 +5681,16 @@ function prCargar(){
           if(d.historial){PR_HISTORIAL=d.historial;}
           prSincronizarConCatalogo();
         }
+        cpMergePrecios();
       }).catch(function(){
         var loc=localStorage.getItem('obraerp_precios');
         if(loc){var d=JSON.parse(loc);if(d.items)PR_DATA=d.items;if(d.historial)PR_HISTORIAL=d.historial;prSincronizarConCatalogo();}
+        cpMergePrecios();
       });
   }else{
     var loc=localStorage.getItem('obraerp_precios');
     if(loc){var d=JSON.parse(loc);if(d.items)PR_DATA=d.items;if(d.historial)PR_HISTORIAL=d.historial;prSincronizarConCatalogo();}
+    cpMergePrecios();
   }
 }
 
