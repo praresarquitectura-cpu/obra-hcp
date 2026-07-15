@@ -4405,6 +4405,102 @@ function cpMergePrecios(){
 // CATÁLOGO EXTENDIDO — agregar a CP_CATALOGO
 // ═══════════════════════════════════════════════════════════════════════
 var CP_CATALOGO_EXTRA = [
+// ══ TRABAJOS PRELIMINARES ══════════════════════════════════════════
+{cod:'TP01',nom:'Cartel de Obra 1,00x1,50m con Estructura',un:'gl',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['gl','un'],
+ mats:[
+  {id:'2202',nom:'Impresión sobre vinilo laminado',un:'m²',rend:1.5},
+  {id:'1106',nom:'Chapa Galvanizada Lisa N25 (0,5mm)',un:'m²',rend:1.5},
+  {id:'302',nom:'PGC Montante 100x0.92mm (vertical)',un:'m',rend:17},
+  {id:'303',nom:'PGU Solera 100x1.29mm (horizontal)',un:'m',rend:6},
+  {id:'601',nom:'Tornillo T1 Mecha 8x9/16"',un:'un',rend:30},
+  {id:'102',nom:'Hormigón H13 250kg',un:'m³',rend:0.07},
+ ],
+ mo:[{rol:'of',hh:2},{rol:'ay',hh:4}]
+},
+{cod:'TP02',nom:'Cartel de Obra 2,00x3,50m con Estructura',un:'gl',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['gl','un'],
+ mats:[
+  {id:'2202',nom:'Impresión sobre vinilo laminado',un:'m²',rend:7},
+  {id:'1106',nom:'Chapa Galvanizada Lisa N25 (0,5mm)',un:'m²',rend:7},
+  {id:'302',nom:'PGC Montante 100x0.92mm (vertical)',un:'m',rend:25},
+  {id:'303',nom:'PGU Solera 100x1.29mm (horizontal)',un:'m',rend:13},
+  {id:'601',nom:'Tornillo T1 Mecha 8x9/16"',un:'un',rend:80},
+  {id:'102',nom:'Hormigón H13 250kg',un:'m³',rend:0.51},
+ ],
+ mo:[{rol:'of',hh:4},{rol:'ay',hh:8}]
+},
+{cod:'TP03',nom:'Limpieza del terreno (manual)',un:'m²',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['m²','gl'],
+ mats:[
+  {id:'volquete_5m3',nom:'Volquete 5m³ (residuos)',un:'hh',rend:0.02,esEquipo:true},
+ ],
+ mo:[{rol:'ay',hh:0.15},{rol:'of',hh:0.05}]
+},
+{cod:'TP04',nom:'Limpieza del terreno con equipo',un:'m²',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['m²','gl'],
+ mats:[
+  {id:'3210',nom:'Retroexcavadora c/martillo (limpieza)',un:'hh',rend:0.02,esEquipo:true},
+  {id:'3209',nom:'Volquete 5m³',un:'hh',rend:0.02,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:0.05},{rol:'ay',hh:0.05}]
+},
+{cod:'TP05',nom:'Replanteo de obra',un:'gl',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['gl','m²','ml'],
+ mats:[
+  {id:'clavo_pp_3',nom:'Clavo punta París 3"',un:'kg',rend:0.1},
+  {id:'tabla_pino',nom:'Tabla pino encofrado (estacas)',un:'m',rend:2.0},
+  {id:'nivel_laser',nom:'Nivel láser (herramienta)',un:'hh',rend:0.5,esEquipo:true},
+  {id:'taladro',nom:'Taladro percutor',un:'hh',rend:0.3,esEquipo:true},
+ ],
+ mo:[{rol:'ofEsp',hh:4},{rol:'of',hh:4},{rol:'ay',hh:4}]
+},
+{cod:'TP06',nom:'Cerco de obra perimetral (postes + malla)',un:'ml',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['ml','m²','gl'],
+ mats:[
+  {id:'tb_cuad_40x40',nom:'Tubo cuadrado 40x40x2mm (postes)',un:'m',rend:0.5},
+  {id:'chapa_galv_N25',nom:'Chapa Galvanizada N25 (cerramiento)',un:'m²',rend:2.0},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm (fijación)',un:'un',rend:8},
+  {id:'H21',nom:'Hormigón H21 (base postes)',un:'m³',rend:0.03},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.3,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:1.5},{rol:'ay',hh:1.5}]
+},
+{cod:'TP07',nom:'Cartelería de seguridad y señalización obra',un:'gl',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['gl','un'],
+ mats:[
+  {id:'1106',nom:'Chapa Galvanizada N25 (cartel)',un:'m²',rend:1.0},
+  {id:'torn_wafer',nom:'Tornillo Wafer (fijación)',un:'un',rend:8},
+  {id:'esmalte_sint',nom:'Esmalte Sintético (pintura letrero)',un:'lt',rend:0.5},
+ ],
+ mo:[{rol:'of',hh:2},{rol:'ay',hh:2}]
+},
+{cod:'TP08',nom:'Demolición general (ítem global)',un:'gl',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['gl','m²','m³'],
+ mats:[
+  {id:'3210',nom:'Retroexcavadora c/martillo E 80 HP',un:'hh',rend:1,esEquipo:true},
+  {id:'3209',nom:'Volquete 5m³',un:'hh',rend:2,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:8},{rol:'ay',hh:8}]
+},
+{cod:'TP09',nom:'Retiros varios (ítem global)',un:'gl',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['gl','m²','m³','un'],
+ mats:[
+  {id:'3202',nom:'Camión volcador 6m³',un:'hh',rend:2,esEquipo:true},
+  {id:'3209',nom:'Volquete 5m³',un:'hh',rend:1,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:4},{rol:'ay',hh:8}]
+},
+
 
 // ══════════════════════════════════════════════════
 // DEMOLICIÓN Y RETIROS — detalle completo
@@ -4948,8 +5044,10 @@ function cpRenderItem(rid,it){
   h+='<div style="flex:1;min-width:180px;position:relative">';
   h+='<input class="fi" type="text" placeholder="Nombre o c\u00f3d. (ej: 404, R05, Contrapiso...)" value="'+it.nom+'" id="cpn-'+it.id+'" oninput="cpNI(\''+it.id+'\',this.value)" onfocus="cpNI(\''+it.id+'\',this.value)" onblur="setTimeout(function(){var s=document.getElementById(\'cps-'+it.id+'\');if(s)s.style.display=\'none\'},250)" style="width:100%;font-weight:600;font-size:12px">';
   h+='<div id="cps-'+it.id+'" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg3);border:1px solid var(--bt);border-radius:5px;z-index:200;max-height:220px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5)"></div></div>';
-  h+='<select class="fis" style="width:76px;font-size:11px" onchange="cpCU(\''+it.id+'\',this.value)">';
-  ['m\u00b2','m\u00b3','ml','m','un','kg','tn','gl'].forEach(function(u){h+='<option value="'+u+'"'+(u===it.un?' selected':'')+'>'+u+'</option>';});
+  h+='<select class="fis" style="width:80px;font-size:11px" onchange="cpCU(\''+it.id+'\',this.value)">';
+  // Unidades permitidas para este ítem si viene del catálogo, sino todas
+  var unis_item=it.unidades_permitidas||['m\u00b2','m\u00b3','ml','m','un','kg','tn','gl','hs','lt','kg'];
+  unis_item.forEach(function(u){h+='<option value="'+u+'"'+(u===it.un?' selected':'')+'>'+u+'</option>';});
   h+='</select>';
   h+='<button onclick="cpBI(\''+rid+'\',\''+it.id+'\')" style="background:none;border:1px solid var(--rt);color:var(--rt);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px;flex-shrink:0">\u2715</button></div>';
   h+='<div style="background:var(--bg);border-radius:6px;padding:8px;margin-bottom:8px">';
@@ -5020,6 +5118,7 @@ function cpSel(iid,cod){
   it.nom=cat.nom;
   it.un=cat.un;
   it.dims=[];
+  it.unidades_permitidas=cat.unidades_permitidas||null;
   // Cargar materiales (separando equipos de materiales)
   it.mats=(cat.mats||[]).filter(function(m){return !m.esEquipo;}).map(function(m){
     var pu=m.pu||(typeof CP_PRECIOS_MAT!=='undefined'?CP_PRECIOS_MAT[m.id]||0:0);
@@ -5053,7 +5152,7 @@ function cpSel(iid,cod){
 function cpAgregarRubro(){CP_RUBROS.push({id:cpNID(),nom:'NUEVO RUBRO',items:[]});cpRender();}
 function cpBR(rid){if(!confirm('¿Eliminar rubro?'))return;CP_RUBROS=CP_RUBROS.filter(function(r){return r.id!==rid;});cpRender();}
 function cpUR(rid,v){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(r)r.nom=v;}
-function cpAI(rid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items.push({id:cpNID(),nom:'',un:'m\u00b2',dims:[],mats:[],mo:[]});cpRender();}
+function cpAI(rid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items.push({id:cpNID(),nom:'',un:'m\u00b2',dims:[],mats:[],mo:[],unidades_permitidas:null});cpRender();}
 function cpBI(rid,iid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items=r.items.filter(function(i){return i.id!==iid;});cpRender();}
 function cpCU(iid,un){var it=cpFindItem(iid);if(!it)return;it.un=un;it.dims=[];cpRender();}
 function cpAD(iid){var it=cpFindItem(iid);if(!it)return;it.dims.push({id:cpNID(),desc:'',l:0,a:0,h:0,q:1,sust:false});cpRender();}
