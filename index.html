@@ -5542,6 +5542,118 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[]
 },
+// ══ ESTRUCTURA DE HºAº — incidencias reales (planilla 3CM/INCIDENCIAS), MO estándar ESTIMADA (ajustar) ══
+{cod:'HA01',nom:'Bases de HºAº (MO estándar — verificar)',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'1001',nom:'Cemento portland',un:'kg',rend:280},
+  {id:'203',nom:'Arena gruesa',un:'m³',rend:0.42},
+  {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.85},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:30},
+  {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.25},
+ ],
+ mo:[{rol:'of',hh:2.5},{rol:'ay',hh:4}]
+},
+{cod:'HA02',nom:'Columnas HºAº (MO estándar — verificar)',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'1001',nom:'Cemento portland',un:'kg',rend:326},
+  {id:'203',nom:'Arena gruesa',un:'m³',rend:0.5},
+  {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.75},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:100},
+  {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
+  {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:23.1},
+  {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:13.0},
+  {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
+ ],
+ mo:[{rol:'of',hh:6},{rol:'ay',hh:8}]
+},
+{cod:'HA03',nom:'Vigas de Fundación (MO estándar — verificar)',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'1001',nom:'Cemento portland',un:'kg',rend:326},
+  {id:'203',nom:'Arena gruesa',un:'m³',rend:0.5},
+  {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.75},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:90},
+  {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
+  {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
+  {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
+  {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
+ ],
+ mo:[{rol:'of',hh:4},{rol:'ay',hh:5.5}]
+},
+{cod:'HA04',nom:'Losa de Fundación (MO estándar — verificar)',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'1001',nom:'Cemento portland',un:'kg',rend:326},
+  {id:'203',nom:'Arena gruesa',un:'m³',rend:0.5},
+  {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.75},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:60},
+  {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:20.0},
+  {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:0.25},
+ ],
+ mo:[{rol:'of',hh:2.5},{rol:'ay',hh:3.5}]
+},
+{cod:'HA05',nom:'Vigas de HºAº (MO estándar — verificar)',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'1001',nom:'Cemento portland',un:'kg',rend:326},
+  {id:'203',nom:'Arena gruesa',un:'m³',rend:0.5},
+  {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.75},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:90},
+  {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
+  {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
+  {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
+  {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
+ ],
+ mo:[{rol:'of',hh:5.5},{rol:'ay',hh:7}]
+},
+{cod:'HA06',nom:'Losas HºAº (MO estándar — verificar)',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'1001',nom:'Cemento portland',un:'kg',rend:326},
+  {id:'203',nom:'Arena gruesa',un:'m³',rend:0.5},
+  {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.75},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:40},
+  {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.6},
+  {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:6.0},
+  {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:16.0},
+  {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
+ ],
+ mo:[{rol:'of',hh:3.5},{rol:'ay',hh:4.5}]
+},
+// ══ MOVIMIENTO DE SUELO — sin datos de MO en planilla 3CM/INCIDENCIAS; MO estándar ESTIMADA (ajustar) ══
+{cod:'MS01',nom:'Excavación Bases (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:3.5}]},
+{cod:'MS02',nom:'Excavación Vigas de Fundación (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4}]},
+{cod:'MS03',nom:'Excavación de Pilotines (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:5}]},
+{cod:'MS04',nom:'Excavación de Cámaras de Instalación Cloacal (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4.5}]},
+{cod:'MS05',nom:'Excavación Cañería de Gas (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4.5}]},
+{cod:'MS06',nom:'Excavación Cañería Eléctrica (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4}]},
+{cod:'MS07',nom:'Excavación Cañería Agua Fría (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4}]},
+{cod:'MS08',nom:'Excavación Cañería Cloaca (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4.5}]},
+{cod:'MS09',nom:'Extracción de Suelo en Sector de Implantación (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:2.5}]},
+{cod:'MS10',nom:'Compactación Suelo Seleccionado (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:0.8}]},
+// ══ CUBIERTA — calculadora dimensional (Largo real de faldón según pendiente, verificado contra planilla CUB.CHº) ══
+// Unidad especial 'm²cub': Largo=proyección horizontal, Ancho=ancho del faldón, campo Pendiente(%) reemplaza a 'Alto'.
+// Incidencias de materiales por m² ESTIMADAS (estándar de mercado — ajustar según especificación real de obra).
+{cod:'CUB01',nom:'Cubierta Chapas sobre Correas Metálicas (MO y materiales estándar — verificar)',un:'m²cub',
+ cat:'CUBIERTA',
+ unidades_permitidas:['m²cub'],
+ mats:[
+  {id:'1101',nom:'Chapa Acanalada Galvanizada calibre 25',un:'m²',rend:1.10},
+  {id:'435',nom:'Perfil C Ngo 100x50x15x2.0mm (correa)',un:'m',rend:1.0},
+  {id:'609',nom:'Tornillo autoperf p/chapa φ6,3x50',un:'un',rend:8},
+  {id:'817',nom:'Lana de vidrio 100mm con papel kraft',un:'m²',rend:1.0},
+  {id:'803',nom:'Film nylon polietileno 200μ (barrera de vapor)',un:'m²',rend:1.10},
+ ],
+ mo:[{rol:'of',hh:0.5},{rol:'ay',hh:0.7}]
+},
 ];
 
 
@@ -5604,7 +5716,13 @@ function cpQty(dims,un){
   var t=0;
   dims.forEach(function(d){
     var l=+(d.l||0),a=+(d.a||0),h=+(d.h||0),q=+(d.q||1),v=0;
-    if(un==='m\u00b2')v=l*a*q;
+    if(un==='m\u00b2cub'){
+      // Cubierta con pendiente: h = pendiente en % (real, no altura). Largo real de faldón = Largo horiz. / cos(atan(pend/100))
+      var pend=h||0;
+      var largoFaldon=pend>0?(l/Math.cos(Math.atan(pend/100))):l;
+      v=largoFaldon*a*q;
+    }
+    else if(un==='m\u00b2')v=l*a*q;
     else if(un==='m\u00b3')v=l*a*h*q;
     else if(un==='ml'||un==='m')v=l*q;
     else v=q;
@@ -5665,9 +5783,10 @@ function cpRenderDim(iid,d,un){
   var h='<div id="cpd-'+iid+'-'+d.id+'" style="display:flex;gap:3px;align-items:center;margin-bottom:3px;flex-wrap:wrap;padding:'+(isVano?'3px 4px':'0')+';border-radius:4px;background:'+(isVano?'rgba(196,45,70,.08)':'transparent')+'">';
   if(isVano)h+='<span style="font-size:9px;color:var(--rt);font-weight:700;white-space:nowrap">− VANO</span>';
   h+='<input class="cp-di" placeholder="Descripci\u00f3n" value="'+(d.desc||'')+'" oninput="cpUD(\''+iid+'\',\''+d.id+'\',\'desc\',this.value)" style="flex:2;min-width:90px">';
-  if(un==='m\u00b2'||un==='m\u00b3'||un==='ml'||un==='m')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="'+(isVano?'Ancho vano':'Largo')+'" value="'+(d.l?String(d.l).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'l\',isNaN(v)?0:v);" style="width:68px">';
-  if(un==='m\u00b2'||un==='m\u00b3')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="'+(isVano?'Alto vano':'Ancho')+'" value="'+(d.a?String(d.a).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'a\',isNaN(v)?0:v);" style="width:68px">';
+  if(un==='m\u00b2'||un==='m\u00b3'||un==='ml'||un==='m'||un==='m\u00b2cub')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="'+(isVano?'Ancho vano':(un==='m\u00b2cub'?'Largo horiz.':'Largo'))+'" value="'+(d.l?String(d.l).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'l\',isNaN(v)?0:v);" style="width:68px">';
+  if(un==='m\u00b2'||un==='m\u00b3'||un==='m\u00b2cub')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="'+(isVano?'Alto vano':'Ancho')+'" value="'+(d.a?String(d.a).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'a\',isNaN(v)?0:v);" style="width:68px">';
   if(un==='m\u00b3')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="Alto" value="'+(d.h?String(d.h).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'h\',isNaN(v)?0:v);" style="width:68px">';
+  if(un==='m\u00b2cub')h+='<input class="cp-di" type="text" inputmode="decimal" title="Pendiente del faldón en %" placeholder="Pend. %" value="'+(d.h?String(d.h).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'h\',isNaN(v)?0:v);" style="width:68px;border-color:var(--gt)">';
   h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="Cant" value="'+String(d.q||1).replace('.',',')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'q\',(isNaN(v)||v<0)?1:v);" style="width:55px">';
   h+='<label style="font-size:10px;color:var(--rt);white-space:nowrap;cursor:pointer"><input type="checkbox" '+(d.sust?'checked':'')+' onchange="cpUD(\''+iid+'\',\''+d.id+'\',\'sust\',this.checked)"> Vano/Abertura (descuenta)</label>';
   h+='<button onclick="cpBD(\''+iid+'\',\''+d.id+'\')" style="background:none;border:none;color:var(--rt);font-size:16px;cursor:pointer;padding:0;line-height:1">\u00d7</button>';
@@ -6200,6 +6319,7 @@ var PR_DATA = [
 {cod:'211',nom:'Tierra Negra',cat:'AGREGADOS',un:'m³',pu:59700,medida:'m³',fuente:'MASCIOTRA',modif:0,fecha:'2026-06'},
 {cod:'212',nom:'Piedra Triturada',cat:'AGREGADOS',un:'m³',pu:100000,medida:'m³',fuente:'MASCIOTRA',modif:0,fecha:'2026-06'},
 {cod:'213',nom:'Piedra Laja Negra Irregular tipo pirca',cat:'AGREGADOS',un:'m²',pu:40311,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'214',nom:'Ripio (para hormigón)',cat:'AGREGADOS',un:'m³',pu:0,medida:'m³',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
 // ── PERFILES GALVANIZADOS ──
 {cod:'301',nom:'PGU 100x0.92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:4031.5,medida:'barra 6m = $24.189',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 {cod:'302',nom:'PGC 100x0.92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:4862.23,medida:'barra 6m = $29.173',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
@@ -6318,6 +6438,7 @@ var PR_DATA = [
 {cod:'519',nom:'Electrodos 2.5',cat:'BARRAS Y MALLAS',un:'kg',pu:12936.54,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'520',nom:'Hierro Liso 7/16',cat:'BARRAS Y MALLAS',un:'m',pu:3911.78,medida:'barra 6m = $23.471',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'521',nom:'Malla Electrosoldada 25X25X2,6mm',cat:'BARRAS Y MALLAS',un:'m²',pu:20055,medida:'m²',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'522',nom:'Hierro Torsionado (genérico, sin diámetro definido — ajustar según cálculo estructural)',cat:'BARRAS Y MALLAS',un:'kg',pu:0,medida:'kg',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
 // ── FIJACIONES ──
 {cod:'601',nom:'Tornillo T1 Mecha 8x9/16',cat:'FIJACIONES',un:'un',pu:28.36,medida:'un',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'602',nom:'Tornillo T1 Aguja 8x9/16',cat:'FIJACIONES',un:'un',pu:29.27,medida:'un',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
@@ -6422,6 +6543,8 @@ var PR_DATA = [
 {cod:'1415',nom:'Tabla de Lenga 1" x 6"',cat:'MADERAS',un:'m',pu:629.92,medida:'m',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1416',nom:'Tabla de Lenga 4" x 2"',cat:'MADERAS',un:'m',pu:839.88,medida:'m',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1417',nom:'Tabla de Lenga 3" x 2"',cat:'MADERAS',un:'m',pu:630,medida:'m',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1420',nom:'Madera Tabla Pino Norte (encofrado hormigón)',cat:'MADERAS',un:'Pie²',pu:0,medida:'Pie² (pie tablar)',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
+{cod:'1421',nom:'Tirante Pino Norte (encofrado hormigón)',cat:'MADERAS',un:'Pie²',pu:0,medida:'Pie² (pie tablar)',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
 {cod:'tabla_pino',nom:'Tabla pino encofrado 1"x6"',cat:'MADERAS',un:'m',pu:840,medida:'tabla 12m',fuente:'Estimado mercado local',modif:0},
 // ── PINTURAS ──
 {cod:'1501',nom:'Latex interior lavable',cat:'PINTURAS',un:'lts',pu:12680,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
