@@ -5671,20 +5671,46 @@ function cpRenderDim(iid,d,un){
   return h+'</div>';
 }
 
+function cpDespDefault(un){
+  if(un==='m'||un==='ml')return 10;
+  if(un==='m²'||un==='m2')return 5;
+  return 0;
+}
+function cpLargoBarra(cod){
+  if(!cod)return 6;
+  if(typeof PR_DATA!=='undefined'){
+    var p=PR_DATA.find(function(x){return x.cod===String(cod);});
+    if(p&&p.medida){
+      var mm=p.medida.match(/barra\s*([\d.,]+)\s*m/i)||p.medida.match(/rollo\s*([\d.,]+)\s*m/i);
+      if(mm){var v=parseFloat(mm[1].replace(',','.'));if(!isNaN(v)&&v>0)return v;}
+    }
+  }
+  return 6;
+}
+function cpCantBarras(cant,desp,largo){
+  if(!largo||largo<=0)largo=6;
+  return Math.ceil((cant*(1+(desp||0)/100))/largo);
+}
 function cpRenderMats(it){
   var qty=cpQty(it.dims,it.un);
   if(!(it.mats||[]).length&&!(it.mo||[]).length)return'<div style="font-size:10px;color:var(--tx3);padding:4px">Sin desglose. Podés agregar materiales, equipo o MO.</div>';
   var h='<div style="overflow-x:auto"><table style="width:100%;font-size:10px;border-collapse:collapse;margin-top:4px">';
-  h+='<thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:3px 5px;color:var(--tx3)">Material / Equipo</th><th style="text-align:center;padding:3px 5px;color:var(--tx3)">Un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Rend/un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Cant. total</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">$/un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Subtotal</th><th></th></tr></thead><tbody>';
+  h+='<thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:3px 5px;color:var(--tx3)">Material / Equipo</th><th style="text-align:center;padding:3px 5px;color:var(--tx3)">Un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Rend/un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Cant. total</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Desp.%</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)" title="Cantidad comercial redondeada (barras/rollos) con el % de desperdicio aplicado">Cant. Comercial</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">$/un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Subtotal</th><th></th></tr></thead><tbody>';
   (it.mats||[]).forEach(function(m,mi){
     var pu=m.pu||CP_PRECIOS_MAT[m.id]||0;
     var cant=Math.round(qty*m.rend*1000)/1000;
     var sub=Math.round(cant*pu);
+    var esBarra=(m.un==='m'||m.un==='ml');
+    var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
+    var largoBarra=cpLargoBarra(m.id);
+    var barras=esBarra?cpCantBarras(cant,desp,largoBarra):null;
     h+='<tr style="border-bottom:1px solid var(--br);background:'+(m.esEquipo?'rgba(251,146,60,.06)':'')+'">';
     h+='<td style="padding:3px 5px"><div style="display:flex;align-items:center;gap:3px"><input class="cp-di" value="'+m.nom+'" oninput="cpUM(\''+it.id+'\','+mi+',\'nom\',this.value)" style="width:100%;min-width:110px;background:transparent;border:none;color:var(--tx);font-size:10px;padding:0">'+(m.sinPrecio?'<span title="Sin precio — ingresalo manualmente" style="color:var(--rt);font-weight:700;font-size:11px;flex-shrink:0;cursor:help">!</span>':'')+' </div></td>';
     h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">'+m.un+'</td>';
     h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="'+m.rend+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>0)cpUM(\''+it.id+'\','+mi+',\'rend\',v);" style="width:75px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--bt);font-weight:600">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td>';
+    h+='<td style="text-align:right;padding:3px 5px">'+(esBarra?'<input class="cp-di" type="text" inputmode="decimal" value="'+desp+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUM(\''+it.id+'\','+mi+',\'desp\',v);" style="width:45px;text-align:right">':'<span style="color:var(--tx3)">—</span>')+'</td>';
+    h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:700">'+(esBarra?(barras+' barras <span style=\'color:var(--tx3);font-weight:400;font-size:9px\'>('+largoBarra+'m c/'+desp+'%)</span>'):'<span style="color:var(--tx3)">—</span>')+'</td>';
     h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="'+pu.toLocaleString('es-AR')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUM(\''+it.id+'\','+mi+',\'pu\',v);" style="width:95px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:'+(m.esEquipo?'var(--golt)':'var(--gt)')+';font-weight:700">$'+sub.toLocaleString()+'</td>';
     h+='<td><button onclick="cpBorrarMat(\''+it.id+'\','+mi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px;padding:0">\u00d7</button></td></tr>';
@@ -5699,6 +5725,8 @@ function cpRenderMats(it){
     h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">hs</td>';
     h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="'+m.hh+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUMO(\''+it.id+'\','+mi+',\'hh\',v);" style="width:75px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:600">'+hs.toLocaleString('es-AR',{maximumFractionDigits:2})+' hs</td>';
+    h+='<td style="text-align:right;padding:3px 5px"><span style="color:var(--tx3)">—</span></td>';
+    h+='<td style="text-align:right;padding:3px 5px"><span style="color:var(--tx3)">—</span></td>';
     h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="'+pu.toLocaleString('es-AR')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUMO(\''+it.id+'\','+mi+',\'pu\',v);" style="width:95px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:700">$'+sub.toLocaleString()+'</td>';
     h+='<td><button onclick="cpBorrarMO(\''+it.id+'\','+mi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px;padding:0">\u00d7</button></td></tr>';
@@ -5975,8 +6003,10 @@ function cpVerResumen(){
       (it.mats||[]).forEach(function(m){
         var pu=m.pu||CP_PRECIOS_MAT[m.id]||0,c=Math.round(qty*m.rend*1000)/1000,s=Math.round(c*pu);
         var k=(m.id||m.nom||'x').replace(/\s/g,'_');
-        if(!matMap[k])matMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:pu,esEquipo:m.esEquipo||false,isMO:false};
+        var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
+        if(!matMap[k])matMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:pu,esEquipo:m.esEquipo||false,isMO:false,desp:desp,cod:m.id};
         matMap[k].cant+=c;matMap[k].sub+=s;
+        matMap[k].desp=Math.max(matMap[k].desp,desp);
       });
       (it.mo||[]).forEach(function(m){
         var pu=m.pu||CP_PRECIOS_MAT[m.rol]||0,hs=Math.round(qty*m.hh*100)/100,s=Math.round(hs*pu);
@@ -5993,10 +6023,11 @@ function cpVerResumen(){
       +'<table style="width:100%;font-size:10px;border-collapse:collapse"><thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:3px 5px">Descripci\u00f3n</th><th style="text-align:center;padding:3px 5px">Un</th><th style="text-align:right;padding:3px 5px">Cantidad</th><th style="text-align:right;padding:3px 5px">$/un</th><th style="text-align:right;padding:3px 5px">Subtotal</th></tr></thead><tbody>'
       +arr.map(function(m){
         var extras='';
-        // Para perfiles (ml): mostrar barras necesarias
+        // Para perfiles (ml): mostrar barras necesarias, con el % de desperdicio real de cada material
         if(m.un==='m'||m.un==='ml'){
-          var barras=Math.ceil(m.cant*1.10/6);
-          extras='<span style="font-size:9px;color:var(--tx3);margin-left:4px">('+barras+' barras 6m c/10%)</span>';
+          var largoBarra=cpLargoBarra(m.cod);
+          var barras=cpCantBarras(m.cant,m.desp||0,largoBarra);
+          extras='<span style="font-size:9px;color:var(--tx3);margin-left:4px">('+barras+' barras '+largoBarra+'m c/'+(m.desp||0)+'%)</span>';
         }
         return'<tr style="border-bottom:1px solid var(--br)"><td style="padding:3px 5px">'+m.nom+extras+'</td><td style="text-align:center;padding:3px 5px;color:var(--tx3)">'+m.un+'</td><td style="text-align:right;padding:3px 5px;font-weight:600">'+m.cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td style="text-align:right;padding:3px 5px;color:var(--tx3)">$'+m.pu.toLocaleString()+'</td><td style="text-align:right;padding:3px 5px;font-weight:700;color:'+color+'">$'+m.sub.toLocaleString()+'</td></tr>';
       }).join('')
@@ -6036,8 +6067,10 @@ function cpPDF(){
         var pu=m.pu||CP_PRECIOS_MAT[m.id]||0,c=Math.round(qty*m.rend*1000)/1000,s=Math.round(c*pu);
         d+='<tr><td>'+(m.esEquipo?'[Equipo] ':'')+m.nom+'</td><td>'+m.un+'</td><td class="r">'+m.rend+'</td><td class="r mat">'+c.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">$'+pu.toLocaleString()+'</td><td class="r mat">$'+s.toLocaleString()+'</td></tr>';
         var k=(m.id||m.nom||'x').replace(/\s/g,'_');
-        if(!lisMap[k])lisMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:pu,esEquipo:m.esEquipo||false};
+        var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
+        if(!lisMap[k])lisMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:pu,esEquipo:m.esEquipo||false,desp:desp,cod:m.id};
         lisMap[k].cant+=c;lisMap[k].sub+=s;
+        lisMap[k].desp=Math.max(lisMap[k].desp,desp);
       });
       d+='<tr><td colspan="5"><i>Varios (0,01% materiales)</i></td><td class="r mat">$'+calc.varios.toLocaleString()+'</td></tr>';
       if(calc.sumEquipo||calc.herram) d+='<tr><td colspan="5"><i>Herramientas menores (0,02% MO)</i></td><td class="r">$'+calc.herram.toLocaleString()+'</td></tr>';
@@ -6062,8 +6095,16 @@ function cpPDF(){
   var oArr=Object.values(lisMap).filter(function(m){return m.isMO;});
   function tabPDF(arr,tit){
     if(!arr.length)return'';
-    return'<h3>'+tit+'</h3><table><thead><tr><th>Descripci\u00f3n</th><th>Un</th><th class="r">Cantidad</th><th class="r">$/un</th><th class="r">Subtotal</th></tr></thead><tbody>'
-    +arr.map(function(m){return'<tr><td>'+m.nom+'</td><td>'+m.un+'</td><td class="r mat">'+m.cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">$'+m.pu.toLocaleString()+'</td><td class="r mat">$'+m.sub.toLocaleString()+'</td></tr>';}).join('')
+    return'<h3>'+tit+'</h3><table><thead><tr><th>Descripci\u00f3n</th><th>Un</th><th class="r">Cantidad</th><th class="r">Cant. Comercial</th><th class="r">$/un</th><th class="r">Subtotal</th></tr></thead><tbody>'
+    +arr.map(function(m){
+      var comercial='—';
+      if(m.un==='m'||m.un==='ml'){
+        var largoBarra=cpLargoBarra(m.cod);
+        var barras=cpCantBarras(m.cant,m.desp||0,largoBarra);
+        comercial=barras+' barras de '+largoBarra+'m (c/'+(m.desp||0)+'% desp.)';
+      }
+      return'<tr><td>'+m.nom+'</td><td>'+m.un+'</td><td class="r mat">'+m.cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">'+comercial+'</td><td class="r">$'+m.pu.toLocaleString()+'</td><td class="r mat">$'+m.sub.toLocaleString()+'</td></tr>';
+    }).join('')
     +'</tbody></table>';
   }
   d+=tabPDF(mArr,'Materiales')+tabPDF(eArr,'Equipos')+tabPDF(oArr,'Mano de Obra');
