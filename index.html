@@ -608,11 +608,13 @@ input,select,textarea,button{font-family:var(--font)}
         <button onclick="goTo('obras')" style="background:none;border:none;color:var(--bt);text-decoration:underline;cursor:pointer;font-size:11px;padding:0;margin-left:4px">Cambiar</button>
       </div>
       <button class="btn" style="background:var(--gt);color:#fff;font-size:11px;padding:6px 12px" onclick="cpAgregarRubro()">+ Rubro</button>
+      <button class="btn" style="background:var(--bg3);border:1px dashed var(--bt);color:var(--bt);font-size:11px;padding:6px 12px" onclick="cpCargarEstructura3CM()" title="Crea los 7 rubros estándar (Tareas Preliminares, Movimiento de Suelo, Estructura HºAº, Estructura Metálica, Tabiques Estructurales PGU/PGC, Cubierta, Planilla de Locales)">&#128203; Estructura estándar</button>
       <button class="btn" style="background:var(--bt);color:#fff;font-size:11px;padding:6px 12px" onclick="cpGuardar()">&#128190; Guardar</button>
       <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 10px" onclick="cpVerResumen()">&#128203; Resumen</button>
       <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 10px" onclick="cpPDF()">PDF</button>
     </div>
   </div>
+  <div id="cp-rubro-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
   <div id="cp-rubros"></div>
   <div class="card" id="cp-resumen-card" style="display:none;margin-top:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
@@ -5550,6 +5552,7 @@ CP_CATALOGO = CP_CATALOGO.concat(CP_CATALOGO_EXTRA);
 
 /* ══ MÓDULO CÓMPUTO Y PRESUPUESTO v7 ══════════════════════════════════ */
 var CP_OBRA_ID=null,CP_RUBROS=[],CP_NID=1;
+var CP_RUBRO_TAB=null;
 cpMergePrecios();
 function cpNID(){return 'n'+(CP_NID++);}
 
@@ -5842,7 +5845,27 @@ function cpElegirSistema(idx){
   toast('\u2713 Sistema "'+s.nom+'" agregado \u2014 completa Largo y Ancho del muro');
 }
 
-function cpRender(){var c=document.getElementById('cp-rubros');if(c)c.innerHTML=CP_RUBROS.map(cpRenderRubro).join('');}
+function cpRender(){
+  var tabsC=document.getElementById('cp-rubro-tabs');
+  var c=document.getElementById('cp-rubros');
+  if(!CP_RUBROS.length){
+    if(tabsC)tabsC.innerHTML='';
+    if(c)c.innerHTML='<div class="card" style="text-align:center;padding:30px;color:var(--tx3);font-size:12px">No hay rubros todavía. Usá "+ Rubro" para crear uno manual, o "Estructura estándar" para cargar los 7 rubros base.</div>';
+    return;
+  }
+  if(!CP_RUBRO_TAB || !CP_RUBROS.some(function(r){return r.id===CP_RUBRO_TAB;})) CP_RUBRO_TAB=CP_RUBROS[0].id;
+  if(tabsC){
+    tabsC.innerHTML=CP_RUBROS.map(function(r){
+      var totR=0;
+      r.items.forEach(function(it){var qty=cpQty(it.dims,it.un);var calc=cpCalcPreciso(it.mats,it.mo,qty);totR+=calc.pu_adopt;});
+      var activo=r.id===CP_RUBRO_TAB;
+      return '<button onclick="cpSelTab(\''+r.id+'\')" style="font-size:11px;padding:7px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;border:1px solid '+(activo?'var(--bt)':'var(--br)')+';background:'+(activo?'var(--bt)':'var(--bg3)')+';color:'+(activo?'#fff':'var(--tx2)')+';font-weight:'+(activo?'700':'500')+'">'
+        +(r.nom||'(sin nombre)')+' <span style="opacity:.7">('+r.items.length+')</span></button>';
+    }).join('');
+  }
+  var activo=CP_RUBROS.find(function(r){return r.id===CP_RUBRO_TAB;});
+  if(c)c.innerHTML=activo?cpRenderRubro(activo):'';
+}
 
 function cpNI(iid,val){
   var s=document.getElementById('cps-'+iid);if(!s)return;
@@ -5916,9 +5939,33 @@ function cpSel(iid,cod){
   cpRender();
 }
 
-function cpAgregarRubro(){CP_RUBROS.push({id:cpNID(),nom:'NUEVO RUBRO',items:[]});cpRender();}
-function cpBR(rid){if(!confirm('¿Eliminar rubro?'))return;CP_RUBROS=CP_RUBROS.filter(function(r){return r.id!==rid;});cpRender();}
+function cpAgregarRubro(){var r={id:cpNID(),nom:'NUEVO RUBRO',items:[]};CP_RUBROS.push(r);CP_RUBRO_TAB=r.id;cpRender();}
+function cpBR(rid){if(!confirm('¿Eliminar rubro?'))return;CP_RUBROS=CP_RUBROS.filter(function(r){return r.id!==rid;});if(CP_RUBRO_TAB===rid)CP_RUBRO_TAB=CP_RUBROS.length?CP_RUBROS[0].id:null;cpRender();}
 function cpUR(rid,v){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(r)r.nom=v;}
+function cpSelTab(rid){CP_RUBRO_TAB=rid;cpRender();}
+function cpCargarEstructura3CM(){
+  if(CP_RUBROS.length && !confirm('Esto agrega los 7 rubros estándar (Tareas Preliminares, Movimiento de Suelo, Estructura HºAº, Estructura Metálica, Tabiques Estructurales PGU/PGC, Cubierta, Planilla de Locales) al final de los que ya tenés. ¿Continuar?'))return;
+  var estructura=[
+    {nom:'TAREAS PRELIMINARES',items:['Limpieza Terreno','Limpieza Sector de Obra','Cartel de Obra','Baño Químico','Obrador','Cerco de Obra','Replanteo']},
+    {nom:'MOVIMIENTO DE SUELO',items:['Excavación Bases','Excavación Vigas de Fundación','Excavación de Pilotines','Excavación de Cámaras de Instalación Cloacal','Excavación Cañería de Gas','Excavación Cañería Eléctrica','Excavación Cañería Agua Fría','Excavación Cañería Cloaca','Extracción de Suelo en Sector de Implantación','Compactación Suelo Seleccionado']},
+    {nom:'ESTRUCTURA DE HºAº',items:['Bases de HºAº','Columnas HºAº','Vigas de Fundación','Losa de Fundación','Vigas de HºAº','Losas HºAº','Mampostería']},
+    {nom:'ESTRUCTURA METÁLICA',items:['Estructura Metálica','Entrepiso Metálico','Carpeta Compresión Entrepiso e=5cm a 10cm']},
+    {nom:'TABIQUES ESTRUCTURALES - (PGU Y PGC)',items:['Estructura Galvanizada Portante (Gº+AISL+REV.EXT+PINT.EXT - Steel Frame)','Estructura Galvanizada No Portante (perfilería de Drywall)']},
+    {nom:'CUBIERTA CHAPAS SOBRE CORREAS METALICAS',items:[]},
+    {nom:'PLANILLA DE LOCALES Y TERMINACIONES',items:[]}
+  ];
+  var primero=null;
+  estructura.forEach(function(rDef){
+    var r={id:cpNID(),nom:rDef.nom,items:rDef.items.map(function(nomIt){
+      return {id:cpNID(),nom:nomIt,un:'m',unidades_permitidas:['m','m²','m³','un'],dims:[{id:cpNID(),desc:'',l:0,a:0,h:0,q:1,sust:false}],mats:[],mo:[]};
+    })};
+    CP_RUBROS.push(r);
+    if(!primero)primero=r.id;
+  });
+  CP_RUBRO_TAB=primero;
+  cpRender();
+  toast('✓ Estructura estándar de 7 rubros creada — completá materiales y mano de obra en cada ítem');
+}
 function cpAI(rid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items.push({id:cpNID(),nom:'',un:'m\u00b2',dims:[],mats:[],mo:[],unidades_permitidas:null});cpRender();}
 function cpBI(rid,iid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items=r.items.filter(function(i){return i.id!==iid;});cpRender();}
 function cpCU(iid,un){var it=cpFindItem(iid);if(!it)return;it.un=un;it.dims=[];cpRender();}
