@@ -660,7 +660,7 @@ input,select,textarea,button{font-family:var(--font)}
       </div>
       <div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Capas &#8212; de afuera hacia adentro</div>
       <div id="sc-capas"></div>
-      <button onclick="scAgregarCapa()" style="width:100%;font-size:11px;background:none;border:1px dashed var(--bt);color:var(--bt);padding:8px;border-radius:5px;cursor:pointer;margin-top:6px">+ Agregar capa</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button onclick="scAgregarCapa()" style="flex:1;min-width:140px;font-size:11px;background:none;border:1px dashed var(--bt);color:var(--bt);padding:8px;border-radius:5px;cursor:pointer">+ Agregar capa</button><button onclick="scAgregarEstructura('steelframe')" style="flex:1;min-width:200px;font-size:11px;background:none;border:1px dashed var(--gt);color:var(--gt);padding:8px;border-radius:5px;cursor:pointer" title="Agrega PGC (montante) + PGU (solera) juntos — muros exteriores/portantes">+ Estructura Steel Frame (PGC+PGU)</button><button onclick="scAgregarEstructura('drywall')" style="flex:1;min-width:200px;font-size:11px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:8px;border-radius:5px;cursor:pointer" title="Agrega Montante + Solera juntos — tabiques interiores livianos, NO estructural">+ Estructura Drywall (Montante+Solera)</button></div>
       <div id="sc-totales" style="margin-top:14px;background:var(--bg);border-radius:6px;padding:10px;display:none">
         <div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Resumen de materiales por m&#178;</div>
         <div id="sc-totales-tabla"></div>
@@ -4533,7 +4533,7 @@ var CP_CATALOGO = [
 // Precios adicionales a CP_PRECIOS_MAT
 var CP_PRECIOS_EXTRA = {
   // ─── PERFILES STEEL FRAMING — PRECIOS IMCOFUE ($/barra de 6m) ───────
-  // PGU = Montante (alma) · PGC = Solera (ala)
+  // PGC = Montante (vertical, con pestaña, estructural Steel Frame) · PGU = Solera (horizontal, guía, sin pestaña)
   // Los rendimientos en el catálogo están en ml → el sistema calcula barras automáticamente
   'PGU70_092_6m':23471,'PGC70_092_6m':28352,   // 70mm E0.92mm
   'PGU70_129_6m':0,'PGC70_129_6m':37867,        // 70mm E1.29mm (PGU no listado, usar 092)
@@ -4800,12 +4800,12 @@ var CP_CATALOGO_EXTRA = [
 },
 
 // ══════════════════════════════════════════════════
-// TABIQUES LIVIANOS — PGC/PGU 35mm
+// TABIQUES LIVIANOS — Drywall (Montante/Solera) 35mm
 // ══════════════════════════════════════════════════
-{cod:'T35A',nom:'Tabique PGC/PGU 35mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T35A',nom:'Tabique Drywall 35mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGC 35mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC35_052',nom:'Solera PGU 35mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU35_052',nom:'Montante 35mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC35_052',nom:'Solera 35mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'torn_T1_25',nom:'Tornillo autoperforante T1 25mm',un:'un',rend:24},
   {id:'torn_T2_25',nom:'Tornillo autoperforante T2 25mm (perfil-perfil)',un:'un',rend:8},
@@ -4817,10 +4817,10 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:1.2},{rol:'ay',hh:0.8}]
 },
-{cod:'T35B',nom:'Tabique PGC/PGU 35mm — 1 placa yeso c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T35B',nom:'Tabique Drywall 35mm — 1 placa yeso c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGC 35mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC35_052',nom:'Solera PGU 35mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU35_052',nom:'Montante 35mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC35_052',nom:'Solera 35mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'lana_50mm',nom:'Lana de Vidrio 50mm (con aluminio)',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo autoperforante T1 25mm',un:'un',rend:24},
@@ -4833,10 +4833,10 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:1.4},{rol:'ay',hh:0.9}]
 },
-{cod:'T35C',nom:'Tabique PGC/PGU 35mm — 1 placa cementicia c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T35C',nom:'Tabique Drywall 35mm — 1 placa cementicia c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGC 35mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC35_052',nom:'Solera PGU 35mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU35_052',nom:'Montante 35mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC35_052',nom:'Solera 35mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_cem_10',nom:'Placa cementicia 10mm',un:'m²',rend:2.1},
   {id:'torn_T1_25',nom:'Tornillo autoperforante T1 25mm',un:'un',rend:28},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm (perfil-perfil)',un:'un',rend:8},
@@ -4850,12 +4850,12 @@ var CP_CATALOGO_EXTRA = [
 },
 
 // ══════════════════════════════════════════════════
-// TABIQUES LIVIANOS — PGC/PGU 50mm
+// TABIQUES LIVIANOS — Drywall (Montante/Solera) 50mm
 // ══════════════════════════════════════════════════
-{cod:'T50A',nom:'Tabique PGC/PGU 50mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T50A',nom:'Tabique Drywall 50mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU50_052',nom:'Montante PGC 50mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC50_052',nom:'Solera PGU 50mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU50_052',nom:'Montante 50mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC50_052',nom:'Solera 50mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
@@ -4867,10 +4867,10 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:1.2},{rol:'ay',hh:0.8}]
 },
-{cod:'T50B',nom:'Tabique PGC/PGU 50mm — 1 placa yeso c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T50B',nom:'Tabique Drywall 50mm — 1 placa yeso c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU50_052',nom:'Montante PGC 50mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC50_052',nom:'Solera PGU 50mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU50_052',nom:'Montante 50mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC50_052',nom:'Solera 50mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'lana_50mm',nom:'Lana de Vidrio 50mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
@@ -4883,10 +4883,10 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:1.4},{rol:'ay',hh:0.9}]
 },
-{cod:'T50C',nom:'Tabique PGC/PGU 50mm — 1 placa cementicia c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T50C',nom:'Tabique Drywall 50mm — 1 placa cementicia c/lado + lana vidrio 50mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU50_052',nom:'Montante PGC 50mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGC50_052',nom:'Solera PGU 50mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGU50_052',nom:'Montante 50mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGC50_052',nom:'Solera 50mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_cem_10',nom:'Placa cementicia 10mm',un:'m²',rend:2.1},
   {id:'lana_50mm',nom:'Lana de Vidrio 50mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:28},
@@ -4900,12 +4900,12 @@ var CP_CATALOGO_EXTRA = [
 },
 
 // ══════════════════════════════════════════════════
-// TABIQUES LIVIANOS — PGC/PGU 70mm
+// TABIQUES LIVIANOS — Drywall (Montante/Solera) 70mm
 // ══════════════════════════════════════════════════
-{cod:'T70A',nom:'Tabique PGC/PGU 70mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T70A',nom:'Tabique Drywall 70mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGC70_052_mont',nom:'Montante PGC 70mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGU70_052_sol',nom:'Solera PGU 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGC70_052_mont',nom:'Montante 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGU70_052_sol',nom:'Solera 70mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
@@ -4917,10 +4917,10 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:1.3},{rol:'ay',hh:0.9}]
 },
-{cod:'T70B',nom:'Tabique PGC/PGU 70mm — 1 placa yeso c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T70B',nom:'Tabique Drywall 70mm — 1 placa yeso c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGC70_052_mont',nom:'Montante PGC 70mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGU70_052_sol',nom:'Solera PGU 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGC70_052_mont',nom:'Montante 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGU70_052_sol',nom:'Solera 70mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:24},
@@ -4933,10 +4933,10 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:1.5},{rol:'ay',hh:1.0}]
 },
-{cod:'T70C',nom:'Tabique PGC/PGU 70mm — doble placa yeso c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T70C',nom:'Tabique Drywall 70mm — doble placa yeso c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGC70_052_mont',nom:'Montante PGC 70mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGU70_052_sol',nom:'Solera PGU 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGC70_052_mont',nom:'Montante 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGU70_052_sol',nom:'Solera 70mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm (doble c/lado)',un:'m²',rend:4.2},
   {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm (1ra placa)',un:'un',rend:24},
@@ -4950,10 +4950,10 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:1.8},{rol:'ay',hh:1.2}]
 },
-{cod:'T70D',nom:'Tabique PGC/PGU 70mm — 1 placa cementicia c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T70D',nom:'Tabique Drywall 70mm — 1 placa cementicia c/lado + lana vidrio 80mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGC70_052_mont',nom:'Montante PGC 70mm E0.52mm',un:'m',rend:3.2},
-  {id:'PGU70_052_sol',nom:'Solera PGU 70mm E0.52mm',un:'m',rend:2.2},
+  {id:'PGC70_052_mont',nom:'Montante 70mm E0.52mm',un:'m',rend:3.2},
+  {id:'PGU70_052_sol',nom:'Solera 70mm E0.52mm',un:'m',rend:2.2},
   {id:'placa_cem_12',nom:'Placa cementicia 12mm',un:'m²',rend:2.1},
   {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:28},
@@ -4967,12 +4967,12 @@ var CP_CATALOGO_EXTRA = [
 },
 
 // ══════════════════════════════════════════════════
-// TABIQUES LIVIANOS — PGC/PGU 100mm
+// TABIQUES LIVIANOS — Drywall (Montante/Solera) 100mm
 // ══════════════════════════════════════════════════
-{cod:'T100A',nom:'Tabique PGC/PGU 100mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T100A',nom:'Tabique Drywall 100mm — 1 placa yeso c/lado (sin aislación)',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGC100_092_mont',nom:'Montante PGC 100mm E0.92mm',un:'m',rend:3.2},
-  {id:'PGU100_092_sol',nom:'Solera PGU 100mm E0.92mm',un:'m',rend:2.2},
+  {id:'PGC100_092_mont',nom:'Montante 100mm E0.92mm',un:'m',rend:3.2},
+  {id:'PGU100_092_sol',nom:'Solera 100mm E0.92mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:28},
   {id:'torn_T3_38',nom:'Tornillo autotaladrante T3 38mm (perfil grueso)',un:'un',rend:10},
@@ -4984,10 +4984,10 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:1.4},{rol:'ay',hh:1.0}]
 },
-{cod:'T100B',nom:'Tabique PGC/PGU 100mm — 1 placa yeso c/lado + lana vidrio 100mm',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T100B',nom:'Tabique Drywall 100mm — 1 placa yeso c/lado + lana vidrio 100mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGC100_092_mont',nom:'Montante PGC 100mm E0.92mm',un:'m',rend:3.2},
-  {id:'PGU100_092_sol',nom:'Solera PGU 100mm E0.92mm',un:'m',rend:2.2},
+  {id:'PGC100_092_mont',nom:'Montante 100mm E0.92mm',un:'m',rend:3.2},
+  {id:'PGU100_092_sol',nom:'Solera 100mm E0.92mm',un:'m',rend:2.2},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:28},
@@ -5001,10 +5001,10 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:1.6},{rol:'ay',hh:1.1}]
 },
-{cod:'T100C',nom:'Tabique PGC/PGU 100mm — doble placa cementicia c/lado + lana vidrio 100mm',un:'m²',cat:'TABIQUES LIVIANOS',
+{cod:'T100C',nom:'Tabique Drywall 100mm — doble placa cementicia c/lado + lana vidrio 100mm',un:'m²',cat:'TABIQUES LIVIANOS',
  mats:[
-  {id:'PGU100_129',nom:'Montante PGC 100mm E1.29mm (reforzado)',un:'m',rend:3.2},
-  {id:'PGC100_129',nom:'Solera PGU 100mm E1.29mm (reforzado)',un:'m',rend:2.2},
+  {id:'PGU100_129',nom:'Montante 100mm E1.29mm (reforzado)',un:'m',rend:3.2},
+  {id:'PGC100_129',nom:'Solera 100mm E1.29mm (reforzado)',un:'m',rend:2.2},
   {id:'placa_cem_12',nom:'Placa cementicia 12mm (doble c/lado)',un:'m²',rend:4.2},
   {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
   {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.05},
@@ -5019,12 +5019,12 @@ var CP_CATALOGO_EXTRA = [
 },
 
 // ══════════════════════════════════════════════════
-// CIELORRASO LIVIANO — PGC/PGU
+// CIELORRASO LIVIANO — Drywall (Montante/Solera)
 // ══════════════════════════════════════════════════
 {cod:'CR01',nom:'Cielorraso PGU 35mm — 1 placa yeso (sin aislación)',un:'m²',cat:'CIELORRASO LIVIANO',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGC 35mm (estructura horizontal)',un:'m',rend:4.0},
-  {id:'PGC35_052',nom:'Solera PGU 35mm (perímetro)',un:'m',rend:1.5},
+  {id:'PGU35_052',nom:'Montante 35mm (estructura horizontal)',un:'m',rend:4.0},
+  {id:'PGC35_052',nom:'Solera 35mm (perímetro)',un:'m',rend:1.5},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:18},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm (perfil-perfil)',un:'un',rend:8},
@@ -5039,8 +5039,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'CR02',nom:'Cielorraso PGU 35mm — 1 placa yeso + lana vidrio 50mm (aislación térmica)',un:'m²',cat:'CIELORRASO LIVIANO',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGC 35mm',un:'m',rend:4.0},
-  {id:'PGC35_052',nom:'Solera PGU 35mm (perímetro)',un:'m',rend:1.5},
+  {id:'PGU35_052',nom:'Montante 35mm',un:'m',rend:4.0},
+  {id:'PGC35_052',nom:'Solera 35mm (perímetro)',un:'m',rend:1.5},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:1.05},
   {id:'lana_50mm',nom:'Lana de Vidrio 50mm',un:'m²',rend:1.05},
   {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.05},
@@ -5057,8 +5057,8 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'CR03',nom:'Cielorraso PGU 35mm — 1 placa cementicia (zona húmeda)',un:'m²',cat:'CIELORRASO LIVIANO',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGC 35mm',un:'m',rend:4.0},
-  {id:'PGC35_052',nom:'Solera PGU 35mm (perímetro)',un:'m',rend:1.5},
+  {id:'PGU35_052',nom:'Montante 35mm',un:'m',rend:4.0},
+  {id:'PGC35_052',nom:'Solera 35mm (perímetro)',un:'m',rend:1.5},
   {id:'placa_cem_10',nom:'Placa cementicia 10mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:22},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:8},
@@ -5074,10 +5074,10 @@ var CP_CATALOGO_EXTRA = [
 // ══════════════════════════════════════════════════
 // CERRAMIENTO DE VANOS
 // ══════════════════════════════════════════════════
-{cod:'CV01',nom:'Cerramiento vano con tabique PGC/PGU 70mm — yeso + lana 80mm',un:'m²',cat:'CERRAMIENTO DE VANOS',
+{cod:'CV01',nom:'Cerramiento vano con tabique Drywall 70mm — yeso + lana 80mm',un:'m²',cat:'CERRAMIENTO DE VANOS',
  mats:[
-  {id:'PGC70_052_mont',nom:'Montante PGC 70mm',un:'m',rend:3.5},
-  {id:'PGU70_052_sol',nom:'Solera PGU 70mm (perímetro vano)',un:'m',rend:2.5},
+  {id:'PGC70_052_mont',nom:'Montante 70mm',un:'m',rend:3.5},
+  {id:'PGU70_052_sol',nom:'Solera 70mm (perímetro vano)',un:'m',rend:2.5},
   {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:2.1},
   {id:'lana_80mm',nom:'Lana de Vidrio 80mm',un:'m²',rend:1.05},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:26},
@@ -5091,10 +5091,10 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:1.8},{rol:'ay',hh:1.2}]
 },
-{cod:'CV02',nom:'Cerramiento vano con tabique PGC/PGU 100mm — cementicia + lana 100mm',un:'m²',cat:'CERRAMIENTO DE VANOS',
+{cod:'CV02',nom:'Cerramiento vano con tabique Drywall 100mm — cementicia + lana 100mm',un:'m²',cat:'CERRAMIENTO DE VANOS',
  mats:[
-  {id:'PGC100_092_mont',nom:'Montante PGC 100mm E0.92mm',un:'m',rend:3.5},
-  {id:'PGU100_092_sol',nom:'Solera PGU 100mm E0.92mm',un:'m',rend:2.5},
+  {id:'PGC100_092_mont',nom:'Montante 100mm E0.92mm',un:'m',rend:3.5},
+  {id:'PGU100_092_sol',nom:'Solera 100mm E0.92mm',un:'m',rend:2.5},
   {id:'placa_cem_12',nom:'Placa cementicia 12mm',un:'m²',rend:2.1},
   {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
   {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.05},
@@ -5143,7 +5143,7 @@ var CP_CATALOGO_EXTRA = [
 // ══════════════════════════════════════════════════
 {cod:'RE01',nom:'Revestimiento exterior — chapa galvanizada N25 sobre PGU',un:'m²',cat:'REVESTIMIENTO EXTERIOR',
  mats:[
-  {id:'PGU35_052',nom:'Montante PGC 35mm (subestructura)',un:'m',rend:3.0},
+  {id:'PGU35_052',nom:'Montante 35mm (subestructura)',un:'m',rend:3.0},
   {id:'chapa_galv_N25',nom:'Chapa Galvanizada Lisa N25 (0.5mm)',un:'m²',rend:1.10},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:16},
   {id:'torn_wafer',nom:'Tornillo Wafer autotaladrante (chapa)',un:'un',rend:12},
@@ -5158,7 +5158,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'lana_100mm',nom:'Lana de Vidrio 100mm con aluminio',un:'m²',rend:1.05},
   {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.10},
   {id:'chapa_galv_N25',nom:'Chapa Galvanizada Lisa N25',un:'m²',rend:1.10},
-  {id:'PGU35_052',nom:'Montante PGC 35mm (subestructura)',un:'m',rend:3.0},
+  {id:'PGU35_052',nom:'Montante 35mm (subestructura)',un:'m',rend:3.0},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:16},
   {id:'torn_wafer',nom:'Tornillo Wafer (chapa)',un:'un',rend:12},
   {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.7,esEquipo:true},
@@ -6113,18 +6113,18 @@ var PR_DATA = [
 {cod:'212',nom:'Piedra Triturada',cat:'AGREGADOS',un:'m³',pu:100000,medida:'m³',fuente:'MASCIOTRA',modif:0,fecha:'2026-06'},
 {cod:'213',nom:'Piedra Laja Negra Irregular tipo pirca',cat:'AGREGADOS',un:'m²',pu:40311,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 // ── PERFILES GALVANIZADOS ──
-{cod:'301',nom:'PGU 100x0.92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:4004,medida:'barra 6m = $24.024',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'302',nom:'PGC 100x0.92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:4829.07,medida:'barra 6m = $29.173',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'303',nom:'PGU 100x1.29mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:5253.73,medida:'barra 6m = $31.739',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'304',nom:'PGC 100x1.29mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:6493.76,medida:'barra 6m = $39.230',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'305',nom:'PGU 70x0,92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:3885.09,medida:'barra 6m = $23.471',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'306',nom:'PGC 70x0.92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:4693.17,medida:'barra 6m = $28.352',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'307',nom:'PGU 150x0.9mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:5421.17,medida:'barra 6m = $32.527',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'301',nom:'PGU 100x0.92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:4031.5,medida:'barra 6m = $24.189',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
+{cod:'302',nom:'PGC 100x0.92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:4862.23,medida:'barra 6m = $29.173',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
+{cod:'303',nom:'PGU 100x1.29mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:5289.82,medida:'barra 6m = $31.739',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
+{cod:'304',nom:'PGC 100x1.29mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:6538.36,medida:'barra 6m = $39.230',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
+{cod:'305',nom:'PGU 70x0,92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:3911.78,medida:'barra 6m = $23.471',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
+{cod:'306',nom:'PGC 70x0.92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:4725.41,medida:'barra 6m = $28.352',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
+{cod:'307',nom:'PGU 150x0.9mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:5458.41,medida:'barra 6m = $32.750',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 {cod:'308',nom:'PGC 150x0.9mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:0,medida:'m',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'309',nom:'PGU 150x1.29mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:7372.21,medida:'barra 6m = $44.233',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'310',nom:'PGC 150x1.29mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:8318.61,medida:'barra 6m = $49.912',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'309',nom:'PGU 150x1.29mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:7422.85,medida:'barra 6m = $44.537',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
+{cod:'310',nom:'PGC 150x1.29mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:8375.75,medida:'barra 6m = $50.254',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 {cod:'311',nom:'PGO Omega 0,92mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:3009.07,medida:'barra 3m = $9.027',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'312',nom:'Fleje Cruz San Andres 50mm Rollo  (E0.94mm)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1219.58,medida:'m',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'312',nom:'Fleje Cruz San Andres 50mm Rollo  (E0.94mm)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1167.52,medida:'rollo 100m = $116.752',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 {cod:'313',nom:'Montante 70mm  E0.52mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:2006.07,medida:'barra 2.6m = $5.216',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'314',nom:'Solera 70mm E0.52mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:1848.73,medida:'barra 2.6m = $4.807',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'315',nom:'Montante 35mm  E0.52mm',cat:'PERFILES GALVANIZADOS',un:'m',pu:1534.05,medida:'barra 2.6m = $3.989',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
@@ -6954,17 +6954,24 @@ var SC_MAT_CATS = {
     {nom:'Poliestireno expandido 50mm',un:'m²',cod:'808',rend:1.05},
     {nom:'Poliestireno expandido 25mm',un:'m²',cod:'809',rend:1.05},
   ],
-  'ESTRUCTURA GALVANIZADA': [
-    {nom:'PGC Montante 35mm E0.52mm (vertical)',un:'m',cod:'315',rend:3.2,nota:'3.2 m/m² típico'},
-    {nom:'PGU Solera 35mm E0.52mm (horizontal)',un:'m',cod:'316',rend:2.2,nota:'2.2 m/m² típico'},
-    {nom:'PGC Montante 70mm E0.52mm (vertical)',un:'m',cod:'313',rend:3.2,nota:'3.2 m/m² típico'},
-    {nom:'PGU Solera 70mm E0.52mm (horizontal)',un:'m',cod:'314',rend:2.2,nota:'2.2 m/m² típico'},
-    {nom:'PGC Montante 100mm E0.92mm (vertical)',un:'m',cod:'301',rend:3.2,nota:'3.2 m/m² típico'},
-    {nom:'PGU Solera 100mm E0.92mm (horizontal)',un:'m',cod:'302',rend:2.2,nota:'2.2 m/m² típico'},
-    {nom:'PGC Montante 100mm E1.29mm reforzado',un:'m',cod:'303',rend:3.2},
-    {nom:'PGU Solera 100mm E1.29mm reforzada',un:'m',cod:'304',rend:2.2},
-    {nom:'PGC Montante 150mm E0.9mm',un:'m',cod:'307',rend:3.2},
-    {nom:'PGU Solera 150mm E1.29mm',un:'m',cod:'309',rend:2.2},
+  'ESTRUCTURA STEEL FRAME (PGC+PGU) — Portante/Estructural': [
+    {nom:'PGC 70mm E0.92mm (montante vertical — estructural)',un:'m',cod:'306',rend:3.2,nota:'3.2 ml/m² típico (parante c/0.4m)'},
+    {nom:'PGU 70mm E0.92mm (solera horizontal — estructural)',un:'m',cod:'305',rend:0.6,nota:'0.6 ml/m² típico (sup. e inf.)'},
+    {nom:'PGC 100mm E0.92mm (montante vertical — estructural)',un:'m',cod:'302',rend:3.2,nota:'3.2 ml/m² típico (parante c/0.4m)'},
+    {nom:'PGU 100mm E0.92mm (solera horizontal — estructural)',un:'m',cod:'301',rend:0.6,nota:'0.6 ml/m² típico (sup. e inf.)'},
+    {nom:'PGC 100mm E1.29mm reforzado (montante vertical — muro alta carga)',un:'m',cod:'304',rend:3.2,nota:'3.2 ml/m² típico'},
+    {nom:'PGU 100mm E1.29mm reforzada (solera horizontal — muro alta carga)',un:'m',cod:'303',rend:0.6,nota:'0.6 ml/m² típico'},
+    {nom:'PGC 150mm E1.29mm (montante vertical — muro doble altura/gran luz)',un:'m',cod:'310',rend:3.2,nota:'3.2 ml/m² típico'},
+    {nom:'PGU 150mm E1.29mm (solera horizontal — muro doble altura/gran luz)',un:'m',cod:'309',rend:0.6,nota:'0.6 ml/m² típico'},
+    {nom:'Fleje Cruz San Andrés 50mm (riostra diagonal antipandeo)',un:'m',cod:'312',rend:1.0,nota:'1.0 ml/m² típico'},
+  ],
+  'ESTRUCTURA DRYWALL (Montante+Solera) — Tabique liviano NO estructural': [
+    {nom:'Montante 35mm E0.52mm (vertical — solo divisorio interior)',un:'m',cod:'315',rend:3.2,nota:'3.2 ml/m² típico (parante c/0.4m)'},
+    {nom:'Solera 35mm E0.52mm (horizontal — solo divisorio interior)',un:'m',cod:'316',rend:1.0,nota:'1.0 ml/m² típico (sup. e inf.)'},
+    {nom:'Montante 70mm E0.52mm (vertical — solo divisorio interior)',un:'m',cod:'313',rend:3.2,nota:'3.2 ml/m² típico (parante c/0.4m)'},
+    {nom:'Solera 70mm E0.52mm (horizontal — solo divisorio interior)',un:'m',cod:'314',rend:1.0,nota:'1.0 ml/m² típico (sup. e inf.)'},
+    {nom:'Montante 100mm E0.52mm (vertical — solo divisorio interior)',un:'m',cod:'323',rend:3.2,nota:'3.2 ml/m² típico (parante c/0.4m)'},
+    {nom:'Solera 100mm E0.52mm (horizontal — solo divisorio interior)',un:'m',cod:'324',rend:1.0,nota:'1.0 ml/m² típico (sup. e inf.)'},
   ],
   'ESTRUCTURA MADERA': [
     {nom:'Tirante pino cepillado 2"x4"',un:'m',cod:'TIR_2x4',rend:2.5},
@@ -7247,6 +7254,25 @@ function scAgregarCapa(){
     nota: primerMat.nota||''
   });
   scRenderCapas();
+}
+
+function scAgregarEstructura(tipo){
+  // Agrega de una vez el par Montante(vertical)+Solera(horizontal) de la
+  // misma categoría, para que el cómputo nunca "olvide" uno de los dos.
+  var cat = tipo==='steelframe'
+    ? 'ESTRUCTURA STEEL FRAME (PGC+PGU) — Portante/Estructural'
+    : 'ESTRUCTURA DRYWALL (Montante+Solera) — Tabique liviano NO estructural';
+  var mats = SC_MAT_CATS[cat];
+  if(!mats||!mats.length){toast('Categoría de estructura no encontrada',false);return;}
+  // Por defecto usamos el ancho de 100mm: en Steel Frame son los índices 2,3
+  // (70mm ocupa 0,1); en Drywall son los índices 4,5 (35mm=0,1 · 70mm=2,3)
+  var idxVert = tipo==='steelframe'?2:4, idxHoriz = tipo==='steelframe'?3:5;
+  if(!mats[idxVert]||!mats[idxHoriz]){idxVert=0;idxHoriz=1;}
+  var vert = mats[idxVert], horiz = mats[idxHoriz];
+  SC_CAPAS.push({id:scNID(),catSel:cat,matIdx:idxVert,nom:vert.nom,un:vert.un,cod:vert.cod,rend:vert.rend||1,esp:0,nota:vert.nota||''});
+  SC_CAPAS.push({id:scNID(),catSel:cat,matIdx:idxHoriz,nom:horiz.nom,un:horiz.un,cod:horiz.cod,rend:horiz.rend||1,esp:0,nota:horiz.nota||''});
+  scRenderCapas();
+  toast('✓ Agregados montante + solera ('+(tipo==='steelframe'?'Steel Frame estructural':'Drywall liviano')+') — ajustá el ancho/espesor si corresponde');
 }
 
 function scBorrarCapa(i){
