@@ -1035,6 +1035,13 @@ input,select,textarea,button{font-family:var(--font)}
           <button class="btn btn-sm" style="background:#166534;color:#fff" onclick="cpComputoPresupuestoXLS('todo')">Excel — Todos</button>
         </div>
       </div>
+      <div style="border:1px solid var(--br);border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:12px;margin-bottom:8px">Cómputo y Presupuesto — Resumen por Ítem c/ % Incidencia (modelo oficial)</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="cpComputoIncidencia('rubro')">PDF — Rubro</button>
+          <button class="btn btn-sm" onclick="cpComputoIncidencia('todo')">PDF — Todos</button>
+        </div>
+      </div>
     </div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-export')">Cerrar</button></div>
   </div>
@@ -7017,6 +7024,108 @@ function cpComputoPresupuesto(modo){
   var r=cpComputoPresupuestoBuild(modo);
   if(!r)return;
   var filename='Computo_y_Presupuesto_'+r.titulo.replace(/[^a-zA-Z0-9]+/g,'_')+'.pdf';
+  r.doc.save(filename);
+}
+
+// ═══ CÓMPUTO Y PRESUPUESTO — RESUMEN POR ÍTEM CON % DE INCIDENCIA (modelo oficial municipal) ═══
+// Estructura tomada de la planilla de referencia "Oficina de TURISMO": una sola tabla,
+// numeración decimal correlativa (1.- rubro, 1.1.- ítem), cada ítem en una fila con su
+// Precio Unitario y Parcial ítem, cada rubro con su Parcial (subtotal) y % de incidencia
+// sobre el total general de la obra, y una fila TOTAL final que suma 100%.
+function cpComputoIncidenciaBuild(modo){
+  var sc=cpRubrosScope(modo);if(!sc)return null;
+  if(!sc.rubros.some(function(r){return r.items.length;})){toast('Sin datos',false);return null;}
+  var jsPDFctor=cpJsPDFCtor();
+  if(!jsPDFctor||typeof jsPDFctor.API==='undefined'||typeof jsPDFctor.API.autoTable!=='function'){
+    toast('No se pudo cargar el motor de PDF (revisá tu conexión y volvé a intentar; si persiste, recargá la página con Ctrl+F5)',false);return null;
+  }
+  var ag=cpAgregarDatos(sc.rubros);
+  if(!ag.rubroRows.length){toast('Sin datos',false);return null;}
+  var obra=cpDatosObraActiva();
+  var doc=new jsPDFctor({unit:'mm',format:'a4',orientation:'portrait'});
+  var pageW=doc.internal.pageSize.getWidth();
+  var pageH=doc.internal.pageSize.getHeight();
+  var mL=14,mR=10,TOP_Y=34;
+  var totalPagesExp='{total_pages_count_string}';
+
+  var tituloObra=((obra.tipoObra?obra.tipoObra.toUpperCase()+': ':'OBRA: ')+(obra.nombre||'').toUpperCase()).trim();
+  var propietario=(obra.titular||obra.comitente||'').toUpperCase();
+  var direccion=obra.direccion||'';
+
+  function drawHeaderBlock(seccionTitulo){
+    var y=12;
+    doc.setFont('helvetica','bold');doc.setFontSize(11);
+    doc.text(tituloObra,mL,y);y+=5;
+    doc.setFont('helvetica','normal');doc.setFontSize(9);
+    if(propietario){doc.text('PROPIETARIO: '+propietario,mL,y);y+=5;}
+    if(direccion){doc.text(direccion,mL,y);y+=5;}
+    y+=2;
+    doc.setFont('helvetica','bold');doc.setFontSize(10);
+    doc.text(seccionTitulo,mL,y);
+    doc.setDrawColor(0,0,0);doc.setLineWidth(0.2);
+    doc.line(mL,y+2,pageW-mR,y+2);
+  }
+  function drawFooter(){
+    var pageNumber=doc.internal.getNumberOfPages();
+    doc.setFont('helvetica','normal');doc.setFontSize(8);
+    doc.text('PÁGINA '+pageNumber+' DE '+totalPagesExp,pageW-mR,pageH-8,{align:'right'});
+  }
+  function fmtPct(frac){return (frac*100).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';}
+
+  var totalGeneral=ag.totG.tot;
+  var body=[];
+  ag.rubroRows.forEach(function(rub,ri){
+    var codRubro=(ri+1)+'.-';
+    var pctRubro=totalGeneral>0?(rub.subTot/totalGeneral):0;
+    body.push([
+      {content:codRubro,styles:{fontStyle:'bold',fillColor:[220,220,220],halign:'left'}},
+      {content:(rub.nom||'').toString().toUpperCase(),colSpan:3,styles:{fontStyle:'bold',fillColor:[220,220,220],halign:'left'}},
+      {content:'',styles:{fillColor:[220,220,220]}},
+      {content:'$'+cpFmtAR(rub.subTot),styles:{fontStyle:'bold',fillColor:[220,220,220],halign:'right'}},
+      {content:fmtPct(pctRubro),styles:{fontStyle:'bold',fillColor:[220,220,220],halign:'right'}}
+    ]);
+    rub.items.forEach(function(it,ii){
+      var codItem=(ri+1)+'.'+(ii+1)+'.-';
+      var puUnit=it.qty>0?(it.puAdopt/it.qty):it.puAdopt;
+      body.push([
+        codItem,
+        it.nom,
+        it.un,
+        it.qty.toLocaleString('es-AR',{maximumFractionDigits:2}),
+        '$'+cpFmtAR(puUnit),
+        '$'+cpFmtAR(it.puAdopt),
+        ''
+      ]);
+    });
+  });
+  body.push([
+    {content:'',colSpan:4,styles:{fontStyle:'bold',fillColor:[225,225,225]}},
+    {content:'TOTAL',styles:{fontStyle:'bold',fillColor:[225,225,225],halign:'right'}},
+    {content:'$'+cpFmtAR(totalGeneral),styles:{fontStyle:'bold',fillColor:[225,225,225],halign:'right'}},
+    {content:fmtPct(totalGeneral>0?1:0),styles:{fontStyle:'bold',fillColor:[225,225,225],halign:'right'}}
+  ]);
+
+  var tableBaseOpts={
+    theme:'grid',
+    styles:{font:'helvetica',fontSize:8,cellPadding:1.4,textColor:[0,0,0],lineColor:[0,0,0],lineWidth:0.1,overflow:'linebreak',valign:'middle'},
+    headStyles:{fillColor:[235,235,235],textColor:[0,0,0],fontStyle:'bold',lineWidth:0.1,lineColor:[0,0,0]},
+    margin:{left:mL,right:mR,top:TOP_Y,bottom:16}
+  };
+  doc.autoTable(Object.assign({},tableBaseOpts,{
+    head:[['Ítem','Descripción','Unid.','Cant.','Precio Unitario','Parcial Ítem','%']],
+    body:body,
+    startY:TOP_Y,
+    columnStyles:{0:{halign:'left',cellWidth:16},1:{halign:'left',cellWidth:'auto'},2:{halign:'center',cellWidth:14},3:{halign:'right',cellWidth:16},4:{halign:'right',cellWidth:26},5:{halign:'right',cellWidth:26},6:{halign:'right',cellWidth:16}},
+    didDrawPage:function(data){drawHeaderBlock('CÓMPUTO Y PRESUPUESTO — RESUMEN POR ÍTEM');drawFooter();}
+  }));
+
+  if(typeof doc.putTotalPages==='function')doc.putTotalPages(totalPagesExp);
+  return {doc:doc,titulo:sc.titulo,total:totalGeneral};
+}
+function cpComputoIncidencia(modo){
+  var r=cpComputoIncidenciaBuild(modo);
+  if(!r)return;
+  var filename='Computo_y_Presupuesto_Resumen_'+r.titulo.replace(/[^a-zA-Z0-9]+/g,'_')+'.pdf';
   r.doc.save(filename);
 }
 function cpComputoPresupuestoXLS(modo){
