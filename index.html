@@ -12,6 +12,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -6074,6 +6076,7 @@ function cpRenderItem(rid,it){
   var unis_item=it.unidades_permitidas||['m\u00b2','m\u00b3','ml','m','un','kg','tn','gl','hs','lt','kg'];
   unis_item.forEach(function(u){h+='<option value="'+u+'"'+(u===it.un?' selected':'')+'>'+u+'</option>';});
   h+='</select>';
+  h+='<input class="fi" type="text" placeholder="Subrubro (opcional, ej: a) Columnas)" value="'+(it.subrubro||'')+'" oninput="cpUSubrubro(\''+it.id+'\',this.value)" title="Agrupa este ítem bajo un subrubro en el PDF de Cómputo y Presupuesto (dejalo vacío si no aplica)" style="width:170px;font-size:10px;color:var(--tx3)">';
   h+='<button onclick="cpAutoSel(\''+it.id+'\',document.getElementById(\'cpn-'+it.id+'\').value)" title="Buscar en cat\u00e1logo" style="background:none;border:1px solid var(--tx3);color:var(--tx3);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:12px;flex-shrink:0">&#128269;</button>';
   h+='<button onclick="cpBI(\''+rid+'\',\''+it.id+'\')" style="background:none;border:1px solid var(--rt);color:var(--rt);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px;flex-shrink:0">\u2715</button></div>';
   h+='<div style="background:var(--bg);border-radius:6px;padding:8px;margin-bottom:8px">';
@@ -6365,6 +6368,7 @@ function cpCargarEstructura3CM(){
 function cpAI(rid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items.push({id:cpNID(),nom:'',un:'m\u00b2',dims:[],mats:[],mo:[],unidades_permitidas:null});cpRender();}
 function cpBI(rid,iid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items=r.items.filter(function(i){return i.id!==iid;});cpRender();}
 function cpCU(iid,un){var it=cpFindItem(iid);if(!it)return;it.un=un;it.dims=[];cpRender();}
+function cpUSubrubro(iid,val){var it=cpFindItem(iid);if(!it)return;it.subrubro=val;}
 function cpAD(iid){var it=cpFindItem(iid);if(!it)return;it.dims.push({id:cpNID(),desc:'',l:0,a:0,h:0,q:1,sust:false});cpRender();}
 function cpADVano(iid){var it=cpFindItem(iid);if(!it)return;it.dims.push({id:cpNID(),desc:'Abertura/Vano',l:0,a:0,h:0,q:1,sust:true});cpRender();}
 function cpBD(iid,did){var it=cpFindItem(iid);if(!it)return;it.dims=it.dims.filter(function(d){return d.id!==did;});cpRender();}
@@ -6813,25 +6817,200 @@ function cpListadoMOXLS(modo){
   cpDescargarXLS(wb,'Listado_Presupuesto_MO_'+sc.titulo.replace(/[^a-zA-Z0-9]+/g,'_')+'.xlsx');
 }
 
-// ═══ COMPUTO Y PRESUPUESTO (unificado, materiales + MO, por rubro) ═══
-function cpComputoPresupuesto(modo){
-  var sc=cpRubrosScope(modo);if(!sc)return;
-  if(!sc.rubros.some(function(r){return r.items.length;})){toast('Sin datos',false);return;}
-  var ag=cpAgregarDatos(sc.rubros);
-  var obraNom=(document.getElementById('cp-obra-nom')||{}).value||'Obra';
-  var css=cpPDFCss();
-  var d='<h1>CÓMPUTO Y PRESUPUESTO</h1><div class="sub">'+obraNom+' — '+sc.titulo+' — Materiales + Mano de Obra unificado — Precios 2026</div><hr>';
-  ag.rubroRows.forEach(function(rr){
-    d+='<div class="rubro-block"><h2>'+(rr.nom||'').toString().toUpperCase()+'</h2>';
-    d+='<table><thead><tr><th>Ítem</th><th>Un</th><th class="r">Cantidad</th><th class="r">Costo Materiales</th><th class="r">Costo M.O.</th><th class="r">Precio Unit. Adoptado</th></tr></thead><tbody>';
-    rr.items.forEach(function(it){
-      d+='<tr><td>'+it.nom+'</td><td>'+it.un+'</td><td class="r">'+it.qty.toLocaleString('es-AR',{maximumFractionDigits:2})+'</td><td class="r mat">$'+cpFmtAR(it.costoMat)+'</td><td class="r mo">$'+cpFmtAR(it.costoMO)+'</td><td class="r"><b>$'+cpFmtAR(it.puAdopt)+'</b></td></tr>';
+// ═══ COMPUTO Y PRESUPUESTO (unificado) — planilla técnica continua, estilo "3 CM - List Mat - MO" ═══
+// Estructura: I. Materiales (por Rubro A/B/C.../Subrubro a/b/c) — II. Mano de Obra (por Rubro) — III. Resumen general.
+// Generado con jsPDF + autoTable (no HTML/print del navegador) para lograr encabezado repetido en cada
+// página, flujo continuo entre rubros (sin salto de página forzado) y numeración automática "PÁGINA X DE Y".
+function cpDatosObraActiva(){
+  var obraNomInput=(document.getElementById('cp-obra-nom')||{}).value||'';
+  var o=null;
+  if(typeof OBRAS_DATA!=='undefined'&&CP_OBRA_ID){
+    o=OBRAS_DATA.find(function(x){return String(x.id)===String(CP_OBRA_ID);});
+  }
+  return{
+    nombre:(o&&o.nombre)||obraNomInput||'Obra',
+    tipoObra:(o&&o.tipoObra)||'',
+    titular:(o&&o.titular)||'',
+    comitente:(o&&o.comitente)||'',
+    direccion:(o&&o.direccion)||''
+  };
+}
+function cpComputoPresupuestoBuild(modo){
+  var sc=cpRubrosScope(modo);if(!sc)return null;
+  if(!sc.rubros.some(function(r){return r.items.length;})){toast('Sin datos',false);return null;}
+  if(typeof window.jspdf==='undefined'||typeof window.jspdf.jsPDF==='undefined'){
+    toast('No se pudo cargar el motor de PDF (sin conexión) — probá de nuevo con internet',false);return null;
+  }
+  var obra=cpDatosObraActiva();
+  var jsPDFctor=window.jspdf.jsPDF;
+  var doc=new jsPDFctor({unit:'mm',format:'a4',orientation:'portrait'});
+  var pageW=doc.internal.pageSize.getWidth();
+  var pageH=doc.internal.pageSize.getHeight();
+  var mL=14,mR=10,TOP_Y=34;
+  var totalPagesExp='{total_pages_count_string}';
+
+  var tituloObra=((obra.tipoObra?obra.tipoObra.toUpperCase()+': ':'OBRA: ')+(obra.nombre||'').toUpperCase()).trim();
+  var propietario=(obra.titular||obra.comitente||'').toUpperCase();
+  var direccion=obra.direccion||'';
+
+  function drawHeaderBlock(seccionTitulo){
+    var y=12;
+    doc.setFont('helvetica','bold');doc.setFontSize(11);
+    doc.text(tituloObra,mL,y);y+=5;
+    doc.setFont('helvetica','normal');doc.setFontSize(9);
+    if(propietario){doc.text('PROPIETARIO: '+propietario,mL,y);y+=5;}
+    if(direccion){doc.text(direccion,mL,y);y+=5;}
+    y+=2;
+    doc.setFont('helvetica','bold');doc.setFontSize(10);
+    doc.text(seccionTitulo,mL,y);
+    doc.setDrawColor(0,0,0);doc.setLineWidth(0.2);
+    doc.line(mL,y+2,pageW-mR,y+2);
+  }
+  function drawFooter(){
+    // OJO: data.pageNumber en didDrawPage es relativo a CADA tabla (se reinicia en 1 en cada autoTable()
+    // nueva), no es el número de página absoluto del documento. Usamos el conteo real de páginas del doc.
+    var pageNumber=doc.internal.getNumberOfPages();
+    doc.setFont('helvetica','normal');doc.setFontSize(8);
+    doc.text('PÁGINA '+pageNumber+' DE '+totalPagesExp,pageW-mR,pageH-8,{align:'right'});
+  }
+  var tableBaseOpts={
+    theme:'grid',
+    styles:{font:'helvetica',fontSize:8,cellPadding:1.4,textColor:[0,0,0],lineColor:[0,0,0],lineWidth:0.1,overflow:'linebreak',valign:'middle'},
+    headStyles:{fillColor:[235,235,235],textColor:[0,0,0],fontStyle:'bold',lineWidth:0.1,lineColor:[0,0,0]},
+    margin:{left:mL,right:mR,top:TOP_Y,bottom:16}
+  };
+
+  var rubrosConItems=sc.rubros.filter(function(r){return r.items.length;});
+  var letras='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var rubroLetra={};
+  rubrosConItems.forEach(function(rub,ri){rubroLetra[rub.id]=letras[ri]||('R'+(ri+1));});
+
+  // ── Sección I: MATERIALES ──────────────────────────────────────────
+  var bodyMat=[];
+  var totalGeneralMat=0;
+  var colCountMat=6;
+  rubrosConItems.forEach(function(rub){
+    var letra=rubroLetra[rub.id];
+    var subtotalRubro=0;
+    bodyMat.push([{content:letra+'. '+(rub.nom||'').toString().toUpperCase(),colSpan:colCountMat,styles:{fontStyle:'bold',fillColor:[220,220,220],halign:'left'}}]);
+    var grupos=[],idxGrupo={};
+    rub.items.forEach(function(it){
+      var key=(it.subrubro||'').trim();
+      if(!(key in idxGrupo)){idxGrupo[key]=grupos.length;grupos.push({key:key,items:[]});}
+      grupos[idxGrupo[key]].items.push(it);
     });
-    d+='<tr class="tot"><td colspan="3"><b>Subtotal '+(rr.nom||'').toString().toUpperCase()+'</b></td><td class="r mat"><b>$'+cpFmtAR(rr.subMat)+'</b></td><td class="r mo"><b>$'+cpFmtAR(rr.subMO)+'</b></td><td class="r"><b>$'+cpFmtAR(rr.subTot)+'</b></td></tr>';
-    d+='</tbody></table></div>';
+    var subLetraIdx=0;
+    grupos.forEach(function(g){
+      if(g.key){
+        bodyMat.push([{content:String.fromCharCode(97+subLetraIdx)+') '+g.key.toUpperCase(),colSpan:colCountMat,styles:{fontStyle:'bold',fillColor:[240,240,240],halign:'left'}}]);
+        subLetraIdx++;
+      }
+      var n=1;
+      g.items.forEach(function(it){
+        var qty=cpQty(it.dims,it.un);
+        var mats=(it.mats||[]);
+        if(!mats.length){
+          bodyMat.push([String(n++),it.nom,it.un,qty.toLocaleString('es-AR',{maximumFractionDigits:2}),'$'+cpFmtAR(0),'$'+cpFmtAR(0)]);
+          return;
+        }
+        mats.forEach(function(m){
+          var cant=Math.round(qty*(m.rend||0)*1000)/1000;
+          var pu=m.pu||0;
+          var parcial=cant*pu;
+          subtotalRubro+=parcial;
+          bodyMat.push([String(n++),m.nom,m.un,cant.toLocaleString('es-AR',{maximumFractionDigits:3}),'$'+cpFmtAR(pu),'$'+cpFmtAR(parcial)]);
+        });
+      });
+    });
+    totalGeneralMat+=subtotalRubro;
+    bodyMat.push([
+      {content:'SUBTOTAL '+letra+'. '+(rub.nom||'').toString().toUpperCase(),colSpan:5,styles:{fontStyle:'bold',fillColor:[240,240,240],halign:'right'}},
+      {content:'$'+cpFmtAR(subtotalRubro),styles:{fontStyle:'bold',fillColor:[240,240,240],halign:'right'}}
+    ]);
   });
-  d+='<hr><table><tr class="grand"><td><b>TOTAL '+sc.titulo+'</b></td><td class="r mat"><b>Mat: $'+cpFmtAR(ag.totG.mat)+'</b></td><td class="r mo"><b>MO: $'+cpFmtAR(ag.totG.mo)+'</b></td><td class="r"><b>$'+cpFmtAR(ag.totG.tot)+'</b></td></tr></table>';
-  cpAbrirPDF(d,css);
+  doc.autoTable(Object.assign({},tableBaseOpts,{
+    head:[['N°','Ítem','Un','Cantidad','Precio Unitario','Parcial']],
+    body:bodyMat,
+    startY:TOP_Y,
+    columnStyles:{0:{halign:'center',cellWidth:10},1:{halign:'left',cellWidth:'auto'},2:{halign:'center',cellWidth:14},3:{halign:'right',cellWidth:20},4:{halign:'right',cellWidth:26},5:{halign:'right',cellWidth:26}},
+    didDrawPage:function(data){drawHeaderBlock('I. CÓMPUTO Y PRESUPUESTO DE MATERIALES');drawFooter();}
+  }));
+
+  // ── Sección II: MANO DE OBRA (por Rubro, agregada por rol) ─────────
+  doc.addPage();
+  var bodyMO=[];
+  var totalGeneralMO=0;
+  var rolNom={ofEsp:'Oficial Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'};
+  var rolPu={ofEsp:apuGetMOpu('ofEsp'),of:apuGetMOpu('of'),mo:apuGetMOpu('mo'),ay:apuGetMOpu('ay')};
+  rubrosConItems.forEach(function(rub){
+    var letra=rubroLetra[rub.id];
+    var agSum={ofEsp:0,of:0,mo:0,ay:0};
+    rub.items.forEach(function(it){
+      var qty=cpQty(it.dims,it.un);
+      (it.mo||[]).forEach(function(m){
+        var hs=qty*(m.hh||m.hs||0);
+        agSum[m.rol]=(agSum[m.rol]||0)+hs;
+      });
+    });
+    var anyMO=Object.keys(agSum).some(function(k){return agSum[k]>0.0001;});
+    if(!anyMO)return;
+    bodyMO.push([{content:letra+'. '+(rub.nom||'').toString().toUpperCase(),colSpan:6,styles:{fontStyle:'bold',fillColor:[220,220,220],halign:'left'}}]);
+    var n=1,subtotalRubroMO=0;
+    ['ofEsp','of','mo','ay'].forEach(function(rol){
+      var hs=agSum[rol]||0;
+      if(hs<=0.0001)return;
+      var pu=rolPu[rol]||0;
+      var parcial=hs*pu;
+      subtotalRubroMO+=parcial;
+      bodyMO.push([String(n++),rolNom[rol],'hs',hs.toLocaleString('es-AR',{maximumFractionDigits:2}),'$'+cpFmtAR(pu),'$'+cpFmtAR(parcial)]);
+    });
+    totalGeneralMO+=subtotalRubroMO;
+    bodyMO.push([
+      {content:'SUBTOTAL '+letra+'. '+(rub.nom||'').toString().toUpperCase(),colSpan:5,styles:{fontStyle:'bold',fillColor:[240,240,240],halign:'right'}},
+      {content:'$'+cpFmtAR(subtotalRubroMO),styles:{fontStyle:'bold',fillColor:[240,240,240],halign:'right'}}
+    ]);
+  });
+  if(!bodyMO.length){
+    bodyMO.push([{content:'Sin mano de obra cargada en los ítems de esta selección.',colSpan:6,styles:{halign:'left',textColor:[120,120,120]}}]);
+  }
+  doc.autoTable(Object.assign({},tableBaseOpts,{
+    head:[['N°','Descripción','Un','Cantidad','Precio Unitario','Parcial']],
+    body:bodyMO,
+    startY:TOP_Y,
+    columnStyles:{0:{halign:'center',cellWidth:10},1:{halign:'left',cellWidth:'auto'},2:{halign:'center',cellWidth:14},3:{halign:'right',cellWidth:20},4:{halign:'right',cellWidth:26},5:{halign:'right',cellWidth:26}},
+    didDrawPage:function(data){drawHeaderBlock('II. CÓMPUTO Y PRESUPUESTO DE MANO DE OBRA');drawFooter();}
+  }));
+
+  // ── Sección III: RESUMEN GENERAL ────────────────────────────────────
+  doc.addPage();
+  var CUT=totalGeneralMat+totalGeneralMO;
+  var g51=Math.round(CUT*APU_G51),sub51=CUT+g51;
+  var g52=Math.round(sub51*APU_G52),sub1=sub51+g52;
+  var g53=Math.round(sub51*APU_G53),sub2=sub1+g53;
+  var g54=Math.round(sub2*APU_G54),totalGral=sub2+g54;
+  var gastosAdicionales=totalGral-CUT;
+  var bodyResumen=[
+    ['I','MATERIALES','$'+cpFmtAR(totalGeneralMat)],
+    ['II','MANO DE OBRA','$'+cpFmtAR(totalGeneralMO)],
+    ['III','GASTOS ADICIONALES (grls. 15% + benef. 10% + financ. 3% + IVA 4%)','$'+cpFmtAR(gastosAdicionales)],
+    [{content:'TOTAL GENERAL DE LA OBRA',colSpan:2,styles:{fontStyle:'bold',fillColor:[225,225,225],halign:'right'}},{content:'$'+cpFmtAR(totalGral),styles:{fontStyle:'bold',fillColor:[225,225,225],halign:'right'}}]
+  ];
+  doc.autoTable(Object.assign({},tableBaseOpts,{
+    head:[['','Descripción','Importe']],
+    body:bodyResumen,
+    startY:TOP_Y,
+    columnStyles:{0:{halign:'center',cellWidth:14},1:{halign:'left',cellWidth:'auto'},2:{halign:'right',cellWidth:34}},
+    didDrawPage:function(data){drawHeaderBlock('III. RESUMEN PRESUPUESTO DE OBRA');drawFooter();}
+  }));
+
+  if(typeof doc.putTotalPages==='function')doc.putTotalPages(totalPagesExp);
+  return {doc:doc,titulo:sc.titulo,totales:{mat:totalGeneralMat,mo:totalGeneralMO,gastos:gastosAdicionales,total:totalGral}};
+}
+function cpComputoPresupuesto(modo){
+  var r=cpComputoPresupuestoBuild(modo);
+  if(!r)return;
+  var filename='Computo_y_Presupuesto_'+r.titulo.replace(/[^a-zA-Z0-9]+/g,'_')+'.pdf';
+  r.doc.save(filename);
 }
 function cpComputoPresupuestoXLS(modo){
   var sc=cpRubrosScope(modo);if(!sc)return;
