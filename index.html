@@ -664,12 +664,16 @@ input,select,textarea,button{font-family:var(--font)}
       <div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Capas &#8212; de afuera hacia adentro</div>
       <div id="sc-capas"></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button onclick="scAgregarCapa()" style="flex:1;min-width:140px;font-size:11px;background:none;border:1px dashed var(--bt);color:var(--bt);padding:8px;border-radius:5px;cursor:pointer">+ Agregar capa</button><button onclick="scAgregarEstructura('steelframe')" style="flex:1;min-width:200px;font-size:11px;background:none;border:1px dashed var(--gt);color:var(--gt);padding:8px;border-radius:5px;cursor:pointer" title="Agrega PGC (montante) + PGU (solera) juntos — muros exteriores/portantes">+ Estructura Steel Frame (PGC+PGU)</button><button onclick="scAgregarEstructura('drywall')" style="flex:1;min-width:200px;font-size:11px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:8px;border-radius:5px;cursor:pointer" title="Agrega Montante + Solera juntos — tabiques interiores livianos, NO estructural">+ Estructura Drywall (Montante+Solera)</button></div>
+      <div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin:16px 0 8px">Mano de Obra por m&#178; &#8212; se autocompleta seg&#250;n el Tipo, ajustable</div>
+      <div id="sc-mo"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button onclick="scAgregarMO()" style="flex:1;min-width:140px;font-size:11px;background:none;border:1px dashed var(--bt);color:var(--bt);padding:8px;border-radius:5px;cursor:pointer">+ Agregar Mano de Obra</button><button onclick="scResetMOEstandar()" style="flex:1;min-width:200px;font-size:11px;background:none;border:1px dashed var(--tx3);color:var(--tx3);padding:8px;border-radius:5px;cursor:pointer" title="Reemplaza la Mano de Obra actual por la estándar de mercado para el Tipo seleccionado">&#128260; MO estándar según Tipo</button></div>
       <div id="sc-totales" style="margin-top:14px;background:var(--bg);border-radius:6px;padding:10px;display:none">
-        <div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Resumen de materiales por m&#178;</div>
+        <div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">An&#225;lisis de Precios por m&#178; &#8212; Materiales + Equipos + Mano de Obra + Gastos (autom&#225;tico)</div>
         <div id="sc-totales-tabla"></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:14px">
         <button onclick="scCalcular()" class="btn" style="background:var(--gt);color:#fff;flex:1;font-size:12px;padding:10px">Calcular sistema</button>
+        <button onclick="scPDFEditor()" class="btn" style="background:none;border:1px solid var(--bt);color:var(--bt);flex:1;font-size:12px;padding:10px">&#128196; PDF An&#225;lisis de Precios</button>
         <button onclick="scGuardarSistema()" class="btn" style="background:var(--bt);color:#fff;flex:1;font-size:12px;padding:10px">&#128190; Guardar sistema</button>
       </div>
     </div>
@@ -7892,6 +7896,7 @@ var SC_PU_ESPECIALES = {
 var SC_SISTEMAS = [];  // lista de sistemas guardados
 var SC_EDIT_IDX = -1; // índice del sistema en edición (-1 = nuevo)
 var SC_CAPAS = [];     // capas del sistema en edición
+var SC_MO = [];        // mano de obra del sistema en edición
 var SC_NID = 1;
 function scNID(){ return 'sc'+(SC_NID++); }
 
@@ -7906,10 +7911,8 @@ function scFiltrar(tipo){
   }
   lista.innerHTML = filtered.map(function(s,i){
     var idx = SC_SISTEMAS.indexOf(s);
-    var totalMat = 0;
-    (s.capas||[]).forEach(function(c){
-      totalMat += Math.round((c.rend||1) * scGetPU(c.cod));
-    });
+    var it=scAdaptadorItem(s.nom,s.capas,(s.mo&&s.mo.length)?s.mo:scMOStandarDefault(s.tipo));
+    var calc=cpCalcPreciso(it.mats,it.mo,1);
     return '<div class="card" style="margin-bottom:10px">'
       +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
       +'<div style="background:var(--'+scTipoColor(s.tipo)+');border-radius:4px;padding:2px 8px;font-size:9px;font-weight:700;color:#fff;flex-shrink:0">'+s.tipo+'</div>'
@@ -7917,7 +7920,8 @@ function scFiltrar(tipo){
       +(s.nota?'<div style="font-size:10px;color:var(--tx3)">'+s.nota+'</div>':'')
       +'</div>'
       +(s.esp?'<div style="font-size:11px;color:var(--tx3);flex-shrink:0">'+s.esp+' mm</div>':'')
-      +'<div style="font-size:11px;color:var(--bt);font-weight:700;flex-shrink:0">$'+totalMat.toLocaleString()+'/m²</div>'
+      +'<div style="font-size:12px;color:var(--bt);font-weight:800;flex-shrink:0" title="Precio Unitario Adoptado — Materiales+Equipos+MO+Gastos">$'+calc.pu_adopt.toLocaleString()+'/m²</div>'
+      +'<button onclick="scVerAPU('+idx+')" style="background:none;border:1px solid var(--tx3);color:var(--tx3);border-radius:5px;padding:4px 10px;cursor:pointer;font-size:11px" title="Ver Análisis de Precios completo (PDF)">&#128196; APU</button>'
       +'<button onclick="scEditar('+idx+')" style="background:none;border:1px solid var(--bt);color:var(--bt);border-radius:5px;padding:4px 10px;cursor:pointer;font-size:11px">Editar</button>'
       +'<button onclick="scUsarEnComputo('+idx+')" style="background:var(--bt);border:none;color:#fff;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:11px">Usar en Cómputo</button>'
       +'<button onclick="scEliminar('+idx+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:16px;padding:0">×</button>'
@@ -7951,6 +7955,7 @@ function scGetPU(cod){
 function scNuevo(){
   SC_EDIT_IDX = -1;
   SC_CAPAS = [];
+  SC_MO = scMOStandarDefault('MURO');
   document.getElementById('sc-nom').value='';
   document.getElementById('sc-tipo-ed').value='MURO';
   document.getElementById('sc-esp').value='';
@@ -7958,6 +7963,7 @@ function scNuevo(){
   document.getElementById('sc-editor').style.display='';
   document.getElementById('sc-totales').style.display='none';
   scRenderCapas();
+  scRenderMO();
   document.getElementById('sc-editor').scrollIntoView({behavior:'smooth'});
 }
 
@@ -7966,6 +7972,7 @@ function scEditar(idx){
   if(!s) return;
   SC_EDIT_IDX = idx;
   SC_CAPAS = JSON.parse(JSON.stringify(s.capas||[]));
+  SC_MO = (s.mo&&s.mo.length)?JSON.parse(JSON.stringify(s.mo)):scMOStandarDefault(s.tipo||'MURO');
   document.getElementById('sc-nom').value = s.nom||'';
   document.getElementById('sc-tipo-ed').value = s.tipo||'MURO';
   document.getElementById('sc-esp').value = s.esp||'';
@@ -7973,12 +7980,13 @@ function scEditar(idx){
   document.getElementById('sc-editor').style.display='';
   document.getElementById('sc-totales').style.display='none';
   scRenderCapas();
+  scRenderMO();
   document.getElementById('sc-editor').scrollIntoView({behavior:'smooth'});
 }
 
 function scCerrarEditor(){
   document.getElementById('sc-editor').style.display='none';
-  SC_CAPAS=[];SC_EDIT_IDX=-1;
+  SC_CAPAS=[];SC_MO=[];SC_EDIT_IDX=-1;
 }
 
 // ── Render capas en el editor ─────────────────────────────────────────
@@ -8112,19 +8120,105 @@ function scUpdCapa(i, campo, val){
   scRenderCapas();
 }
 
+// ── Mano de Obra del sistema (para el Análisis de Precios automático) ──
+function scMOStandarDefault(tipo){
+  return cpMOEstandarPorTipoSC(tipo).map(function(m){
+    return {rol:m.rol,hh:m.hh,pu:apuGetMOpu(m.rol)};
+  });
+}
+function scRenderMO(){
+  var cont=document.getElementById('sc-mo');
+  if(!cont)return;
+  if(!SC_MO.length){
+    cont.innerHTML='<div style="padding:12px;text-align:center;color:var(--tx3);font-size:11px;border:1px dashed var(--br);border-radius:6px">Sin mano de obra cargada. Usá "MO estándar según Tipo" o agregá manualmente.</div>';
+    return;
+  }
+  var rolNom={ofEsp:'Oficial Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'};
+  cont.innerHTML=SC_MO.map(function(m,i){
+    return '<div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;align-items:end;background:var(--bg);border-radius:6px;padding:8px;margin-bottom:6px">'
+      +'<div><label style="font-size:9px;color:var(--tx3);text-transform:uppercase;font-weight:700;display:block;margin-bottom:3px">Rol</label>'
+      +'<select class="fi" style="font-size:10px;width:100%" onchange="scUpdMO('+i+',\'rol\',this.value)">'
+      +Object.keys(rolNom).map(function(r){return '<option value="'+r+'"'+(m.rol===r?' selected':'')+'>'+rolNom[r]+'</option>';}).join('')
+      +'</select></div>'
+      +'<div><label style="font-size:9px;color:var(--tx3);text-transform:uppercase;font-weight:700;display:block;margin-bottom:3px">Hs/m²</label>'
+      +'<input class="fi" type="text" inputmode="decimal" value="'+String(m.hh||0).replace('.',',')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);scUpdMO('+i+',\'hh\',isNaN(v)?0:v);" style="font-size:10px;width:100%"></div>'
+      +'<div style="font-size:10px;color:var(--tx3);text-align:right">$'+(m.pu||apuGetMOpu(m.rol)||0).toLocaleString()+'/hs</div>'
+      +'<button onclick="scBorrarMO('+i+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:16px;padding:0">×</button>'
+      +'</div>';
+  }).join('');
+}
+function scAgregarMO(){
+  SC_MO.push({rol:'of',hh:0.5,pu:apuGetMOpu('of')});
+  scRenderMO();
+}
+function scBorrarMO(i){
+  SC_MO.splice(i,1);
+  scRenderMO();
+}
+function scUpdMO(i,campo,val){
+  if(!SC_MO[i])return;
+  SC_MO[i][campo]=val;
+  if(campo==='rol') SC_MO[i].pu=apuGetMOpu(val);
+  scRenderMO();
+}
+function scResetMOEstandar(){
+  var tipo=(document.getElementById('sc-tipo-ed')||{}).value||'MURO';
+  SC_MO=scMOStandarDefault(tipo);
+  scRenderMO();
+  toast('✓ MO estándar cargada para tipo '+tipo+' — ajustable');
+}
+// Adapta un sistema (capas+mo) al formato de ítem de Cómputo para reusar el motor de cálculo (cpCalcPreciso) y el Análisis de Precios (cpAPUItemHtml) — 1 m² de referencia.
+function scAdaptadorItem(nom,capas,mo){
+  return {
+    nom:nom||'Sistema',
+    un:'m²',
+    dims:[{id:'d1',desc:'',l:1,a:1,h:0,q:1,sust:false}],
+    mats:(capas||[]).map(function(c){
+      return {id:c.cod||('sc_'+c.id),nom:c.nom,un:c.un||'m²',rend:c.rend||1,pu:scGetPU(c.cod)||0,esEquipo:false,sinPrecio:!(scGetPU(c.cod)>0)};
+    }),
+    mo:(mo||[]).map(function(m){
+      var rolNom={ofEsp:'Oficial Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'}[m.rol]||m.rol;
+      return {rol:m.rol,nom:rolNom,hs:m.hh||m.hs||0,hh:m.hh||m.hs||0,pu:m.pu||apuGetMOpu(m.rol)};
+    })
+  };
+}
+// Exporta el PDF de Análisis de Precios del sistema que se está editando ahora mismo
+function scPDFEditor(){
+  var nom=(document.getElementById('sc-nom')||{}).value||'Sistema';
+  var tipo=(document.getElementById('sc-tipo-ed')||{}).value||'MURO';
+  if(!SC_CAPAS.length){toast('Agregá al menos una capa',false);return;}
+  scAbrirPDFSistema(nom+' ('+tipo+')',SC_CAPAS,SC_MO);
+}
+// Exporta el PDF de Análisis de Precios de un sistema ya guardado
+function scVerAPU(idx){
+  var s=SC_SISTEMAS[idx];
+  if(!s){return;}
+  scAbrirPDFSistema(s.nom+' ('+s.tipo+')',s.capas,(s.mo&&s.mo.length)?s.mo:scMOStandarDefault(s.tipo));
+}
+function scAbrirPDFSistema(nom,capas,mo){
+  var it=scAdaptadorItem(nom,capas,mo);
+  var res=cpAPUItemHtml(it);
+  var css=cpPDFCss();
+  var d='<h1>Sistema Constructivo — Análisis de Precios Unitario</h1><div class="sub">'+nom+' — Precios 2026 (por m²)</div><hr><div class="item-block">'+res.html+'</div>';
+  cpAbrirPDF(d,css);
+}
+
 // ── Calcular el sistema ───────────────────────────────────────────────
 function scCalcular(){
   var totDiv = document.getElementById('sc-totales');
   var totTab = document.getElementById('sc-totales-tabla');
   if(!totDiv||!totTab) return;
 
-  var espTotal=0, totPU=0;
-  var rows = SC_CAPAS.map(function(c,i){
+  var nomActual=(document.getElementById('sc-nom')||{}).value||'Sistema';
+  var espTotal=0;
+  SC_CAPAS.forEach(function(c){espTotal+=+(c.esp||0);});
+  var it=scAdaptadorItem(nomActual,SC_CAPAS,SC_MO);
+  var calc=cpCalcPreciso(it.mats,it.mo,1);
+
+  var rowsMat = SC_CAPAS.map(function(c,i){
     var pu=scGetPU(c.cod);
     var cant=Math.round((c.rend||1)*100)/100;
     var sub=Math.round(cant*pu);
-    totPU+=sub;
-    espTotal+=+(c.esp||0);
     return '<tr style="border-bottom:1px solid var(--br)">'
       +'<td style="padding:4px 6px;font-size:10px;color:var(--tx3)">'+(i+1)+'</td>'
       +'<td style="padding:4px 6px;font-size:11px">'+c.nom+'</td>'
@@ -8136,8 +8230,19 @@ function scCalcular(){
       +'</tr>';
   }).join('');
 
-  var CUT = totPU;
-  var conGastos = Math.round(CUT*CP_FACTOR_GASTOS);
+  var rolNom={ofEsp:'Oficial Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'};
+  var rowsMO = SC_MO.map(function(m,i){
+    var pu=m.pu||apuGetMOpu(m.rol);
+    var sub=Math.round((m.hh||0)*pu);
+    return '<tr style="border-bottom:1px solid var(--br)">'
+      +'<td style="padding:4px 6px;font-size:10px;color:var(--tx3)">'+(i+1)+'</td>'
+      +'<td style="padding:4px 6px;font-size:11px">'+(rolNom[m.rol]||m.rol)+'</td>'
+      +'<td style="text-align:center;padding:4px 6px;font-size:10px;color:var(--tx3)">hs</td>'
+      +'<td style="text-align:right;padding:4px 6px;font-size:11px;font-weight:600">'+(m.hh||0).toLocaleString('es-AR',{maximumFractionDigits:2})+'</td>'
+      +'<td style="text-align:right;padding:4px 6px;font-size:10px;color:var(--tx3)">$'+pu.toLocaleString()+'</td>'
+      +'<td style="text-align:right;padding:4px 6px;font-size:11px;font-weight:700;color:var(--golt)">$'+sub.toLocaleString()+'</td><td></td></tr>';
+  }).join('');
+  if(!rowsMO) rowsMO='<tr><td colspan="7" style="padding:8px;text-align:center;font-size:10px;color:var(--tx3)"><i>Sin mano de obra cargada</i></td></tr>';
 
   totTab.innerHTML='<table style="width:100%;border-collapse:collapse">'
     +'<thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:4px 6px;font-size:9px;color:var(--tx3)">#</th>'
@@ -8147,19 +8252,30 @@ function scCalcular(){
     +'<th style="text-align:right;padding:4px 6px;font-size:9px;color:var(--tx3)">$/un</th>'
     +'<th style="text-align:right;padding:4px 6px;font-size:9px;color:var(--tx3)">Subtotal</th>'
     +'<th style="text-align:center;padding:4px 6px;font-size:9px;color:var(--tx3)">Esp.</th>'
-    +'</thead><tbody>'+rows+'</tbody>'
-    +'<tfoot><tr style="background:var(--bg4)">'
-    +'<td colspan="5" style="padding:5px 6px;font-weight:700;font-size:11px">TOTAL CUT (sin gastos)</td>'
-    +'<td style="text-align:right;padding:5px 6px;font-weight:800;font-size:12px;color:var(--bt)">$'+CUT.toLocaleString()+'/m²</td>'
-    +'<td style="text-align:center;padding:5px 6px;font-size:10px;color:var(--tx3)">'+(espTotal||'—')+' mm</td>'
-    +'</tr>'
-    +'<tr style="background:rgba(96,165,250,.1)">'
-    +'<td colspan="5" style="padding:5px 6px;font-weight:700;font-size:11px">TOTAL c/gastos (×1.35148)</td>'
-    +'<td style="text-align:right;padding:5px 6px;font-weight:800;font-size:14px;color:var(--bt)">$'+conGastos.toLocaleString()+'/m²</td>'
-    +'<td></td></tr></tfoot></table>';
+    +'</thead><tbody>'+rowsMat+'</tbody>'
+    +'<tfoot><tr style="background:var(--bg4)"><td colspan="5" style="padding:5px 6px;font-weight:700;font-size:11px">(1) Materiales (+varios)</td>'
+    +'<td style="text-align:right;padding:5px 6px;font-weight:800;font-size:11px;color:var(--bt)">$'+calc.costoMat.toLocaleString()+'</td>'
+    +'<td style="text-align:center;padding:5px 6px;font-size:10px;color:var(--tx3)">'+(espTotal||'—')+' mm</td></tr></tfoot></table>'
+    +'<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin:10px 0 6px">Mano de Obra</div>'
+    +'<table style="width:100%;border-collapse:collapse"><tbody>'+rowsMO+'</tbody>'
+    +'<tfoot><tr style="background:var(--bg4)"><td colspan="5" style="padding:5px 6px;font-weight:700;font-size:11px">(3) Mano de Obra</td>'
+    +'<td style="text-align:right;padding:5px 6px;font-weight:800;font-size:11px;color:var(--golt)">$'+calc.costoMO.toLocaleString()+'</td><td></td></tr>'
+    +'<tr><td colspan="5" style="padding:5px 6px;font-size:10px;color:var(--tx3)">(2) Equipos + herramientas menores</td>'
+    +'<td style="text-align:right;padding:5px 6px;font-size:11px">$'+calc.costoEquipo.toLocaleString()+'</td><td></td></tr></tfoot></table>'
+    +'<table style="width:100%;border-collapse:collapse;margin-top:8px"><tfoot>'
+    +'<tr style="background:rgba(96,165,250,.15)"><td colspan="5" style="padding:6px;font-weight:800;font-size:12px">(4) COSTO UNITARIO TOTAL (C.U.T.)</td>'
+    +'<td style="text-align:right;padding:6px;font-weight:800;font-size:12px;color:var(--bt)">$'+calc.CUT.toLocaleString()+'</td><td></td></tr>'
+    +'<tr><td colspan="5" style="padding:4px 6px;font-size:10px;color:var(--tx3)">5.1 Gastos generales (15% CUT)</td><td style="text-align:right;padding:4px 6px;font-size:10px">$'+calc.g51.toLocaleString()+'</td><td></td></tr>'
+    +'<tr><td colspan="5" style="padding:4px 6px;font-size:10px;color:var(--tx3)">5.2 Beneficio (10%)</td><td style="text-align:right;padding:4px 6px;font-size:10px">$'+calc.g52.toLocaleString()+'</td><td></td></tr>'
+    +'<tr><td colspan="5" style="padding:4px 6px;font-size:10px;color:var(--tx3)">5.3 Gastos financieros (3%)</td><td style="text-align:right;padding:4px 6px;font-size:10px">$'+calc.g53.toLocaleString()+'</td><td></td></tr>'
+    +'<tr><td colspan="5" style="padding:4px 6px;font-size:10px;color:var(--tx3)">5.4 Impuestos/IVA (4%)</td><td style="text-align:right;padding:4px 6px;font-size:10px">$'+calc.g54.toLocaleString()+'</td><td></td></tr>'
+    +'<tr style="background:rgba(96,165,250,.25)"><td colspan="5" style="padding:8px 6px;font-weight:800;font-size:14px">PRECIO UNITARIO ADOPTADO</td>'
+    +'<td style="text-align:right;padding:8px 6px;font-weight:800;font-size:14px;color:var(--bt)">$'+calc.pu_adopt.toLocaleString()+'/m²</td><td></td></tr>'
+    +'</tfoot></table>';
 
   totDiv.style.display='';
   totDiv.scrollIntoView({behavior:'smooth'});
+  return calc;
 }
 
 // ── Guardar sistema ───────────────────────────────────────────────────
@@ -8172,10 +8288,12 @@ function scGuardarSistema(){
     esp:parseARNum((document.getElementById('sc-esp')||{}).value)||0,
     nota:(document.getElementById('sc-nota')||{}).value||'',
     capas:JSON.parse(JSON.stringify(SC_CAPAS)),
+    mo:JSON.parse(JSON.stringify(SC_MO)),
     ts:Date.now()
   };
   if(SC_EDIT_IDX>=0) SC_SISTEMAS[SC_EDIT_IDX]=s;
   else SC_SISTEMAS.push(s);
+  scGuardar(); // persistir de inmediato (Firebase + localStorage) — antes se perdía si no se tocaba el botón "Guardar" aparte
   scCerrarEditor();
   scFiltrar('');
   toast('\u2713 Sistema guardado');
@@ -8184,10 +8302,11 @@ function scGuardarSistema(){
 function scEliminar(idx){
   if(!confirm('¿Eliminar sistema "'+SC_SISTEMAS[idx].nom+'"?'))return;
   SC_SISTEMAS.splice(idx,1);
+  scGuardar(); // persistir de inmediato
   scFiltrar('');
 }
 
-// Usar sistema en cómputo: agrega cada capa como ítem del rubro activo
+// Usar sistema en cómputo: agrega UN ítem al rubro activo con todas las capas como materiales + la Mano de Obra del sistema (real o estándar por Tipo) — mismo comportamiento que cpElegirSistema.
 function scUsarEnComputo(idx){
   var s=SC_SISTEMAS[idx];
   if(!s){return;}
@@ -8196,17 +8315,20 @@ function scUsarEnComputo(idx){
   goTo('computo',btn);
   if(!CP_RUBROS.length){
     CP_RUBROS.push({id:cpNID(),nom:s.tipo+': '+s.nom,items:[]});
+    CP_RUBRO_TAB=CP_RUBROS[0].id;
   }
-  var rub=CP_RUBROS[CP_RUBROS.length-1];
-  s.capas.forEach(function(c){
-    var pu=scGetPU(c.cod);
-    var item={id:cpNID(),nom:c.nom,un:'m²',dims:[],mats:[],mo:[]};
-    // Agregar como material directo
-    item.mats.push({id:c.cod||'',nom:c.nom,un:c.un,rend:c.rend||1,pu:pu,esEquipo:false});
-    rub.items.push(item);
+  var rub=CP_RUBROS.find(function(r){return r.id===CP_RUBRO_TAB;})||CP_RUBROS[CP_RUBROS.length-1];
+  var mo=(s.mo&&s.mo.length)?s.mo:scMOStandarDefault(s.tipo);
+  var it=scAdaptadorItem(s.nom,s.capas,mo);
+  rub.items.push({
+    id:cpNID(),nom:s.nom+' ('+s.tipo+')',un:'m²',
+    unidades_permitidas:['m²'],
+    dims:[{id:cpNID(),desc:'',l:0,a:0,h:0,q:1,sust:false}],
+    mats:it.mats,
+    mo:it.mo.map(function(m){return {rol:m.rol,hh:m.hh,pu:m.pu};})
   });
   cpRender();
-  toast('\u2713 Sistema cargado en Cómputo — completá las dimensiones');
+  toast('\u2713 Sistema "'+s.nom+'" cargado en Cómputo con materiales y mano de obra — completá Largo y Ancho');
 }
 
 // ── Guardar/Cargar Firebase ───────────────────────────────────────────
