@@ -12,8 +12,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://unpkg.com/jspdf/dist/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/jspdf-autotable/dist/jspdf.plugin.autotable.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -6835,14 +6835,21 @@ function cpDatosObraActiva(){
     direccion:(o&&o.direccion)||''
   };
 }
+function cpJsPDFCtor(){
+  // Tolerante a las distintas formas en que las builds UMD de jsPDF exponen el constructor
+  // según la versión (window.jspdf.jsPDF en 2.x/3.x/4.x, o window.jsPDF directo en builds viejas).
+  if(typeof window.jspdf!=='undefined'&&typeof window.jspdf.jsPDF==='function')return window.jspdf.jsPDF;
+  if(typeof window.jsPDF==='function')return window.jsPDF;
+  return null;
+}
 function cpComputoPresupuestoBuild(modo){
   var sc=cpRubrosScope(modo);if(!sc)return null;
   if(!sc.rubros.some(function(r){return r.items.length;})){toast('Sin datos',false);return null;}
-  if(typeof window.jspdf==='undefined'||typeof window.jspdf.jsPDF==='undefined'){
-    toast('No se pudo cargar el motor de PDF (sin conexión) — probá de nuevo con internet',false);return null;
+  var jsPDFctor=cpJsPDFCtor();
+  if(!jsPDFctor||typeof jsPDFctor.API==='undefined'||typeof jsPDFctor.API.autoTable!=='function'){
+    toast('No se pudo cargar el motor de PDF (revisá tu conexión y volvé a intentar; si persiste, recargá la página con Ctrl+F5)',false);return null;
   }
   var obra=cpDatosObraActiva();
-  var jsPDFctor=window.jspdf.jsPDF;
   var doc=new jsPDFctor({unit:'mm',format:'a4',orientation:'portrait'});
   var pageW=doc.internal.pageSize.getWidth();
   var pageH=doc.internal.pageSize.getHeight();
