@@ -6222,12 +6222,18 @@ function cpRender(){
   }
   if(!CP_RUBRO_TAB || !CP_RUBROS.some(function(r){return r.id===CP_RUBRO_TAB;})) CP_RUBRO_TAB=CP_RUBROS[0].id;
   if(tabsC){
-    tabsC.innerHTML=CP_RUBROS.map(function(r){
+    tabsC.innerHTML=CP_RUBROS.map(function(r,idx){
       var totR=0;
       r.items.forEach(function(it){var qty=cpQty(it.dims,it.un);var calc=cpCalcPreciso(it.mats,it.mo,qty);totR+=calc.pu_adopt;});
       var activo=r.id===CP_RUBRO_TAB;
-      return '<button onclick="cpSelTab(\''+r.id+'\')" style="font-size:11px;padding:7px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;border:1px solid '+(activo?'var(--bt)':'var(--br)')+';background:'+(activo?'var(--bt)':'var(--bg3)')+';color:'+(activo?'#fff':'var(--tx2)')+';font-weight:'+(activo?'700':'500')+'">'
-        +(r.nom||'(sin nombre)').toString().toUpperCase()+' <span style="opacity:.7">('+r.items.length+')</span></button>';
+      var esPrimero=idx===0,esUltimo=idx===CP_RUBROS.length-1;
+      return '<span style="display:inline-flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1px solid '+(activo?'var(--bt)':'var(--br)')+'">'
+        +'<button onclick="cpSelTab(\''+r.id+'\')" style="font-size:11px;padding:7px 8px 7px 12px;cursor:pointer;white-space:nowrap;border:none;background:'+(activo?'var(--bt)':'var(--bg3)')+';color:'+(activo?'#fff':'var(--tx2)')+';font-weight:'+(activo?'700':'500')+'">'
+        +(r.nom||'(sin nombre)').toString().toUpperCase()+' <span style="opacity:.7">('+r.items.length+')</span></button>'
+        +'<span style="display:flex;flex-direction:column;border-left:1px solid '+(activo?'rgba(255,255,255,.35)':'var(--br)')+'">'
+        +'<button onclick="event.stopPropagation();cpRubroSubir(\''+r.id+'\')" title="Mover antes"'+(esPrimero?' disabled':'')+' style="font-size:8px;line-height:1;padding:1px 5px;cursor:'+(esPrimero?'default':'pointer')+';border:none;background:'+(activo?'var(--bt)':'var(--bg3)')+';color:'+(activo?'#fff':'var(--tx2)')+';opacity:'+(esPrimero?'.3':'1')+'">▲</button>'
+        +'<button onclick="event.stopPropagation();cpRubroBajar(\''+r.id+'\')" title="Mover después"'+(esUltimo?' disabled':'')+' style="font-size:8px;line-height:1;padding:1px 5px;cursor:'+(esUltimo?'default':'pointer')+';border:none;border-top:1px solid '+(activo?'rgba(255,255,255,.35)':'var(--br)')+';background:'+(activo?'var(--bt)':'var(--bg3)')+';color:'+(activo?'#fff':'var(--tx2)')+';opacity:'+(esUltimo?'.3':'1')+'">▼</button>'
+        +'</span></span>';
     }).join('');
   }
   var activo=CP_RUBROS.find(function(r){return r.id===CP_RUBRO_TAB;});
@@ -6342,6 +6348,18 @@ function cpConfirmarAgregarRubro(){
 function cpBR(rid){if(!confirm('¿Eliminar rubro?'))return;CP_RUBROS=CP_RUBROS.filter(function(r){return r.id!==rid;});if(CP_RUBRO_TAB===rid)CP_RUBRO_TAB=CP_RUBROS.length?CP_RUBROS[0].id:null;cpRender();}
 function cpUR(rid,v){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(r)r.nom=(v||'').toUpperCase();}
 function cpSelTab(rid){CP_RUBRO_TAB=rid;cpRender();}
+function cpRubroSubir(rid){
+  var idx=CP_RUBROS.findIndex(function(r){return r.id===rid;});
+  if(idx<=0)return;
+  var tmp=CP_RUBROS[idx-1];CP_RUBROS[idx-1]=CP_RUBROS[idx];CP_RUBROS[idx]=tmp;
+  cpGuardar();cpRender();
+}
+function cpRubroBajar(rid){
+  var idx=CP_RUBROS.findIndex(function(r){return r.id===rid;});
+  if(idx<0||idx>=CP_RUBROS.length-1)return;
+  var tmp=CP_RUBROS[idx+1];CP_RUBROS[idx+1]=CP_RUBROS[idx];CP_RUBROS[idx]=tmp;
+  cpGuardar();cpRender();
+}
 // Mapa nombre de ítem preestablecido → código de plantilla CP_CATALOGO_EXTRA.
 // Todo ítem que se crea vía "Estructura estándar" se autocompleta con materiales+MO de su plantilla.
 var CP_MAPA_ITEMS_ESTANDAR={
