@@ -4618,6 +4618,14 @@ var CP_CATALOGO = [
  ],
  mo:[{rol:'of',hh:1.0},{rol:'ay',hh:0.8}]
 },
+{cod:'IS01',nom:'Caño de PVC 200',un:'m',
+ cat:'INSTALACIÓN SANITARIA CLOACAL/PLUVIAL',
+ mats:[
+  {id:'2341',nom:'Tubo PVC φ 200 x 3,2mm Ramat Tigre Et',un:'m',rend:1.05},
+  {id:'201',nom:'Arena tapada de caño',un:'m³',rend:0.07},
+ ],
+ mo:[{rol:'of',hh:1.0},{rol:'ay',hh:0.8}]
+},
 ];
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -4919,6 +4927,20 @@ var CP_CATALOGO_EXTRA = [
   {id:'volquete_5m3',nom:'Volquete 5m³',un:'hh',rend:0.5,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:1.5}]
+},
+{cod:'D11',nom:'Demolición Gl',un:'gl',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[
+  {id:'3202',nom:'Camión volcador 6m³',un:'hh',rend:2,esEquipo:true},
+  {id:'3203',nom:'Motocompresor con martillo',un:'hh',rend:2,esEquipo:true},
+  {id:'3206',nom:'Retroexcavadora E 80 HP',un:'hh',rend:2,esEquipo:true},
+ ],
+ mo:[{rol:'ay',hh:8}]
+},
+{cod:'D12',nom:'Retiro Gl',un:'gl',cat:'DEMOLICIÓN Y RETIROS',
+ mats:[
+  {id:'3202',nom:'Camión volcador 6m³',un:'hh',rend:2,esEquipo:true},
+ ],
+ mo:[{rol:'ay',hh:24}]
 },
 
 // ══════════════════════════════════════════════════
@@ -7820,6 +7842,7 @@ var PR_DATA = [
 {cod:'2338',nom:'Boca de Registro Circular (pluvial)',cat:'INSTALACIÓN SANITARIA CLOACAL/PLUVIAL',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'2339',nom:'Canaleta impermeable con reja desmontable (pluvial)',cat:'INSTALACIÓN SANITARIA CLOACAL/PLUVIAL',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'2340',nom:'Boca de desague abierta 30x30 (pluvial)',cat:'INSTALACIÓN SANITARIA CLOACAL/PLUVIAL',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2341',nom:'Tubo PVC φ 200 x 3,2 mm 4m Ramat Tigre Et',cat:'INSTALACIÓN SANITARIA CLOACAL/PLUVIAL',un:'m',pu:28298.50,medida:'barra 4m = $113.194,00',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 // ── MATERIALES PLASTICOS ──
 {cod:'1601',nom:'Siding de PVC (0.2x3x8m)',cat:'MATERIALES PLASTICOS',un:'m²',pu:0,medida:'m²',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'1602',nom:'Placa Deck PVC (12cmx2.6m) Barbieri',cat:'MATERIALES PLASTICOS',un:'m²',pu:0,medida:'m²',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
