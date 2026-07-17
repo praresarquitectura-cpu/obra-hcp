@@ -11,6 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -611,8 +612,7 @@ input,select,textarea,button{font-family:var(--font)}
       <button class="btn" style="background:var(--bg3);border:1px dashed var(--bt);color:var(--bt);font-size:11px;padding:6px 12px" onclick="cpCargarEstructura3CM()" title="Crea los 7 rubros estándar (Tareas Preliminares, Movimiento de Suelo, Estructura HºAº, Estructura Metálica, Tabiques Estructurales PGU/PGC, Cubierta, Planilla de Locales)">&#128203; Estructura estándar</button>
       <button class="btn" style="background:var(--bt);color:#fff;font-size:11px;padding:6px 12px" onclick="cpGuardar()">&#128190; Guardar</button>
       <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 10px" onclick="cpVerResumen()">&#128203; Resumen</button>
-      <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 10px" onclick="cpPDF('rubro')" title="Exporta sólo el rubro de la pestaña activa">PDF Rubro</button>
-      <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 10px" onclick="cpPDF('todo')" title="Exporta el cómputo y presupuesto completo, todos los rubros">PDF Todo</button>
+      <button class="btn" style="background:var(--gt);color:#fff;font-size:11px;padding:6px 12px" onclick="document.getElementById('mod-export').classList.add('open')">&#128228; Exportar</button>
     </div>
   </div>
   <div id="cp-rubro-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
@@ -973,6 +973,49 @@ input,select,textarea,button{font-family:var(--font)}
       <input id="mp-rend" class="cp-di" type="text" inputmode="decimal" value="1" style="width:100%">
     </div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-mat-picker')">Cancelar</button><button class="btn" style="background:var(--gt);color:#fff" onclick="cpElegirMatPicker()">Agregar</button></div>
+  </div>
+</div>
+<div class="mb" id="mod-export" onclick="closeBg(event,'mod-export')">
+  <div class="modal" style="max-width:600px">
+    <div class="mt2">Exportar Cómputo y Presupuesto</div>
+    <div class="msub">Elegí el reporte, el alcance (rubro activo o todos) y el formato</div>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+      <div style="border:1px solid var(--br);border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:12px;margin-bottom:8px">Análisis de Precios Detallado (por ítem)</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="cpPDF('rubro')">PDF — Rubro actual</button>
+          <button class="btn btn-sm" onclick="cpPDF('todo')">PDF — Todos los rubros</button>
+        </div>
+      </div>
+      <div style="border:1px solid var(--br);border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:12px;margin-bottom:8px">Listado de Cómputo de Materiales</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="cpListadoMateriales('rubro')">PDF — Rubro</button>
+          <button class="btn btn-sm" onclick="cpListadoMateriales('todo')">PDF — Todos</button>
+          <button class="btn btn-sm" style="background:#166534;color:#fff" onclick="cpListadoMaterialesXLS('rubro')">Excel — Rubro</button>
+          <button class="btn btn-sm" style="background:#166534;color:#fff" onclick="cpListadoMaterialesXLS('todo')">Excel — Todos</button>
+        </div>
+      </div>
+      <div style="border:1px solid var(--br);border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:12px;margin-bottom:8px">Listado de Presupuesto de Mano de Obra</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="cpListadoMO('rubro')">PDF — Rubro</button>
+          <button class="btn btn-sm" onclick="cpListadoMO('todo')">PDF — Todos</button>
+          <button class="btn btn-sm" style="background:#166534;color:#fff" onclick="cpListadoMOXLS('rubro')">Excel — Rubro</button>
+          <button class="btn btn-sm" style="background:#166534;color:#fff" onclick="cpListadoMOXLS('todo')">Excel — Todos</button>
+        </div>
+      </div>
+      <div style="border:1px solid var(--br);border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:12px;margin-bottom:8px">Cómputo y Presupuesto Unificado (Materiales + M.O.)</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="cpComputoPresupuesto('rubro')">PDF — Rubro</button>
+          <button class="btn btn-sm" onclick="cpComputoPresupuesto('todo')">PDF — Todos</button>
+          <button class="btn btn-sm" style="background:#166534;color:#fff" onclick="cpComputoPresupuestoXLS('rubro')">Excel — Rubro</button>
+          <button class="btn btn-sm" style="background:#166534;color:#fff" onclick="cpComputoPresupuestoXLS('todo')">Excel — Todos</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-export')">Cerrar</button></div>
   </div>
 </div>
 <div class="mb" id="mod-hon" onclick="closeBg(event,'mod-hon')">
@@ -5694,12 +5737,12 @@ var CP_CATALOGO_EXTRA = [
 {cod:'AS08',nom:'Pileta de Cocina (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS SANITARIOS',unidades_permitidas:['un'],mats:[{id:'2521',nom:'Pileta simple acero inox. cocina. JOHNSON',un:'un',rend:1}],mo:[{rol:'of',hh:1},{rol:'ay',hh:0.5}]},
 {cod:'AS09',nom:'Pileta Lavadero (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS SANITARIOS',unidades_permitidas:['un'],mats:[{id:'2524',nom:'Pileta acero inox. lavadero. JOHNSON',un:'un',rend:1}],mo:[{rol:'of',hh:1},{rol:'ay',hh:0.5}]},
 // ══ ARTEFACTOS DE GAS — provisión y colocación, MO estándar ESTIMADA (ajustar) ══
-{cod:'AG01',nom:'Zepelín (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2701',nom:'Zepelín / tanque de gas licuado 300kg',un:'un',rend:1}],mo:[{rol:'of',hh:2},{rol:'ay',hh:2}]},
-{cod:'AG02',nom:'Cocina (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2702',nom:'Cocina a gas 4 hornallas con horno',un:'un',rend:1}],mo:[{rol:'of',hh:1},{rol:'ay',hh:0.5}]},
-{cod:'AG03',nom:'Calefón (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2703',nom:'Calefón a gas 14 litros tiro balanceado',un:'un',rend:1}],mo:[{rol:'of',hh:2},{rol:'ay',hh:1}]},
+{cod:'AG01',nom:'Zepelín (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2750',nom:'Zepelín / tanque de gas licuado 300kg',un:'un',rend:1}],mo:[{rol:'of',hh:2},{rol:'ay',hh:2}]},
+{cod:'AG02',nom:'Cocina (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2751',nom:'Cocina a gas 4 hornallas con horno',un:'un',rend:1}],mo:[{rol:'of',hh:1},{rol:'ay',hh:0.5}]},
+{cod:'AG03',nom:'Calefón (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2752',nom:'Calefón a gas 14 litros tiro balanceado',un:'un',rend:1}],mo:[{rol:'of',hh:2},{rol:'ay',hh:1}]},
 {cod:'AG04',nom:'Caldera (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2501',nom:'Caldera dual 20.000kcal/h mural PEISA DIVA DS',un:'un',rend:1}],mo:[{rol:'of',hh:4},{rol:'ay',hh:2}]},
 {cod:'AG05',nom:'Termotanque (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2451',nom:'Termotanque 225 lts SCA080',un:'un',rend:1}],mo:[{rol:'of',hh:2},{rol:'ay',hh:1}]},
-{cod:'AG06',nom:'Calefactor (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2704',nom:'Calefactor a gas tiro balanceado 3000 kcal/h',un:'un',rend:1}],mo:[{rol:'of',hh:1.5},{rol:'ay',hh:0.5}]},
+{cod:'AG06',nom:'Calefactor (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2753',nom:'Calefactor a gas tiro balanceado 3000 kcal/h',un:'un',rend:1}],mo:[{rol:'of',hh:1.5},{rol:'ay',hh:0.5}]},
 ];
 
 
@@ -6294,6 +6337,25 @@ function cpVerResumen(){
 
 function cpFmtAR(n){return (n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
+function cpPDFCss(){
+  return '@page{size:A4;margin:4cm 1cm 1cm 2cm}'
+  +'*{box-sizing:border-box;margin:0;padding:0}'
+  +'body{font-family:Arial,Helvetica,sans-serif;font-size:10pt;line-height:1.35;color:#111}'
+  +'h1{font-size:15pt;font-weight:800;margin-bottom:3px}'
+  +'.sub{font-size:9pt;color:#555;margin-bottom:12px}'
+  +'h2{font-size:11.5pt;font-weight:700;background:#1e293b;color:#fff;padding:6px 10px;margin:16px 0 6px;border-radius:3px;page-break-after:avoid}'
+  +'h3{font-size:10pt;font-weight:700;color:#1f2937;margin:12px 0 4px;border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;page-break-after:avoid}'
+  +'table{width:100%;border-collapse:collapse;margin-bottom:6px;font-size:9pt;page-break-inside:avoid}'
+  +'th{background:#f1f5f9;padding:4px 6px;border:1px solid #cbd5e1;text-align:left;font-weight:700}'
+  +'td{padding:4px 6px;border:1px solid #e2e8f0}'
+  +'.r{text-align:right}.mat{color:#166534}.mo{color:#92400e}'
+  +'.tot{font-weight:700;background:#eff6ff}.grand{font-weight:800;background:#dbeafe}'
+  +'hr{border:none;border-top:1px solid #e2e8f0;margin:12px 0}'
+  +'.rubro-block{page-break-before:always}'
+  +'.rubro-block:first-of-type{page-break-before:auto}'
+  +'.item-block{page-break-inside:avoid}'
+  +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
+}
 function cpAPUItemHtml(it){
   var qty=cpQty(it.dims,it.un);
   var calc=cpCalcPreciso(it.mats,it.mo,qty);
@@ -6365,17 +6427,17 @@ function cpPDF(modo){
     rubrosAExportar=[activo];
   }
   var obraNom=(document.getElementById('cp-obra-nom')||{}).value||'Obra';
-  var css='*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:9pt;padding:20px;color:#111}h1{font-size:13pt;font-weight:700;margin-bottom:2px}.sub{font-size:8pt;color:#555;margin-bottom:10px}h2{font-size:10pt;font-weight:700;background:#1e293b;color:#fff;padding:4px 8px;margin:12px 0 4px;border-radius:3px}h3{font-size:9pt;font-weight:700;color:#374151;margin:10px 0 3px;border-bottom:1px solid #e5e7eb;padding-bottom:2px}table{width:100%;border-collapse:collapse;margin-bottom:4px;font-size:8pt}th{background:#f8fafc;padding:3px 4px;border:1px solid #cbd5e1;text-align:left}td{padding:3px 4px;border:1px solid #e2e8f0}.r{text-align:right}.mat{color:#166534}.mo{color:#92400e}.tot{font-weight:700;background:#eff6ff}.grand{font-weight:800;background:#dbeafe}hr{border:none;border-top:1px solid #e2e8f0;margin:10px 0}';
+  var css=cpPDFCss();
   var tituloScope=modo==='rubro'?(rubrosAExportar[0].nom||'').toString().toUpperCase():'Cómputo Completo';
   var d='<h1>Cómputo y Presupuesto — '+tituloScope+'</h1><div class="sub">'+obraNom+' — Precios 2026 — Análisis de Precios Unitario por ítem (estructura ANALISIS DE PRECIOS 2026)</div><hr>';
   var totM=0,totE=0,totO=0,totT=0,lisMap={};
   rubrosAExportar.forEach(function(rub){
     if(!rub.items.length)return;
-    var rT=0;d+='<h2>'+(rub.nom||'').toString().toUpperCase()+'</h2>';
+    var rT=0;d+='<div class="rubro-block"><h2>'+(rub.nom||'').toString().toUpperCase()+'</h2>';
     rub.items.forEach(function(it){
       if(!it.nom)return;
       var res=cpAPUItemHtml(it);
-      d+=res.html;
+      d+='<div class="item-block">'+res.html+'</div>';
       var calc=res.calc,qty=res.qty;
       (it.mats||[]).forEach(function(m){
         var c=Math.round(qty*(m.rend||0)*1000)/1000,s=Math.round(c*(m.pu||0));
@@ -6396,7 +6458,7 @@ function cpPDF(modo){
       d+='<hr>';
     });
     totT+=rT;
-    d+='<table><tr class="tot"><td colspan="5"><b>Subtotal '+(rub.nom||'').toString().toUpperCase()+'</b></td><td class="r"><b>$'+cpFmtAR(rT)+'</b></td></tr></table>';
+    d+='<table><tr class="tot"><td colspan="5"><b>Subtotal '+(rub.nom||'').toString().toUpperCase()+'</b></td><td class="r"><b>$'+cpFmtAR(rT)+'</b></td></tr></table></div>';
   });
   d+='<hr><table><tr class="grand"><td><b>TOTAL '+(modo==='rubro'?tituloScope:'GENERAL')+'</b></td><td class="r mat"><b>Mat: $'+cpFmtAR(totM)+'</b></td><td class="r" style="color:#9333ea"><b>Equipos: $'+cpFmtAR(totE)+'</b></td><td class="r mo"><b>MO: $'+cpFmtAR(totO)+'</b></td><td class="r" style="color:#1e3a8a"><b>$'+cpFmtAR(totT)+'</b></td></tr></table>';
   d+='<hr><h2>LISTADO CONSOLIDADO DE MATERIALES'+(modo==='rubro'?' — '+tituloScope:'')+'</h2>';
@@ -6420,6 +6482,195 @@ function cpPDF(modo){
   d+=tabPDF(mArr,'Materiales')+tabPDF(eArr,'Equipos')+tabPDF(oArr,'Mano de Obra');
   var full='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
   try{var blob=new Blob([full],{type:'text/html;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);}catch(e){toast('Error PDF: '+e.message,false);}
+}
+
+function cpAgregarDatos(rubros){
+  var matMap={},moMap={},rubroRows=[],totG={mat:0,mo:0,tot:0};
+  rubros.forEach(function(rub){
+    if(!rub.items.length)return;
+    var itemRows=[],rSubMat=0,rSubMO=0,rSubTot=0;
+    rub.items.forEach(function(it){
+      if(!it.nom)return;
+      var qty=cpQty(it.dims,it.un);
+      var calc=cpCalcPreciso(it.mats,it.mo,qty);
+      itemRows.push({nom:it.nom,un:it.un,qty:qty,costoMat:calc.costoMat,costoMO:calc.costoMO,puAdopt:calc.pu_adopt});
+      rSubMat+=calc.costoMat;rSubMO+=calc.costoMO;rSubTot+=calc.pu_adopt;
+      (it.mats||[]).forEach(function(m){
+        var c=Math.round(qty*(m.rend||0)*1000)/1000,s=Math.round(c*(m.pu||0));
+        var k=(m.id||m.nom||'x').replace(/\s/g,'_');
+        var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
+        if(!matMap[k])matMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:m.pu||0,esEquipo:m.esEquipo||false,desp:desp,cod:m.id};
+        matMap[k].cant+=c;matMap[k].sub+=s;matMap[k].desp=Math.max(matMap[k].desp,desp);
+      });
+      (it.mo||[]).forEach(function(m){
+        var pu=m.pu||apuGetMOpu(m.rol)||0,hs=Math.round(qty*(m.hh||m.hs||0)*100)/100,s=Math.round(hs*pu);
+        var rn={ofEsp:'Oficial Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'}[m.rol]||m.rol;
+        var k='MO_'+m.rol;
+        if(!moMap[k])moMap[k]={nom:rn,un:'hs',cant:0,sub:0,pu:pu};
+        moMap[k].cant+=hs;moMap[k].sub+=s;
+      });
+    });
+    rubroRows.push({nom:rub.nom,items:itemRows,subMat:rSubMat,subMO:rSubMO,subTot:rSubTot});
+    totG.mat+=rSubMat;totG.mo+=rSubMO;totG.tot+=rSubTot;
+  });
+  return {rubroRows:rubroRows,matMap:matMap,moMap:moMap,totG:totG};
+}
+function cpRubrosScope(modo){
+  modo=modo||'rubro';
+  if(modo==='rubro'){
+    var activo=CP_RUBROS.find(function(r){return r.id===CP_RUBRO_TAB;});
+    if(!activo){toast('Seleccioná un rubro primero',false);return null;}
+    return {rubros:[activo],titulo:(activo.nom||'').toString().toUpperCase()};
+  }
+  return {rubros:CP_RUBROS,titulo:'TODOS LOS RUBROS'};
+}
+function cpAbrirPDF(d,css){
+  var full='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
+  try{var blob=new Blob([full],{type:'text/html;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);}catch(e){toast('Error PDF: '+e.message,false);}
+}
+function cpDescargarXLS(wb,filename){
+  if(typeof XLSX==='undefined'){toast('No se pudo cargar el motor de Excel (sin conexión) — probá de nuevo con internet',false);return;}
+  try{XLSX.writeFile(wb,filename);}catch(e){toast('Error Excel: '+e.message,false);}
+}
+
+// ═══ LISTADO DE COMPUTO DE MATERIALES ═══
+function cpListadoMateriales(modo){
+  var sc=cpRubrosScope(modo);if(!sc)return;
+  if(!sc.rubros.some(function(r){return r.items.length;})){toast('Sin datos',false);return;}
+  var ag=cpAgregarDatos(sc.rubros);
+  var obraNom=(document.getElementById('cp-obra-nom')||{}).value||'Obra';
+  var css=cpPDFCss();
+  var d='<h1>LISTADO DE COMPUTO DE MATERIALES</h1><div class="sub">'+obraNom+' — '+sc.titulo+' — Precios 2026</div><hr>';
+  var mArr=Object.values(ag.matMap).filter(function(m){return!m.esEquipo;});
+  var eArr=Object.values(ag.matMap).filter(function(m){return m.esEquipo;});
+  var totMat=0;
+  function tabla(arr,tit){
+    if(!arr.length)return'';
+    var sub=0;
+    var h='<h3>'+tit+'</h3><table><thead><tr><th>Cód.</th><th>Descripción</th><th>Un</th><th class="r">Cantidad</th><th class="r">Cant. Comercial</th><th class="r">Precio Unitario</th><th class="r">Precio Total</th></tr></thead><tbody>';
+    arr.forEach(function(m){
+      var comercial='—';
+      if(m.un==='m'||m.un==='ml'){
+        var largoBarra=cpLargoBarra(m.cod);
+        var barras=cpCantBarras(m.cant,m.desp||0,largoBarra);
+        comercial=barras+' barras de '+largoBarra+'m (c/'+(m.desp||0)+'% desp.)';
+      }
+      sub+=m.sub;
+      h+='<tr><td>'+(m.cod||'')+'</td><td>'+m.nom+'</td><td>'+m.un+'</td><td class="r mat">'+m.cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">'+comercial+'</td><td class="r">$'+cpFmtAR(m.pu)+'</td><td class="r mat">$'+cpFmtAR(m.sub)+'</td></tr>';
+    });
+    h+='<tr class="tot"><td colspan="6"><b>Subtotal '+tit+'</b></td><td class="r"><b>$'+cpFmtAR(sub)+'</b></td></tr></tbody></table>';
+    totMat+=sub;
+    return h;
+  }
+  d+=tabla(mArr,'Materiales')+tabla(eArr,'Equipos');
+  d+='<hr><table><tr class="grand"><td><b>TOTAL MATERIALES Y EQUIPOS</b></td><td class="r"><b>$'+cpFmtAR(totMat)+'</b></td></tr></table>';
+  cpAbrirPDF(d,css);
+}
+function cpListadoMaterialesXLS(modo){
+  var sc=cpRubrosScope(modo);if(!sc)return;
+  if(!sc.rubros.some(function(r){return r.items.length;})){toast('Sin datos',false);return;}
+  var ag=cpAgregarDatos(sc.rubros);
+  var obraNom=(document.getElementById('cp-obra-nom')||{}).value||'Obra';
+  var rows=[['LISTADO DE COMPUTO DE MATERIALES'],[obraNom+' — '+sc.titulo+' — Precios 2026'],[],
+    ['Código','Descripción','Un','Cantidad','Cant. Comercial','Precio Unitario','Precio Total']];
+  Object.values(ag.matMap).forEach(function(m){
+    var comercial='—';
+    if(m.un==='m'||m.un==='ml'){
+      var largoBarra=cpLargoBarra(m.cod);
+      var barras=cpCantBarras(m.cant,m.desp||0,largoBarra);
+      comercial=barras+' barras de '+largoBarra+'m (c/'+(m.desp||0)+'% desp.)';
+    }
+    rows.push([m.cod||'',(m.esEquipo?'[Equipo] ':'')+m.nom,m.un,m.cant,comercial,m.pu,m.sub]);
+  });
+  var wb=XLSX.utils.book_new();
+  var ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:10},{wch:45},{wch:8},{wch:12},{wch:26},{wch:14},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Materiales');
+  cpDescargarXLS(wb,'Listado_Computo_Materiales_'+sc.titulo.replace(/[^a-zA-Z0-9]+/g,'_')+'.xlsx');
+}
+
+// ═══ LISTADO DE PRESUPUESTO DE MANO DE OBRA ═══
+function cpListadoMO(modo){
+  var sc=cpRubrosScope(modo);if(!sc)return;
+  if(!sc.rubros.some(function(r){return r.items.length;})){toast('Sin datos',false);return;}
+  var ag=cpAgregarDatos(sc.rubros);
+  var obraNom=(document.getElementById('cp-obra-nom')||{}).value||'Obra';
+  var css=cpPDFCss();
+  var d='<h1>LISTADO DE PRESUPUESTO DE MANO DE OBRA</h1><div class="sub">'+obraNom+' — '+sc.titulo+' — Precios 2026</div><hr>';
+  var moArr=Object.values(ag.moMap);
+  var totMO=0;
+  if(moArr.length){
+    d+='<table><thead><tr><th>Categoría</th><th>Un</th><th class="r">Cantidad hs.</th><th class="r">Monto Hora</th><th class="r">Precio Total</th></tr></thead><tbody>';
+    moArr.forEach(function(m){
+      totMO+=m.sub;
+      d+='<tr><td>'+m.nom+'</td><td>'+m.un+'</td><td class="r mo">'+m.cant.toLocaleString('es-AR',{maximumFractionDigits:2})+'</td><td class="r">$'+cpFmtAR(m.pu)+'</td><td class="r mo">$'+cpFmtAR(m.sub)+'</td></tr>';
+    });
+    d+='</tbody></table>';
+  }else{
+    d+='<div style="color:#94a3b8"><i>Sin mano de obra cargada</i></div>';
+  }
+  d+='<hr><table><tr class="grand"><td><b>TOTAL MANO DE OBRA</b></td><td class="r"><b>$'+cpFmtAR(totMO)+'</b></td></tr></table>';
+  cpAbrirPDF(d,css);
+}
+function cpListadoMOXLS(modo){
+  var sc=cpRubrosScope(modo);if(!sc)return;
+  if(!sc.rubros.some(function(r){return r.items.length;})){toast('Sin datos',false);return;}
+  var ag=cpAgregarDatos(sc.rubros);
+  var obraNom=(document.getElementById('cp-obra-nom')||{}).value||'Obra';
+  var rows=[['LISTADO DE PRESUPUESTO DE MANO DE OBRA'],[obraNom+' — '+sc.titulo+' — Precios 2026'],[],
+    ['Categoría','Un','Cantidad hs.','Monto Hora','Precio Total']];
+  Object.values(ag.moMap).forEach(function(m){
+    rows.push([m.nom,m.un,m.cant,m.pu,m.sub]);
+  });
+  var wb=XLSX.utils.book_new();
+  var ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:24},{wch:8},{wch:14},{wch:14},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Mano de Obra');
+  cpDescargarXLS(wb,'Listado_Presupuesto_MO_'+sc.titulo.replace(/[^a-zA-Z0-9]+/g,'_')+'.xlsx');
+}
+
+// ═══ COMPUTO Y PRESUPUESTO (unificado, materiales + MO, por rubro) ═══
+function cpComputoPresupuesto(modo){
+  var sc=cpRubrosScope(modo);if(!sc)return;
+  if(!sc.rubros.some(function(r){return r.items.length;})){toast('Sin datos',false);return;}
+  var ag=cpAgregarDatos(sc.rubros);
+  var obraNom=(document.getElementById('cp-obra-nom')||{}).value||'Obra';
+  var css=cpPDFCss();
+  var d='<h1>CÓMPUTO Y PRESUPUESTO</h1><div class="sub">'+obraNom+' — '+sc.titulo+' — Materiales + Mano de Obra unificado — Precios 2026</div><hr>';
+  ag.rubroRows.forEach(function(rr){
+    d+='<div class="rubro-block"><h2>'+(rr.nom||'').toString().toUpperCase()+'</h2>';
+    d+='<table><thead><tr><th>Ítem</th><th>Un</th><th class="r">Cantidad</th><th class="r">Costo Materiales</th><th class="r">Costo M.O.</th><th class="r">Precio Unit. Adoptado</th></tr></thead><tbody>';
+    rr.items.forEach(function(it){
+      d+='<tr><td>'+it.nom+'</td><td>'+it.un+'</td><td class="r">'+it.qty.toLocaleString('es-AR',{maximumFractionDigits:2})+'</td><td class="r mat">$'+cpFmtAR(it.costoMat)+'</td><td class="r mo">$'+cpFmtAR(it.costoMO)+'</td><td class="r"><b>$'+cpFmtAR(it.puAdopt)+'</b></td></tr>';
+    });
+    d+='<tr class="tot"><td colspan="3"><b>Subtotal '+(rr.nom||'').toString().toUpperCase()+'</b></td><td class="r mat"><b>$'+cpFmtAR(rr.subMat)+'</b></td><td class="r mo"><b>$'+cpFmtAR(rr.subMO)+'</b></td><td class="r"><b>$'+cpFmtAR(rr.subTot)+'</b></td></tr>';
+    d+='</tbody></table></div>';
+  });
+  d+='<hr><table><tr class="grand"><td><b>TOTAL '+sc.titulo+'</b></td><td class="r mat"><b>Mat: $'+cpFmtAR(ag.totG.mat)+'</b></td><td class="r mo"><b>MO: $'+cpFmtAR(ag.totG.mo)+'</b></td><td class="r"><b>$'+cpFmtAR(ag.totG.tot)+'</b></td></tr></table>';
+  cpAbrirPDF(d,css);
+}
+function cpComputoPresupuestoXLS(modo){
+  var sc=cpRubrosScope(modo);if(!sc)return;
+  if(!sc.rubros.some(function(r){return r.items.length;})){toast('Sin datos',false);return;}
+  var ag=cpAgregarDatos(sc.rubros);
+  var obraNom=(document.getElementById('cp-obra-nom')||{}).value||'Obra';
+  var wb=XLSX.utils.book_new();
+  ag.rubroRows.forEach(function(rr){
+    var rows=[['CÓMPUTO Y PRESUPUESTO'],[obraNom+' — '+rr.nom],[],
+      ['Ítem','Un','Cantidad','Costo Materiales','Costo M.O.','Precio Unit. Adoptado']];
+    rr.items.forEach(function(it){
+      rows.push([it.nom,it.un,it.qty,it.costoMat,it.costoMO,it.puAdopt]);
+    });
+    rows.push(['Subtotal',null,null,rr.subMat,rr.subMO,rr.subTot]);
+    var ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:40},{wch:8},{wch:12},{wch:16},{wch:14},{wch:18}];
+    var nombreHoja=(rr.nom||'Rubro').toString().substring(0,28).replace(/[\\\/\?\*\[\]:]/g,' ');
+    XLSX.utils.book_append_sheet(wb,ws,nombreHoja||'Rubro');
+  });
+  var rowsTot=[['TOTAL GENERAL'],['Materiales',ag.totG.mat],['Mano de Obra',ag.totG.mo],['TOTAL',ag.totG.tot]];
+  var wsTot=XLSX.utils.aoa_to_sheet(rowsTot);
+  XLSX.utils.book_append_sheet(wb,wsTot,'Resumen');
+  cpDescargarXLS(wb,'Computo_y_Presupuesto_'+sc.titulo.replace(/[^a-zA-Z0-9]+/g,'_')+'.xlsx');
 }
 
 (function(){var s=document.createElement('style');s.textContent='.cp-di{background:var(--bg3);border:1px solid var(--br);border-radius:4px;padding:5px 8px;color:var(--tx);font-size:12px;width:100%;min-width:0;transition:border-color .15s}.cp-di:focus{outline:none;border-color:var(--bt);background:var(--bg2)}.cp-di::placeholder{color:var(--tx3);font-size:11px}.cp-item:hover{border-color:rgba(96,165,250,.15)}.cp-di[type=number]{-moz-appearance:textfield}.cp-di[type=number]::-webkit-outer-spin-button,.cp-di[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}';document.head.appendChild(s);})();
@@ -6564,7 +6815,7 @@ var PR_DATA = [
 {cod:'501',nom:'Fe Ø5',cat:'BARRAS Y MALLAS',un:'m',pu:423.28,medida:'barra 6m = $2.540',fuente:'creasteel',modif:0,fecha:'2026-06'},
 {cod:'502',nom:'Fe Ø6',cat:'BARRAS Y MALLAS',un:'m',pu:558.3,medida:'barra 12m = $6.700',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'503',nom:'Fe Ø8',cat:'BARRAS Y MALLAS',un:'m',pu:967.56,medida:'barra 12m = $11.611',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'504',nom:'Fe Ø10',cat:'BARRAS Y MALLAS',un:'m',pu:0,medida:'m',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'504',nom:'Fe Ø10',cat:'BARRAS Y MALLAS',un:'m',pu:1397.32,medida:'barra 12m = $16.767,80',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 {cod:'505',nom:'Fe Ø12',cat:'BARRAS Y MALLAS',un:'m',pu:2164.79,medida:'barra 12m = $25.978',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'506',nom:'Fe Ø 16',cat:'BARRAS Y MALLAS',un:'m',pu:44639.7,medida:'m',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'507',nom:'Malla Electrosoldada 50X50X3mm',cat:'BARRAS Y MALLAS',un:'m²',pu:11010,medida:'m²',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
@@ -6576,13 +6827,13 @@ var PR_DATA = [
 {cod:'513',nom:'Alambre Galvanizado N18 1.22mm x kg',cat:'BARRAS Y MALLAS',un:'kg',pu:0,medida:'kg',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'514',nom:'Alambre Galvanizado AR N12.5 2.5mm x 1000m',cat:'BARRAS Y MALLAS',un:'m',pu:0,medida:'m',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'515',nom:'Alambre Galvanizado N14.5 1.93mm x kg',cat:'BARRAS Y MALLAS',un:'kg',pu:0,medida:'kg',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'516',nom:'Alambre Atar Negro N12 2.64mm x kg',cat:'BARRAS Y MALLAS',un:'kg',pu:0,medida:'kg',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'517',nom:'Alambre Atar Negro N16 1.6mm x kg',cat:'BARRAS Y MALLAS',un:'kg',pu:0,medida:'kg',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'518',nom:'Alambre Atar Negro N8 4.06mm x kg',cat:'BARRAS Y MALLAS',un:'kg',pu:0,medida:'kg',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'516',nom:'Alambre Atar Negro N12 2.64mm x kg',cat:'BARRAS Y MALLAS',un:'kg',pu:5942.72,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
+{cod:'517',nom:'Alambre Atar Negro N16 1.6mm x kg',cat:'BARRAS Y MALLAS',un:'kg',pu:4576.39,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
+{cod:'518',nom:'Alambre Atar Negro N8 4.06mm x kg',cat:'BARRAS Y MALLAS',un:'kg',pu:4381.65,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 {cod:'519',nom:'Electrodos 2.5',cat:'BARRAS Y MALLAS',un:'kg',pu:12936.54,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'520',nom:'Hierro Liso 7/16',cat:'BARRAS Y MALLAS',un:'m',pu:3911.78,medida:'barra 6m = $23.471',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'521',nom:'Malla Electrosoldada 25X25X2,6mm',cat:'BARRAS Y MALLAS',un:'m²',pu:20055,medida:'m²',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
-{cod:'522',nom:'Hierro Torsionado (genérico, sin diámetro definido — ajustar según cálculo estructural)',cat:'BARRAS Y MALLAS',un:'kg',pu:0,medida:'kg',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
+{cod:'522',nom:'Hierro Torsionado (genérico, sin diámetro definido — ajustar según cálculo estructural)',cat:'BARRAS Y MALLAS',un:'kg',pu:2350,medida:'kg (estimado: promedio $/kg de barras Ø8-Ø12 IMCOFUE — verificar diámetro real de proyecto)',fuente:'Estimado desde IMCOFUE (Fe Ø8/Ø10/Ø12)',modif:0,fecha:'2026-07'},
 // ── FIJACIONES ──
 {cod:'601',nom:'Tornillo T1 Mecha 8x9/16',cat:'FIJACIONES',un:'un',pu:28.36,medida:'un',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'602',nom:'Tornillo T1 Aguja 8x9/16',cat:'FIJACIONES',un:'un',pu:29.27,medida:'un',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
@@ -6794,7 +7045,7 @@ var PR_DATA = [
 {cod:'nivel_laser',nom:'Nivel láser (amortización)',cat:'EQUIPOS',un:'hh',pu:1200,medida:'hh',fuente:'Estimado uso profesional',modif:0},
 {cod:'taladro',nom:'Taladro percutor (amortización)',cat:'EQUIPOS',un:'hh',pu:2200,medida:'hh',fuente:'Estimado uso profesional',modif:0},
 // ── ARTEFACTOS SANITARIOS ──
-{cod:'2501',nom:'Caldera dual 20.000kcal/h mural PEISA DIVA DS',cat:'ARTEFACTOS SANITARIOS',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2501',nom:'Caldera dual 20.000kcal/h mural PEISA DIVA DS',cat:'ARTEFACTOS SANITARIOS',un:'un',pu:2979031.50,medida:'un',fuente:'IMCOFUE (mod. 24kW DS F GN B25515, equivalencia más cercana a 20.000kcal/h)',modif:0,fecha:'2026-07'},
 {cod:'2502',nom:'Tapa y tecla para válvula de descarga. FV PRESSMATIC 0368.02',cat:'ARTEFACTOS SANITARIOS',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'2503',nom:'Válvula para descarga de inodoro. FV PRESSMATIC 0368.01',cat:'ARTEFACTOS SANITARIOS',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'2504',nom:'Tapa y tecla para válvula de descarga para discapacitados. FV PRESSMATIC 0338',cat:'ARTEFACTOS SANITARIOS',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
@@ -6834,10 +7085,10 @@ var PR_DATA = [
 {cod:'2538',nom:'Botiquín con espejo y estantes (mueble de baño)',cat:'ARTEFACTOS SANITARIOS',un:'un',pu:0,medida:'un',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
 {cod:'2539',nom:'Juego de accesorios de baño (toallero + jabonera + percha)',cat:'ARTEFACTOS SANITARIOS',un:'un',pu:0,medida:'un',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
 {cod:'2540',nom:'Mesada de cocina granito/mármol sintético',cat:'ARTEFACTOS SANITARIOS',un:'m',pu:0,medida:'m',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
-{cod:'2701',nom:'Zepelín / tanque de gas licuado 300kg',cat:'ARTEFACTOS DE GAS',un:'un',pu:0,medida:'un',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
-{cod:'2702',nom:'Cocina a gas 4 hornallas con horno',cat:'ARTEFACTOS DE GAS',un:'un',pu:0,medida:'un',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
-{cod:'2703',nom:'Calefón a gas 14 litros tiro balanceado',cat:'ARTEFACTOS DE GAS',un:'un',pu:0,medida:'un',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
-{cod:'2704',nom:'Calefactor a gas tiro balanceado 3000 kcal/h',cat:'ARTEFACTOS DE GAS',un:'un',pu:0,medida:'un',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
+{cod:'2750',nom:'Zepelín / tanque de gas licuado 300kg',cat:'ARTEFACTOS DE GAS',un:'un',pu:0,medida:'un',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
+{cod:'2751',nom:'Cocina a gas 4 hornallas con horno',cat:'ARTEFACTOS DE GAS',un:'un',pu:854752,medida:'un',fuente:'IMCOFUE (mod. Bosch PGH6B5B90, referencia)',modif:0,fecha:'2026-07'},
+{cod:'2752',nom:'Calefón a gas 14 litros tiro balanceado',cat:'ARTEFACTOS DE GAS',un:'un',pu:677033,medida:'un',fuente:'IMCOFUE (mod. Orbis 14L TN, verificar tiro balanceado vs natural)',modif:0,fecha:'2026-07'},
+{cod:'2753',nom:'Calefactor a gas tiro balanceado 3000 kcal/h',cat:'ARTEFACTOS DE GAS',un:'un',pu:0,medida:'un',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
 // ── CALEFACCIÓN ──
 {cod:'3001',nom:'Colector',cat:'CALEFACCIÓN',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'3002',nom:'Caja para colector',cat:'CALEFACCIÓN',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
@@ -7049,7 +7300,7 @@ var PR_DATA = [
 {cod:'2449',nom:'Tanque agua 1000l clasico tricapa Eternit',cat:'INSTALACIÓN SANITARIA AGUA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'2450',nom:'Tanque agua 2500l clasico tricapa Eternit',cat:'INSTALACIÓN SANITARIA AGUA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'2451',nom:'Termotanque 225 lts SCA080',cat:'INSTALACIÓN SANITARIA AGUA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2452',nom:'Caldera dual 20.000kcal/h mural PEISA DIVA DS',cat:'INSTALACIÓN SANITARIA AGUA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2452',nom:'Caldera dual 20.000kcal/h mural PEISA DIVA DS',cat:'INSTALACIÓN SANITARIA AGUA',un:'un',pu:2979031.50,medida:'un',fuente:'IMCOFUE (mod. 24kW DS F GN B25515, equivalencia más cercana a 20.000kcal/h)',modif:0,fecha:'2026-07'},
 // ── INSTALACIÓN SANITARIA CLOACAL/PLUVIAL ──
 {cod:'2301',nom:'Tubo PVC φ 40 x 3,2 mm 4m Ramat Tigre Et',cat:'INSTALACIÓN SANITARIA CLOACAL/PLUVIAL',un:'m',pu:4040,medida:'m',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'2302',nom:'Tubo PVC φ 50 x 3,2 mm 4m Ramat Tigre Et',cat:'INSTALACIÓN SANITARIA CLOACAL/PLUVIAL',un:'m',pu:0,medida:'m',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
