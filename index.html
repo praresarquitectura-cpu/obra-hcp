@@ -8342,21 +8342,60 @@ function scGuardar(){
   }else{toast('\u2713 Sistemas guardados');}
 }
 
+// ── Recuperación de sistemas perdidos por el bug de guardado (corregido en v37) ──
+// Diego había creado C-01 (Cielorraso) antes del fix y nunca llegó a persistirse.
+// Se recrea automáticamente UNA sola vez (si no existe ya un sistema con ese nombre)
+// la primera vez que carga la app después de esta actualización, y queda guardado de verdad.
+var SC_SISTEMAS_A_RECUPERAR=[
+  {
+    nom:'C-01 Cielorraso Placa Cementicia',
+    tipo:'CIELORRASO',
+    esp:0,
+    nota:'Recreado automáticamente (se había perdido por un bug de guardado, ya corregido) — verificá y ajustá según tu obra real.',
+    capas:[
+      {cod:'807',nom:'Membrana hidrófuga Wichi/Tyvek',un:'m²',rend:1.10,esp:0},
+      {cod:'315',nom:'Montante 35mm E0.52mm',un:'m',rend:3.2,esp:0},
+      {cod:'316',nom:'Solera 35mm E0.52mm',un:'m',rend:1.0,esp:0},
+      {cod:'1201',nom:'Placa cementicia 10mm Superboard',un:'m²',rend:1.05,esp:10}
+    ]
+  }
+];
+function scRecuperarSistemasPerdidos(){
+  var agregados=[];
+  SC_SISTEMAS_A_RECUPERAR.forEach(function(def){
+    var yaExiste=SC_SISTEMAS.some(function(s){return s.nom===def.nom;});
+    if(yaExiste)return;
+    var capas=def.capas.map(function(c){
+      return {id:scNID(),catSel:'',matIdx:0,nom:c.nom,un:c.un,cod:c.cod,rend:c.rend,esp:c.esp||0,nota:c.nota||''};
+    });
+    var s={id:scNID(),nom:def.nom,tipo:def.tipo,esp:def.esp||0,nota:def.nota||'',capas:capas,mo:scMOStandarDefault(def.tipo),ts:Date.now()};
+    SC_SISTEMAS.push(s);
+    agregados.push(def.nom);
+  });
+  if(agregados.length){
+    scGuardar();
+    toast('\u2713 Se recreó y guardó: '+agregados.join(', '));
+  }
+}
+
 function scCargar(){
   if(_db&&_uid){
     _db.collection('users').doc(_uid).collection('config').doc('sistemas')
       .get().then(function(doc){
         if(doc.exists){var d=doc.data();SC_SISTEMAS=d.sistemas||[];SC_NID=d.nextId||1;}
         else{var loc=localStorage.getItem('obraerp_sistemas');if(loc){var d=JSON.parse(loc);SC_SISTEMAS=d.sistemas||[];SC_NID=d.nextId||1;}}
+        scRecuperarSistemasPerdidos();
         scFiltrar('');
       }).catch(function(){
         var loc=localStorage.getItem('obraerp_sistemas');
         if(loc){var d=JSON.parse(loc);SC_SISTEMAS=d.sistemas||[];SC_NID=d.nextId||1;}
+        scRecuperarSistemasPerdidos();
         scFiltrar('');
       });
   }else{
     var loc=localStorage.getItem('obraerp_sistemas');
     if(loc){var d=JSON.parse(loc);SC_SISTEMAS=d.sistemas||[];SC_NID=d.nextId||1;}
+    scRecuperarSistemasPerdidos();
     scFiltrar('');
   }
 }
