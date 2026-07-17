@@ -608,7 +608,7 @@ input,select,textarea,button{font-family:var(--font)}
         <span>&#127959;</span><span id="cp-obra-vinculada-nombre"></span>
         <button onclick="goTo('obras')" style="background:none;border:none;color:var(--bt);text-decoration:underline;cursor:pointer;font-size:11px;padding:0;margin-left:4px">Cambiar</button>
       </div>
-      <button class="btn" style="background:var(--gt);color:#fff;font-size:11px;padding:6px 12px" onclick="cpAgregarRubro()">+ Rubro</button>
+      <button class="btn" style="background:var(--gt);color:#fff;font-size:11px;padding:6px 12px" onclick="cpAgregarRubro()" title="Elegí un rubro preestablecido (con ítems, materiales y mano de obra precargados) o creá uno personalizado">+ Rubro</button>
       <button class="btn" style="background:var(--bg3);border:1px dashed var(--bt);color:var(--bt);font-size:11px;padding:6px 12px" onclick="cpCargarEstructura3CM()" title="Crea los 7 rubros estándar (Tareas Preliminares, Movimiento de Suelo, Estructura HºAº, Estructura Metálica, Tabiques Estructurales PGU/PGC, Cubierta, Planilla de Locales)">&#128203; Estructura estándar</button>
       <button class="btn" style="background:var(--bt);color:#fff;font-size:11px;padding:6px 12px" onclick="cpGuardar()">&#128190; Guardar</button>
       <button class="btn" style="background:var(--bg3);border:1px solid var(--br);font-size:11px;padding:6px 10px" onclick="cpVerResumen()">&#128203; Resumen</button>
@@ -973,6 +973,21 @@ input,select,textarea,button{font-family:var(--font)}
       <input id="mp-rend" class="cp-di" type="text" inputmode="decimal" value="1" style="width:100%">
     </div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-mat-picker')">Cancelar</button><button class="btn" style="background:var(--gt);color:#fff" onclick="cpElegirMatPicker()">Agregar</button></div>
+  </div>
+</div>
+<div class="mb" id="mod-add-rubro" onclick="closeBg(event,'mod-add-rubro')">
+  <div class="modal" style="max-width:480px">
+    <div class="mt2">Agregar Rubro</div>
+    <div class="msub">Elegí un rubro preestablecido (se precarga con sus ítems, materiales y mano de obra) o creá uno personalizado</div>
+    <div style="margin-top:12px">
+      <label style="font-size:11px;color:var(--tx3);display:block;margin-bottom:4px">Rubro</label>
+      <select id="ar-tipo" class="fis" style="width:100%;margin-bottom:10px" onchange="cpAgregarRubroTipoChange()"></select>
+      <div id="ar-custom-wrap" style="display:none">
+        <label style="font-size:11px;color:var(--tx3);display:block;margin-bottom:4px">Nombre del rubro personalizado</label>
+        <input id="ar-custom-nom" class="fis" type="text" style="width:100%" placeholder="Ej: CARPINTERÍA">
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-add-rubro')">Cancelar</button><button class="btn" style="background:var(--gt);color:#fff" onclick="cpConfirmarAgregarRubro()">Agregar</button></div>
   </div>
 </div>
 <div class="mb" id="mod-export" onclick="closeBg(event,'mod-export')">
@@ -4800,6 +4815,33 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:4},{rol:'ay',hh:8}]
 },
+{cod:'TP10',nom:'Baño Químico (alquiler mensual — MO estándar, verificar)',un:'mes',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['mes','un','gl'],
+ mats:[
+  {id:'bano_quimico_alq',nom:'Alquiler baño químico mensual (incl. mantenimiento)',un:'mes',rend:1},
+ ],
+ mo:[{rol:'ay',hh:0.5}]
+},
+{cod:'TP11',nom:'Obrador (construcción — MO estándar, verificar)',un:'m²',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['m²','gl'],
+ mats:[
+  {id:'1106',nom:'Chapa Galvanizada Lisa N25 (0,5mm)',un:'m²',rend:1.2},
+  {id:'1420',nom:'Madera Tabla Pino Norte (estructura)',un:'Pie²',rend:8.0},
+  {id:'1421',nom:'Tirante Pino Norte (estructura)',un:'Pie²',rend:5.0},
+  {id:'601',nom:'Tornillo T1 Mecha 8x9/16"',un:'un',rend:15},
+ ],
+ mo:[{rol:'of',hh:1.2},{rol:'ay',hh:1.5}]
+},
+{cod:'TP12',nom:'Limpieza sector de obra (ítem global — MO estándar, verificar)',un:'gl',
+ cat:'TRABAJOS PRELIMINARES',
+ unidades_permitidas:['gl','m²'],
+ mats:[
+  {id:'volquete_5m3',nom:'Volquete 5m³ (residuos)',un:'hh',rend:1,esEquipo:true},
+ ],
+ mo:[{rol:'ay',hh:6},{rol:'of',hh:2}]
+},
 
 
 // ══════════════════════════════════════════════════
@@ -5693,6 +5735,17 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:3.5},{rol:'ay',hh:4.5}]
 },
+{cod:'HA07',nom:'Mampostería (MO estándar — verificar)',un:'m²',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m²'],
+ mats:[
+  {id:'901',nom:'Bloque H° 19x19x40',un:'un',rend:13},
+  {id:'1001',nom:'Cemento portland (junta)',un:'kg',rend:8},
+  {id:'201',nom:'Arena (junta)',un:'m³',rend:0.025},
+  {id:'1010',nom:'Weber block gris',un:'kg',rend:8},
+ ],
+ mo:[{rol:'of',hh:0.9},{rol:'ay',hh:0.7}]
+},
 // ══ MOVIMIENTO DE SUELO — sin datos de MO en planilla 3CM/INCIDENCIAS; MO estándar ESTIMADA (ajustar) ══
 {cod:'MS01',nom:'Excavación Bases (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:3.5}]},
 {cod:'MS02',nom:'Excavación Vigas de Fundación (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4}]},
@@ -5704,6 +5757,57 @@ var CP_CATALOGO_EXTRA = [
 {cod:'MS08',nom:'Excavación Cañería Cloaca (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4.5}]},
 {cod:'MS09',nom:'Extracción de Suelo en Sector de Implantación (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:2.5}]},
 {cod:'MS10',nom:'Compactación Suelo Seleccionado (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:0.8}]},
+// ══ ESTRUCTURA METÁLICA — incidencias ESTIMADAS de mercado (ajustar) ══
+{cod:'EM01',nom:'Estructura Metálica (MO estándar — verificar)',un:'m²',
+ cat:'ESTRUCTURA METÁLICA',
+ unidades_permitidas:['m²','kg'],
+ mats:[
+  {id:'430',nom:'Tubo Cuadrado 100x100 x2.00mm',un:'m',rend:0.3},
+  {id:'445',nom:'Perfil UPN 100mm',un:'m',rend:0.5},
+  {id:'454',nom:'Perfil Angulo Hierro 1 x 3/16',un:'m',rend:0.4},
+  {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.15,esEquipo:false},
+ ],
+ mo:[{rol:'ofEsp',hh:0.6},{rol:'ay',hh:0.5}]
+},
+{cod:'EM02',nom:'Entrepiso Metálico (MO estándar — verificar)',un:'m²',
+ cat:'ESTRUCTURA METÁLICA',
+ unidades_permitidas:['m²'],
+ mats:[
+  {id:'445',nom:'Perfil UPN 100mm',un:'m',rend:1.0},
+  {id:'470',nom:'Tubo rectangular 60x40x2',un:'m',rend:0.8},
+  {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.1},
+ ],
+ mo:[{rol:'ofEsp',hh:0.7},{rol:'ay',hh:0.6}]
+},
+{cod:'EM03',nom:'Carpeta Compresión Entrepiso e=5cm a 10cm (MO estándar — verificar)',un:'m²',
+ cat:'ESTRUCTURA METÁLICA',
+ unidades_permitidas:['m²'],
+ mats:[
+  {id:'104',nom:'H21 350kg',un:'m³',rend:0.075},
+  {id:'510',nom:'Malla Sima 6mm Q188 2.40x6m',un:'m²',rend:1.05},
+ ],
+ mo:[{rol:'of',hh:0.35},{rol:'ay',hh:0.45}]
+},
+// ══ TABIQUES ESTRUCTURALES GALVANIZADOS (PGU Y PGC) — incidencias reales de rendimiento, MO ESTIMADA (ajustar) ══
+{cod:'EG01',nom:'Estructura Galvanizada Portante (Gº+AISL+REV.EXT+PINT.EXT - Steel Frame) (MO estándar — verificar)',un:'m²',
+ cat:'TABIQUES ESTRUCTURALES - (PGU Y PGC)',
+ unidades_permitidas:['m²'],
+ mats:[
+  {id:'302',nom:'PGC 100mm E0.92mm (montante vertical — estructural)',un:'m',rend:3.2},
+  {id:'301',nom:'PGU 100mm E0.92mm (solera horizontal — estructural)',un:'m',rend:0.6},
+  {id:'312',nom:'Fleje Cruz San Andrés 50mm (riostra diagonal antipandeo)',un:'m',rend:1.0},
+ ],
+ mo:[{rol:'of',hh:0.6},{rol:'ay',hh:0.5}]
+},
+{cod:'EG02',nom:'Estructura Galvanizada No Portante (perfilería de Drywall) (MO estándar — verificar)',un:'m²',
+ cat:'TABIQUES ESTRUCTURALES - (PGU Y PGC)',
+ unidades_permitidas:['m²'],
+ mats:[
+  {id:'315',nom:'Montante 35mm E0.52mm (vertical — solo divisorio interior)',un:'m',rend:3.2},
+  {id:'316',nom:'Solera 35mm E0.52mm (horizontal — solo divisorio interior)',un:'m',rend:1.0},
+ ],
+ mo:[{rol:'of',hh:0.5},{rol:'ay',hh:0.4}]
+},
 // ══ CUBIERTA — calculadora dimensional (Largo real de faldón según pendiente, verificado contra planilla CUB.CHº) ══
 // Unidad especial 'm²cub': Largo=proyección horizontal, Ancho=ancho del faldón, campo Pendiente(%) reemplaza a 'Alto'.
 // Incidencias de materiales por m² ESTIMADAS (estándar de mercado — ajustar según especificación real de obra).
@@ -6036,22 +6140,40 @@ function cpAbrirPickerSistema(rid){
   }
   document.getElementById('mod-sc-picker').classList.add('open');
 }
+function cpMOEstandarPorTipoSC(tipo){
+  // Mano de obra ESTIMADA de mercado por m², según tipo de sistema constructivo (ajustable en la tabla del ítem).
+  var tabla={
+    MURO:{of:0.6,ay:0.5},
+    TABIQUE:{of:0.5,ay:0.4},
+    PISO:{of:0.4,ay:0.3},
+    TECHO:{of:0.6,ay:0.5},
+    CIELORRASO:{of:0.45,ay:0.35},
+    ESTRUCTURA:{of:0.7,ay:0.6}
+  };
+  var t=tabla[tipo]||{of:0.5,ay:0.4};
+  return [{rol:'of',hh:t.of},{rol:'ay',hh:t.ay}];
+}
 function cpElegirSistema(idx){
   var s=SC_SISTEMAS[idx];if(!s||!CP_PICKER_RID)return;
   var r=CP_RUBROS.find(function(r){return r.id===CP_PICKER_RID;});
   if(!r){closeM('mod-sc-picker');return;}
   var mats=(s.capas||[]).map(function(c){
-    return {id:c.cod||('sc_'+c.id),nom:c.nom,un:c.un||'m\u00b2',rend:c.rend||1,pu:scGetPU(c.cod)||0,esEquipo:false};
+    return {id:c.cod||('sc_'+c.id),nom:c.nom,un:c.un||'m²',rend:c.rend||1,pu:scGetPU(c.cod)||0,esEquipo:false};
+  });
+  var moEst=cpMOEstandarPorTipoSC(s.tipo).map(function(m){
+    var mapa={ofEsp:'MO1',of:'MO2',mo:'MO3',ay:'MO4'};var pu=0;
+    if(typeof PR_DATA!=='undefined'){var p=PR_DATA.find(function(x){return x.cod===mapa[m.rol];});if(p&&p.pu>0)pu=p.pu;}
+    return {rol:m.rol,hh:m.hh,pu:pu};
   });
   r.items.push({
-    id:cpNID(),nom:s.nom+' ('+s.tipo+')',un:'m\u00b2',
-    unidades_permitidas:['m\u00b2'],
+    id:cpNID(),nom:s.nom+' ('+s.tipo+') — MO estándar, verificar',un:'m²',
+    unidades_permitidas:['m²'],
     dims:[{id:cpNID(),desc:'',l:0,a:0,h:0,q:1,sust:false}],
-    mats:mats,mo:[]
+    mats:mats,mo:moEst
   });
   closeM('mod-sc-picker');
   cpRender();
-  toast('\u2713 Sistema "'+s.nom+'" agregado \u2014 completa Largo y Ancho del muro');
+  toast('✓ Sistema "'+s.nom+'" agregado con MO estándar (ajustable) — completá Largo y Ancho');
 }
 
 function cpRender(){
@@ -6091,49 +6213,41 @@ function cpNI(iid,val){
   s.style.display='block';
 }
 
-function cpSel(iid,cod){
-  // Buscar en CP_CATALOGO (catálogo expandido con systems)
+function cpBuscarEnCatalogo(cod){
   var cat=CP_CATALOGO.find(function(x){return x.cod===cod;});
-  if(!cat){
-    // Buscar también en CP_CATALOGO_EXTRA si existe
-    if(typeof CP_CATALOGO_EXTRA!=='undefined')
-      cat=CP_CATALOGO_EXTRA.find(function(x){return x.cod===cod;});
-  }
-  if(!cat)return;
-  var it=cpFindItem(iid);if(!it)return;
+  if(!cat && typeof CP_CATALOGO_EXTRA!=='undefined')
+    cat=CP_CATALOGO_EXTRA.find(function(x){return x.cod===cod;});
+  return cat||null;
+}
+function cpAplicarCatalogoAItem(it,cod){
+  var cat=cpBuscarEnCatalogo(cod);
+  if(!cat||!it)return false;
   it.nom=cat.nom;
   it.un=cat.un;
-  it.dims=[];
+  it.dims=it.dims&&it.dims.length?it.dims:[];
   it.unidades_permitidas=cat.unidades_permitidas||null;
-  // Función helper: busca precio en PR_DATA y CP_PRECIOS_MAT
   function _getPU(id, fallback){
-    // 1. Buscar en PR_DATA por código exacto
     if(typeof PR_DATA!=='undefined'){
       var p=PR_DATA.find(function(x){return x.cod===String(id);});
       if(p&&p.pu>0) return p.pu;
     }
-    // 2. Buscar en CP_PRECIOS_MAT (por ID clave o código)
     if(typeof CP_PRECIOS_MAT!=='undefined'){
       if(CP_PRECIOS_MAT[id]>0) return CP_PRECIOS_MAT[id];
       if(CP_PRECIOS_MAT[String(id)]>0) return CP_PRECIOS_MAT[String(id)];
     }
     return fallback||0;
   }
-  // Cargar materiales (separando equipos de materiales)
   it.mats=(cat.mats||[]).filter(function(m){return !m.esEquipo;}).map(function(m){
     var pu=_getPU(m.id, m.pu||0);
     return {id:m.id,nom:m.nom,un:m.un,rend:m.rend||1,pu:pu,esEquipo:false,
-            sinPrecio:pu===0}; // marca si no tiene precio
+            sinPrecio:pu===0};
   });
-  // Cargar equipos por separado
   var equip_items=(cat.mats||[]).filter(function(m){return m.esEquipo;}).map(function(m){
     var pu=_getPU(m.id, m.pu||0);
     return {id:m.id,nom:m.nom,un:m.un||'hh',rend:m.rend||1,pu:pu,esEquipo:true,
             sinPrecio:pu===0};
   });
-  // Unir materiales + equipos
   it.mats=it.mats.concat(equip_items);
-  // Cargar MO — el catálogo usa 'hh', cpRenderMats usa 'hs'
   it.mo=(cat.mo||[]).map(function(m){
     var rolNom={ofEsp:'Oficial Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'}[m.rol]||m.rol;
     var pu=m.pu||(typeof CP_PRECIOS_MAT!=='undefined'?CP_PRECIOS_MAT[m.rol]||0:0);
@@ -6142,41 +6256,107 @@ function cpSel(iid,cod){
       var p=PR_DATA.find(function(x){return x.cod===mapa[m.rol];});
       if(p&&p.pu>0)pu=p.pu;
     }
-    // Normalizar: el catálogo usa 'hh', renderMats usa 'hs'
     return {rol:m.rol,nom:rolNom,hs:m.hh||m.hs||0,hh:m.hh||m.hs||0,pu:pu};
   });
-  cpRender();
+  return true;
+}
+function cpSel(iid,cod){
+  var it=cpFindItem(iid);if(!it)return;
+  if(cpAplicarCatalogoAItem(it,cod)) cpRender();
 }
 
-function cpAgregarRubro(){var r={id:cpNID(),nom:'NUEVO RUBRO',items:[]};CP_RUBROS.push(r);CP_RUBRO_TAB=r.id;cpRender();}
+function cpAgregarRubro(){
+  var sel=document.getElementById('ar-tipo');
+  if(sel){
+    sel.innerHTML='<option value="">— Elegí un rubro preestablecido —</option>'+
+      CP_ESTRUCTURA_ESTANDAR_DEFS.map(function(d){return '<option value="'+d.nom+'">'+d.nom+'</option>';}).join('')+
+      '<option value="__custom__">PERSONALIZADO (nombre libre)</option>';
+    sel.value='';
+    cpAgregarRubroTipoChange();
+  }
+  document.getElementById('mod-add-rubro').classList.add('open');
+}
+function cpAgregarRubroTipoChange(){
+  var sel=document.getElementById('ar-tipo');
+  var wrap=document.getElementById('ar-custom-wrap');
+  if(!sel||!wrap)return;
+  wrap.style.display=(sel.value==='__custom__')?'block':'none';
+}
+function cpConfirmarAgregarRubro(){
+  var sel=document.getElementById('ar-tipo');
+  var val=sel?sel.value:'';
+  if(!val){toast('Elegí un rubro',false);return;}
+  var r;
+  if(val==='__custom__'){
+    var nomInput=document.getElementById('ar-custom-nom');
+    var nom=(nomInput?nomInput.value:'').trim().toUpperCase();
+    if(!nom){toast('Escribí el nombre del rubro',false);return;}
+    r={id:cpNID(),nom:nom,items:[]};
+  }else{
+    var rDef=CP_ESTRUCTURA_ESTANDAR_DEFS.find(function(d){return d.nom===val;});
+    if(!rDef){toast('Rubro no encontrado',false);return;}
+    r=cpConstruirRubroEstandar(rDef);
+  }
+  CP_RUBROS.push(r);
+  CP_RUBRO_TAB=r.id;
+  closeM('mod-add-rubro');
+  cpRender();
+  toast('✓ Rubro "'+r.nom+'" agregado'+(r.items.length?' con '+r.items.length+' ítem(s) precargado(s)':''));
+}
 function cpBR(rid){if(!confirm('¿Eliminar rubro?'))return;CP_RUBROS=CP_RUBROS.filter(function(r){return r.id!==rid;});if(CP_RUBRO_TAB===rid)CP_RUBRO_TAB=CP_RUBROS.length?CP_RUBROS[0].id:null;cpRender();}
 function cpUR(rid,v){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(r)r.nom=(v||'').toUpperCase();}
 function cpSelTab(rid){CP_RUBRO_TAB=rid;cpRender();}
+// Mapa nombre de ítem preestablecido → código de plantilla CP_CATALOGO_EXTRA.
+// Todo ítem que se crea vía "Estructura estándar" se autocompleta con materiales+MO de su plantilla.
+var CP_MAPA_ITEMS_ESTANDAR={
+  'Limpieza Terreno':'TP03','Limpieza Sector de Obra':'TP12','Cartel de Obra':'TP01',
+  'Baño Químico':'TP10','Obrador':'TP11','Cerco de Obra':'TP06','Replanteo':'TP05',
+  'Excavación Bases':'MS01','Excavación Vigas de Fundación':'MS02','Excavación de Pilotines':'MS03',
+  'Excavación de Cámaras de Instalación Cloacal':'MS04','Excavación Cañería de Gas':'MS05',
+  'Excavación Cañería Eléctrica':'MS06','Excavación Cañería Agua Fría':'MS07','Excavación Cañería Cloaca':'MS08',
+  'Extracción de Suelo en Sector de Implantación':'MS09','Compactación Suelo Seleccionado':'MS10',
+  'Bases de HºAº':'HA01','Columnas HºAº':'HA02','Vigas de Fundación':'HA03','Losa de Fundación':'HA04',
+  'Vigas de HºAº':'HA05','Losas HºAº':'HA06','Mampostería':'HA07',
+  'Estructura Metálica':'EM01','Entrepiso Metálico':'EM02','Carpeta Compresión Entrepiso e=5cm a 10cm':'EM03',
+  'Estructura Galvanizada Portante (Gº+AISL+REV.EXT+PINT.EXT - Steel Frame)':'EG01',
+  'Estructura Galvanizada No Portante (perfilería de Drywall)':'EG02',
+  'Cubierta Chapas sobre Correas Metálicas':'CUB01',
+  'Mesada Cocina':'MZ01',
+  'Inodoro':'AS01','Bidet':'AS02','Lavatorio':'AS03','Bañera':'AS04','Juego de Accesorios':'AS05',
+  'Botiquín':'AS06','Grifería':'AS07','Pileta de Cocina':'AS08','Pileta Lavadero':'AS09',
+  'Zepelín':'AG01','Cocina':'AG02','Calefón':'AG03','Caldera':'AG04','Termotanque':'AG05','Calefactor':'AG06'
+};
+var CP_ESTRUCTURA_ESTANDAR_DEFS=[
+  {nom:'TAREAS PRELIMINARES',items:['Limpieza Terreno','Limpieza Sector de Obra','Cartel de Obra','Baño Químico','Obrador','Cerco de Obra','Replanteo']},
+  {nom:'MOVIMIENTO DE SUELO',items:['Excavación Bases','Excavación Vigas de Fundación','Excavación de Pilotines','Excavación de Cámaras de Instalación Cloacal','Excavación Cañería de Gas','Excavación Cañería Eléctrica','Excavación Cañería Agua Fría','Excavación Cañería Cloaca','Extracción de Suelo en Sector de Implantación','Compactación Suelo Seleccionado']},
+  {nom:'ESTRUCTURA DE HºAº',items:['Bases de HºAº','Columnas HºAº','Vigas de Fundación','Losa de Fundación','Vigas de HºAº','Losas HºAº','Mampostería']},
+  {nom:'ESTRUCTURA METÁLICA',items:['Estructura Metálica','Entrepiso Metálico','Carpeta Compresión Entrepiso e=5cm a 10cm']},
+  {nom:'TABIQUES ESTRUCTURALES - (PGU Y PGC)',items:['Estructura Galvanizada Portante (Gº+AISL+REV.EXT+PINT.EXT - Steel Frame)','Estructura Galvanizada No Portante (perfilería de Drywall)']},
+  {nom:'CUBIERTA CHAPAS SOBRE CORREAS METALICAS',items:['Cubierta Chapas sobre Correas Metálicas']},
+  {nom:'PLANILLA DE LOCALES Y TERMINACIONES',items:[]},
+  {nom:'MESADAS',items:['Mesada Cocina']},
+  {nom:'ARTEFACTOS SANITARIOS',items:['Inodoro','Bidet','Lavatorio','Bañera','Juego de Accesorios','Botiquín','Grifería','Pileta de Cocina','Pileta Lavadero']},
+  {nom:'ARTEFACTOS DE GAS',items:['Zepelín','Cocina','Calefón','Caldera','Termotanque','Calefactor']}
+];
+function cpConstruirRubroEstandar(rDef){
+  return {id:cpNID(),nom:rDef.nom,items:rDef.items.map(function(nomIt){
+    var it={id:cpNID(),nom:nomIt,un:'m',unidades_permitidas:['m','m²','m³','un'],dims:[{id:cpNID(),desc:'',l:0,a:0,h:0,q:1,sust:false}],mats:[],mo:[]};
+    var cod=CP_MAPA_ITEMS_ESTANDAR[nomIt];
+    if(cod) cpAplicarCatalogoAItem(it,cod);
+    return it;
+  })};
+}
 function cpCargarEstructura3CM(){
-  if(CP_RUBROS.length && !confirm('Esto agrega los 7 rubros estándar (Tareas Preliminares, Movimiento de Suelo, Estructura HºAº, Estructura Metálica, Tabiques Estructurales PGU/PGC, Cubierta, Planilla de Locales) al final de los que ya tenés. ¿Continuar?'))return;
-  var estructura=[
-    {nom:'TAREAS PRELIMINARES',items:['Limpieza Terreno','Limpieza Sector de Obra','Cartel de Obra','Baño Químico','Obrador','Cerco de Obra','Replanteo']},
-    {nom:'MOVIMIENTO DE SUELO',items:['Excavación Bases','Excavación Vigas de Fundación','Excavación de Pilotines','Excavación de Cámaras de Instalación Cloacal','Excavación Cañería de Gas','Excavación Cañería Eléctrica','Excavación Cañería Agua Fría','Excavación Cañería Cloaca','Extracción de Suelo en Sector de Implantación','Compactación Suelo Seleccionado']},
-    {nom:'ESTRUCTURA DE HºAº',items:['Bases de HºAº','Columnas HºAº','Vigas de Fundación','Losa de Fundación','Vigas de HºAº','Losas HºAº','Mampostería']},
-    {nom:'ESTRUCTURA METÁLICA',items:['Estructura Metálica','Entrepiso Metálico','Carpeta Compresión Entrepiso e=5cm a 10cm']},
-    {nom:'TABIQUES ESTRUCTURALES - (PGU Y PGC)',items:['Estructura Galvanizada Portante (Gº+AISL+REV.EXT+PINT.EXT - Steel Frame)','Estructura Galvanizada No Portante (perfilería de Drywall)']},
-    {nom:'CUBIERTA CHAPAS SOBRE CORREAS METALICAS',items:[]},
-    {nom:'PLANILLA DE LOCALES Y TERMINACIONES',items:[]},
-    {nom:'MESADAS',items:['Mesada Cocina']},
-    {nom:'ARTEFACTOS SANITARIOS',items:['Inodoro','Bidet','Lavatorio','Bañera','Juego de Accesorios','Botiquín','Grifería','Pileta de Cocina','Pileta Lavadero']},
-    {nom:'ARTEFACTOS DE GAS',items:['Zepelín','Cocina','Calefón','Caldera','Termotanque','Calefactor']}
-  ];
+  if(CP_RUBROS.length && !confirm('Esto agrega los 10 rubros estándar (Tareas Preliminares, Movimiento de Suelo, Estructura HºAº, Estructura Metálica, Tabiques Estructurales PGU/PGC, Cubierta, Planilla de Locales, Mesadas, Artefactos Sanitarios, Artefactos de Gas) al final de los que ya tenés — cada ítem se autocompleta con materiales y mano de obra de su plantilla. ¿Continuar?'))return;
   var primero=null;
-  estructura.forEach(function(rDef){
-    var r={id:cpNID(),nom:rDef.nom,items:rDef.items.map(function(nomIt){
-      return {id:cpNID(),nom:nomIt,un:'m',unidades_permitidas:['m','m²','m³','un'],dims:[{id:cpNID(),desc:'',l:0,a:0,h:0,q:1,sust:false}],mats:[],mo:[]};
-    })};
+  CP_ESTRUCTURA_ESTANDAR_DEFS.forEach(function(rDef){
+    var r=cpConstruirRubroEstandar(rDef);
     CP_RUBROS.push(r);
     if(!primero)primero=r.id;
   });
   CP_RUBRO_TAB=primero;
   cpRender();
-  toast('✓ Estructura estándar de 7 rubros creada — completá materiales y mano de obra en cada ítem');
+  toast('✓ Estructura estándar de 10 rubros creada — ítems precargados con materiales y mano de obra (verificá y ajustá según tu obra)');
 }
 function cpAI(rid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items.push({id:cpNID(),nom:'',un:'m\u00b2',dims:[],mats:[],mo:[],unidades_permitidas:null});cpRender();}
 function cpBI(rid,iid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items=r.items.filter(function(i){return i.id!==iid;});cpRender();}
