@@ -2795,7 +2795,14 @@ function toast(msg,ok){if(ok===undefined)ok=true;var e=document.getElementById('
 
 /* ── ARRANQUE ─────────────────────────────────────────────────────────── */
 cargarTodo();
-setTimeout(function(){renderObras(OBRAS_DATA);scCargar();},0);
+setTimeout(function(){
+  renderObras(OBRAS_DATA);scCargar();
+  // Cargar precios editados/agregados y catálogo de rubros/ítems guardados por el usuario
+  // (diferido a setTimeout para ejecutar después de que PR_DATA/CP_CATALOGO ya estén
+  // definidos más abajo en el script — si no, la asignación literal los pisaría).
+  if(typeof prCargar==='function')prCargar();
+  if(typeof cpCargarCatalogoUser==='function')cpCargarCatalogoUser();
+},0);
 // Verificar trial local
 (function(){
   var trialExp = localStorage.getItem('obraerp_trial_expires');
@@ -3121,6 +3128,9 @@ async function fbLoadAll(){
     }
     // Load sistemas constructivos (biblioteca global) desde la nube
     scCargar();
+    // Load listado de precios (custom/editado) y catálogo de rubros/ítems guardados por el usuario
+    if(typeof prCargar==='function')prCargar();
+    if(typeof cpCargarCatalogoUser==='function')cpCargarCatalogoUser();
     guardarTodo(); // save to localStorage as cache
     renderHon(HON_DATA);
     renderCli(CLIENTES);
@@ -4729,6 +4739,21 @@ var CP_CATALOGO = [
  ],
  mo:[{rol:'of',hh:1.0},{rol:'ay',hh:0.8}]
 },
+{cod:'DR01',nom:'Drenaje PVC ø200mm',un:'m',
+ cat:'DRENAJE',
+ // Análisis basado en el ítem real 'Drenaje PVC ø160mm' de CP_APU_DATA (Arena/Piedra Bola
+ // tal cual el análisis oficial), sustituyendo Piedra Grillada→Piedra Triturada y
+ // Film nylon→Manto geotextil (elección de Diego en el ítem que armó en pantalla), y
+ // Tubo PVC φ200 (cod 2341) con 5% de desperdicio, igual convención que IS01.
+ mats:[
+  {id:'2341',nom:'Tubo PVC φ 200 x 3,2mm Ramat Tigre Et',un:'m',rend:1.05},
+  {id:'201',nom:'Arena',un:'m³',rend:1.6},
+  {id:'209',nom:'Piedra Bola',un:'m³',rend:0.3},
+  {id:'212',nom:'Piedra Triturada',un:'m³',rend:0.15},
+  {id:'815',nom:'Manto geotextil 200gr drenante',un:'m²',rend:1.7},
+ ],
+ mo:[{rol:'ay',hh:1.0}]
+},
 ];
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -5991,6 +6016,47 @@ var CP_CATALOGO_EXTRA = [
 // Fusionar catálogos y precios
 CP_CATALOGO = CP_CATALOGO.concat(CP_CATALOGO_EXTRA);
 
+// ── Catálogo de Rubros/Ítems guardados por el usuario (persistido) ─────
+// Además del catálogo preestablecido (CP_CATALOGO, fijo en el código), el
+// usuario puede guardar sus propios rubros e ítems personalizados para
+// reutilizarlos en futuras obras. Se guardan acá y se persisten en
+// localStorage/Firebase (ver cpGuardarCatalogoUser/cpCargarCatalogoUser).
+var CP_CATALOGO_USER = [];
+var CP_RUBROS_USER = [];
+function cpGuardarCatalogoUser(){
+  var data={rubros:CP_RUBROS_USER,items:CP_CATALOGO_USER,ts:Date.now()};
+  try{localStorage.setItem('obraerp_catalogo_user',JSON.stringify(data));}catch(e){}
+  if(typeof _db!=='undefined'&&_db&&typeof _uid!=='undefined'&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('catalogoUser')
+      .set(data).catch(function(){});
+  }
+}
+function cpCargarCatalogoUser(){
+  function aplicar(d){
+    if(!d)return;
+    if(d.rubros)CP_RUBROS_USER=d.rubros;
+    if(d.items){
+      CP_CATALOGO_USER=d.items;
+      CP_CATALOGO_USER.forEach(function(it){
+        if(!CP_CATALOGO.some(function(x){return x.cod===it.cod;}))CP_CATALOGO.push(it);
+      });
+    }
+  }
+  function fallbackLocal(){
+    try{
+      var loc=localStorage.getItem('obraerp_catalogo_user');
+      if(loc)aplicar(JSON.parse(loc));
+    }catch(e){}
+  }
+  if(typeof _db!=='undefined'&&_db&&typeof _uid!=='undefined'&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('catalogoUser').get()
+      .then(function(doc){if(doc.exists)aplicar(doc.data());else fallbackLocal();})
+      .catch(fallbackLocal);
+  }else{
+    fallbackLocal();
+  }
+}
+
 
 
 /* ══ MÓDULO CÓMPUTO Y PRESUPUESTO v7 ══════════════════════════════════ */
@@ -6090,6 +6156,36 @@ function cpFindItem(iid){
   var found=null;
   CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)found=f;});
   return found;
+}
+function cpFindRubroDeItem(iid){
+  var found=null;
+  CP_RUBROS.forEach(function(r){if(r.items.some(function(i){return i.id===iid;}))found=r;});
+  return found;
+}
+// Guarda un ítem del Cómputo (nombre + materiales + mano de obra, SIN precios embebidos —
+// los precios se resuelven en vivo contra el catálogo de precios al usarlo) en el catálogo
+// general reutilizable (CP_CATALOGO_USER), para poder buscarlo y agregarlo en futuros ítems
+// y futuras obras, igual que cualquier ítem preestablecido.
+function cpGuardarItemEnCatalogo(iid){
+  var it=cpFindItem(iid);if(!it){toast('Ítem no encontrado',false);return;}
+  if(!it.nom||!it.nom.trim()){toast('Ponele un nombre al ítem antes de guardarlo',false);return;}
+  if(!(it.mats||[]).length&&!(it.mo||[]).length){toast('Agregá al menos un material o mano de obra antes de guardarlo',false);return;}
+  var rub=cpFindRubroDeItem(iid);
+  var catNom=(rub&&rub.nom)?rub.nom:'PERSONALIZADO';
+  var quiere=confirm('¿Guardar "'+it.nom+'" en el catálogo general (categoría: '+catNom+'), para poder buscarlo y reutilizarlo en futuros ítems y obras?');
+  if(!quiere)return;
+  var cod='U'+Date.now().toString(36).toUpperCase();
+  var matsLimpio=(it.mats||[]).map(function(m){
+    var o={id:m.id||'',nom:m.nom,un:m.un,rend:m.rend};
+    if(m.esEquipo)o.esEquipo=true;
+    return o;
+  });
+  var moLimpio=(it.mo||[]).map(function(m){return {rol:m.rol,hh:(m.hh||m.hs||0)};});
+  var nuevo={cod:cod,nom:it.nom,un:it.un,cat:catNom,mats:matsLimpio,mo:moLimpio};
+  CP_CATALOGO_USER.push(nuevo);
+  CP_CATALOGO.push(nuevo);
+  cpGuardarCatalogoUser();
+  toast('✓ "'+it.nom+'" guardado en el catálogo general');
 }
 
 function parseARNum(s){
@@ -6247,6 +6343,7 @@ function cpRenderItem(rid,it){
   h+='<div style="font-size:9px;color:var(--tx3);margin-top:5px;padding:4px 6px;background:var(--bg);border-radius:4px">CUT: $'+calc.CUT.toLocaleString()+' \u2192 5.1 Grls.15%: $'+calc.g51.toLocaleString()+' \u2192 5.2 Benef.10%: $'+calc.g52.toLocaleString()+' \u2192 Subt.1: $'+calc.sub1.toLocaleString()+' \u2192 5.3 Financ.3%: $'+calc.g53.toLocaleString()+' \u2192 Subt.2: $'+calc.sub2.toLocaleString()+' \u2192 5.4 Imp.4%: $'+calc.g54.toLocaleString()+' \u2192 <b style="color:var(--bt)">Precio Unit.: $'+Math.round(calc.pu_calc).toLocaleString()+'</b></div>';
   h+='<button id="cpapu-btn-'+it.id+'" onclick="cpToggleAPU(\''+it.id+'\')" style="font-size:10px;background:none;border:1px dashed var(--br2);color:var(--tx2);padding:4px 10px;border-radius:4px;cursor:pointer;margin-top:6px;width:100%;text-align:left">\u25b8 Ver An\u00e1lisis de Precios Unitario detallado</button>';
   h+='<div id="cpapu-'+it.id+'" style="display:none;margin-top:6px"></div>';
+  h+='<button onclick="cpGuardarItemEnCatalogo(\''+it.id+'\')" title="Guarda este ítem (nombre, materiales y mano de obra) en el catálogo general para poder buscarlo y reutilizarlo en futuros ítems y obras" style="font-size:10px;background:none;border:1px dashed var(--gt);color:var(--gt);padding:4px 10px;border-radius:4px;cursor:pointer;margin-top:6px;width:100%;text-align:left">\ud83d\udcbe Guardar este ítem en el Catálogo General</button>';
   h+='</div>';
   return h;
 }
@@ -6422,8 +6519,12 @@ function cpSel(iid,cod){
 function cpAgregarRubro(){
   var sel=document.getElementById('ar-tipo');
   if(sel){
+    var userOpts=(typeof CP_RUBROS_USER!=='undefined'?CP_RUBROS_USER:[]).map(function(nom){
+      return '<option value="__user__'+nom+'">'+nom+' (guardado por mí)</option>';
+    }).join('');
     sel.innerHTML='<option value="">— Elegí un rubro preestablecido —</option>'+
       CP_ESTRUCTURA_ESTANDAR_DEFS.map(function(d){return '<option value="'+d.nom+'">'+d.nom+'</option>';}).join('')+
+      userOpts+
       '<option value="__custom__">PERSONALIZADO (nombre libre)</option>';
     sel.value='';
     cpAgregarRubroTipoChange();
@@ -6440,12 +6541,16 @@ function cpConfirmarAgregarRubro(){
   var sel=document.getElementById('ar-tipo');
   var val=sel?sel.value:'';
   if(!val){toast('Elegí un rubro',false);return;}
-  var r;
+  var r,esNuevoPersonalizado=false,nomNuevo=null;
   if(val==='__custom__'){
     var nomInput=document.getElementById('ar-custom-nom');
     var nom=(nomInput?nomInput.value:'').trim().toUpperCase();
     if(!nom){toast('Escribí el nombre del rubro',false);return;}
     r={id:cpNID(),nom:nom,items:[]};
+    esNuevoPersonalizado=true;nomNuevo=nom;
+  }else if(val.indexOf('__user__')===0){
+    var nomUser=val.substring('__user__'.length);
+    r={id:cpNID(),nom:nomUser,items:[]};
   }else{
     var rDef=CP_ESTRUCTURA_ESTANDAR_DEFS.find(function(d){return d.nom===val;});
     if(!rDef){toast('Rubro no encontrado',false);return;}
@@ -6456,6 +6561,20 @@ function cpConfirmarAgregarRubro(){
   closeM('mod-add-rubro');
   cpRender();
   toast('✓ Rubro "'+r.nom+'" agregado'+(r.items.length?' con '+r.items.length+' ítem(s) precargado(s)':''));
+  // Si es un rubro totalmente nuevo (personalizado), preguntar si guardarlo en el catálogo
+  // general de Rubros para poder elegirlo de nuevo en futuras obras.
+  if(esNuevoPersonalizado&&nomNuevo){
+    var yaGuardado=(typeof CP_RUBROS_USER!=='undefined')&&CP_RUBROS_USER.indexOf(nomNuevo)>=0;
+    var yaPreestablecido=CP_ESTRUCTURA_ESTANDAR_DEFS.some(function(d){return d.nom===nomNuevo;});
+    if(!yaGuardado&&!yaPreestablecido){
+      var quiere=confirm('¿Guardar el rubro "'+nomNuevo+'" en el catálogo general de Rubros, para poder elegirlo directamente en futuras obras?');
+      if(quiere){
+        CP_RUBROS_USER.push(nomNuevo);
+        cpGuardarCatalogoUser();
+        toast('✓ Rubro "'+nomNuevo+'" guardado en el catálogo general');
+      }
+    }
+  }
 }
 function cpBR(rid){if(!confirm('¿Eliminar rubro?'))return;CP_RUBROS=CP_RUBROS.filter(function(r){return r.id!==rid;});if(CP_RUBRO_TAB===rid)CP_RUBRO_TAB=CP_RUBROS.length?CP_RUBROS[0].id:null;cpRender();}
 function cpUR(rid,v){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(r)r.nom=(v||'').toUpperCase();}
