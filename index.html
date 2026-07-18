@@ -6298,8 +6298,10 @@ function cpRenderMats(it){
 
 function cpRenderItem(rid,it){
   var qty=cpQty(it.dims,it.un);
-  var calc=cpCalcPreciso(it.mats,it.mo,qty);
+  var calc=cpCalcPreciso(it.mats,it.mo,qty);            // TOTAL real del ítem (cantidad real del Cómputo)
+  var calcU=cpCalcPreciso(it.mats,it.mo,1);              // Análisis de Precio UNITARIO (por 1 unidad de medida)
   var totM=calc.costoMat,totO=calc.costoMO,totE=calc.costoEquipo,totT=calc.pu_adopt;
+  var uniM=calcU.costoMat,uniO=calcU.costoMO,uniE=calcU.costoEquipo,uniT=calcU.pu_adopt;
   var h='<div class="card cp-item" id="cpi-'+it.id+'" style="margin-bottom:8px;padding:10px">';
   h+='<div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px">';
   h+='<div style="flex:1;min-width:180px;position:relative">';
@@ -6333,14 +6335,23 @@ function cpRenderItem(rid,it){
   h+='<div style="background:var(--bg);border-radius:6px;padding:8px;margin-bottom:8px">';
   h+='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">DESGLOSE MATERIALES Y MANO DE OBRA</div>';
   h+=cpRenderMats(it)+'</div>';
+  h+='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin:8px 0 4px">AN\u00c1LISIS DE PRECIO UNITARIO (por 1 '+it.un+')</div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1.15fr 1.3fr;gap:6px">';
-  h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--gt);font-weight:700;text-transform:uppercase;margin-bottom:2px">Materiales</div><div style="font-size:13px;font-weight:800;color:var(--gt)">$'+totM.toLocaleString()+'</div><div style="font-size:8px;color:var(--tx3)">c/varios 0,01%</div></div>';
-  h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--pk,#f472b6);font-weight:700;text-transform:uppercase;margin-bottom:2px">Equipos</div><div style="font-size:13px;font-weight:800;color:var(--pk,#f472b6)">$'+totE.toLocaleString()+'</div><div style="font-size:8px;color:var(--tx3)">c/herram. 0,02%</div></div>';
-  h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--golt);font-weight:700;text-transform:uppercase;margin-bottom:2px">Mano de Obra</div><div style="font-size:13px;font-weight:800;color:var(--golt)">$'+totO.toLocaleString()+'</div></div>';
-  h+='<div style="background:rgba(148,163,184,.1);border:1px solid rgba(148,163,184,.25);border-radius:5px;padding:6px 8px;text-align:center" title="Suma de Materiales + Equipos + Mano de Obra, antes de Gastos Generales, Beneficio, Financieros e Impuestos"><div style="font-size:9px;color:var(--tx2);font-weight:700;text-transform:uppercase;margin-bottom:2px">4. C.U.T.</div><div style="font-size:13px;font-weight:800;color:var(--tx2)">$'+calc.CUT.toLocaleString()+'</div><div style="font-size:8px;color:var(--tx3)">Costo Unit. Total</div></div>';
-  h+='<div style="background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--bt);font-weight:700;text-transform:uppercase;margin-bottom:2px">Precio Unit. Adoptado</div><div style="font-size:15px;font-weight:800;color:var(--bt)">$'+totT.toLocaleString()+'</div></div>';
+  h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--gt);font-weight:700;text-transform:uppercase;margin-bottom:2px">Materiales</div><div style="font-size:13px;font-weight:800;color:var(--gt)">$'+uniM.toLocaleString()+'</div><div style="font-size:8px;color:var(--tx3)">c/varios 0,01%</div></div>';
+  h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--pk,#f472b6);font-weight:700;text-transform:uppercase;margin-bottom:2px">Equipos</div><div style="font-size:13px;font-weight:800;color:var(--pk,#f472b6)">$'+uniE.toLocaleString()+'</div><div style="font-size:8px;color:var(--tx3)">c/herram. 0,02%</div></div>';
+  h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--golt);font-weight:700;text-transform:uppercase;margin-bottom:2px">Mano de Obra</div><div style="font-size:13px;font-weight:800;color:var(--golt)">$'+uniO.toLocaleString()+'</div></div>';
+  h+='<div style="background:rgba(148,163,184,.1);border:1px solid rgba(148,163,184,.25);border-radius:5px;padding:6px 8px;text-align:center" title="Suma de Materiales + Equipos + Mano de Obra por unidad, antes de Gastos Generales, Beneficio, Financieros e Impuestos"><div style="font-size:9px;color:var(--tx2);font-weight:700;text-transform:uppercase;margin-bottom:2px">4. C.U.T.</div><div style="font-size:13px;font-weight:800;color:var(--tx2)">$'+calcU.CUT.toLocaleString()+'</div><div style="font-size:8px;color:var(--tx3)">Costo Unit. Total</div></div>';
+  h+='<div style="background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--bt);font-weight:700;text-transform:uppercase;margin-bottom:2px">Precio Unit. Adoptado</div><div style="font-size:15px;font-weight:800;color:var(--bt)">$'+uniT.toLocaleString()+'</div></div>';
   h+='</div>';
-  h+='<div style="font-size:9px;color:var(--tx3);margin-top:5px;padding:4px 6px;background:var(--bg);border-radius:4px">CUT: $'+calc.CUT.toLocaleString()+' \u2192 5.1 Grls.15%: $'+calc.g51.toLocaleString()+' \u2192 5.2 Benef.10%: $'+calc.g52.toLocaleString()+' \u2192 Subt.1: $'+calc.sub1.toLocaleString()+' \u2192 5.3 Financ.3%: $'+calc.g53.toLocaleString()+' \u2192 Subt.2: $'+calc.sub2.toLocaleString()+' \u2192 5.4 Imp.4%: $'+calc.g54.toLocaleString()+' \u2192 <b style="color:var(--bt)">Precio Unit.: $'+Math.round(calc.pu_calc).toLocaleString()+'</b></div>';
+  h+='<div style="font-size:9px;color:var(--tx3);margin-top:5px;padding:4px 6px;background:var(--bg);border-radius:4px">CUT: $'+calcU.CUT.toLocaleString()+' \u2192 5.1 Grls.15%: $'+calcU.g51.toLocaleString()+' \u2192 5.2 Benef.10%: $'+calcU.g52.toLocaleString()+' \u2192 Subt.1: $'+calcU.sub1.toLocaleString()+' \u2192 5.3 Financ.3%: $'+calcU.g53.toLocaleString()+' \u2192 Subt.2: $'+calcU.sub2.toLocaleString()+' \u2192 5.4 Imp.4%: $'+calcU.g54.toLocaleString()+' \u2192 <b style="color:var(--bt)">Precio Unit.: $'+Math.round(calcU.pu_calc).toLocaleString()+'</b></div>';
+  h+='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin:10px 0 4px">MONTO TOTAL DEL \u00cdTEM ('+qty.toLocaleString('es-AR',{maximumFractionDigits:2})+' '+it.un+')</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1.15fr 1.3fr;gap:6px">';
+  h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--gt);font-weight:700;text-transform:uppercase;margin-bottom:2px">Materiales (Total)</div><div style="font-size:13px;font-weight:800;color:var(--gt)">$'+totM.toLocaleString()+'</div></div>';
+  h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--pk,#f472b6);font-weight:700;text-transform:uppercase;margin-bottom:2px">Equipos (Total)</div><div style="font-size:13px;font-weight:800;color:var(--pk,#f472b6)">$'+totE.toLocaleString()+'</div></div>';
+  h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--golt);font-weight:700;text-transform:uppercase;margin-bottom:2px">Mano de Obra (Total)</div><div style="font-size:13px;font-weight:800;color:var(--golt)">$'+totO.toLocaleString()+'</div></div>';
+  h+='<div style="background:rgba(148,163,184,.1);border:1px solid rgba(148,163,184,.25);border-radius:5px;padding:6px 8px;text-align:center" title="Suma de Materiales + Equipos + Mano de Obra del ítem completo, antes de Gastos Generales, Beneficio, Financieros e Impuestos"><div style="font-size:9px;color:var(--tx2);font-weight:700;text-transform:uppercase;margin-bottom:2px">C.U.T. (Total)</div><div style="font-size:13px;font-weight:800;color:var(--tx2)">$'+calc.CUT.toLocaleString()+'</div></div>';
+  h+='<div style="background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--bt);font-weight:700;text-transform:uppercase;margin-bottom:2px">Precio Total del Ítem</div><div style="font-size:15px;font-weight:800;color:var(--bt)">$'+totT.toLocaleString()+'</div></div>';
+  h+='</div>';
   h+='<button id="cpapu-btn-'+it.id+'" onclick="cpToggleAPU(\''+it.id+'\')" style="font-size:10px;background:none;border:1px dashed var(--br2);color:var(--tx2);padding:4px 10px;border-radius:4px;cursor:pointer;margin-top:6px;width:100%;text-align:left">\u25b8 Ver An\u00e1lisis de Precios Unitario detallado</button>';
   h+='<div id="cpapu-'+it.id+'" style="display:none;margin-top:6px"></div>';
   h+='<button onclick="cpGuardarItemEnCatalogo(\''+it.id+'\')" title="Guarda este ítem (nombre, materiales y mano de obra) en el catálogo general para poder buscarlo y reutilizarlo en futuros ítems y obras" style="font-size:10px;background:none;border:1px dashed var(--gt);color:var(--gt);padding:4px 10px;border-radius:4px;cursor:pointer;margin-top:6px;width:100%;text-align:left">\ud83d\udcbe Guardar este ítem en el Catálogo General</button>';
@@ -6989,16 +7000,26 @@ function cpToggleAPU(iid){
   if(btn)btn.innerHTML='\u25be Ocultar An\u00e1lisis de Precios Unitario detallado';
 }
 function cpAPUItemHtml(it){
-  var qty=cpQty(it.dims,it.un);
-  var calc=cpCalcPreciso(it.mats,it.mo,qty);
+  // IMPORTANTE: un "Análisis de Precio Unitario" (A.P.U.) refleja, por definición, el costo
+  // de UNA sola unidad de medida del ítem (1 m, 1 m², 1 m³, etc.) — es independiente de cuántas
+  // unidades reales tenga el ítem en el Cómputo. Por eso la tabla que se imprime/despliega acá
+  // se calcula SIEMPRE con cantidad=1 (calcU), tal cual el modelo real de Diego (ANALISIS DE
+  // PRECIOS 2026.xlsx): la columna "Cantidad" es directamente el rendimiento por unidad, y
+  // "Precio Total" es su aporte al costo de esa única unidad.
+  // El total REAL del ítem (para la cantidad real del Cómputo, ej. 48 m) se calcula aparte
+  // (calcReal/qtyReal) y se devuelve para que cpPDF siga acumulando correctamente los totales
+  // del Cómputo y Presupuesto — eso NO cambia con este ajuste.
+  var qtyReal=cpQty(it.dims,it.un);
+  var calcReal=cpCalcPreciso(it.mats,it.mo,qtyReal);
+  var calc=cpCalcPreciso(it.mats,it.mo,1);
   var mats=(it.mats||[]).filter(function(m){return !m.esEquipo;});
   var equipos=(it.mats||[]).filter(function(m){return m.esEquipo;});
   var h='';
-  h+='<h3>'+it.nom+' — '+qty.toLocaleString('es-AR',{maximumFractionDigits:2})+' '+it.un+'</h3>';
+  h+='<h3>'+it.nom+' — Análisis de Precio Unitario (por 1 '+it.un+')</h3>';
   h+='<div style="font-size:8pt;font-weight:700;margin:6px 0 2px">1. MATERIALES</div>';
   h+='<table><thead><tr><th>Cód.</th><th>Descripción</th><th>Unidad</th><th class="r">Cantidad</th><th class="r">Precio Unitario</th><th class="r">Precio Total</th></tr></thead><tbody>';
   mats.forEach(function(m){
-    var cant=Math.round(qty*(m.rend||0)*1000)/1000;
+    var cant=Math.round((m.rend||0)*1000)/1000;
     var pt=cant*(m.pu||0);
     h+='<tr><td>'+(m.id||'')+'</td><td>'+m.nom+(m.sinPrecio?' <span style="color:#c02d46;font-weight:700">!</span>':'')+'</td><td>'+m.un+'</td><td class="r mat">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">$'+cpFmtAR(m.pu)+'</td><td class="r mat">$'+cpFmtAR(pt)+'</td></tr>';
   });
@@ -7009,7 +7030,7 @@ function cpAPUItemHtml(it){
   h+='<div style="font-size:8pt;font-weight:700;margin:6px 0 2px">2. EQUIPOS</div>';
   h+='<table><thead><tr><th>Cód.</th><th>Descripción</th><th>Unidad</th><th class="r">Cantidad</th><th class="r">Precio Unitario</th><th class="r">Precio Total</th></tr></thead><tbody>';
   equipos.forEach(function(m){
-    var cant=Math.round(qty*(m.rend||0)*1000)/1000;
+    var cant=Math.round((m.rend||0)*1000)/1000;
     var pt=cant*(m.pu||0);
     h+='<tr><td>'+(m.id||'')+'</td><td>'+m.nom+'</td><td>'+m.un+'</td><td class="r mat">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">$'+cpFmtAR(m.pu)+'</td><td class="r mat">$'+cpFmtAR(pt)+'</td></tr>';
   });
@@ -7022,7 +7043,7 @@ function cpAPUItemHtml(it){
   h+='<table><thead><tr><th>#</th><th>Descripción</th><th>Unidad</th><th class="r">Cantidad hs.</th><th class="r">Monto hora</th><th class="r">Precio Total</th></tr></thead><tbody>';
   roles.forEach(function(r){
     var m=(it.mo||[]).find(function(x){return x.rol===r.rol;});
-    var hs=m?qty*(m.hh||m.hs||0):0;
+    var hs=m?(m.hh||m.hs||0):0;
     var pu=m?(m.pu||apuGetMOpu(r.rol)):apuGetMOpu(r.rol);
     var pt=hs*pu;
     h+='<tr><td>'+r.n+'</td><td>'+r.lbl+'</td><td>hs.</td><td class="r mo">'+hs.toLocaleString('es-AR',{maximumFractionDigits:2})+'</td><td class="r">$'+cpFmtAR(pu)+'</td><td class="r mo">$'+cpFmtAR(pt)+'</td></tr>';
@@ -7045,7 +7066,10 @@ function cpAPUItemHtml(it){
   h+='</tbody></table>';
   h+='<table><tr class="tot"><td><b>PRECIO UNITARIO ($/un) =</b></td><td class="r"><b>$'+cpFmtAR(calc.pu_calc)+'</b></td></tr>';
   h+='<tr class="grand"><td><b>PRECIO UNITARIO ADOPTADO ($/un) =</b></td><td class="r"><b>$'+cpFmtAR(calc.pu_adopt)+'</b></td></tr></table>';
-  return {html:h,calc:calc,qty:qty};
+  if(qtyReal!==1){
+    h+='<div style="font-size:8pt;margin-top:8px;padding:6px 8px;background:#eff6ff;border-radius:4px">Cantidad total del ítem en este Cómputo: <b>'+qtyReal.toLocaleString('es-AR',{maximumFractionDigits:2})+' '+it.un+'</b> → Monto total: <b>$'+cpFmtAR(calcReal.pu_adopt)+'</b></div>';
+  }
+  return {html:h,calc:calcReal,qty:qtyReal,calcUnit:calc};
 }
 
 function cpPDF(modo){
