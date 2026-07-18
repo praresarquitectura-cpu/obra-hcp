@@ -8525,6 +8525,8 @@ var PR_DATA = [
 
 // Historial de modificaciones (se guarda en Firebase)
 var PR_HISTORIAL = [];
+// Códigos eliminados por el usuario del Listado de Precios (para no resucitarlos al mergear el catálogo base)
+var PR_DATA_DELETED = [];
 
 // Categorías únicas
 function prCategorias(){
@@ -8588,8 +8590,11 @@ function prUpdPU(i,val){
 }
 function prEliminar(i){
   if(!confirm('¿Eliminar "'+PR_DATA[i].nom+'"?'))return;
+  var cod=PR_DATA[i].cod;
+  if(cod&&PR_DATA_DELETED.indexOf(cod)===-1)PR_DATA_DELETED.push(cod);
   PR_DATA.splice(i,1);
   prRender();
+  if(typeof prGuardar==='function')prGuardar();
 }
 function prAgregar(){
   var cod=document.getElementById('pr-new-cod').value.trim();
@@ -8696,13 +8701,44 @@ function prSincronizarConCatalogo(){
 
 // Guardar en Firebase
 function prGuardar(){
-  var data={items:PR_DATA,historial:PR_HISTORIAL.slice(-100),ts:Date.now()};
+  var data={items:PR_DATA,historial:PR_HISTORIAL.slice(-100),deleted:PR_DATA_DELETED,ts:Date.now()};
   localStorage.setItem('obraerp_precios',JSON.stringify(data));
   if(_db&&_uid){
     _db.collection('users').doc(_uid).collection('config').doc('precios')
       .set(data).then(function(){toast('\u2713 Precios guardados en la nube');})
       .catch(function(e){toast('\u2713 Guardado local ('+e.message+')');});
   }else{toast('\u2713 Precios guardados');}
+}
+
+// Fusiona un snapshot guardado (localStorage/Firebase) con el catálogo fresco del código.
+// Un ítem del catálogo base SOLO se pisa si el snapshot lo trae con modif>0 (edición real
+// hecha por el usuario en la app). Los ítems del snapshot con modif:0 (catálogo sin tocar,
+// simplemente arrastrado en un guardado anterior) se ignoran a propósito: así una corrección
+// de precio hecha en el código (como la de Camión volcador/Motocompresor en v53) nunca queda
+// pisada por un guardado viejo del navegador. Los ítems cuyo cod no existe en el catálogo base
+// son altas nuevas del usuario y se conservan siempre. deletedCods son bajas explícitas del
+// usuario (prEliminar) que tampoco deben resucitar al recargar.
+function prMergeStored(storedItems, deletedCods){
+  if(!storedItems||!storedItems.length)return;
+  var porCod={};
+  PR_DATA.forEach(function(p){if(p.cod)porCod[p.cod]=p;});
+  var nuevos=[];
+  storedItems.forEach(function(s){
+    if(!s||!s.cod)return;
+    var base=porCod[s.cod];
+    if(base){
+      if(s.modif){
+        base.nom=s.nom;base.pu=s.pu;base.un=s.un;base.medida=s.medida;base.fuente=s.fuente;base.modif=s.modif;
+        if(s.cat)base.cat=s.cat;
+      }
+    }else{
+      nuevos.push(s);
+    }
+  });
+  if(nuevos.length)PR_DATA=PR_DATA.concat(nuevos);
+  if(deletedCods&&deletedCods.length){
+    PR_DATA=PR_DATA.filter(function(p){return deletedCods.indexOf(p.cod)===-1;});
+  }
 }
 
 // Cargar desde Firebase al iniciar
@@ -8712,19 +8748,20 @@ function prCargar(){
       .get().then(function(doc){
         if(doc.exists){
           var d=doc.data();
-          if(d.items&&d.items.length){PR_DATA=d.items;}
+          if(d.deleted)PR_DATA_DELETED=d.deleted;
+          if(d.items&&d.items.length){prMergeStored(d.items,d.deleted);}
           if(d.historial){PR_HISTORIAL=d.historial;}
           prSincronizarConCatalogo();
         }
         cpMergePrecios();
       }).catch(function(){
         var loc=localStorage.getItem('obraerp_precios');
-        if(loc){var d=JSON.parse(loc);if(d.items)PR_DATA=d.items;if(d.historial)PR_HISTORIAL=d.historial;prSincronizarConCatalogo();}
+        if(loc){var d=JSON.parse(loc);if(d.deleted)PR_DATA_DELETED=d.deleted;if(d.items)prMergeStored(d.items,d.deleted);if(d.historial)PR_HISTORIAL=d.historial;prSincronizarConCatalogo();}
         cpMergePrecios();
       });
   }else{
     var loc=localStorage.getItem('obraerp_precios');
-    if(loc){var d=JSON.parse(loc);if(d.items)PR_DATA=d.items;if(d.historial)PR_HISTORIAL=d.historial;prSincronizarConCatalogo();}
+    if(loc){var d=JSON.parse(loc);if(d.deleted)PR_DATA_DELETED=d.deleted;if(d.items)prMergeStored(d.items,d.deleted);if(d.historial)PR_HISTORIAL=d.historial;prSincronizarConCatalogo();}
     cpMergePrecios();
   }
 }
