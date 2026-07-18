@@ -6191,6 +6191,8 @@ function cpRenderItem(rid,it){
   h+='<div style="background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--bt);font-weight:700;text-transform:uppercase;margin-bottom:2px">Precio Unit. Adoptado</div><div style="font-size:15px;font-weight:800;color:var(--bt)">$'+totT.toLocaleString()+'</div></div>';
   h+='</div>';
   h+='<div style="font-size:9px;color:var(--tx3);margin-top:5px;padding:4px 6px;background:var(--bg);border-radius:4px">CUT: $'+calc.CUT.toLocaleString()+' \u2192 5.1 Grls.15%: $'+calc.g51.toLocaleString()+' \u2192 5.2 Benef.10%: $'+calc.g52.toLocaleString()+' \u2192 Subt.1: $'+calc.sub1.toLocaleString()+' \u2192 5.3 Financ.3%: $'+calc.g53.toLocaleString()+' \u2192 Subt.2: $'+calc.sub2.toLocaleString()+' \u2192 5.4 Imp.4%: $'+calc.g54.toLocaleString()+' \u2192 <b style="color:var(--bt)">Precio Unit.: $'+Math.round(calc.pu_calc).toLocaleString()+'</b></div>';
+  h+='<button id="cpapu-btn-'+it.id+'" onclick="cpToggleAPU(\''+it.id+'\')" style="font-size:10px;background:none;border:1px dashed var(--br2);color:var(--tx2);padding:4px 10px;border-radius:4px;cursor:pointer;margin-top:6px;width:100%;text-align:left">\u25b8 Ver An\u00e1lisis de Precios Unitario detallado</button>';
+  h+='<div id="cpapu-'+it.id+'" style="display:none;margin-top:6px"></div>';
   h+='</div>';
   return h;
 }
@@ -6646,6 +6648,39 @@ function cpPDFCss(){
   +'.rubro-block:first-of-type{page-break-before:auto}'
   +'.item-block{page-break-inside:avoid}'
   +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
+}
+function cpAPUEmbedCss(){
+  return '.cp-apu-embed{background:#fff;color:#111;border-radius:8px;padding:12px 14px;font-family:Arial,Helvetica,sans-serif;font-size:10pt;line-height:1.35;overflow-x:auto}'
+  +'.cp-apu-embed h3{font-size:10pt;font-weight:700;color:#1f2937;margin:12px 0 4px;border-bottom:1.5px solid #cbd5e1;padding-bottom:3px}'
+  +'.cp-apu-embed h3:first-child{margin-top:0}'
+  +'.cp-apu-embed table{width:100%;border-collapse:collapse;margin-bottom:6px;font-size:9pt}'
+  +'.cp-apu-embed th{background:#f1f5f9;padding:4px 6px;border:1px solid #cbd5e1;text-align:left;font-weight:700}'
+  +'.cp-apu-embed td{padding:4px 6px;border:1px solid #e2e8f0}'
+  +'.cp-apu-embed .r{text-align:right}.cp-apu-embed .mat{color:#166534}.cp-apu-embed .mo{color:#92400e}'
+  +'.cp-apu-embed .tot{font-weight:700;background:#eff6ff}.cp-apu-embed .grand{font-weight:800;background:#dbeafe}';
+}
+var CP_APU_CSS_INJECTED=false;
+function cpToggleAPU(iid){
+  var box=document.getElementById('cpapu-'+iid);
+  var btn=document.getElementById('cpapu-btn-'+iid);
+  if(!box)return;
+  var abierto=box.style.display!=='none'&&box.style.display!=='';
+  if(abierto){
+    box.style.display='none';
+    if(btn)btn.innerHTML='\u25b8 Ver An\u00e1lisis de Precios Unitario detallado';
+    return;
+  }
+  if(!CP_APU_CSS_INJECTED){
+    var st=document.createElement('style');st.innerHTML=cpAPUEmbedCss();document.head.appendChild(st);
+    CP_APU_CSS_INJECTED=true;
+  }
+  var it=null;
+  CP_RUBROS.forEach(function(r){r.items.forEach(function(x){if(x.id===iid)it=x;});});
+  if(!it){toast('\u00cdtem no encontrado',false);return;}
+  var res=cpAPUItemHtml(it);
+  box.innerHTML='<div class="cp-apu-embed">'+res.html+'</div>';
+  box.style.display='block';
+  if(btn)btn.innerHTML='\u25be Ocultar An\u00e1lisis de Precios Unitario detallado';
 }
 function cpAPUItemHtml(it){
   var qty=cpQty(it.dims,it.un);
