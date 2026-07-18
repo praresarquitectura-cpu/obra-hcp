@@ -982,6 +982,39 @@ input,select,textarea,button{font-family:var(--font)}
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-mat-picker')">Cancelar</button><button class="btn" style="background:var(--gt);color:#fff" onclick="cpElegirMatPicker()">Agregar</button></div>
   </div>
 </div>
+<div class="mb" id="mod-cat-picker" onclick="closeBg(event,'mod-cat-picker')">
+  <div class="modal" style="max-width:640px">
+    <div class="mt2" id="ccp-titulo">Agregar Material</div>
+    <div class="msub" id="ccp-subtitulo">Buscá en el catálogo de precios reales o cargá uno nuevo</div>
+    <div id="ccp-catalogo-wrap" style="margin-top:12px">
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <input class="fi" type="text" id="ccp-buscar" placeholder="Buscar por nombre..." oninput="cpCatPickerFiltrar()" style="flex:1;min-width:180px">
+        <select class="fis" id="ccp-cat" style="width:220px" onchange="cpCatPickerFiltrar()"></select>
+      </div>
+      <div id="ccp-lista" style="max-height:38vh;overflow-y:auto;border:1px solid var(--br);border-radius:6px"></div>
+      <div id="ccp-sin-resultados" style="display:none;padding:14px;text-align:center;color:var(--tx3);font-size:12px">Sin resultados — probá otra búsqueda o cargá un ítem nuevo abajo.</div>
+    </div>
+    <div id="ccp-mo-wrap" style="display:none;margin-top:12px;gap:8px;flex-wrap:wrap"></div>
+    <div id="ccp-nuevo-toggle-wrap" style="margin-top:10px">
+      <button type="button" onclick="cpCatPickerToggleNuevo()" style="font-size:11px;background:none;border:none;color:var(--bt);cursor:pointer;padding:0">+ ¿No lo encontrás? Cargar nuevo ítem al catálogo</button>
+    </div>
+    <div id="ccp-nuevo-form" style="display:none;margin-top:10px;padding:10px;background:var(--bg);border-radius:6px">
+      <div class="g2">
+        <div class="fg"><label class="fl">Nombre</label><input class="fi" id="ccp-new-nom" placeholder="Ej: Motocompresor con martillo"></div>
+        <div class="fg"><label class="fl">Categoría</label><select class="fis" id="ccp-new-cat"></select></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label class="fl">Unidad</label><input class="fi" id="ccp-new-un" placeholder="hh / m² / un..."></div>
+        <div class="fg"><label class="fl">Precio</label><input class="fi cp-di" type="text" inputmode="decimal" id="ccp-new-precio" placeholder="0"></div>
+        <div class="fg"><label class="fl">Fuente (opcional)</label><input class="fi" id="ccp-new-fuente" placeholder="Proveedor / referencia"></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:8px">
+        <button class="btn" style="background:var(--gt);color:#fff" onclick="cpCatPickerGuardarNuevo()">Guardar en catálogo y agregar</button>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-cat-picker')">Cancelar</button></div>
+  </div>
+</div>
 <div class="mb" id="mod-add-rubro" onclick="closeBg(event,'mod-add-rubro')">
   <div class="modal" style="max-width:480px">
     <div class="mt2">Agregar Rubro</div>
@@ -6096,8 +6129,11 @@ function cpCantBarras(cant,desp,largo){
 }
 function cpRenderMats(it){
   var qty=cpQty(it.dims,it.un);
-  if(!(it.mats||[]).length&&!(it.mo||[]).length)return'<div style="font-size:10px;color:var(--tx3);padding:4px">Sin desglose. Podés agregar materiales, equipo o MO.</div>';
-  var h='<div style="overflow-x:auto"><table style="width:100%;font-size:10px;border-collapse:collapse;margin-top:4px">';
+  var h='';
+  if(!(it.mats||[]).length&&!(it.mo||[]).length){
+    h+='<div style="font-size:10px;color:var(--tx3);padding:4px">Sin desglose. Podés agregar materiales, equipo o MO.</div>';
+  }else{
+  h+='<div style="overflow-x:auto"><table style="width:100%;font-size:10px;border-collapse:collapse;margin-top:4px">';
   h+='<thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:3px 5px;color:var(--tx3)">Material / Equipo</th><th style="text-align:center;padding:3px 5px;color:var(--tx3)">Un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Rend/un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Cant. total</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)" title="Desperdicio % (materiales) o Rendimiento un/hora (mano de obra)">Desp.% / Rend.MO</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)" title="Cantidad comercial redondeada (barras/rollos) con el % de desperdicio aplicado">Cant. Comercial</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">$/un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Subtotal</th><th></th></tr></thead><tbody>';
   (it.mats||[]).forEach(function(m,mi){
     var pu=m.pu||CP_PRECIOS_MAT[m.id]||0;
@@ -6137,11 +6173,12 @@ function cpRenderMats(it){
     h+='<td><button onclick="cpBorrarMO(\''+it.id+'\','+mi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px;padding:0">\u00d7</button></td></tr>';
   });
   h+='</tbody></table></div>';
+  }
   h+='<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">';
-  h+='<button onclick="cpAgregarMat(\''+it.id+'\')" style="font-size:10px;background:none;border:1px dashed var(--gt);color:var(--gt);padding:3px 10px;border-radius:4px;cursor:pointer">+ Material</button>';
+  h+='<button onclick="cpAbrirCatPicker(\''+it.id+'\',\'material\')" style="font-size:10px;background:none;border:1px dashed var(--gt);color:var(--gt);padding:3px 10px;border-radius:4px;cursor:pointer">+ Material</button>';
   h+='<button onclick="cpAbrirPickerMat(\''+it.id+'\')" style="font-size:10px;background:none;border:1px dashed var(--bt);color:var(--bt);padding:3px 10px;border-radius:4px;cursor:pointer">+ Cañería / Insumo (tipo y diámetro)</button>';
-  h+='<button onclick="cpAgregarEquipo(\''+it.id+'\')" style="font-size:10px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:3px 10px;border-radius:4px;cursor:pointer">+ Equipo</button>';
-  h+='<button onclick="cpAgregarMO(\''+it.id+'\')" style="font-size:10px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:3px 10px;border-radius:4px;cursor:pointer">+ MO</button>';
+  h+='<button onclick="cpAbrirCatPicker(\''+it.id+'\',\'equipo\')" style="font-size:10px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:3px 10px;border-radius:4px;cursor:pointer">+ Equipo</button>';
+  h+='<button onclick="cpAbrirCatPicker(\''+it.id+'\',\'mo\')" style="font-size:10px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:3px 10px;border-radius:4px;cursor:pointer">+ MO</button>';
   h+='</div>';
   return h;
 }
@@ -6512,6 +6549,139 @@ function cpElegirMatPicker(){
   closeM('mod-mat-picker');
   cpRender();
   toast('✓ '+p.nom+' agregado');
+}
+
+// ── Picker genérico de catálogo para +Material / +Equipo / +MO ─────────
+var CP_CATPICKER_IID=null,CP_CATPICKER_TIPO=null;
+var CP_MO_ROLES=[{rol:'ofEsp',lbl:'Oficial Especializado'},{rol:'of',lbl:'Oficial'},{rol:'mo',lbl:'Medio Oficial'},{rol:'ay',lbl:'Ayudante'}];
+function cpCatPickerCategorias(tipo){
+  var cats=(typeof prCategorias==='function')?prCategorias():[];
+  if(tipo==='equipo')return cats.filter(function(c){return c==='EQUIPOS';});
+  return cats.filter(function(c){return c!=='EQUIPOS'&&c!=='MANO DE OBRA';});
+}
+function cpAbrirCatPicker(iid,tipo){
+  CP_CATPICKER_IID=iid;CP_CATPICKER_TIPO=tipo;
+  var titulos={material:'Agregar Material',equipo:'Agregar Equipo',mo:'Agregar Mano de Obra'};
+  var subs={material:'Buscá en el catálogo de precios reales o cargá uno nuevo',equipo:'Buscá en el catálogo de equipos con precio real o cargá uno nuevo',mo:'Elegí el rol — el precio se toma del catálogo (Listado de Precios), siempre actualizado'};
+  var t=document.getElementById('ccp-titulo');if(t)t.textContent=titulos[tipo]||'Agregar';
+  var s=document.getElementById('ccp-subtitulo');if(s)s.textContent=subs[tipo]||'';
+  var catalogoWrap=document.getElementById('ccp-catalogo-wrap');
+  var moWrap=document.getElementById('ccp-mo-wrap');
+  var nuevoToggleWrap=document.getElementById('ccp-nuevo-toggle-wrap');
+  var nuevoForm=document.getElementById('ccp-nuevo-form');
+  if(nuevoForm)nuevoForm.style.display='none';
+  if(tipo==='mo'){
+    if(catalogoWrap)catalogoWrap.style.display='none';
+    if(nuevoToggleWrap)nuevoToggleWrap.style.display='none';
+    if(moWrap){
+      moWrap.style.display='flex';
+      moWrap.innerHTML=CP_MO_ROLES.map(function(r){
+        var pu=(typeof apuGetMOpu==='function')?apuGetMOpu(r.rol):(CP_PRECIOS_MAT[r.rol]||0);
+        return '<button onclick="cpCatPickerElegirRol(\''+r.rol+'\')" style="flex:1;min-width:130px;background:var(--bg);border:1px solid var(--br);border-radius:6px;padding:10px;cursor:pointer;text-align:center;color:var(--tx)">'
+          +'<div style="font-size:11px;font-weight:700;color:var(--golt)">'+r.lbl+'</div>'
+          +'<div style="font-size:13px;font-weight:800;margin-top:3px">$'+pu.toLocaleString('es-AR')+'/hs</div></button>';
+      }).join('');
+    }
+  }else{
+    if(moWrap)moWrap.style.display='none';
+    if(catalogoWrap)catalogoWrap.style.display='block';
+    if(nuevoToggleWrap)nuevoToggleWrap.style.display='block';
+    cpCatPickerPoblarCategorias();
+    var buscar=document.getElementById('ccp-buscar');if(buscar)buscar.value='';
+    cpCatPickerFiltrar();
+  }
+  document.getElementById('mod-cat-picker').classList.add('open');
+}
+function cpCatPickerPoblarCategorias(){
+  var sel=document.getElementById('ccp-cat');if(!sel)return;
+  var cats=cpCatPickerCategorias(CP_CATPICKER_TIPO);
+  sel.innerHTML='<option value="">Todas las categorías</option>'+cats.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
+  if(CP_CATPICKER_TIPO==='equipo'&&cats.length)sel.value=cats[0];
+  var selNuevo=document.getElementById('ccp-new-cat');
+  if(selNuevo){
+    var catsNuevo=CP_CATPICKER_TIPO==='equipo'?['EQUIPOS']:(typeof prCategorias==='function'?prCategorias():[]).filter(function(c){return c!=='MANO DE OBRA';});
+    selNuevo.innerHTML=catsNuevo.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
+  }
+}
+function cpCatPickerFiltrar(){
+  var lista=document.getElementById('ccp-lista');if(!lista)return;
+  var qRaw=(document.getElementById('ccp-buscar')||{}).value||'';
+  var q=(typeof cpPetpNormaliza==='function')?cpPetpNormaliza(qRaw):qRaw.toLowerCase();
+  var cat=(document.getElementById('ccp-cat')||{}).value||'';
+  var catsPermitidas=cpCatPickerCategorias(CP_CATPICKER_TIPO);
+  var opts=(typeof PR_DATA!=='undefined'?PR_DATA:[]).filter(function(p){
+    if(catsPermitidas.indexOf(p.cat)<0)return false;
+    if(cat&&p.cat!==cat)return false;
+    if(q){
+      var nomN=(typeof cpPetpNormaliza==='function')?cpPetpNormaliza(p.nom):p.nom.toLowerCase();
+      if(nomN.indexOf(q)<0)return false;
+    }
+    return true;
+  }).slice(0,150);
+  var sinRes=document.getElementById('ccp-sin-resultados');
+  if(!opts.length){
+    lista.innerHTML='';
+    if(sinRes)sinRes.style.display='block';
+    return;
+  }
+  if(sinRes)sinRes.style.display='none';
+  lista.innerHTML=opts.map(function(p){
+    return '<div onclick="cpCatPickerElegir(\''+p.cod+'\')" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid var(--br);cursor:pointer" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'\'">'
+      +'<div><div style="font-size:12px;font-weight:600">'+p.nom+'</div><div style="font-size:10px;color:var(--tx3)">'+p.cat+' \u00b7 '+p.un+'</div></div>'
+      +'<div style="font-size:12px;font-weight:700;color:'+(p.pu>0?'var(--bt)':'var(--rt)')+'">'+(p.pu>0?'$'+p.pu.toLocaleString('es-AR'):'sin precio')+'</div></div>';
+  }).join('');
+}
+function cpCatPickerElegir(cod){
+  var iid=CP_CATPICKER_IID;var it=cpFindItem(iid);if(!it)return;
+  var p=(typeof PR_DATA!=='undefined'?PR_DATA:[]).find(function(x){return x.cod===cod;});
+  if(!p){toast('No encontrado en el catálogo',false);return;}
+  it.mats.push({id:p.cod,nom:p.nom,un:p.un,rend:1,pu:p.pu||0,esEquipo:(CP_CATPICKER_TIPO==='equipo'),sinPrecio:!(p.pu>0)});
+  closeM('mod-cat-picker');
+  cpRender();
+  toast('✓ '+p.nom+' agregado'+(p.pu>0?'':' (sin precio, completalo en Listado de Precios)'));
+}
+function cpCatPickerElegirRol(rol){
+  var iid=CP_CATPICKER_IID;var it=cpFindItem(iid);if(!it)return;
+  var pu=(typeof apuGetMOpu==='function')?apuGetMOpu(rol):(CP_PRECIOS_MAT[rol]||0);
+  it.mo.push({rol:rol,hh:1,pu:pu});
+  closeM('mod-cat-picker');
+  cpRender();
+  var lbl=(CP_MO_ROLES.find(function(r){return r.rol===rol;})||{}).lbl||rol;
+  toast('✓ '+lbl+' agregado');
+}
+function cpCatPickerToggleNuevo(){
+  var form=document.getElementById('ccp-nuevo-form');if(!form)return;
+  var abierto=form.style.display!=='none'&&form.style.display!=='';
+  form.style.display=abierto?'none':'block';
+  if(!abierto){
+    var nomEl=document.getElementById('ccp-new-nom');
+    if(nomEl&&!nomEl.value){
+      var buscar=(document.getElementById('ccp-buscar')||{}).value||'';
+      nomEl.value=buscar;
+    }
+    if(CP_CATPICKER_TIPO==='equipo'){
+      var unEl=document.getElementById('ccp-new-un');
+      if(unEl&&!unEl.value)unEl.value='hh';
+    }
+  }
+}
+function cpCatPickerGuardarNuevo(){
+  var iid=CP_CATPICKER_IID;var it=cpFindItem(iid);if(!it)return;
+  var nom=(document.getElementById('ccp-new-nom').value||'').trim();
+  if(!nom){toast('Ingresá un nombre',false);return;}
+  var cat=CP_CATPICKER_TIPO==='equipo'?'EQUIPOS':((document.getElementById('ccp-new-cat')||{}).value||'OTROS');
+  var un=(document.getElementById('ccp-new-un').value||'').trim()||(CP_CATPICKER_TIPO==='equipo'?'hh':'un');
+  var pu=parseARNum(document.getElementById('ccp-new-precio').value)||0;
+  var fuente=(document.getElementById('ccp-new-fuente').value||'').trim()||'Cargado desde Cómputo';
+  var cod='C'+Date.now().toString(36).toUpperCase();
+  var nuevo={cod:cod,nom:nom,cat:cat,un:un,pu:pu,medida:un,fuente:fuente,modif:Date.now()};
+  if(typeof PR_DATA==='undefined')window.PR_DATA=[];
+  PR_DATA.push(nuevo);
+  if(typeof prGuardar==='function')prGuardar();
+  it.mats.push({id:cod,nom:nom,un:un,rend:1,pu:pu,esEquipo:(CP_CATPICKER_TIPO==='equipo'),sinPrecio:!(pu>0)});
+  closeM('mod-cat-picker');
+  cpRender();
+  toast('✓ '+nom+' creado en el catálogo, guardado y agregado al ítem');
 }
 
 function cpCargar(obraIdOverride,nomOverride){
