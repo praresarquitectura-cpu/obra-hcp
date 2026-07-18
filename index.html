@@ -700,13 +700,14 @@ input,select,textarea,button{font-family:var(--font)}
 
   <!-- Tabla de precios -->
   <div class="card" style="padding:0;overflow:hidden">
-    <div style="display:grid;grid-template-columns:60px 1fr 80px 170px 130px 110px 70px;background:var(--bg4);padding:8px 10px;font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--br)">
+    <div style="display:grid;grid-template-columns:60px 1fr 80px 170px 130px 110px 70px 70px;background:var(--bg4);padding:8px 10px;font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--br)">
       <div>Código</div>
       <div>Descripción</div>
       <div style="text-align:center">Unidad</div>
       <div style="text-align:right">Precio Unit.</div>
       <div style="text-align:center">Medida Comerc.</div>
       <div>Fuente</div>
+      <div style="text-align:center" title="Agregar este ítem a un rubro/ítem del Cómputo activo">Cómputo</div>
       <div style="text-align:center">Acciones</div>
     </div>
     <div id="pr-tabla" style="max-height:70vh;overflow-y:auto"></div>
@@ -1013,6 +1014,22 @@ input,select,textarea,button{font-family:var(--font)}
       </div>
     </div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-cat-picker')">Cancelar</button></div>
+  </div>
+</div>
+<div class="mb" id="mod-pr-add-computo" onclick="closeBg(event,'mod-pr-add-computo')">
+  <div class="modal" style="max-width:520px">
+    <div class="mt2">Agregar al Cómputo</div>
+    <div class="msub" id="pracp-insumo">—</div>
+    <div id="pracp-sinrubros" style="display:none;margin-top:12px;padding:14px;text-align:center;color:var(--tx3);font-size:12px;background:var(--bg);border-radius:6px">No hay rubros cargados en Cómputo todavía. Andá al módulo Cómputo y creá un rubro con al menos un ítem primero.</div>
+    <div id="pracp-form" style="margin-top:12px">
+      <label class="fl" style="display:block;margin-bottom:4px">Rubro</label>
+      <select id="pracp-rubro" class="fis" style="width:100%;margin-bottom:10px" onchange="prAddCpRubroChange()"></select>
+      <label class="fl" style="display:block;margin-bottom:4px">Ítem</label>
+      <select id="pracp-item" class="fis" style="width:100%;margin-bottom:10px"></select>
+      <label class="fl" id="pracp-cant-label" style="display:block;margin-bottom:4px">Cantidad (rendimiento por unidad del ítem)</label>
+      <input id="pracp-cant" class="cp-di" type="text" inputmode="decimal" value="1" style="width:100%">
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-pr-add-computo')">Cancelar</button><button class="btn" id="pracp-btn-agregar" style="background:var(--gt);color:#fff" onclick="prAddCpConfirmar()">Agregar</button></div>
   </div>
 </div>
 <div class="mb" id="mod-add-rubro" onclick="closeBg(event,'mod-add-rubro')">
@@ -8397,13 +8414,14 @@ function prRender(){
   tabla.innerHTML=rows.map(function(p,i){
     var fi=PR_DATA.indexOf(p);
     var modifStr=p.modif?new Date(p.modif).toLocaleDateString('es-AR'):'—';
-    return '<div style="display:grid;grid-template-columns:60px 1fr 80px 170px 130px 110px 70px;padding:7px 10px;border-bottom:1px solid var(--br);align-items:center;font-size:11px'+(p.modif?' background:rgba(74,222,128,.04)':'')+'">'
+    return '<div style="display:grid;grid-template-columns:60px 1fr 80px 170px 130px 110px 70px 70px;padding:7px 10px;border-bottom:1px solid var(--br);align-items:center;font-size:11px'+(p.modif?' background:rgba(74,222,128,.04)':'')+'">'
       +'<div style="color:var(--tx3);font-size:10px">'+p.cod+'</div>'
       +'<div><input type="text" value="'+p.nom+'" oninput="prUpdNom('+fi+',this.value)" style="background:transparent;border:none;color:var(--tx);font-size:11px;width:100%;outline:none;cursor:text" onfocus="this.style.background=\'var(--bg3)\'" onblur="this.style.background=\'transparent\'"></div>'
       +'<div style="text-align:center;color:var(--tx3)">'+p.un+'</div>'
       +'<div style="text-align:right"><div class="pw" style="justify-content:flex-end"><input class="pi" type="text" inputmode="decimal" value="'+(p.pu||0).toLocaleString('es-AR')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)prUpdPU('+fi+',v);" style="width:150px;text-align:right;font-size:13px"><span class="pu">$</span></div></div>'
       +'<div style="text-align:center;color:var(--tx3);font-size:10px">'+p.medida+'</div>'
       +'<div style="font-size:10px;color:var(--tx3)">'+p.fuente+'<br><span style="color:'+(p.modif?'var(--gt)':'var(--tx3)')+'">'+modifStr+'</span></div>'
+      +'<div style="text-align:center"><button onclick="prAbrirAgregarComputo('+fi+')" style="background:none;border:1px solid var(--gt);color:var(--gt);border-radius:5px;cursor:pointer;font-size:13px;padding:2px 8px;font-weight:700" title="Agregar a un ítem del Cómputo">+</button></div>'
       +'<div style="text-align:center"><button onclick="prEliminar('+fi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px" title="Eliminar">✕</button></div>'
       +'</div>';
   }).join('');
@@ -8446,6 +8464,73 @@ function prAgregar(){
   });
   prRender();
   toast('\u2713 Ítem agregado');
+}
+
+// ── Agregar un ítem del Listado de Precios directo a un ítem del Cómputo ──
+var PR_ADDCP_IDX=null;
+var PR_ADDCP_MAP_MO={MO1:'ofEsp',MO2:'of',MO3:'mo',MO4:'ay'};
+function prAbrirAgregarComputo(fi){
+  var p=PR_DATA[fi];if(!p)return;
+  PR_ADDCP_IDX=fi;
+  var elIns=document.getElementById('pracp-insumo');
+  if(elIns)elIns.textContent=p.nom+' — '+p.cat+' · '+(p.pu>0?'$'+p.pu.toLocaleString('es-AR'):'sin precio');
+  var tipo=p.cat==='MANO DE OBRA'?'mo':(p.cat==='EQUIPOS'?'equipo':'material');
+  var cantLabel=document.getElementById('pracp-cant-label');
+  if(cantLabel)cantLabel.textContent=tipo==='mo'?'Horas por unidad del ítem (hs/un)':'Cantidad (rendimiento por unidad del ítem)';
+  var cantInput=document.getElementById('pracp-cant');if(cantInput)cantInput.value='1';
+  var sinRubros=document.getElementById('pracp-sinrubros');
+  var form=document.getElementById('pracp-form');
+  var btnAgregar=document.getElementById('pracp-btn-agregar');
+  if(typeof CP_RUBROS==='undefined'||!CP_RUBROS.length){
+    if(sinRubros)sinRubros.style.display='block';
+    if(form)form.style.display='none';
+    if(btnAgregar)btnAgregar.style.display='none';
+  }else{
+    if(sinRubros)sinRubros.style.display='none';
+    if(form)form.style.display='block';
+    if(btnAgregar)btnAgregar.style.display='inline-block';
+    var selR=document.getElementById('pracp-rubro');
+    if(selR){
+      selR.innerHTML=CP_RUBROS.map(function(r){return '<option value="'+r.id+'">'+(r.nom||'(sin nombre)')+'</option>';}).join('');
+      if(typeof CP_RUBRO_TAB!=='undefined'&&CP_RUBROS.some(function(r){return r.id===CP_RUBRO_TAB;}))selR.value=CP_RUBRO_TAB;
+    }
+    prAddCpRubroChange();
+  }
+  document.getElementById('mod-pr-add-computo').classList.add('open');
+}
+function prAddCpRubroChange(){
+  var rid=(document.getElementById('pracp-rubro')||{}).value;
+  var rub=(typeof CP_RUBROS!=='undefined'?CP_RUBROS:[]).find(function(r){return r.id===rid;});
+  var selI=document.getElementById('pracp-item');
+  if(!selI)return;
+  if(!rub||!rub.items.length){
+    selI.innerHTML='<option value="">(sin ítems en este rubro)</option>';
+    return;
+  }
+  selI.innerHTML=rub.items.map(function(it){return '<option value="'+it.id+'">'+(it.nom||'(sin nombre)')+' — '+it.un+'</option>';}).join('');
+}
+function prAddCpConfirmar(){
+  var fi=PR_ADDCP_IDX;var p=PR_DATA[fi];if(!p){toast('Ítem de precio no encontrado',false);return;}
+  var rid=(document.getElementById('pracp-rubro')||{}).value;
+  var iid=(document.getElementById('pracp-item')||{}).value;
+  if(!rid||!iid){toast('Elegí rubro e ítem',false);return;}
+  var it=(typeof cpFindItem==='function')?cpFindItem(iid):null;
+  if(!it){toast('Ítem de Cómputo no encontrado',false);return;}
+  var tipo=p.cat==='MANO DE OBRA'?'mo':(p.cat==='EQUIPOS'?'equipo':'material');
+  var cantVal=parseARNum((document.getElementById('pracp-cant')||{}).value);
+  if(isNaN(cantVal)||cantVal<=0)cantVal=1;
+  var nomItemDestino=it.nom||'el ítem';
+  if(tipo==='mo'){
+    var rol=PR_ADDCP_MAP_MO[p.cod]||'of';
+    if(!it.mo)it.mo=[];
+    it.mo.push({rol:rol,hh:cantVal,pu:p.pu||(typeof apuGetMOpu==='function'?apuGetMOpu(rol):0)});
+  }else{
+    if(!it.mats)it.mats=[];
+    it.mats.push({id:p.cod,nom:p.nom,un:p.un,rend:cantVal,pu:p.pu||0,esEquipo:(tipo==='equipo'),sinPrecio:!(p.pu>0)});
+  }
+  if(typeof cpGuardar==='function')cpGuardar();
+  closeM('mod-pr-add-computo');
+  toast('✓ '+p.nom+' agregado a "'+nomItemDestino+'"');
 }
 
 function prRegistrarHistorial(i,campo,val){
