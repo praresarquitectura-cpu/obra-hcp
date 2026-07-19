@@ -6296,6 +6296,148 @@ function cpRenderMats(it){
   return h;
 }
 
+
+// ══ CALCULADORA DE ESTRUCTURA METÁLICA — elemento × perfil × número de perfiles × longitud ══
+// Modelo tomado de la planilla real "3 CM - List Mat - MO" (hoja METALICOS): cada fila es un
+// elemento estructural (columna, viga, diagonal, correa, etc.) con su perfil, cantidad de
+// elementos, número de perfiles por elemento y longitud. Parcial = cant×numPerf×long, y se
+// suma por tipo de perfil con un % de desperdicio (10% por defecto, editable). Es un cómputo
+// GLOBAL: el ítem completo se computa como 1 unidad "un" (no por m²) — así se recalcula
+// it.mats automáticamente a partir de estas filas cada vez que cambian, resolviendo el precio
+// de cada perfil en vivo contra PR_DATA (igual criterio que el resto del cómputo). Si el ítem
+// no usa esta calculadora (modo "Global"), se edita como cualquier ítem normal (dimensiones +
+// materiales/equipos/MO manuales), que es la otra forma de cargar Estructura Metálica que pidió Diego.
+function cpMetToggle(iid){
+  var it=cpFindItem(iid);if(!it)return;
+  it.metModo=(it.metModo==='detallado')?'global':'detallado';
+  if(it.metModo==='detallado'){
+    if(!it.metElems)it.metElems=[];
+    if(it.metDesp===undefined||it.metDesp===null)it.metDesp=30; // 30% verificado contra la planilla real '3 CM - List Mat - MO' (hoja METALICOS, celda de desperdicio=0.3)
+    if(!it.unidades_permitidas)it.unidades_permitidas=['m²','m³','ml','m','un','kg','tn','gl','hs','lt'];
+    if(it.unidades_permitidas.indexOf('un')===-1)it.unidades_permitidas.push('un');
+    cpMetRecalcular(it);
+  }
+  cpRender();
+}
+function cpMetAgregarFila(iid){
+  var it=cpFindItem(iid);if(!it)return;
+  if(!it.metElems)it.metElems=[];
+  it.metElems.push({elemento:'',cant:1,perfilCod:'',perfilNom:'',numPerf:1,long:0});
+  cpRender();
+}
+function cpMetEliminarFila(iid,idx){
+  var it=cpFindItem(iid);if(!it||!it.metElems)return;
+  it.metElems.splice(idx,1);
+  cpMetRecalcular(it);
+  cpRender();
+}
+function cpMetUFila(iid,idx,campo,val){
+  var it=cpFindItem(iid);if(!it||!it.metElems||!it.metElems[idx])return;
+  if(campo==='elemento')it.metElems[idx].elemento=val;
+  else if(campo==='cant')it.metElems[idx].cant=parseARNum(val)||0;
+  else if(campo==='numPerf')it.metElems[idx].numPerf=parseARNum(val)||0;
+  else if(campo==='long')it.metElems[idx].long=parseARNum(val)||0;
+  cpMetRecalcular(it);
+  cpRender();
+}
+function cpMetUDesp(iid,val){
+  var it=cpFindItem(iid);if(!it)return;
+  var v=parseARNum(val);
+  it.metDesp=isNaN(v)?0:v;
+  cpMetRecalcular(it);
+  cpRender();
+}
+function cpMetBuscarPerfil(iid,idx,val){
+  var cont=document.getElementById('cpmet-sug-'+iid+'-'+idx);
+  if(!cont)return;
+  if(!val||val.length<2){cont.style.display='none';return;}
+  var ql=val.toLowerCase();
+  var res=(typeof PR_DATA!=='undefined'?PR_DATA:[]).filter(function(p){
+    return (p.cat==='PERFILES HIERRO NEGRO'||p.cat==='PERFILES GALVANIZADOS')&&
+      (p.nom.toLowerCase().indexOf(ql)!==-1||p.cod.toLowerCase().indexOf(ql)!==-1);
+  }).slice(0,12);
+  if(!res.length){cont.innerHTML='<div style="padding:6px 8px;font-size:11px;color:var(--tx3)">Sin resultados</div>';cont.style.display='block';return;}
+  cont.innerHTML=res.map(function(p){
+    return '<div style="padding:5px 8px;font-size:11px;cursor:pointer;border-bottom:1px solid var(--br)" onmousedown="cpMetElegirPerfil(\''+iid+'\','+idx+',\''+p.cod+'\')">'+p.nom+' <span style="color:var(--tx3)">($'+(p.pu||0).toLocaleString()+'/m)</span></div>';
+  }).join('');
+  cont.style.display='block';
+}
+function cpMetElegirPerfil(iid,idx,cod){
+  var it=cpFindItem(iid);if(!it||!it.metElems||!it.metElems[idx])return;
+  var p=(typeof PR_DATA!=='undefined'?PR_DATA:[]).find(function(x){return x.cod===cod;});if(!p)return;
+  it.metElems[idx].perfilCod=p.cod;
+  it.metElems[idx].perfilNom=p.nom;
+  cpMetRecalcular(it);
+  cpRender();
+}
+function cpMetGrupos(it){
+  var desp=1+((it.metDesp!==undefined&&it.metDesp!==null?it.metDesp:30)/100);
+  var grupos={},orden=[];
+  (it.metElems||[]).forEach(function(f){
+    if(!f.perfilCod)return;
+    var ml=(+f.cant||0)*(+f.numPerf||0)*(+f.long||0);
+    if(!grupos[f.perfilCod]){grupos[f.perfilCod]={nom:f.perfilNom,ml:0};orden.push(f.perfilCod);}
+    grupos[f.perfilCod].ml+=ml;
+  });
+  return {grupos:grupos,orden:orden,desp:desp};
+}
+function cpMetRecalcular(it){
+  if(!it.metElems)return;
+  var g=cpMetGrupos(it);
+  var mats=[];
+  g.orden.forEach(function(cod){
+    var grp=g.grupos[cod];
+    var mlConDesp=Math.round(grp.ml*g.desp*100)/100;
+    var p=(typeof PR_DATA!=='undefined'?PR_DATA:[]).find(function(x){return x.cod===cod;});
+    mats.push({id:cod,nom:grp.nom,un:'m',rend:mlConDesp,pu:p?(p.pu||0):0,esEquipo:false});
+  });
+  it.mats=mats;
+  it.un='un';
+  it.dims=[{l:1,a:1,h:0,q:1}];
+}
+function cpMetResumenHtml(it){
+  var g=cpMetGrupos(it);
+  if(!g.orden.length)return '';
+  var h='<div style="margin-top:6px;padding:6px 8px;background:var(--bg3);border-radius:4px">';
+  h+='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;margin-bottom:3px">Resumen por perfil (con '+(it.metDesp!==undefined&&it.metDesp!==null?it.metDesp:30)+'% desperdicio)</div>';
+  g.orden.forEach(function(cod){
+    var grp=g.grupos[cod];
+    var mlConDesp=Math.round(grp.ml*g.desp*100)/100;
+    h+='<div style="font-size:10px;color:var(--tx2);display:flex;justify-content:space-between;gap:8px"><span>'+grp.nom+'</span><span style="white-space:nowrap">'+grp.ml.toLocaleString('es-AR',{maximumFractionDigits:2})+' m → c/desp: <b>'+mlConDesp.toLocaleString('es-AR',{maximumFractionDigits:2})+' m</b></span></div>';
+  });
+  h+='</div>';
+  return h;
+}
+function cpRenderMetalica(it){
+  var h='<div style="background:var(--bg);border-radius:6px;padding:8px;margin-bottom:8px">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;flex-wrap:wrap;gap:6px">';
+  h+='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em">ESTRUCTURA METÁLICA — POR ELEMENTO (columna, viga, diagonal, correa…)</div>';
+  h+='<div style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;color:var(--tx3)">Desperdicio</span><input type="text" inputmode="decimal" value="'+(it.metDesp!==undefined&&it.metDesp!==null?it.metDesp:30)+'" onblur="cpMetUDesp(\''+it.id+'\',this.value)" style="width:40px;font-size:11px;text-align:center;background:var(--bg3);border:1px solid var(--br);border-radius:4px;color:var(--tx)"><span style="font-size:10px;color:var(--tx3)">%</span></div>';
+  h+='</div>';
+  h+='<div style="display:grid;grid-template-columns:1.3fr 60px 1.6fr 90px 80px 28px;gap:4px;font-size:9px;color:var(--tx3);font-weight:700;text-transform:uppercase;padding:0 2px 3px">';
+  h+='<div>Elemento</div><div>Cant.</div><div>Perfil</div><div>N° Perf./Elem.</div><div>Long. [m]</div><div></div>';
+  h+='</div>';
+  (it.metElems||[]).forEach(function(f,idx){
+    var parcial=(+f.cant||0)*(+f.numPerf||0)*(+f.long||0);
+    h+='<div style="display:grid;grid-template-columns:1.3fr 60px 1.6fr 90px 80px 28px;gap:4px;margin-bottom:3px;align-items:center" title="Parcial: '+parcial.toLocaleString('es-AR',{maximumFractionDigits:2})+' m">';
+    h+='<input type="text" value="'+(f.elemento||'').replace(/"/g,'&quot;')+'" placeholder="ej: COLUMNAS" oninput="cpMetUFila(\''+it.id+'\','+idx+',\'elemento\',this.value)" style="font-size:11px;padding:4px 6px">';
+    h+='<input type="text" inputmode="decimal" value="'+(f.cant||0)+'" onblur="cpMetUFila(\''+it.id+'\','+idx+',\'cant\',this.value)" style="font-size:11px;padding:4px 6px;text-align:center">';
+    h+='<div style="position:relative">';
+    h+='<input type="text" value="'+(f.perfilNom||'').replace(/"/g,'&quot;')+'" placeholder="Buscar perfil…" oninput="cpMetBuscarPerfil(\''+it.id+'\','+idx+',this.value)" onfocus="cpMetBuscarPerfil(\''+it.id+'\','+idx+',this.value)" onblur="setTimeout(function(){var s=document.getElementById(\'cpmet-sug-'+it.id+'-'+idx+'\');if(s)s.style.display=\'none\'},300)" style="font-size:11px;padding:4px 6px;width:100%">';
+    h+='<div id="cpmet-sug-'+it.id+'-'+idx+'" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg3);border:1px solid var(--bt);border-radius:5px;z-index:200;max-height:180px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5)"></div>';
+    h+='</div>';
+    h+='<input type="text" inputmode="decimal" value="'+(f.numPerf||0)+'" onblur="cpMetUFila(\''+it.id+'\','+idx+',\'numPerf\',this.value)" style="font-size:11px;padding:4px 6px;text-align:center">';
+    h+='<input type="text" inputmode="decimal" value="'+(f.long||0)+'" onblur="cpMetUFila(\''+it.id+'\','+idx+',\'long\',this.value)" style="font-size:11px;padding:4px 6px;text-align:center">';
+    h+='<button onclick="cpMetEliminarFila(\''+it.id+'\','+idx+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px">✕</button>';
+    h+='</div>';
+  });
+  h+='<button onclick="cpMetAgregarFila(\''+it.id+'\')" style="font-size:10px;background:none;border:1px dashed var(--bt);color:var(--bt);padding:4px 10px;border-radius:4px;cursor:pointer;margin-top:2px;width:100%">+ Agregar elemento</button>';
+  h+=cpMetResumenHtml(it);
+  h+='<div style="font-size:9px;color:var(--tx3);margin-top:5px">Este ítem se computa como un total GLOBAL (unidad fija "un"): la suma de todos los elementos de esta tabla es el ítem completo (toda la estructura), no un valor por m².</div>';
+  h+='</div>';
+  return h;
+}
+
 function cpRenderItem(rid,it){
   var qty=cpQty(it.dims,it.un);
   var calc=cpCalcPreciso(it.mats,it.mo,qty);            // TOTAL real del ítem (cantidad real del Cómputo)
@@ -6315,6 +6457,12 @@ function cpRenderItem(rid,it){
   h+='<input class="fi" type="text" placeholder="Subrubro (opcional, ej: a) Columnas)" value="'+(it.subrubro||'')+'" oninput="cpUSubrubro(\''+it.id+'\',this.value)" title="Agrupa este ítem bajo un subrubro en el PDF de Cómputo y Presupuesto (dejalo vacío si no aplica)" style="width:170px;font-size:10px;color:var(--tx3)">';
   h+='<button onclick="cpAutoSel(\''+it.id+'\',document.getElementById(\'cpn-'+it.id+'\').value)" title="Buscar en cat\u00e1logo" style="background:none;border:1px solid var(--tx3);color:var(--tx3);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:12px;flex-shrink:0">&#128269;</button>';
   h+='<button onclick="cpBI(\''+rid+'\',\''+it.id+'\')" style="background:none;border:1px solid var(--rt);color:var(--rt);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px;flex-shrink:0">\u2715</button></div>';
+  h+='<div style="display:flex;gap:6px;margin-bottom:8px">';
+  h+='<button onclick="cpMetToggle(\''+it.id+'\')" title="Alterna entre cargar el \u00edtem por dimensiones/materiales sueltos (Global) o por elemento estructural (columna, viga, diagonal, correa) con su perfil, cantidad y longitud, igual que la planilla 3 CM (Detallado)" style="font-size:10px;background:'+(it.metModo==='detallado'?'rgba(96,165,250,.15)':'none')+';border:1px dashed var(--bt);color:var(--bt);padding:4px 10px;border-radius:4px;cursor:pointer">\ud83d\udd29 Estructura Met\u00e1lica: '+(it.metModo==='detallado'?'<b>Detallado</b> (clic = Global)':'<b>Global</b> (clic = Detallado por elemento)')+'</button>';
+  h+='</div>';
+  if(it.metModo==='detallado'){
+    h+=cpRenderMetalica(it);
+  }else{
   h+='<div style="background:var(--bg);border-radius:6px;padding:8px;margin-bottom:8px">';
   h+='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">DIMENSIONES</div>';
   (function(){
@@ -6332,6 +6480,7 @@ function cpRenderItem(rid,it){
   h+='<button onclick="cpADVano(\''+it.id+'\')" title="Descuenta un vano/abertura (ventana, puerta) del \u00e1rea o volumen total" style="font-size:10px;background:none;border:1px dashed var(--rt);color:var(--rt);padding:3px 10px;border-radius:4px;cursor:pointer;margin-left:4px">− Vano/Abertura</button>';
   h+='<div style="font-weight:800;color:var(--bt);font-size:15px">'+qty.toLocaleString('es-AR',{maximumFractionDigits:2})+' <span style="font-size:10px;color:var(--tx3)">'+it.un+'</span></div>';
   h+='</div></div>';
+  }
   h+='<div style="background:var(--bg);border-radius:6px;padding:8px;margin-bottom:8px">';
   h+='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">DESGLOSE MATERIALES Y MANO DE OBRA</div>';
   h+=cpRenderMats(it)+'</div>';
