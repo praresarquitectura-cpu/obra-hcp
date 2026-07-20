@@ -6314,7 +6314,7 @@ function cpMetToggle(iid){
     if(!it.metElems)it.metElems=[];
     if(it.metDesp===undefined||it.metDesp===null)it.metDesp=30; // 30% verificado contra la planilla real '3 CM - List Mat - MO' (hoja METALICOS, celda de desperdicio=0.3)
     if(!it.unidades_permitidas)it.unidades_permitidas=['m²','m³','ml','m','un','kg','tn','gl','hs','lt'];
-    if(it.unidades_permitidas.indexOf('un')===-1)it.unidades_permitidas.push('un');
+    if(it.unidades_permitidas.indexOf('gl')===-1)it.unidades_permitidas.push('gl');
     cpMetRecalcular(it);
   }
   cpRender();
@@ -6392,7 +6392,7 @@ function cpMetRecalcular(it){
     mats.push({id:cod,nom:grp.nom,un:'m',rend:mlConDesp,pu:p?(p.pu||0):0,esEquipo:false});
   });
   it.mats=mats;
-  it.un='un';
+  it.un='gl'; // Global (lump-sum): toda la estructura de esta tabla es UN total único, no un valor por m²
   it.dims=[{l:1,a:1,h:0,q:1}];
 }
 function cpMetResumenHtml(it){
