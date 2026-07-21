@@ -7985,6 +7985,40 @@ var PR_FECHA_CATALOGO = '2026-06';
 // Fuentes de precios: Municipalidad Ushuaia (Matriz Insumos+MO 2026, actualizar cada mes) · IMCOFUE (imcofue.com.ar) ·
 // MASCIOTRA · Casa Fuegia (casafuegia.com) · Casa Zeila (casazeila.com.ar) · MercadoLibre · otros locales TDF
 // Mano de obra: UOCRA + Cámara de la Construcción Ushuaia (planilla oficial, ver hoja MANO DE OBRA)
+// ═══════════════════════════════════════════════════════════════════
+// CATALOGO_IMPORT_TRACKING — pedido de Diego (jul-2026): cargar TODOS
+// los productos que venden IMCOFUE, Casa Fuegia y Casa Zeila a PR_DATA,
+// no solo llenar huecos. Como son varios miles de productos repartidos
+// en muchas categorías, se hace por tandas (una tarea programada mensual,
+// Parte D de obraerp-actualizacion-mensual-precios). Este bloque es la
+// fuente de verdad de qué subcategoría ya se recorrió por completo, para
+// que cada corrida sepa por dónde seguir sin repetir trabajo. Actualizar
+// esta lista en cada commit que agregue/complete una subcategoría.
+//
+// IMCOFUE:
+//   Construcción y Reparación (643 arts total):
+//     [x] Bloques y Ladrillos (9) - ya estaba completa, solo refresco de precios (v63)
+//     [x] Aislación (45) - 32 productos nuevos agregados (v64)
+//     [ ] Barras, Mallas y Alambres (48)
+//     [ ] Cemento y Morteros (40)
+//     [ ] Chapas (78)
+//     [ ] Construcción en seco (81)
+//     [ ] Perfileria (207) - parcialmente cubierta vía auditoría Perfiles Hierro Negro (v58-v59),
+//         faltan C/UPN/PGO/PGC en otras medidas, cielorraso, etc.
+//     [ ] Adhesivos y Otros Químicos (135)
+//   [ ] Muebles (subcategorías sin relevar)
+//   [ ] Baño (subcategorías sin relevar)
+//   [ ] Cocina y Lavadero (subcategorías sin relevar)
+//   [ ] Electrodomésticos (subcategorías sin relevar — evaluar relevancia para cómputo de obra)
+//   [ ] Pisos y Revestimientos (subcategorías sin relevar — related a SOLADOS, ver también v62)
+//   [ ] Calefacción (subcategorías sin relevar)
+//   [ ] Herramientas y Máquinas (subcategorías sin relevar)
+//   [ ] Ferretería (subcategorías sin relevar)
+//   [ ] Aberturas (subcategorías sin relevar)
+//   [ ] Pinturas (subcategorías sin relevar)
+// Casa Fuegia (casafuegia.com): [ ] sin relevar (catálogo completo, no solo huecos)
+// Casa Zeila (casazeila.com.ar): [ ] sin relevar (catálogo completo, no solo huecos)
+// ═══════════════════════════════════════════════════════════════════
 var PR_DATA = [
 // ── HORMIGONES ──
 {cod:'101',nom:'H8 200kg',cat:'HORMIGONES',un:'m³',pu:0,medida:'m³',fuente:'MASCIOTRA',modif:0,fecha:'2026-06'},
