@@ -352,7 +352,7 @@ input,select,textarea,button{font-family:var(--font)}
   <div class="pgt">Panel Principal</div><div class="pgs" id="pg-date">OBRAERP · Ushuaia TDF</div>
   <div class="g2" style="margin-bottom:20px">
     <div class="bc cmp" onclick="goTo('computo')"><div class="bci"><svg width="20" height="20" fill="none" stroke="#60a5fa" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 20l4-12 4 7 3-5 4 10"/></svg></div><div class="bct">Cómputo Métrico</div><div class="bcd">Bases H°A°, excavación y APU. Motor paramétrico automático.</div><div class="bca">Entrar →</div></div>
-    <div class="bc hon" onclick="goTo('motor')"><div class="bci"><svg width="20" height="20" fill="none" stroke="#f4879a" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 9h10M7 13h7M7 17h5"/></svg></div><div class="bct">Presupuesto de Honorarios</div><div class="bcd">5 roles · CATDF · Cotización BNA · Renders · Forma de pago · PDF.</div><div class="bca">Presupuestar →</div></div>
+    <div class="bc hon" onclick="goTo('motor')"><div class="bci"><svg width="20" height="20" fill="none" stroke="#f4879a" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 9h10M7 13h7M7 17h5"/></svg></div><div class="bct">Presupuesto de Honorarios</div><div class="bcd">6 roles · CATDF · Cotización BNA · Renders · Forma de pago · PDF.</div><div class="bca">Presupuestar →</div></div>
   </div>
   <div class="g4" style="margin-bottom:20px">
     <div class="sc"><div class="sl">Total generado</div><div class="sv" id="db-hon-t">USD 0</div></div>
@@ -447,7 +447,7 @@ input,select,textarea,button{font-family:var(--font)}
 </section>
 <section id="s-motor" class="scr">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
-    <div><div class="pgt">Motor de Honorarios</div><div class="pgs">5 roles · Renders · CATDF/CPT · Cotización BNA · Cuotas · PDF</div></div>
+    <div><div class="pgt">Motor de Honorarios</div><div class="pgs">6 roles · Renders · CATDF/CPT · Cotización BNA · Cuotas · PDF</div></div>
     <div style="display:flex;gap:8px">
       <button class="btn" onclick="motorLimpiar()">Limpiar</button>
       <button class="btn btn-r" onclick="motorGuardar(false)">Guardar / PDF</button>
@@ -487,6 +487,7 @@ input,select,textarea,button{font-family:var(--font)}
           <div class="fg"><label class="fl">Sup. existente declarada</label><div class="pw"><input class="pi" type="number" id="mot-m2-dec" value="0" min="0" oninput="recalc()"><span class="pu">m²</span></div></div>
           <div class="fg"><label class="fl">Sup. existente sin declarar</label><div class="pw"><input class="pi" type="number" id="mot-m2-sind" value="0" min="0" oninput="recalc()"><span class="pu">m²</span></div></div>
           <div class="fg"><label class="fl">Costo m² construcción</label><div class="pw"><input class="pi" type="number" id="mot-cu" value="1200" step="50" oninput="recalc()"><span class="pu">USD</span></div></div>
+          <div class="fg"><label class="fl">Calculista USD/m²</label><div class="pw"><input class="pi" type="number" id="mot-calc-usdm2" value="9" step="0.5" min="0" oninput="recalc()"><span class="pu">USD</span></div><div style="font-size:9px;color:var(--tx3);margin-top:3px">Orientativo USD 8-12/m² · unifamiliar → parte alta, multifamiliar ≥250m² → parte baja</div></div>
           <div class="fg">
             <label class="fl">Cotización USD BNA</label>
             <div class="pw"><input class="pi" type="number" id="mot-tc" value="1350" oninput="recalc()"><span class="pu">ARS</span></div>
@@ -502,10 +503,11 @@ input,select,textarea,button{font-family:var(--font)}
           </div>
           <div class="fg"><label class="fl">Descuento proyecto</label>
             <div class="pw"><input class="pi" type="number" id="mot-desc-pct" value="0" min="0" max="50" oninput="recalc()"><span class="pu">%</span></div>
-            <div style="font-size:9px;color:var(--tx3);margin-top:3px">Dir. Proy. · Inf. Técnico</div>
+            <div style="font-size:9px;color:var(--tx3);margin-top:3px">Dir. Proyecto · Calculista</div>
           </div>
           <div class="fg"><label class="fl">Gastos y gestiones</label>
             <div class="pw"><input class="pi" type="number" id="mot-gast-pct" value="5" step="0.5" min="0" oninput="recalc()"><span class="pu">%</span></div>
+            <div style="font-size:9px;color:var(--tx3);margin-top:3px">S/bruto Dir. Proyecto + Calculista</div>
           </div>
           <div class="fg"><label class="fl">Ajuste IPC</label>
             <div class="pw"><input class="pi" type="number" id="mot-ipc" value="0" oninput="recalc()"><span class="pu">%</span></div>
@@ -549,7 +551,7 @@ input,select,textarea,button{font-family:var(--font)}
       <div id="roles-list"></div>
 
       <div class="cuotas-card" id="cuotas-section" style="display:none">
-        <div class="fsc" style="color:var(--bt)">Planilla de Cuotas — Dirección de Proyecto</div>
+        <div class="fsc" style="color:var(--bt)">Planilla de Cuotas — Dirección de Proyecto + Calculista</div>
         <div class="cuotas-info" id="cuotas-info">Base: USD 0</div>
         <div style="display:grid;grid-template-columns:1fr 58px 88px 30px;gap:8px;padding:0 0 6px;border-bottom:1px solid var(--br);margin-bottom:4px">
           <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)">Concepto</div>
@@ -1250,70 +1252,74 @@ async function fetchDolar(){
 
 /* ── ROLES ────────────────────────────────────────────────────────────── */
 var ROLES=[
-  {id:'dir_proy',nm:'Direcci\u00f3n de Proyecto',clr:'#60a5fa',catdf:0.05,descuentable:true,
-   dsc:'Conducci\u00f3n t\u00e9cnico-creativa del proyecto. CATDF: 5% del valor de obra. Aplica descuento.',
+  {id:'dir_proy',nm:'Dirección de Proyecto',clr:'#60a5fa',catdf:0.045,descuentable:true,
+   dsc:'Conducción técnico-creativa del proyecto. CATDF: 4.5% del valor de obra. Aplica descuento.',
    tareas:[{id:'ta_proy',nm:'Proyecto',grupos:[
      {nm:null,items:[
-       {id:'croquis',nm:'Croquis Preliminar',tipo:'normal',inc:8,dsc:'Idea general + memoria descriptiva + estimaci\u00f3n presupuesto'},
-       {id:'antep',nm:'Anteproyecto',tipo:'normal',inc:20,dsc:'Partido arquitect\u00f3nico + programa de necesidades + memoria'},
-       {id:'render_ext',nm:'Render Exterior',tipo:'render',inc:0,qty:1,unitPrice:280,dsc:'Representaci\u00f3n 3D exterior fotorrealista \u00b7 precio de mercado'},
-       {id:'render_int',nm:'Render Interior',tipo:'render',inc:0,qty:1,unitPrice:200,dsc:'Representaci\u00f3n 3D interior fotorrealista \u00b7 precio de mercado'},
+       {id:'croquis',nm:'Croquis Preliminar',tipo:'normal',inc:8,dsc:'Idea general + memoria descriptiva + estimación presupuesto'},
+       {id:'antep',nm:'Anteproyecto',tipo:'normal',inc:20,dsc:'Partido arquitectónico + programa de necesidades + memoria'},
+       {id:'render_ext',nm:'Render Exterior',tipo:'render',inc:0,qty:1,unitPrice:280,dsc:'Representación 3D exterior fotorrealista · precio de mercado'},
+       {id:'render_int',nm:'Render Interior',tipo:'render',inc:0,qty:1,unitPrice:200,dsc:'Representación 3D interior fotorrealista · precio de mercado'},
      ]},
-     {nm:'Documentaci\u00f3n Municipal',items:[
+     {nm:'Documentación Municipal',items:[
        {id:'p_arq_mun',nm:'Plano de Arquitectura Municipal',tipo:'normal',inc:18,dsc:'Plano con escala y formato requerido por el Municipio — responsabilidad del Director de Proyecto'},
-       {id:'guia_aviso',nm:'Gu\u00eda de Aviso de Obra',tipo:'render',inc:0,qty:1,unitPrice:3.0,dsc:'Gesti\u00f3n Gu\u00eda de Aviso ante Municipio'},
-       {id:'ddj_mojones_proy',nm:'Declaraci\u00f3n Jurada de Mojones',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'DD.JJ. Deslinde y Amojonamiento'},
+       {id:'guia_aviso',nm:'Guía de Aviso de Obra',tipo:'render',inc:0,qty:1,unitPrice:3.0,dsc:'Gestión Guía de Aviso ante Municipio'},
+       {id:'ddj_mojones_proy',nm:'Declaración Jurada de Mojones',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'DD.JJ. Deslinde y Amojonamiento'},
      ]},
-     {nm:'Documentaci\u00f3n Ejecutiva',items:[
+     {nm:'Documentación Ejecutiva',items:[
        {id:'rep_est',nm:'Plano de Replanteo Estructura',tipo:'normal',inc:7,dsc:'Replanteo estructural escala 1:50 / 1:100'},
-       {id:'rep_arq',nm:'Plano de Replanteo Arquitectura 1:50',tipo:'normal',inc:8,dsc:'Replanteo arquitect\u00f3nico escala 1:50'},
-       {id:'inst_san',nm:'Plano de Instalaci\u00f3n Sanitaria',tipo:'normal',inc:7,dsc:'Agua fr\u00eda, caliente y cloacas'},
-       {id:'dposs',nm:'Plano Inst. Sanitaria \u2014 DPOSS',tipo:'normal',inc:5,dsc:'Formato DPOSS para aprobaci\u00f3n provincial'},
-       {id:'bocas',nm:'Anteproyecto de Bocas El\u00e9ctricas',tipo:'normal',inc:6,dsc:'Circuitos y bocas \u2014 esquema para DPE'},
-       {id:'calef',nm:'Anteproyecto de Calefacci\u00f3n',tipo:'normal',inc:6,dsc:'Cargas t\u00e9rmicas + anteproyecto del sistema'},
-       {id:'detalles',nm:'Plano de Detalles',tipo:'normal',inc:11,dsc:'Planos y planillas para ejecuci\u00f3n'},
-       {id:'cmp_met',nm:'C\u00f3mputo M\u00e9trico',tipo:'normal',inc:4,dsc:'C\u00f3mputo completo + listado de materiales'},
+       {id:'rep_arq',nm:'Plano de Replanteo Arquitectura 1:50',tipo:'normal',inc:8,dsc:'Replanteo arquitectónico escala 1:50'},
+       {id:'inst_san',nm:'Plano de Instalación Sanitaria',tipo:'normal',inc:7,dsc:'Agua fría, caliente y cloacas'},
+       {id:'dposs',nm:'Plano Inst. Sanitaria — DPOSS',tipo:'normal',inc:5,dsc:'Formato DPOSS para aprobación provincial'},
+       {id:'bocas',nm:'Anteproyecto de Bocas Eléctricas',tipo:'normal',inc:6,dsc:'Circuitos y bocas — esquema para DPE'},
+       {id:'calef',nm:'Anteproyecto de Calefacción',tipo:'normal',inc:6,dsc:'Cargas térmicas + anteproyecto del sistema'},
+       {id:'detalles',nm:'Plano de Detalles',tipo:'normal',inc:11,dsc:'Planos y planillas para ejecución'},
+       {id:'cmp_met',nm:'Cómputo Métrico',tipo:'normal',inc:4,dsc:'Cómputo completo + listado de materiales'},
      ]},
    ]}]},
-  {id:'dir_obra',nm:'Direcci\u00f3n de Obra',clr:'#4ade80',catdf:0.05,descuentable:false,
-   dsc:'Control t\u00e9cnico durante la ejecuci\u00f3n. CATDF: 5%. Sin descuento.',
-   tareas:[{id:'ta_do',nm:'Direcci\u00f3n de Obra',grupos:[{nm:null,items:[
-     {id:'dir_tec',nm:'Direcci\u00f3n T\u00e9cnica de Obra',tipo:'normal',inc:70,dsc:'Control t\u00e9cnico y representaci\u00f3n ante organismos'},
-     {id:'dir_vis',nm:'Visitas de Inspecci\u00f3n Adicionales',tipo:'normal',inc:20,dsc:'Visitas extraordinarias por avance o consultas'},
-     {id:'dir_cer',nm:'Certificados de Avance de Obra',tipo:'normal',inc:10,dsc:'Certificados para pagos parciales al constructor'},
-   ]}]}]},
-  {id:'const',nm:'Constructor',clr:'#c084fc',catdf:0.05,descuentable:false,
-   dsc:'Responsabilidad t\u00e9cnica en la ejecuci\u00f3n. CATDF: 5%. Sin descuento.',
-   tareas:[{id:'ta_const',nm:'Construcci\u00f3n',grupos:[{nm:null,items:[
-     {id:'cdir',nm:'Direcci\u00f3n de Construcci\u00f3n',tipo:'normal',inc:70,dsc:'Responsabilidad t\u00e9cnica directa'},
-     {id:'cseg',nm:'Seguridad e Higiene en Obra',tipo:'normal',inc:20,dsc:'Normas de seguridad e higiene'},
-     {id:'cdoc',nm:'Documentaci\u00f3n de Construcci\u00f3n',tipo:'normal',inc:10,dsc:'Partes diarios y registros de obra'},
-   ]}]}]},
-  {id:'repr',nm:'Representante T\u00e9cnico',clr:'#2dd4bf',catdf:0.035,descuentable:false,
-   dsc:'Representaci\u00f3n ante organismos. CATDF: 2%-5%. Sin descuento.',
-   tareas:[{id:'ta_repr',nm:'Representaci\u00f3n T\u00e9cnica',grupos:[{nm:null,items:[
-     {id:'rmun',nm:'Representaci\u00f3n ante Municipio',tipo:'normal',inc:57,dsc:'Ante Direcci\u00f3n de Obras Privadas'},
-     {id:'rcpt',nm:'Encomienda CPT-TDF',tipo:'normal',inc:29,dsc:'Colegio de Profesionales T\u00e9cnicos'},
-     {id:'rprov',nm:'Presentaciones Provinciales',tipo:'normal',inc:14,dsc:'DPOSS, EDELAP, CAMUZZI, Sec. Ambiental'},
-   ]}]}]},
-  ,
-  {id:'inf',nm:'Informante T\u00e9cnico',clr:'#fb923c',catdf:0.06,descuentable:true,
-   dsc:'Relevamiento, informes y DD.JJ. CATDF: 4%-8%. Aplica descuento.',
-   tareas:[{id:'ta_inf',nm:'Informe T\u00e9cnico',grupos:[{nm:null,items:[
-     {id:'irelev',nm:'Relevamiento Arquitect\u00f3nico y Estructural',tipo:'normal',inc:22,dsc:'Medici\u00f3n y relevamiento de la construcci\u00f3n existente'},
-     {id:'iplan_emp',nm:'Plano de Empadronamiento Municipal',tipo:'normal',inc:28,dsc:'Plano arquitect\u00f3nico para presentaci\u00f3n ante Municipio \u2014 empadronamiento y empadronamiento de refacciones'},
-     {id:'iredac',nm:'Redacci\u00f3n del Informe T\u00e9cnico',tipo:'normal',inc:25,dsc:'Diagn\u00f3stico y recomendaciones'},
-     {id:'iddj',nm:'Declaraci\u00f3n Jurada (DD.JJ.)',tipo:'normal',inc:13,dsc:'Ante Colegio o Municipio'},
-     {id:'ddj_mojones_inf',nm:'Declaraci\u00f3n Jurada de Mojones',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'DD.JJ. Deslinde y Amojonamiento'},
-     {id:'ifoto',nm:'Registro Fotogr\u00e1fico Documentado',tipo:'normal',inc:12,dsc:'Planilla fotogr\u00e1fica numerada'},
-   ]}]}]},
-  ,{id:'calc',nm:'Calculista',clr:'#f59e0b',catdf:0.01,descuentable:true,
-   usaSupTotal:true,
-   dsc:'Cálculo y verificación estructural. Honorarios sobre superficie total (nueva + existente declarada + sin declarar).',
+  {id:'calc',nm:'Calculista',clr:'#f59e0b',descuentable:true,
+   usaSupTotal:true,usaUSDm2:true,
+   dsc:'Cálculo y verificación estructural. Honorarios sobre superficie total (nueva + existente declarada + sin declarar), a un precio en USD/m² fijado por el profesional (orientativo: USD 8-12/m² — vivienda unifamiliar en la parte alta, obra multifamiliar de 250 m² en adelante en la parte baja). Aplica descuento.',
    tareas:[{id:'ta_calc',nm:'Cálculo Estructural',grupos:[{nm:null,items:[
      {id:'calc_mem',nm:'Memoria de Cálculo Estructural (CIRSOC)',tipo:'normal',inc:40,dsc:'Memoria conforme CIRSOC — nueva construcción y/o verificación de estructura existente'},
      {id:'calc_plan',nm:'Plano de Estructura Municipal',tipo:'normal',inc:35,dsc:'Plano estructural + planillas de armadura para aprobación municipal — firma del Calculista'},
      {id:'calc_verif',nm:'Informe de Verificación Estructural',tipo:'normal',inc:25,dsc:'Informe técnico de verificación para obras existentes declaradas y sin declarar'},
+   ]}]}]},
+  {id:'dir_obra',nm:'Dirección de Obra',clr:'#4ade80',catdf:0.05,descuentable:false,
+   dsc:'Control técnico durante la ejecución. CATDF: 5%. Sin descuento.',
+   tareas:[{id:'ta_do',nm:'Dirección de Obra',grupos:[{nm:null,items:[
+     {id:'dir_tec',nm:'Dirección Técnica de Obra',tipo:'normal',inc:70,dsc:'Control técnico y representación ante organismos'},
+     {id:'dir_vis',nm:'Visitas de Inspección Adicionales',tipo:'normal',inc:20,dsc:'Visitas extraordinarias por avance o consultas'},
+     {id:'dir_cer',nm:'Certificados de Avance de Obra',tipo:'normal',inc:10,dsc:'Certificados para pagos parciales al constructor'},
+   ]}]}]},
+  {id:'admin_obra',nm:'Administración de Obra',clr:'#f472b6',catdf:0.03,descuentable:false,
+   dsc:'Administración y gestión de la obra. CATDF: 3%. Sin descuento.',
+   tareas:[{id:'ta_admin',nm:'Administración de Obra',grupos:[{nm:null,items:[
+     {id:'adm_obra',nm:'Administración de Obra',tipo:'normal',inc:100,dsc:'Gestión administrativa: compras, pagos, coordinación de proveedores y subcontratistas'},
+   ]}]}]},
+  {id:'const_rt',nm:'Constructor y/o Representante Técnico',clr:'#c084fc',catdf:0.045,descuentable:false,
+   dsc:'Responsabilidad técnica en la ejecución y representación ante organismos. CATDF: 4.5%. Sin descuento.',
+   tareas:[{id:'ta_const_rt',nm:'Construcción y Representación Técnica',grupos:[
+     {nm:'Construcción',items:[
+       {id:'cdir',nm:'Dirección de Construcción',tipo:'normal',inc:41,dsc:'Responsabilidad técnica directa'},
+       {id:'cseg',nm:'Seguridad e Higiene en Obra',tipo:'normal',inc:12,dsc:'Normas de seguridad e higiene'},
+       {id:'cdoc',nm:'Documentación de Construcción',tipo:'normal',inc:6,dsc:'Partes diarios y registros de obra'},
+     ]},
+     {nm:'Representación Técnica',items:[
+       {id:'rmun',nm:'Representación ante Municipio',tipo:'normal',inc:23,dsc:'Ante Dirección de Obras Privadas'},
+       {id:'rcpt',nm:'Encomienda CPT-TDF',tipo:'normal',inc:12,dsc:'Colegio de Profesionales Técnicos'},
+       {id:'rprov',nm:'Presentaciones Provinciales',tipo:'normal',inc:6,dsc:'DPOSS, EDELAP, CAMUZZI, Sec. Ambiental'},
+     ]},
+   ]}]},
+  {id:'inf',nm:'Informante Técnico',clr:'#fb923c',catdf:0.06,descuentable:false,
+   dsc:'Relevamiento, informes y DD.JJ. CATDF: 4%-8%. Sin descuento.',
+   tareas:[{id:'ta_inf',nm:'Informe Técnico',grupos:[{nm:null,items:[
+     {id:'irelev',nm:'Relevamiento Arquitectónico y Estructural',tipo:'normal',inc:22,dsc:'Medición y relevamiento de la construcción existente'},
+     {id:'iplan_emp',nm:'Plano de Empadronamiento Municipal',tipo:'normal',inc:28,dsc:'Plano arquitectónico para presentación ante Municipio — empadronamiento y empadronamiento de refacciones'},
+     {id:'iredac',nm:'Redacción del Informe Técnico',tipo:'normal',inc:25,dsc:'Diagnóstico y recomendaciones'},
+     {id:'iddj',nm:'Declaración Jurada (DD.JJ.)',tipo:'normal',inc:13,dsc:'Ante Colegio o Municipio'},
+     {id:'ddj_mojones_inf',nm:'Declaración Jurada de Mojones',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'DD.JJ. Deslinde y Amojonamiento'},
+     {id:'ifoto',nm:'Registro Fotográfico Documentado',tipo:'normal',inc:12,dsc:'Planilla fotográfica numerada'},
    ]}]}]}
 ];
 
@@ -1322,11 +1328,11 @@ var CATDF_DEFAULT={};
 ROLES.forEach(function(r){
   CATDF_DEFAULT[r.id]=r.catdf;
   r.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
-    if(it.tipo==='normal') it.pct=r.catdf*(it.inc/100);
+    if(it.tipo==='normal'&&typeof r.catdf==='number') it.pct=r.catdf*(it.inc/100);
   });});});
 });
 
-var PRESETS={catdf:{dir_proy:0.05,dir_obra:0.05,const:0.05,repr:0.035,inf:0.06,calc:0.01},cpt:{dir_proy:0.04,dir_obra:0.04,const:0.04,repr:0.03,inf:0.05,calc:0.009}};
+var PRESETS={catdf:{dir_proy:0.045,dir_obra:0.05,admin_obra:0.03,const_rt:0.045,inf:0.06},cpt:{dir_proy:0.04,dir_obra:0.04,admin_obra:0.025,const_rt:0.04,inf:0.05}};
 function aplicarPreset(tipo){
   var p=PRESETS[tipo];if(!p)return;
   ROLES.forEach(function(r){
@@ -1340,7 +1346,9 @@ function aplicarPreset(tipo){
   recalc();toast(tipo==='catdf'?'Porcentajes CATDF (Arquitectos)':'Porcentajes CPT-TDF (T\u00e9cnicos)');
 }
 function resetCatdf(){
-  ROLES.forEach(function(r){r.catdf=CATDF_DEFAULT[r.id];
+  ROLES.forEach(function(r){
+    if(r.id==='calc')return;
+    r.catdf=CATDF_DEFAULT[r.id];
     r.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       if(it.tipo==='normal')it.pct=r.catdf*(it.inc/100);
     });});});
@@ -1350,7 +1358,7 @@ function resetCatdf(){
 }
 function buildCatdfInputs(){
   var cont=document.getElementById('catdf-inputs');if(!cont)return;
-  cont.innerHTML=ROLES.map(function(r){
+  cont.innerHTML=ROLES.filter(function(r){return r.id!=='calc';}).map(function(r){
     return '<div style="display:grid;grid-template-columns:1fr 120px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
       +'<div><div style="font-size:12px;font-weight:600;color:var(--tx)">'+r.nm+'</div>'
       +'<div style="font-size:10px;color:var(--tx3);margin-top:2px">'+(r.descuentable?'Con descuento':'Sin descuento')+' \u00b7 def. '+(CATDF_DEFAULT[r.id]*100).toFixed(1)+'%</div></div>'
@@ -1456,7 +1464,7 @@ function buildRoles(){
       +'<div style="flex:1;min-width:0"><div class="rc-nm">'+role.nm+dtag+'</div><div class="rc-dsc">'+role.dsc+'</div></div>'
       +'<div class="rc-rh"><div style="text-align:right">'
       +'<div class="rc-usd" id="rusd-'+role.id+'" style="color:'+role.clr+'">USD 0</div>'
-      +'<div class="rc-sub">CATDF '+(role.catdf*100).toFixed(1)+'% s/obra</div>'
+      +'<div class="rc-sub">'+(role.id==='calc'?('USD '+getN('mot-calc-usdm2',9)+'/m\u00b2'):('CATDF '+(role.catdf*100).toFixed(1)+'% s/obra'))+'</div>'
       +'</div><svg class="rc-arr" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" id="rarr-'+role.id+'"><path d="M6 9l6 6 6-6"/></svg></div>'
       +'</div>'
       +'<div class="rc-body'+(st.open?' open':'')+'" id="rbody-'+role.id+'">'
@@ -1514,7 +1522,7 @@ function selTarea(rid,tid,v){
 }
 
 /* ── RECALC ───────────────────────────────────────────────────────────── */
-var dirProyTotalUSD=0,dirProyTotalAfterDisc=0,calcTotalUSD=0,calcTotalAfterDisc=0;
+var dirProyTotalUSD=0,dirProyTotalAfterDisc=0,calcTotalUSD=0,calcTotalAfterDisc=0,cuotasBaseGlobal=0;
 var CPT_TAB=[[100,46000],[200,69000],[300,92000],[400,115000],[500,138000],[600,161000],[700,184000],[800,207000],[1000,253000],[Infinity,322000]];
 function cptVal(m2){for(var i=0;i<CPT_TAB.length;i++)if(m2<=CPT_TAB[i][0])return CPT_TAB[i][1];return 322000;}
 function getN(id,def){var el=document.getElementById(id);if(!el)return def;var v=parseFloat(el.value);return isNaN(v)?def:v;}
@@ -1523,11 +1531,12 @@ function recalc(){
   var m2=getN('mot-m2',0),m2dec=getN('mot-m2-dec',0),m2sind=getN('mot-m2-sind',0);
   var m2total=m2+m2dec+m2sind;
   var cu=getN('mot-cu',1200),cat=parseFloat(document.getElementById('mot-cat')?.value)||1.0;
+  var calcUsdM2=getN('mot-calc-usdm2',9);
   var tc=getN('mot-tc',TC),desc=getN('mot-desc-pct',0)/100,gast=getN('mot-gast-pct',5)/100,ipc=getN('mot-ipc',0)/100;
   TC=tc;
-  var vObraNueva=m2*cu*cat;       // SOLO superficie nueva — base para Dir.Proyecto/Obra/Constructor/Repr.Técnico
+  var vObraNueva=m2*cu*cat;       // SOLO superficie nueva — base para Dir.Proyecto/Obra/Administración/Constructor-RT
   var vObraInf=m2sind*cu*cat;     // superficie EXISTENTE SIN DECLARAR — base para Informe Técnico (empadronamiento)
-  var vObraCalc=m2total*cu*cat;   // superficie TOTAL — base para Calculista (verifica estructura completa)
+  var vObraCalc=m2total*cu*cat;   // superficie TOTAL — solo informativo (Calculista ahora cotiza USD/m², no % s/valor de obra)
   var vObra=vObraNueva;           // alias usado en textos informativos (superficie nueva)
   var vi=document.getElementById('mot-val-obra');
   if(vi){
@@ -1535,30 +1544,31 @@ function recalc(){
     vi.textContent='Sup. total: '+m2total+' m² ('+partes.join(' + ')+') × USD '+cu+'/m² × cat ×'+cat+' = USD '+Math.round(vObra).toLocaleString();
   }
   var cptEl=document.getElementById('s-cpt');
-  if(cptEl){var av=cptVal(m2);cptEl.textContent=m2+' m\u00b2: $'+av.toLocaleString('es-AR')+' \u2248 USD '+Math.round(av/tc).toLocaleString();}
+  if(cptEl){var av=cptVal(m2);cptEl.textContent=m2+' m²: $'+av.toLocaleString('es-AR')+' ≈ USD '+Math.round(av/tc).toLocaleString();}
 
   var totalDesc=0,totalNoDesc=0,sumRows=[];
   dirProyTotalUSD=0;
 
   ROLES.forEach(function(role){
     var st=S[role.id];if(!st)return;
-    var vObraRole = role.id==='calc' ? vObraCalc
+    var esCalc=role.id==='calc';
+    var vObraRole = esCalc ? vObraCalc
                    : role.id==='inf'  ? vObraInf
                    : vObraNueva;
-    var rolTotal=role.catdf*vObraRole;
+    var rolTotal = esCalc ? (m2total*calcUsdM2) : (role.catdf*vObraRole);
     var fb=document.getElementById('fbar-'+role.id);
-    var baseLbl = role.id==='calc' ? 'Sup. TOTAL' : role.id==='inf' ? 'Sup. existente sin declarar' : 'Sup. NUEVA';
-    if(fb)fb.innerHTML='<b>F\u00f3rmula:</b> '+baseLbl+' USD '+Math.round(vObraRole).toLocaleString()+' \u00d7 <b>'+(role.catdf*100).toFixed(2)+'%</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' \u00d7 % del rol.'+(role.descuentable?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>');
+    var baseLbl = esCalc ? 'Sup. TOTAL' : role.id==='inf' ? 'Sup. existente sin declarar' : 'Sup. NUEVA';
+    var baseValTxt = esCalc ? (m2total+' m²') : ('USD '+Math.round(vObraRole).toLocaleString());
+    var pctTxt = esCalc ? ('USD '+calcUsdM2+'/m²') : ((role.catdf*100).toFixed(2)+'%');
+    if(fb)fb.innerHTML='<b>Fórmula:</b> '+baseLbl+' '+baseValTxt+' × <b>'+pctTxt+'</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' × % del rol.'+(role.descuentable?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>');
     var rs=0;
     role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       var on=st.subs[it.id];
       var usd=0;
       if(on){
-        if(it.tipo==='inf_calc'||it.tipo==='calculista'){
-          // Calculista: usa CATDF del rol Calculista sobre superficie TOTAL
-          var calcRole=ROLES.find(function(r){return r.id==='calc';});
-          var calcPct=calcRole?calcRole.catdf:0.035;
-          usd=vObraCalc*calcPct*(it.inc||100)/100;
+        if(esCalc&&it.tipo==='normal'){
+          // Calculista: USD/m² editable × superficie total, repartido por % de incidencia de la subtarea
+          usd=rolTotal*(it.inc/100);
         } else if(it.tipo==='render'){
           // Lee del DOM para siempre usar el valor actual del input
           var qEl=document.getElementById('rqty-'+it.id),pEl=document.getElementById('rprc-'+it.id);
@@ -1574,7 +1584,7 @@ function recalc(){
       rs+=usd;
       var ue=document.getElementById('usd-'+it.id),ae=document.getElementById('ars-'+it.id);
       if(ue){
-        if(on&&it.tipo==='render'){ue.textContent='USD '+Math.round(usd).toLocaleString()+' ('+it.qty+'u \u00d7 $'+it.unitPrice+')';}
+        if(on&&it.tipo==='render'){ue.textContent='USD '+Math.round(usd).toLocaleString()+' ('+it.qty+'u × $'+it.unitPrice+')';}
         else{ue.textContent=on?'USD '+Math.round(usd).toLocaleString():'—';}
         ue.style.color=on?'var(--bt)':'var(--tx3)';
       }
@@ -1584,7 +1594,7 @@ function recalc(){
     var re=document.getElementById('rusd-'+role.id);
     if(re)re.textContent=rs>0?'USD '+Math.round(rs).toLocaleString():'USD 0';
     var rcSub=document.getElementById('rc-'+role.id);
-    if(rcSub){var catTxt=(role.catdf*100).toFixed(1)+'% s/obra';var sub=document.getElementById('rbody-'+role.id)?.previousElementSibling?.querySelector('.rc-sub');if(sub)sub.textContent=catTxt;}
+    if(rcSub){var catTxt=esCalc?('USD '+calcUsdM2+'/m²'):((role.catdf*100).toFixed(1)+'% s/obra');var sub=document.getElementById('rbody-'+role.id)?.previousElementSibling?.querySelector('.rc-sub');if(sub)sub.textContent=catTxt;}
     if(rs>0){
       if(role.descuentable)totalDesc+=rs;else totalNoDesc+=rs;
       sumRows.push({nm:role.nm,usd:rs,descuentable:role.descuentable});
@@ -1593,14 +1603,21 @@ function recalc(){
     if(role.id==='calc')calcTotalUSD=rs;
   });
 
-  var descAmt=totalDesc*desc,afterDesc=totalDesc-descAmt+totalNoDesc;
-  var gastos=afterDesc*gast,ipcAmt=afterDesc*ipc;
+  // Descuento y Gastos y gestiones se calculan SOLO sobre el bruto de Dir. Proyecto + Calculista (totalDesc).
+  // Los roles de honorario fijo (Dir. Obra, Administración de Obra, Constructor/Repr. Técnico, Informante
+  // Técnico) no llevan descuento ni entran en la base de Gastos y gestiones — se suman tal cual (totalNoDesc).
+  var descAmt=totalDesc*desc,netoDC=totalDesc-descAmt;
+  var gastos=totalDesc*gast;
+  var afterDesc=netoDC+totalNoDesc; // subtotal: neto Proy.+Calc. + honorarios fijos (sin gastos todavía)
+  var ipcAmt=afterDesc*ipc;
   var formaPago=document.getElementById('mot-forma-pago')?.value||'contado';
   var comisionAmt=0;
   if(formaPago==='tarjeta'){var comPct=getN('mot-comision',6.49)/100;comisionAmt=(afterDesc+gastos+ipcAmt)*comPct;}
   var fin=afterDesc+gastos+ipcAmt+comisionAmt;
   dirProyTotalAfterDisc=Math.round(dirProyTotalUSD*(1-desc));
   calcTotalAfterDisc=Math.round(calcTotalUSD*(1-desc)); // Calculista también aplica descuento
+  // Base de la Planilla de Cuotas (forma de pago): Dir.Proyecto + Calculista (netos) + Gastos y gestiones.
+  cuotasBaseGlobal=Math.round(netoDC+gastos);
 
   // Summary
   var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
@@ -1611,22 +1628,22 @@ function recalc(){
   if(rowN)rowN.style.display=totalNoDesc>0&&descAmt>0?'':'none';
   if(rowNe)rowNe.style.display=(descAmt>0||totalNoDesc>0)?'':'none';
   if(rowT)rowT.style.display=comisionAmt>0?'':'none';
-  set('s-desc',descAmt>0?'\u2212 USD '+N(descAmt):'—');
-  var dl=document.getElementById('s-desc-lbl');if(dl)dl.textContent='Descuento ('+(desc*100).toFixed(0)+'%)';
+  set('s-desc',descAmt>0?'− USD '+N(descAmt):'—');
+  var dl=document.getElementById('s-desc-lbl');if(dl)dl.textContent='Descuento ('+(desc*100).toFixed(0)+'%) s/Proy.+Calc.';
   set('s-subnd','USD '+N(totalNoDesc));
   set('s-neto','USD '+N(afterDesc));
-  var gl=document.getElementById('s-gast-lbl');if(gl)gl.textContent='Gastos ('+(gast*100).toFixed(1)+'%)';
+  var gl=document.getElementById('s-gast-lbl');if(gl)gl.textContent='Gastos ('+(gast*100).toFixed(1)+'%) s/bruto Proy.+Calc.';
   set('s-gast','USD '+N(gastos));
   set('s-ipc',ipcAmt>0?'+ USD '+N(ipcAmt):'—');
-  if(comisionAmt>0){set('s-tarj','+ USD '+N(comisionAmt));var tl2=document.getElementById('s-tarj-lbl');if(tl2)tl2.textContent='Comisi\u00f3n tarjeta ('+(getN('mot-comision',6.49)).toFixed(2)+'%)';}
+  if(comisionAmt>0){set('s-tarj','+ USD '+N(comisionAmt));var tl2=document.getElementById('s-tarj-lbl');if(tl2)tl2.textContent='Comisión tarjeta ('+(getN('mot-comision',6.49)).toFixed(2)+'%)';}
   set('s-tot','USD '+N(fin));set('s-ars','ARS $ '+Math.round(fin*tc).toLocaleString('es-AR'));
 
   var sr=document.getElementById('sum-roles');
-  if(sr)sr.innerHTML=sumRows.length?sumRows.map(function(r){return '<div class="sum-row"><span class="sum-rn">'+r.nm+'</span><span class="sum-rv" style="color:'+(r.descuentable?'var(--bt)':'var(--golt)')+'">USD '+N(r.usd)+'</span></div>';}).join(''):'<div style="font-size:11px;color:var(--tx3);padding:4px 0">Seleccion\u00e1 roles \u2192</div>';
+  if(sr)sr.innerHTML=sumRows.length?sumRows.map(function(r){return '<div class="sum-row"><span class="sum-rn">'+r.nm+'</span><span class="sum-rv" style="color:'+(r.descuentable?'var(--bt)':'var(--golt)')+'">USD '+N(r.usd)+'</span></div>';}).join(''):'<div style="font-size:11px;color:var(--tx3);padding:4px 0">Seleccioná roles →</div>';
 
   var tipo=document.getElementById('mot-tipo')?.value||'nueva';
-  var tl={nueva:'Obra nueva',amp:'Ampliaci\u00f3n',ref:'Refacci\u00f3n',mod:'Modificaci\u00f3n',conf:'Conforme a obra',emp:'Empadronamiento',empref:'Empadron. refacciones',calc:'C\u00e1lculo estructura',inf:'Informe t\u00e9cnico',imp:'Impacto ambiental',antep_bas:'Anteproyecto b\u00e1sico',antep_com:'Anteproyecto comercial'};
-  set('sum-info',(tl[tipo]||'Obra')+' \u00b7 '+m2+' m\u00b2 \u00b7 USD '+cu+'/m\u00b2 \u00b7 cat \u00d7'+cat+' \u00b7 TC $'+tc.toLocaleString('es-AR'));
+  var tl={nueva:'Obra nueva',amp:'Ampliación',ref:'Refacción',mod:'Modificación',conf:'Conforme a obra',emp:'Empadronamiento',empref:'Empadron. refacciones',calc:'Cálculo estructura',inf:'Informe técnico',imp:'Impacto ambiental',antep_bas:'Anteproyecto básico',antep_com:'Anteproyecto comercial'};
+  set('sum-info',(tl[tipo]||'Obra')+' · '+m2+' m² · USD '+cu+'/m² · cat ×'+cat+' · TC $'+tc.toLocaleString('es-AR'));
 
   var dirOn=S['dir_proy']?.on;
   var formaPagoVal=document.getElementById('mot-forma-pago')?.value||'contado';
@@ -1640,13 +1657,9 @@ function onFormaPago(){var v=document.getElementById('mot-forma-pago')?.value||'
 /* ── CUOTAS ───────────────────────────────────────────────────────────── */
 var cuotas=[{id:1,nm:'Anticipo',pct:40},{id:2,nm:'Aprobaci\u00f3n de anteproyecto',pct:20},{id:3,nm:'Presentaci\u00f3n plano municipal',pct:20},{id:4,nm:'Aprobaci\u00f3n de estructura',pct:10},{id:5,nm:'Entrega documentaci\u00f3n ejecutiva',pct:10}];
 function renderCuotas(){
-  var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
-  var baseDirProy=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-descPctV));
-  var baseCalc=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-descPctV));
-  var base=baseDirProy+baseCalc;
+  var base=cuotasBaseGlobal;
   var ci=document.getElementById('cuotas-info');
-  var calcStr=baseCalc>0?' + Calculista (USD '+Math.round(baseCalc).toLocaleString()+')':'';
-  if(ci)ci.innerHTML='Base: <b>USD '+Math.round(base).toLocaleString()+'</b> = Dir. de Proyecto'+calcStr+(descPctV>0?' · con descuento':'')+'. Modificá nombre, % y cuotas.';
+  if(ci)ci.innerHTML='Base: <b>USD '+Math.round(base).toLocaleString()+'</b> = Dir. de Proyecto + Calculista (netos, con descuento si aplica) + Gastos y gestiones. Modific\u00e1 nombre, % y cuotas.';
   var tbody=document.getElementById('cuotas-rows');if(!tbody)return;
   tbody.innerHTML=cuotas.map(function(c,i){
     return '<div class="cq-row">'
@@ -1660,12 +1673,8 @@ function renderCuotas(){
 function updCuotasTot(){
   var tot=cuotas.reduce(function(a,c){return a+(parseFloat(c.pct)||0);},0);
   var el=document.getElementById('cq-total');if(el){el.textContent='Total: '+tot.toFixed(0)+'% '+(tot===100?'\u2713':'  debe sumar 100%');el.className=tot===100?'cq-ok':'cq-err';}
-  var descPctV=(parseFloat(document.getElementById('mot-desc-pct')?.value)||0)/100;
-  var gastPctV2=(parseFloat(document.getElementById('mot-gast-pct')?.value)||5)/100;
-  var baseDirProy=dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:Math.round(dirProyTotalUSD*(1-descPctV));
-  var baseCalc=calcTotalAfterDisc>0?calcTotalAfterDisc:Math.round(calcTotalUSD*(1-descPctV));
-  var base=Math.round((baseDirProy+baseCalc)*(1+gastPctV2));
-  // Última cuota toma el residuo exacto
+  var base=cuotasBaseGlobal;
+  // \u00daltima cuota toma el residuo exacto para que la suma cierre siempre con el total, sin diferencias de redondeo
   var _acUpd=0;
   document.querySelectorAll('.cq-usd').forEach(function(el,i){
     if(!cuotas[i])return;
@@ -1690,6 +1699,7 @@ function motorGuardar(draft){
   if(!activeRoles.length&&!draft){toast('Seleccioná al menos un rol',false);return;}
   var gs=function(id){var el=document.getElementById(id);return el?el.value:'';};
   var m2=getN('mot-m2',0),cu=getN('mot-cu',1200),cat=parseFloat(document.getElementById('mot-cat')?.value)||1.0;
+  var calcUsdM2=getN('mot-calc-usdm2',9);
   var tc=getN('mot-tc',TC),desc=getN('mot-desc-pct',0)/100,gast=getN('mot-gast-pct',5)/100,ipc=getN('mot-ipc',0)/100;
   var uso=gs('mot-uso'),descTrab=gs('mot-desc-trab'),excl=gs('mot-excl'),nota=gs('mot-nota');
   var catSec=gs('mot-sec'),catMzo=gs('mot-mzo'),catParc=gs('mot-parc'),catUF=gs('mot-uf'),catDom=gs('mot-dom');
@@ -1700,22 +1710,27 @@ function motorGuardar(draft){
   var cli=CLIENTES.find(function(c){return c.id==cliId;});
   var m2dec=getN('mot-m2-dec',0),m2sind=getN('mot-m2-sind',0);
   var m2total=m2+m2dec+m2sind;
-  var vObraNueva=m2*cu*cat;       // base Dir.Proyecto/Obra/Constructor/Repr.Técnico
+  var vObraNueva=m2*cu*cat;       // base Dir.Proyecto/Obra/Administración/Constructor-RT
   var vObraInf=m2sind*cu*cat;     // base Informe Técnico (empadronamiento)
-  var vObraCalc=m2total*cu*cat;   // base Calculista (estructura completa)
+  var vObraCalc=m2total*cu*cat;   // solo informativo (Calculista cotiza USD/m², no % s/valor de obra)
   var vObra=vObraNueva;           // alias para compatibilidad
   var totalDesc=0,totalNoDesc=0;
   var detalle=[];
   ROLES.forEach(function(role){
     if(!S[role.id]?.on)return;
-    var vObraRole = role.id==='calc' ? vObraCalc
+    var esCalc=role.id==='calc';
+    var vObraRole = esCalc ? vObraCalc
                    : role.id==='inf'  ? vObraInf
                    : vObraNueva;
+    var rolTotalCalc=esCalc?(m2total*calcUsdM2):0;
     var items=[];
     role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       if(S[role.id].subs[it.id]){
         var iusd;
-        if(it.tipo==='render'){
+        if(esCalc&&it.tipo==='normal'){
+          iusd=Math.round(rolTotalCalc*(it.inc/100));
+          items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'normal'});
+        }else if(it.tipo==='render'){
           var qEl=document.getElementById('rqty-'+it.id),pEl=document.getElementById('rprc-'+it.id);
           var qty=qEl?Math.max(1,parseInt(qEl.value)||it.qty||1):(it.qty||1);
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
@@ -1729,17 +1744,36 @@ function motorGuardar(draft){
       }
     });});});
     if(!items.length)return;
+    // Corrección de residuo: la suma de subtareas 'normal' (redondeadas una a una) puede quedar
+    // $1-2 por debajo/encima del total exacto del rol (ej. 41/12/6/23/12/6% de 4320 suma 4319 y
+    // no 4320). Ajustamos la ÚLTIMA subtarea 'normal' del rol para que la suma cierre EXACTO
+    // contra el total del rol — mismo criterio que ya se usa en la Planilla de Cuotas.
+    var normalIdxs=[];
+    items.forEach(function(it,idx){if(it.tipo==='normal')normalIdxs.push(idx);});
+    if(normalIdxs.length){
+      var targetRol=esCalc?Math.round(rolTotalCalc):Math.round(role.catdf*vObraRole);
+      var sumOtros=0;
+      for(var k=0;k<normalIdxs.length-1;k++)sumOtros+=items[normalIdxs[k]].usd;
+      items[normalIdxs[normalIdxs.length-1]].usd=targetRol-sumOtros;
+    }
     var rs=items.reduce(function(a,b){return a+b.usd;},0);
     if(role.descuentable)totalDesc+=rs;else totalNoDesc+=rs;
-    detalle.push({rol:role.nm,catdf:role.catdf,descuentable:role.descuentable,items:items,total:rs});
+    var detEntry={rol:role.nm,catdf:esCalc?null:role.catdf,descuentable:role.descuentable,items:items,total:rs};
+    if(esCalc){detEntry.usdm2=calcUsdM2;detEntry.m2calc=m2total;}
+    detalle.push(detEntry);
   });
-  var descAmt=totalDesc*desc,after=totalDesc-descAmt+totalNoDesc,gastos=after*gast,ipcAmt=after*ipc;
+  // Descuento y Gastos y gestiones: SOLO sobre el bruto de Dir. Proyecto + Calculista (totalDesc).
+  var descAmt=totalDesc*desc,netoDC=totalDesc-descAmt;
+  var gastos=totalDesc*gast;
+  var after=netoDC+totalNoDesc;
+  var ipcAmt=after*ipc;
   var comisionAmt=Math.round((after+gastos+ipcAmt)*(comisionPct/100));
   var fin=after+gastos+ipcAmt+comisionAmt;
+  var cuotasBase=Math.round(netoDC+gastos);
   var hon={
     id:editandoId||Date.now(),
     code:editandoId?HON_DATA.find(function(h){return h.id===editandoId;})?.code||('HON-'+String(HON_DATA.length+1).padStart(4,'0')):'HON-'+String(HON_DATA.length+1).padStart(4,'0'),
-    rev:'R01',roles:activeRoles.join(' + '),uso,tipo,m2,cu,cat,tc,
+    rev:'R01',roles:activeRoles.join(' + '),uso,tipo,m2,cu,cat,tc,calcUsdM2,
     descPct:desc*100,gastPct:gast*100,ipc:ipc*100,
     cliente:cli?cli.ap+', '+cli.nm:'—',cliId,
     usd:Math.round(fin),ars:Math.round(fin*tc),
@@ -1747,6 +1781,7 @@ function motorGuardar(draft){
     descAmt:Math.round(descAmt),gastos:Math.round(gastos),comisionAmt,comisionPct,formaPago,
     detalle,cuotas:JSON.parse(JSON.stringify(cuotas)),
     dirProyTotal:Math.round(dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:dirProyTotalUSD),
+    cuotasBase:cuotasBase,
     descTrab,excl,nota,catSec,catMzo,catParc,catUF,catDom,
     empresa:JSON.parse(JSON.stringify(EMPRESA)),
     estado:draft?'Borrador':'Enviado',
@@ -1775,7 +1810,7 @@ function editarHon(id){
   // Restaurar datos en el formulario
   var sv=function(elId,v){var el=document.getElementById(elId);if(el&&v!==undefined&&v!==null)el.value=v;};
   sv('mot-uso',hon.uso);sv('mot-tipo',hon.tipo);sv('mot-m2',hon.m2);sv('mot-cu',hon.cu);
-  sv('mot-tc',hon.tc);sv('mot-desc-pct',hon.descPct||0);sv('mot-gast-pct',hon.gastPct||5);
+  sv('mot-tc',hon.tc);sv('mot-desc-pct',hon.descPct||0);sv('mot-gast-pct',hon.gastPct||5);sv('mot-calc-usdm2',hon.calcUsdM2||9);
   sv('mot-ipc',hon.ipc||0);sv('mot-sec',hon.catSec);sv('mot-mzo',hon.catMzo);
   sv('mot-parc',hon.catParc);sv('mot-uf',hon.catUF);sv('mot-dom',hon.catDom);
   sv('mot-desc-trab',hon.descTrab);sv('mot-excl',hon.excl);sv('mot-nota',hon.nota);
@@ -1861,6 +1896,30 @@ function eliminarHon(id){
 
 
 /* ── HON DETAIL ───────────────────────────────────────────────────────── */
+/* Arma, a partir de un presupuesto YA GUARDADO (h.detalle), el desglose discriminado por rol
+   (bruto/neto Dir.Proyecto+Calculista, Gastos y gestiones, cada rol de honorario fijo aparte).
+   IMPORTANTE: nunca recalcula montos de dinero desde cero — siempre usa los valores ya guardados
+   en h (h.descAmt, h.gastos, h.comisionAmt, h.usd) para que un presupuesto ya enviado a un cliente
+   jamás cambie de número al reabrirlo, aunque la fórmula del motor se ajuste más adelante. Los
+   únicos cálculos que hace son sumas simples de los totales por rol (ya fijos) y el residuo de
+   Ajuste IPC para que la planilla siempre cierre exacto contra el total guardado. */
+function honCalcTotales(h){
+  var det=h.detalle||[];
+  var descRoles=det.filter(function(r){return r.descuentable;});
+  var fixedRoles=det.filter(function(r){return !r.descuentable;});
+  var brutoDC=descRoles.reduce(function(a,r){return a+r.total;},0);
+  var descAmt=h.descAmt||0;
+  var netoDC=brutoDC-descAmt;
+  var gastosAmt=h.gastos||0;
+  var fixedTotal=fixedRoles.reduce(function(a,r){return a+r.total;},0);
+  var comisionAmt=h.comisionAmt||0;
+  var total=h.usd||0;
+  var ipcAmt=Math.max(0,Math.round(total-(netoDC+gastosAmt+fixedTotal)-comisionAmt));
+  var cuotasBase=h.cuotasBase!=null?h.cuotasBase:Math.round(netoDC+gastosAmt);
+  return {descRoles:descRoles,fixedRoles:fixedRoles,brutoDC:brutoDC,descAmt:descAmt,netoDC:netoDC,
+    gastosAmt:gastosAmt,fixedTotal:fixedTotal,ipcAmt:ipcAmt,
+    comisionAmt:comisionAmt,total:total,cuotasBase:cuotasBase,descPct:h.descPct||0,gastPct:h.gastPct!=null?h.gastPct:5};
+}
 function openHonDetail(id){
   id=isNaN(id)?id:Number(id);
   var h=HON_DATA.find(function(x){return x.id==id;});if(!h)return;
@@ -1870,7 +1929,7 @@ function openHonDetail(id){
   (h.detalle||[]).forEach(function(rol){
     det+='<div style="margin-bottom:14px">'
       +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:'+(rol.descuentable?'var(--bt)':'var(--golt)')+';text-transform:uppercase;letter-spacing:.04em;padding:5px 0 4px;border-bottom:1px solid var(--br);margin-bottom:5px">'
-      +'<span>'+rol.rol+'</span><span style="font-size:9px;opacity:.7;font-weight:400">'+(rol.descuentable?'Con descuento':'Sin descuento')+' \u00b7 CATDF '+(rol.catdf*100).toFixed(1)+'%</span></div>'
+      +'<span>'+rol.rol+'</span><span style="font-size:9px;opacity:.7;font-weight:400">'+(rol.descuentable?'Con descuento':'Sin descuento')+' \u00b7 '+(rol.catdf!=null?('CATDF '+(rol.catdf*100).toFixed(1)+'%'):('USD '+rol.usdm2+'/m\u00b2'))+'</span></div>'
       +'<div style="font-size:10px;color:var(--tx3);margin-bottom:7px;font-style:italic">Subtotal del rol = USD '+N(rol.total)+'. Cada subtarea = USD '+N(rol.total)+' \u00d7 % del rol.</div>'
       +rol.items.map(function(it){
         var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
@@ -1891,13 +1950,18 @@ function openHonDetail(id){
       +'</div>';
   }
   if(h.catDom)catHtml+='<div style="font-size:12px;font-weight:500;color:var(--tx);margin-bottom:10px">'+h.catDom+'</div>';
+  var tots=honCalcTotales(h);
   var cuotasHtml='';
-  if(h.cuotas&&h.cuotas.length&&h.dirProyTotal&&h.formaPago!=='contado'){
+  if(h.cuotas&&h.cuotas.length&&tots.cuotasBase>0&&h.formaPago!=='contado'){
+    var _acDet=0;
     cuotasHtml='<div style="margin-top:14px;background:rgba(96,165,250,.05);border:1px solid rgba(96,165,250,.2);border-radius:8px;padding:14px">'
-      +'<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bt);margin-bottom:8px">Planilla de Cuotas \u2014 Base USD '+N(h.dirProyTotal)+'</div>'
-      +h.cuotas.map(function(c){return'<div style="display:grid;grid-template-columns:1fr 60px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">'
+      +'<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bt);margin-bottom:8px">Planilla de Cuotas \u2014 Dir. Proyecto + Calculista \u2014 Base USD '+N(tots.cuotasBase)+'</div>'
+      +h.cuotas.map(function(c,i){
+        var _m=(i===h.cuotas.length-1)?Math.round(tots.cuotasBase-_acDet):Math.round(tots.cuotasBase*(c.pct/100));
+        _acDet+=_m;
+        return'<div style="display:grid;grid-template-columns:1fr 60px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">'
         +'<span style="color:var(--tx)">'+c.nm+'</span><span style="text-align:right;color:var(--golt);font-weight:600">'+c.pct+'%</span>'
-        +'<span style="text-align:right;color:var(--bt);font-weight:700">USD '+N(h.dirProyTotal*(c.pct/100))+'</span></div>';}).join('')
+        +'<span style="text-align:right;color:var(--bt);font-weight:700">USD '+N(_m)+'</span></div>';}).join('')
       +'</div>';
   }
   var isDraft=h.estado==='Borrador';
@@ -1931,12 +1995,16 @@ function openHonDetail(id){
     +'<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);margin-bottom:8px">Detalle de honorarios</div>'
     +det
     +'<div class="totbox">'
-    +'<div class="trow"><span class="tl">Subtotal honorarios</span><span class="tv">USD '+N((h.subtotalDesc||0)+(h.subtotalNoDesc||0))+'</span></div>'
-    +(h.descAmt>0?'<div class="trow"><span class="tl" style="color:var(--rt)">Descuento ('+h.descPct+'%)</span><span class="tv" style="color:var(--rt)">\u2212 USD '+N(h.descAmt)+'</span></div>':'')
-    +'<div class="trow"><span class="tl">Gastos y gestiones ('+(h.gastPct||5).toFixed(1)+'%)</span><span class="tv">USD '+N(h.gastos||0)+'</span></div>'
-    +(h.comisionAmt>0?'<div class="trow"><span class="tl" style="color:var(--golt)">Comisi\u00f3n tarjeta ('+h.comisionPct+'%)</span><span class="tv" style="color:var(--golt)">+ USD '+N(h.comisionAmt)+'</span></div>':'')
-    +'<div class="trow fin"><span class="tl">TOTAL HONORARIOS</span><span class="tv" style="color:var(--bt)">USD '+N(h.usd)+'</span></div>'
-    +'<div class="tusd">ARS $ '+h.ars.toLocaleString('es-AR')+' al TC BNA $'+h.tc.toLocaleString('es-AR')+' ('+h.fecha+')</div>'
+    +tots.descRoles.map(function(r){return '<div class="trow"><span class="tl">'+r.rol.toUpperCase()+'</span><span class="tv">USD '+N(r.total)+'</span></div>';}).join('')
+    +(tots.descRoles.length>1?'<div class="trow" style="border-top:1px solid var(--br);padding-top:6px;margin-top:2px"><span class="tl" style="font-weight:600">TOTAL BRUTO PROYECTO Y CALCULISTA</span><span class="tv">USD '+N(tots.brutoDC)+'</span></div>':'')
+    +(tots.descAmt>0?'<div class="trow"><span class="tl" style="color:var(--rt)">Descuento ('+tots.descPct+'%)</span><span class="tv" style="color:var(--rt)">\u2212 USD '+N(tots.descAmt)+'</span></div>':'')
+    +(tots.descRoles.length?'<div class="trow" style="font-weight:600"><span class="tl">TOTAL NETO PROYECTO Y CALCULISTA</span><span class="tv">USD '+N(tots.netoDC)+'</span></div>':'')
+    +(tots.descRoles.length?'<div class="trow"><span class="tl">Gastos y gestiones ('+tots.gastPct.toFixed(1)+'% s/bruto Proy.+Calc.)</span><span class="tv">USD '+N(tots.gastosAmt)+'</span></div>':'')
+    +tots.fixedRoles.map(function(r){return '<div class="trow"><span class="tl">'+r.rol.toUpperCase()+'</span><span class="tv">USD '+N(r.total)+'</span></div>';}).join('')
+    +(tots.ipcAmt>0?'<div class="trow"><span class="tl">Ajuste IPC</span><span class="tv">+ USD '+N(tots.ipcAmt)+'</span></div>':'')
+    +(tots.comisionAmt>0?'<div class="trow"><span class="tl" style="color:var(--golt)">Comisi\u00f3n tarjeta ('+h.comisionPct+'%)</span><span class="tv" style="color:var(--golt)">+ USD '+N(tots.comisionAmt)+'</span></div>':'')
+    +'<div class="trow fin"><span class="tl">TOTAL HONORARIOS PROFESIONALES</span><span class="tv" style="color:var(--bt)">USD '+N(tots.total)+'</span></div>'
+    +'<div class="tusd">ARS $ '+Math.round(tots.total*h.tc).toLocaleString('es-AR')+' al TC BNA $'+h.tc.toLocaleString('es-AR')+' ('+h.fecha+')</div>'
     +'</div>'
     +cuotasHtml
     +(h.excl?'<div style="margin-top:12px"><div class="sl" style="margin-bottom:5px">Exclusiones</div><div style="font-size:12px;color:var(--tx2);line-height:1.6">'+h.excl+'</div></div>':'');
@@ -2154,15 +2222,19 @@ function generarPDF(id){
     +'<b>USD '+N(h.m2*h.cu*h.cat)+'</b>. '
     +'Honorarios = % CATDF \u00d7 valor de obra \u00d7 % incidencia de cada subtarea.'
     +'</div>';
+  var tots=honCalcTotales(h);
   (h.detalle||[]).forEach(function(rol){
-    var rFm=Math.round(h.m2*h.cu*h.cat*rol.catdf);
+    var esCalcRol=(rol.catdf==null);
+    var rFm=esCalcRol?Math.round((rol.m2calc||0)*(rol.usdm2||0)):Math.round(h.m2*h.cu*h.cat*rol.catdf);
+    var pctTxt=esCalcRol?('USD '+rol.usdm2+'/m\u00b2'):((rol.catdf*100).toFixed(2)+'%');
+    var baseTxt=esCalcRol?((rol.m2calc||0)+' m\u00b2'):('USD '+N(h.m2*h.cu*h.cat));
     var clrRol=rol.descuentable?'#1e3a5f':'#1a3a2a';
     d+='<div class="rol-block">';
     d+='<div class="rol-head" style="background:'+clrRol+'">';
     d+=rol.rol;
-    d+='<span class="desc-tag">CATDF '+(rol.catdf*100).toFixed(2)+'% &nbsp;\u00b7\u00a0'+(rol.descuentable?'Con descuento':'Sin descuento')+'</span>';
+    d+='<span class="desc-tag">'+pctTxt+' &nbsp;\u00b7\u00a0'+(rol.descuentable?'Con descuento':'Sin descuento')+'</span>';
     d+='</div>';
-    d+='<div class="rol-fm">USD '+N(h.m2*h.cu*h.cat)+' \u00d7 '+(rol.catdf*100).toFixed(2)+'% = USD '+N(rFm)+' del rol. Cada subtarea = USD '+N(rFm)+' \u00d7 % de incidencia.</div>';
+    d+='<div class="rol-fm">'+baseTxt+' \u00d7 '+pctTxt+' = USD '+N(rFm)+' del rol. Cada subtarea = USD '+N(rFm)+' \u00d7 % de incidencia.</div>';
     d+='<table class="rol-tbl"><thead><tr>';
     d+='<th>Subtarea</th><th class="c">% del rol</th><th class="r">USD</th></tr></thead><tbody>';
     rol.items.forEach(function(it){
@@ -2174,27 +2246,31 @@ function generarPDF(id){
   });
   d+='</td></tr></table>';
 
-  /* TOTAL BOX — fuera de la sec-tbl para que abarque todo el ancho */
+  /* TOTAL BOX — fuera de la sec-tbl para que abarque todo el ancho — discriminado por rol, solo los cotizados */
   d+='<div class="tot-box">';
-  d+='<div class="tot-row"><span>Honorarios con descuento (proyecto / informe)</span><span>USD '+N(h.subtotalDesc||0)+'</span></div>';
-  d+='<div class="tot-row"><span>Honorarios fijos (direcci\u00f3n / construcci\u00f3n / representaci\u00f3n)</span><span>USD '+N(h.subtotalNoDesc||0)+'</span></div>';
-  if(h.descAmt>0) d+='<div class="tot-row disc"><span>Descuento ('+h.descPct+'%) aplicado sobre honorarios de proyecto</span><span>\u2212 USD '+N(h.descAmt)+'</span></div>';
-  d+='<div class="tot-row"><span>Gastos y gestiones ('+h.gastPct.toFixed(1)+'%)</span><span>USD '+N(h.gastos||0)+'</span></div>';
-  d+='<div class="tot-row final"><span>TOTAL HONORARIOS PROFESIONALES</span><span>USD '+N(h.usd)+'</span></div>';
-  d+='<div class="tot-ars">Equivalente a ARS $'+Math.round(h.ars).toLocaleString('es-AR')+' al tipo de cambio BNA oficial venta $'+N(h.tc)+' vigente al '+h.fecha+'</div>';
+  tots.descRoles.forEach(function(r){d+='<div class="tot-row"><span>'+r.rol.toUpperCase()+'</span><span>USD '+N(r.total)+'</span></div>';});
+  if(tots.descRoles.length>1) d+='<div class="tot-row" style="font-weight:600;border-top:1px solid #ddd;padding-top:4pt"><span>TOTAL BRUTO PROYECTO Y CALCULISTA</span><span>USD '+N(tots.brutoDC)+'</span></div>';
+  if(tots.descAmt>0) d+='<div class="tot-row disc"><span>Descuento ('+tots.descPct+'%)</span><span>\u2212 USD '+N(tots.descAmt)+'</span></div>';
+  if(tots.descRoles.length) d+='<div class="tot-row" style="font-weight:600"><span>TOTAL NETO PROYECTO Y CALCULISTA</span><span>USD '+N(tots.netoDC)+'</span></div>';
+  if(tots.descRoles.length) d+='<div class="tot-row"><span>Gastos y gestiones ('+tots.gastPct.toFixed(1)+'% s/bruto Proy.+Calc.)</span><span>USD '+N(tots.gastosAmt)+'</span></div>';
+  tots.fixedRoles.forEach(function(r){d+='<div class="tot-row"><span>'+r.rol.toUpperCase()+'</span><span>USD '+N(r.total)+'</span></div>';});
+  if(tots.ipcAmt>0) d+='<div class="tot-row"><span>Ajuste IPC</span><span>+ USD '+N(tots.ipcAmt)+'</span></div>';
+  if(tots.comisionAmt>0) d+='<div class="tot-row"><span>Comisi\u00f3n tarjeta ('+h.comisionPct+'%)</span><span>+ USD '+N(tots.comisionAmt)+'</span></div>';
+  d+='<div class="tot-row final"><span>TOTAL HONORARIOS PROFESIONALES</span><span>USD '+N(tots.total)+'</span></div>';
+  d+='<div class="tot-ars">Equivalente a ARS $'+Math.round(tots.total*h.tc).toLocaleString('es-AR')+' al tipo de cambio BNA oficial venta $'+N(h.tc)+' vigente al '+h.fecha+'</div>';
   d+='</div>';
   d+='</div>';
 
   /* SECTION E — PLANILLA DE CUOTAS */
-  if(h.cuotas&&h.cuotas.length&&h.dirProyTotal&&h.formaPago!=='contado'){
-    d+='<div class="sec"><div class="sec-head">E.&nbsp; Planilla de Cuotas \u2014 Direcci\u00f3n de Proyecto</div>';
+  if(h.cuotas&&h.cuotas.length&&tots.cuotasBase>0&&h.formaPago!=='contado'){
+    d+='<div class="sec"><div class="sec-head">E.&nbsp; Planilla de Cuotas \u2014 Direcci\u00f3n de Proyecto + Calculista</div>';
     d+='<table class="sec-tbl"><tr>';
-    d+='<td class="sec-desc">Esquema de pagos sobre los honorarios de Direcci\u00f3n de Proyecto. Base: <b>USD '+N(h.dirProyTotal)+'</b>.</td>';
+    d+='<td class="sec-desc">Esquema de pagos sobre los honorarios de Direcci\u00f3n de Proyecto + Calculista (netos) m\u00e1s Gastos y gestiones. Base: <b>USD '+N(tots.cuotasBase)+'</b>.</td>';
     d+='<td class="sec-cont">';
     d+='<table class="cq-tbl"><thead><tr><th>#</th><th>Concepto</th><th class="r">%</th><th class="r">USD</th></tr></thead><tbody>';
     var _acPDF=0;
     h.cuotas.forEach(function(c,i){
-      var _mPDF=(i===h.cuotas.length-1)?Math.round(h.dirProyTotal-_acPDF):Math.round(h.dirProyTotal*(c.pct/100));_acPDF+=_mPDF;
+      var _mPDF=(i===h.cuotas.length-1)?Math.round(tots.cuotasBase-_acPDF):Math.round(tots.cuotasBase*(c.pct/100));_acPDF+=_mPDF;
       d+='<tr><td style="color:#888;font-size:8pt">'+(i+1)+'</td><td>'+c.nm+'</td>';
       d+='<td class="r" style="color:#b8700a">'+c.pct+'%</td>';
       d+='<td class="r">USD '+N(_mPDF)+'</td></tr>';
