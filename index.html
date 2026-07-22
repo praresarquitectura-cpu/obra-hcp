@@ -4860,10 +4860,10 @@ var CP_PRECIOS_EXTRA = {
   // RUNNER/SOLERA (mismos perfiles usados como solera)
   'SOL35':1360,'SOL50':1849,'SOL70':2266,'SOL100':4829,
   // TORNILLOS ($/100 unidades o $/unidad)
-  'torn_T1_25':28,    // Autoperforante T1 25mm (placa-perfil) $/un
-  'torn_T2_25':32,    // Autoperforante T2 25mm (perfil-perfil fino) $/un
-  'torn_T3_38':45,    // Autotaladrante T3 38mm (perfil grueso) $/un
-  'torn_wafer':25,    // Wafer 25mm terminación $/un
+  'torn_T1_25':28,    // Autoperforante T1 25mm (placa-perfil) $/un — sin match exacto de 25mm/1" en IMCOFUE (stockean 9/16,3/4,1.1/2); valor estimado sin confirmar, verificar
+  'torn_T2_25':21.19, // Autoperforante T2 6x1 (25mm) $/un — actualizado 2026-07: precio real IMCOFUE confirmado (cod PR_DATA 603), reemplaza estimación vieja de $32
+  'torn_T3_38':24.28, // Autotaladrante T3 Aguja Negro 6x1.1/2 (38mm) $/un — actualizado 2026-07: precio real IMCOFUE confirmado (cod PR_DATA 614), reemplaza estimación vieja de $45
+  'torn_wafer':25,    // Wafer 25mm terminación $/un — no se encontró un "tornillo wafer" como producto genérico en IMCOFUE, valor estimado sin confirmar, verificar
   // PLACAS ($/m2)
   'placa_yeso_12':8500,    // Placa de yeso 12mm
   'placa_cem_10':12800,    // Placa cementicia 10mm
@@ -8078,7 +8078,9 @@ var PR_FECHA_CATALOGO = '2026-06';
 //     [ ] Barras, Mallas y Alambres (48)
 //     [ ] Cemento y Morteros (40)
 //     [ ] Chapas (78)
-//     [ ] Construcción en seco (81)
+//     [~] Construcción en seco (81) - 48/81 relevados (pág 1), 13 items nuevos + 1 corrección
+//         de precio desactualizado agregados (v67); falta pág 2 (bug paginación IMCOFUE,
+//         requiere click en vez de navegar directo a &p=2)
 //     [ ] Perfileria (207) - parcialmente cubierta vía auditoría Perfiles Hierro Negro (v58-v59),
 //         faltan C/UPN/PGO/PGC en otras medidas, cielorraso, etc.
 //     [ ] Adhesivos y Otros Químicos (135)
@@ -8252,6 +8254,13 @@ var PR_DATA = [
 {cod:'611',nom:'Varilla roscada 1/2" x 1,00mts',cat:'FIJACIONES',un:'un',pu:5565,medida:'un',fuente:'bulonera',modif:0,fecha:'2026-06'},
 {cod:'612',nom:'Bulon 1/4" x 1 1/4" hexagonal',cat:'FIJACIONES',un:'un',pu:66.92,medida:'un',fuente:'ropelato',modif:0,fecha:'2026-06'},
 {cod:'613',nom:'Anclaje Fisher Broca perno hormigon Fwa',cat:'FIJACIONES',un:'un',pu:1934.3,medida:'un',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'614',nom:'Tornillo T3 Aguja Negro 6x1.1/2',cat:'FIJACIONES',un:'un',pu:24.28,medida:'un (caja x100 $2.428,00)',fuente:'Completado: relevamiento en vivo IMCOFUE (categoría Construcción en seco), producto real confirmado, ciudad Ushuaia, 2026-07 — pedido puntual de Diego (faltaba en el módulo al cargar una obra real)',modif:0,fecha:'2026-07'},
+{cod:'615',nom:'Tornillo T3 Mecha Zinc 6x1.5/8',cat:'FIJACIONES',un:'un',pu:33.86,medida:'un (caja x100 $3.385,94)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'616',nom:'Tornillo T4 Aguja Negro 6x2',cat:'FIJACIONES',un:'un',pu:36.31,medida:'un (caja x100 $3.631,00)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'617',nom:'Tornillo T5 Mecha 10x3',cat:'FIJACIONES',un:'un',pu:210,medida:'un',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado (precio ya por unidad, no por caja), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'618',nom:'Tornillo Alas p/Superboard 8x1.1/4',cat:'FIJACIONES',un:'un',pu:42.69,medida:'un (caja x100 $4.268,57)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'619',nom:'Tornillo Alas p/Superboard 10x2',cat:'FIJACIONES',un:'un',pu:81.95,medida:'un (caja x100 $8.195,04)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'620',nom:'Tornillo Alas p/Superboard 12x2.1/2',cat:'FIJACIONES',un:'un',pu:125.6,medida:'un (caja x50 $6.280,00)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'clavo_pp_3',nom:'Clavo punta París 3"',cat:'FIJACIONES',un:'kg',pu:1914,medida:'bolsa 3kg',fuente:'Planilla Municipalidad Ushuaia 2026',modif:0},
 // ── CONSTRUCCIÓN EN SECO ──
 {cod:'701',nom:'Cinta Tramada Autoadhesiva 50 mm',cat:'CONSTRUCCIÓN EN SECO',un:'m',pu:73.82,medida:'m',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
@@ -8259,6 +8268,9 @@ var PR_DATA = [
 {cod:'703',nom:'Masilla para Yeso',cat:'CONSTRUCCIÓN EN SECO',un:'kg',pu:1477.64,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'704',nom:'Enduido Interior',cat:'CONSTRUCCIÓN EN SECO',un:'lts',pu:6273,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'705',nom:'Masilla para placa cementicia',cat:'CONSTRUCCIÓN EN SECO',un:'kg',pu:13992.13,medida:'kg',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'706',nom:'Tapa de Inspección Durlock 40x40mm Marco Oculto',cat:'CONSTRUCCIÓN EN SECO',un:'un',pu:109573,medida:'un',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'707',nom:'Tapa de Inspección Durlock 60x60mm Marco Oculto',cat:'CONSTRUCCIÓN EN SECO',un:'un',pu:142595,medida:'un',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'708',nom:'Placa Cielorraso PVC Blanco 200x6000mm Barbieri (10mm)',cat:'CONSTRUCCIÓN EN SECO',un:'m²',pu:18237.15,medida:'m² (listón 0.2x6m $21.884,58)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 // ── AISLACIONES ──
 {cod:'801',nom:'Membrana espuma polietileno 5mm',cat:'AISLACIONES',un:'m²',pu:962.40,medida:'m² (rollo 20m2 = $19.248)',fuente:'Actualizado: Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'802',nom:'Membrana espuma polietileno 2mm',cat:'AISLACIONES',un:'m²',pu:461.30,medida:'m² (rollo 20m2 = $9.226)',fuente:'Actualizado: Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
@@ -8347,8 +8359,11 @@ var PR_DATA = [
 // ── PLACAS CEMENTICIAS ──
 {cod:'1201',nom:'Placa cementicia 10mm (2.40x1.20) Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:24348.96,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1202',nom:'Placa cementicia 8mm (2.40x1.20) Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:20777.08,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'1203',nom:'Siding cedral 8mm (0.20x3.6m) Eternit',cat:'PLACAS CEMENTICIAS',un:'m²',pu:43018.06,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1203',nom:'Siding cedral 8mm Crudo (0.20x3.6m) Eternit',cat:'PLACAS CEMENTICIAS',un:'m²',pu:26166.67,medida:'m² (panel $18.840,00/0.72m²)',fuente:'Corregido: relevamiento en vivo IMCOFUE, precio anterior desactualizado (39% mas alto), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'1204',nom:'Placa cementicia 6mm (2.40x1.20) Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:18930.21,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1205',nom:'Placa Cementicia 6mm Texturada (2.40x1.20) Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:21889.58,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1206',nom:'Placa Cementicia 10mm Premium Pulida (2.40x1.20) Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:44690.28,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1207',nom:'Siding Cedral 10mm Smart (0.10x3.20m) Eternit',cat:'PLACAS CEMENTICIAS',un:'m²',pu:53540.63,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 // ── PLACAS DE YESO ──
 {cod:'1301',nom:'Placa de yeso 12.5 Std (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:8066.67,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1302',nom:'Placa de yeso 9.5 Std (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:7491.32,medida:'m²',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
@@ -8356,6 +8371,12 @@ var PR_DATA = [
 {cod:'1304',nom:'Placa de yeso 12.5 Resist Fuego (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:11395.14,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1305',nom:'Placa Cielorraso Deco Classic 60x60 Durlock',cat:'PLACAS DE YESO',un:'m²',pu:15533.33,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1306',nom:'Placa Cielorraso Deco Classic 60x120 Durlock',cat:'PLACAS DE YESO',un:'m²',pu:12673.61,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1307',nom:'Placa de yeso 15mm Std (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:15096.53,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1308',nom:'Placa de yeso 12.5mm Semicubierto (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:16181.25,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1309',nom:'Placa de yeso 15mm Extra Resistente (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:18080.21,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1310',nom:'Placa de yeso 12.5mm Acústica (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:9107.29,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1311',nom:'Placa de yeso 12.5mm Revoque Seco (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:10989.58,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1312',nom:'Placa de yeso 15mm Resistente al Fuego (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:15041.32,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 // ── MADERAS ──
 {cod:'1401',nom:'Tablero Osb 9.5mm Estructural 1.22x2.44m',cat:'MADERAS',un:'m²',pu:9287.49,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1402',nom:'Terciado Fenolico Pino 15mm C+/C 1.22x2.44m',cat:'MADERAS',un:'m²',pu:14703.71,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
