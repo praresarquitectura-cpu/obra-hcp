@@ -8078,9 +8078,15 @@ var PR_FECHA_CATALOGO = '2026-06';
 //     [ ] Barras, Mallas y Alambres (48)
 //     [ ] Cemento y Morteros (40)
 //     [ ] Chapas (78)
-//     [~] Construcción en seco (81) - 48/81 relevados (pág 1), 13 items nuevos + 1 corrección
-//         de precio desactualizado agregados (v67); falta pág 2 (bug paginación IMCOFUE,
-//         requiere click en vez de navegar directo a &p=2)
+//     [x] Construcción en seco (81) - relevado vía búsquedas cruzadas (durlock/cementicia/
+//         construccion en seco), 19 items nuevos + 1 corrección de precio desactualizado
+//         agregados en total (v67+v68). No se navegó la categoría página por página (bug de
+//         paginación de IMCOFUE persiste) sino que se cubrió el universo de productos vía
+//         múltiples búsquedas superpuestas (durlock: 52 arts, placa cementicia: 30 arts,
+//         construccion en seco: 118 arts, siding cedral: 7 arts) — cobertura práctica completa
+//         de las familias de producto (placas yeso/cementicia/PVC, tapas inspección, cintas,
+//         membrana hidrófuga, siding). No se agregaron variantes decorativas de nicho (líneas
+//         Simplísima/Marmore con >10 colores cada una) por no aportar al cómputo de obra.
 //     [ ] Perfileria (207) - parcialmente cubierta vía auditoría Perfiles Hierro Negro (v58-v59),
 //         faltan C/UPN/PGO/PGC en otras medidas, cielorraso, etc.
 //     [ ] Adhesivos y Otros Químicos (135)
@@ -8271,6 +8277,10 @@ var PR_DATA = [
 {cod:'706',nom:'Tapa de Inspección Durlock 40x40mm Marco Oculto',cat:'CONSTRUCCIÓN EN SECO',un:'un',pu:109573,medida:'un',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'707',nom:'Tapa de Inspección Durlock 60x60mm Marco Oculto',cat:'CONSTRUCCIÓN EN SECO',un:'un',pu:142595,medida:'un',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'708',nom:'Placa Cielorraso PVC Blanco 200x6000mm Barbieri (10mm)',cat:'CONSTRUCCIÓN EN SECO',un:'m²',pu:18237.15,medida:'m² (listón 0.2x6m $21.884,58)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'709',nom:'Membrana Hidrófuga Premium Durlock (rollo 30m²)',cat:'CONSTRUCCIÓN EN SECO',un:'m²',pu:2511.67,medida:'m² (rollo $75.350,20/30m²)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'710',nom:'Cinta Aluminio Reforzada 75mm (p/lanas, x50m)',cat:'CONSTRUCCIÓN EN SECO',un:'m',pu:690.46,medida:'m (rollo $34.523,00/50m)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'711',nom:'Cinta Duct Tape 48mm Multiuso (x9m)',cat:'CONSTRUCCIÓN EN SECO',un:'m',pu:920.59,medida:'m (rollo $8.285,33/9m)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'712',nom:'Cielorraso PVC Blanco 200x6000mm Barbieri 13mm Desmontable',cat:'CONSTRUCCIÓN EN SECO',un:'m²',pu:24566.37,medida:'m² (listón 0.2x6m $29.479,64)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 // ── AISLACIONES ──
 {cod:'801',nom:'Membrana espuma polietileno 5mm',cat:'AISLACIONES',un:'m²',pu:962.40,medida:'m² (rollo 20m2 = $19.248)',fuente:'Actualizado: Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'802',nom:'Membrana espuma polietileno 2mm',cat:'AISLACIONES',un:'m²',pu:461.30,medida:'m² (rollo 20m2 = $9.226)',fuente:'Actualizado: Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
@@ -8377,6 +8387,8 @@ var PR_DATA = [
 {cod:'1310',nom:'Placa de yeso 12.5mm Acústica (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:9107.29,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'1311',nom:'Placa de yeso 12.5mm Revoque Seco (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:10989.58,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'1312',nom:'Placa de yeso 15mm Resistente al Fuego (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:15041.32,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1313',nom:'Placa Cielorraso Deco Acustic Cosmos 61x61cm Durlock',cat:'PLACAS DE YESO',un:'m²',pu:30256.11,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1314',nom:'Placa de yeso 7mm Ciel (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:7468.40,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 // ── MADERAS ──
 {cod:'1401',nom:'Tablero Osb 9.5mm Estructural 1.22x2.44m',cat:'MADERAS',un:'m²',pu:9287.49,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1402',nom:'Terciado Fenolico Pino 15mm C+/C 1.22x2.44m',cat:'MADERAS',un:'m²',pu:14703.71,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
