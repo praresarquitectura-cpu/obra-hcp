@@ -8079,7 +8079,10 @@ var PR_FECHA_CATALOGO = '2026-06';
 //         4-8mm, Alambres, Electrodos, cargados en tandas previas); se agregó Malla Sima 10mm
 //         Q524 (faltaba) y se reemplazó el placeholder estimado 'Hierro Torsionado genérico'
 //         por 7 items reales por diámetro 6-25mm (v69)
-//     [ ] Cemento y Morteros (40)
+//     [x] Cemento y Morteros (40) - ya estaba casi completa (11 items reales previos); se
+//         agregaron 5 items nuevos (Acelerante Fragüe, Morteros Fort F/G, Endurecedor Sealkrete,
+//         Hidrófugo Sika-1) y se corrigió precio de 1008 (Revoque weber mix E) que usaba precio
+//         de reventa mercadolibre (33% mas caro) por precio real IMCOFUE (v70)
 //     [ ] Chapas (78)
 //     [x] Construcción en seco (81) - relevado vía búsquedas cruzadas (durlock/cementicia/
 //         construccion en seco), 19 items nuevos + 1 corrección de precio desactualizado
@@ -8359,10 +8362,15 @@ var PR_DATA = [
 {cod:'1005',nom:'Pastina Klaukol',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:6936.35,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 {cod:'1006',nom:'Tacuru ligante vinilico',cat:'CEMENTOS Y MORTEROS',un:'lt',pu:11331,medida:'lt',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 {cod:'1007',nom:'Ceresita',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:4758,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
-{cod:'1008',nom:'Revoque 3en1 weber mix E',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:1038.67,medida:'kg',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'1008',nom:'Revoque 3en1 weber mix E',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:778.27,medida:'kg (bolsa 30kg $23.348,00)',fuente:'Corregido: precio anterior era de mercadolibre (revendedor); actualizado con precio real IMCOFUE (33% mas bajo), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'1009',nom:'Mortero cementicio Sika Monotop 107 Seal',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:2486.52,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 {cod:'1010',nom:'Weber block gris para bloques',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:419.97,medida:'kg',fuente:'sodimac',modif:0,fecha:'2026-06'},
 {cod:'1011',nom:'Cal común hidratada (bolsa 25kg, ref. Cacique Loma Negra)',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:659.16,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
+{cod:'1012',nom:'Acelerante de Fragüe Sika2',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:3925,medida:'kg (envase 1kg)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1013',nom:'Mortero Fort F Bicomponente Protex',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:2443.68,medida:'kg (bolsa 30kg $73.310,34)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1014',nom:'Mortero Fort G Bicomponente Protex',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:2219.68,medida:'kg (bolsa 30kg $66.590,34)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1015',nom:'Endurecedor de Piso Sealkrete Protex',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:3373.72,medida:'kg (bolsa 20kg $67.474,43)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1016',nom:'Hidrófugo Líquido Sika-1 (bidón 20kg)',cat:'CEMENTOS Y MORTEROS',un:'kg',pu:2591.05,medida:'kg (bidón 20kg $51.821,00)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 // ── CHAPAS ──
 {cod:'1101',nom:'Chapa Acanalada Galvanizada calibre 25',cat:'CHAPAS',un:'m²',pu:13982.52,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1102',nom:'Chapa Acanalada Prepintada Negra calibre 25',cat:'CHAPAS',un:'m²',pu:21134.26,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
