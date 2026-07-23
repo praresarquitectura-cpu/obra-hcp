@@ -9324,6 +9324,53 @@ var SC_PU_ESPECIALES = {
   'TIR_2x6': {nom:'Tirante pino 2"x6"',pu:4800},
 };
 
+// ── Acceso al catálogo COMPLETO de PR_DATA para el picker de capas ────
+// (antes el picker de Sistemas Constructivos solo mostraba SC_MAT_CATS,
+// una lista curada de unos pocos materiales por categoría; a pedido de
+// Diego (jul-2026) ahora expone TODO PR_DATA agrupado por su categoría
+// real, más los subcómputos especiales (revoques/colocaciones) que no
+// existen como insumo individual en PR_DATA. SC_MAT_CATS se conserva
+// solo para los botones de acceso directo "+Estructura Steel Frame/Drywall".
+var SC_CAT_SUBCOMPUTOS = 'SUBCÓMPUTOS (Revoques / Colocaciones)';
+// Tabla de rendimientos/notas ya calibrados (viene de la vieja SC_MAT_CATS
+// curada) indexada por código, para no perder esos valores de referencia
+// (ej: "24 un/m²" en tornillos) cuando el ítem se elige desde el catálogo
+// completo en vez de la lista corta de antes.
+var SC_REND_REF = (function(){
+  var ref = {};
+  Object.keys(SC_MAT_CATS).forEach(function(cat){
+    SC_MAT_CATS[cat].forEach(function(m){
+      if(m.cod && m.rend) ref[m.cod] = {rend:m.rend, nota:m.nota||''};
+    });
+  });
+  return ref;
+})();
+function scCatList(){
+  var cats = {};
+  if(typeof PR_DATA!=='undefined'){
+    PR_DATA.forEach(function(p){ if(p.cat) cats[p.cat]=true; });
+  }
+  var lista = Object.keys(cats).sort(function(a,b){return a.localeCompare(b,'es');});
+  lista.unshift(SC_CAT_SUBCOMPUTOS);
+  return lista;
+}
+function scMatsForCat(cat){
+  if(cat===SC_CAT_SUBCOMPUTOS){
+    return Object.keys(SC_PU_ESPECIALES).map(function(cod){
+      var nom=SC_PU_ESPECIALES[cod].nom;
+      return {nom:nom,dispNom:nom,un:'m²',cod:cod,rend:1};
+    });
+  }
+  if(typeof PR_DATA==='undefined') return [];
+  return PR_DATA.filter(function(p){return p.cat===cat;})
+    .map(function(p){
+      var ref = SC_REND_REF[p.cod];
+      return {nom:p.nom,dispNom:p.nom+(!p.pu?' ⚠ sin precio':''),un:p.un,cod:p.cod,
+        rend:(ref?ref.rend:1), nota:(ref?ref.nota:'')};
+    })
+    .sort(function(a,b){return a.nom.localeCompare(b.nom,'es');});
+}
+
 // Estado del módulo
 var SC_SISTEMAS = [];  // lista de sistemas guardados
 var SC_EDIT_IDX = -1; // índice del sistema en edición (-1 = nuevo)
@@ -9444,15 +9491,15 @@ function scRenderCapas(){
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">'
       +'<div><label style="font-size:9px;color:var(--tx3);text-transform:uppercase;font-weight:700;display:block;margin-bottom:3px">Categoría</label>'
       +'<select class="fis" style="font-size:10px;width:100%" onchange="scCambiarCatCapa('+i+',this.value)">'
-      +Object.keys(SC_MAT_CATS).map(function(cat){
+      +scCatList().map(function(cat){
         return '<option value="'+cat+'"'+(c.catSel===cat?' selected':'')+'>'+cat+'</option>';
       }).join('')
       +'</select></div>'
       // Selector de material
       +'<div><label style="font-size:9px;color:var(--tx3);text-transform:uppercase;font-weight:700;display:block;margin-bottom:3px">Material</label>'
       +'<select class="fis" style="font-size:10px;width:100%" onchange="scCambiarMatCapa('+i+',this.value)">'
-      +(SC_MAT_CATS[c.catSel]||[]).map(function(m,mi){
-        return '<option value="'+mi+'"'+(c.matIdx===mi?' selected':'')+'>'+m.nom+'</option>';
+      +scMatsForCat(c.catSel).map(function(m){
+        return '<option value="'+m.cod+'"'+(c.cod===m.cod?' selected':'')+'>'+(m.dispNom||m.nom)+'</option>';
       }).join('')
       +'</select></div>'
       +'</div>'
@@ -9475,15 +9522,16 @@ function scRenderCapas(){
 }
 
 function scAgregarCapa(){
-  var primerCat = Object.keys(SC_MAT_CATS)[0];
-  var primerMat = SC_MAT_CATS[primerCat][0];
+  var cats = scCatList();
+  var primerCat = cats[0];
+  var mats = scMatsForCat(primerCat);
+  var primerMat = mats[0]||{nom:'',un:'un',cod:'',rend:1};
   SC_CAPAS.push({
     id: scNID(),
     catSel: primerCat,
-    matIdx: 0,
+    cod: primerMat.cod,
     nom: primerMat.nom,
     un: primerMat.un,
-    cod: primerMat.cod,
     rend: primerMat.rend||1,
     esp: 0,
     nota: primerMat.nota||''
@@ -9524,8 +9572,7 @@ function scMoverCapa(i, dir){
 
 function scCambiarCatCapa(i, cat){
   SC_CAPAS[i].catSel = cat;
-  SC_CAPAS[i].matIdx = 0;
-  var mat = (SC_MAT_CATS[cat]||[])[0];
+  var mat = scMatsForCat(cat)[0];
   if(mat){
     SC_CAPAS[i].nom=mat.nom;SC_CAPAS[i].un=mat.un;
     SC_CAPAS[i].cod=mat.cod;SC_CAPAS[i].rend=mat.rend||1;
@@ -9534,10 +9581,9 @@ function scCambiarCatCapa(i, cat){
   scRenderCapas();
 }
 
-function scCambiarMatCapa(i, miStr){
-  var mi=+miStr;
-  SC_CAPAS[i].matIdx=mi;
-  var mat=(SC_MAT_CATS[SC_CAPAS[i].catSel]||[])[mi];
+function scCambiarMatCapa(i, cod){
+  var mats = scMatsForCat(SC_CAPAS[i].catSel);
+  var mat = mats.find(function(m){return m.cod===cod;});
   if(mat){
     SC_CAPAS[i].nom=mat.nom;SC_CAPAS[i].un=mat.un;
     SC_CAPAS[i].cod=mat.cod;SC_CAPAS[i].rend=mat.rend||1;
