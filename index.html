@@ -2370,7 +2370,16 @@ function goTo(id,btn,sb){
   document.getElementById('main').scrollTop=0;
   if(id==='motor')motorInit();
   if(id==='computo')cpEntrarConObraActiva();
-  if(id==='apu'){if(typeof cpCargarCatalogoUser==='function')cpCargarCatalogoUser();apuTabRender();}
+  // fix 23-jul-2026 (2da vuelta): antes recargaba CP_CATALOGO_USER desde Firebase (async, .get()
+  // sin await) CADA VEZ que entrabas a esta pestaña — incluyendo si solo la volvías a clickear
+  // estando ya adentro (ej: para hacer scroll al principio). El catálogo ya se carga UNA VEZ al
+  // arrancar la app (cargarTodo/onAuthStateChanged) y se persiste local+nube en cada edición, así
+  // que este re-fetch era redundante Y peligroso: si tardaba en responder (conexión lenta) podía
+  // llegar DESPUÉS de que Diego creara/renombrara un ítem en esta misma visita, pisando ese cambio
+  // reciente con la versión vieja de la nube antes de que la escritura nueva llegara a Firestore —
+  // exactamente el bug reportado ("no me deja guardar el nombre que le pongo"). Se saca el reload;
+  // el estado en memoria ya está siempre al día.
+  if(id==='apu'){apuTabRender();}
   if(id==='sistemas'){scFiltrar('');}
   if(id==='precios')prRender();
   if(id==='config'){setTimeout(function(){loadEmpresaToForm();actualizarUIEmpresa();},60);}
@@ -6415,6 +6424,11 @@ function apuUNombre(cod,val){
   if(!it)return;
   it.nom=val;
   apuPersistirItem(cod);
+  // fix 23-jul-2026 (2da vuelta): antes NO refrescaba la lista de ítems del rubro (apu-items),
+  // así que el nombre nuevo quedaba guardado en los datos pero la lista de la izquierda seguía
+  // mostrando el nombre viejo/placeholder "(nuevo ítem — ponele nombre)" hasta que Diego hacía
+  // clic en otro ítem y volvía — parecía que "no dejaba guardar el nombre".
+  if(typeof apuRenderItems==='function')apuRenderItems();
 }
 function apuUUnidad(cod,val){
   var it=(typeof CP_CATALOGO!=='undefined')?CP_CATALOGO.find(function(x){return x.cod===cod;}):null;
