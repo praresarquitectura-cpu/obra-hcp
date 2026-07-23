@@ -5905,73 +5905,65 @@ var CP_CATALOGO_EXTRA = [
  mo:[]
 },
 // ══ ESTRUCTURA DE HºAº ══════════════════════════════════════════════════
-// MATERIALES: incidencias reales tomadas de tu propio archivo "3 CM - List
-// Mat - MO.xls" → hoja INCIDENCIAS (filas 229-339, sección 6-ESTRUCTURAS),
-// sin cambios respecto a la carga original (kg cemento/m³, m³ arena, m³
-// ripio, kg hierro, kg alambre, Pie² madera/tirantes, kg clavos por cada
-// 1 m³ del elemento). Esa hoja usa dosificación tipo 1:2:3/1:3:4 (cemento:
-// arena:ripio en volumen), o sea asume HORMIGÓN ARMADO EN OBRA (mezclado
-// en el lugar), no hormigón elaborado/bombeado comprado a MASCIOTRA — si
-// en la práctica comprás elaborado, avisame y cambio estos materiales por
-// el ítem HORMIGONES (H13/H17/etc, $/m³ ya puesto) en una sola línea.
+// (23-jul-2026, 2da vuelta): a pedido de Diego, cada elemento (Bases,
+// Columnas, Vigas, Losas) ahora tiene DOS versiones para elegir según cómo
+// se resuelva el hormigón en tu obra real:
+//   • Versión SIN sufijo = HORMIGÓN ELABORADO (comprado a MASCIOTRA, ya
+//     mezclado y bombeado/volcado en obra). Materiales: 1 sola línea de
+//     Hormigón H21 350kg ($/m³ ya cargado en HORMIGONES) + hierro/alambre/
+//     madera de encofrado/clavos (sin cambios). Equipo: solo Vibrador de
+//     inmersión (para consolidar/eliminar aire atrapado — hace falta
+//     SIEMPRE, elaborado o no). Es la opción más simple y la más usada en
+//     estructura de edificios porque asegura mejor control de calidad del
+//     hormigón (dosificación certificada de planta) que mezclar a mano.
+//   • Versión con sufijo "B" ("...c/hormigonera") = HORMIGÓN ARMADO EN
+//     OBRA con hormigonera (trompo). Materiales: cemento+arena+ripio
+//     sueltos (la dosificación real de tu hoja INCIDENCIAS, sin cambios).
+//     Equipo: Vibrador de inmersión + Hormigonera. Mano de obra: la misma
+//     base de Refuerzo+Encofrado+Fundida+Desencofrado de la versión
+//     elaborada, MÁS 0,4 h/m³ extra de cuadrilla para el mezclado/carga de
+//     la hormigonera (ver fuente abajo) — mezclar a mano siempre suma
+//     tiempo de obra que el hormigón elaborado (ya mezclado en planta) no
+//     tiene.
 //
-// MANO DE OBRA Y EQUIPO (23-jul-2026 — antes decía "MO estándar verificar"
-// porque NINGUNO de tus 3 archivos (ANALISIS DE PRECIOS 2026.xlsx, 3 CM -
-// List Mat - MO.xls, MATRIZ Y MANO DE OBRA 2026.xlsx) tiene rendimiento de
-// mano de obra ni equipo para Bases/Columnas/Vigas/Losas de hormigón
-// armado de edificios: ANALISIS DE PRECIOS 2026.xlsx es un catálogo de
-// OBRA PÚBLICA/URBANA (veredas, cordones, cercos, luminarias, canchas) que
-// nunca incluyó estructura de edificios; la hoja INCIDENCIAS del 3 CM
-// tiene las filas "Oficial"/"Ayudante" con la celda de incidencia VACÍA
-// (nunca se completó); y MATRIZ Y MANO DE OBRA 2026.xlsx solo tiene el
-// valor $/hora de cada rol, no rendimientos. Ante la falta de dato propio,
-// usé un estudio de campo real y revisado por pares: A. Remolina Millán y
-// L. M. Polanco Sánchez, "Estudio de rendimientos para las actividades
-// estructura y mampostería para un proyecto de construcción en el campus
-// de la UPB", Revista Prospect, Vol. 12 N°2, Universidad Pontificia
-// Bolivariana (Bucaramanga, Colombia), 2014 — mediciones reales de tiempo
-// en obra (edificio de 7.749 m²), separadas por proceso (Refuerzo/armado
-// de hierro, Encofrado, Fundida/hormigonado+vibrado, Desencofrado) en
-// horas-cuadrilla (1 Oficial + 1 Ayudante trabajando juntos) por m³, y
-// cruzadas contra Construdata (la base de datos de rendimientos de
-// referencia de la industria de la construcción en Latinoamérica). Como
-// la cuadrilla base del estudio es 1 Oficial + 1 Ayudante actuando en
-// conjunto, les asigné a AMBOS roles la misma cantidad de horas (hh) del
-// total medido por elemento — es una aproximación razonable ante la falta
-// de reparto Oficial/Ayudante propio, AJUSTALO cuando tengas tu dato real
-// de obra en Ushuaia (clima/logística distintos a Bucaramanga).
-// Zapatas/Bases:  Refuerzo 0.03 + Encofrado 2.70 + Desencofrado 0.71 = 3.44
-//   h/m³ MEDIDOS + Fundida ~1.00 h/m³ ESTIMADA por mí (el estudio no midió
-//   fundida de zapatas puntualmente; tomé un valor conservador, menor al
-//   de columnas/vigas, porque la zapata tiene cara de vaciado más abierta
-//   y accesible) = 4.44 h/m³ total.
-// Columnas:       Refuerzo 3.47 + Encofrado 2.54 + Fundida 2.18 +
-//   Desencofrado 1.03 = 9.22 h/m³ — los 4 procesos MEDIDOS directamente.
-// Vigas (de Fundación y de entrepiso): Refuerzo 3.93 + Encofrado 1.93 +
-//   Fundida 2.45 + Desencofrado 1.41 = 9.71 h/m³ — los 4 procesos MEDIDOS
-//   directamente para vigas; usé el mismo valor para Vigas de Fundación
-//   por no existir dato específico separado (aproximación razonable, son
-//   el mismo proceso constructivo esencialmente).
-// Losas (de Fundación y de entrepiso): el estudio NO midió losas. Estimé
-//   por criterio propio, escalando Refuerzo por la cuantía de hierro
-//   respecto a columnas (60 y 40 kg/m³ vs 100 kg/m³) y bajando Encofrado/
-//   Fundida/Desencofrado respecto a columnas (una losa tiene mucho más
-//   volumen de hormigón por m² de encofrado que una columna, por eso es
-//   más rápida por m³) — ESTO SÍ ES UNA ESTIMACIÓN MÍA, no una medición,
-//   ajustalo con más confianza que las demás cuando tengas dato real.
-// EQUIPO: Vibrador de inmersión (cod 3207, ya en tu Listado de Precios,
-// $162.100/hh, fuente Municipalidad Ushuaia 2026) — es el equipo mínimo
-// indispensable para consolidar hormigón armado (elimina el aire atrapado
-// y evita "nidos de abeja"/coqueras). Le puse como rendimiento la misma
-// cantidad de horas que la Fundida (es cuando se usa). NO agregué
-// Hormigonera/Trompo: como los materiales están armados como hormigón
-// EN OBRA (cemento+arena+ripio sueltos), en rigor también haría falta una
-// hormigonera si mezclás en el lugar — no la agregué porque no hay ninguna
-// cargada todavía en tu catálogo de Equipos y no quise inventar un precio
-// sin dato real. Decime si mezclás en obra (agrego Hormigonera con precio
-// real) o si en la práctica comprás hormigón elaborado (en ese caso te
-// simplifico todo el ítem a 1 línea de material + solo el Vibrador).
-{cod:'HA01',nom:'Bases de HºAº (Zapatas)',un:'m³',
+// FUENTE DEL RENDIMIENTO CON HORMIGONERA (no había dato en tus 3 archivos
+// propios, se buscó en la web): Portal de la Construcción ONDAC (Chile,
+// base de datos de Análisis de Precios Unitarios de uso profesional en la
+// industria, empresa Newtenberg/Legis — análoga a Construdata en
+// Colombia), ficha "HORMIGON HECHO EN OBRA G8 (90) 20 10": la línea
+// "CUADRILLA HORMIGONERA" tiene una incidencia de 0,05 día/m³ (=0,4 h/m³
+// tomando jornada de 8 hs) para la cuadrilla que opera la hormigonera
+// (carga de áridos+cemento+agua, mezclado, descarga). Le asigné esa misma
+// cantidad de horas (0,4 h/m³) a la Hormigonera como equipo (funciona
+// mientras la cuadrilla mezcla) y sumé esas 0,4 h a AMBOS roles (Oficial y
+// Ayudante) por encima de la base ya sourcing de la versión elaborada.
+// https://portal.ondac.com/601/w3-article-161874.html (consultado jul-2026)
+//
+// HORMIGONERA (equipo, cod 3215): $400/hh — amortización de $599.769
+// (Hormigonera 130L Rueda Maciza Deper, precio real IMCOFUE jul-2026) ÷
+// 1.500 hs de vida útil estimada (criterio propio, no medido — ajustalo si
+// tenés dato real de horas de uso/rotura de tu propia hormigonera).
+//
+// (Todo lo demás — fuente de materiales/hierro/madera y de la mano de obra
+// base de Refuerzo/Encofrado/Fundida/Desencofrado por elemento — es lo
+// mismo ya documentado en el commit anterior: incidencias reales de tu
+// hoja INCIDENCIAS del "3 CM - List Mat - MO.xls", y MO de Remolina
+// Millán/Polanco Sánchez, Revista Prospect UPB Vol.12 N°2, 2014, para
+// Zapatas 3.44+~1.00 fundida est.=4.44 h/m³, Columnas 9.22 h/m³ medido,
+// Vigas 9.71 h/m³ medido, Losas 5.78/5.09 h/m³ estimación propia por falta
+// de dato medido — ver detalle completo en el historial de commits v89.)
+{cod:'HA01',nom:'Bases de HºAº (Zapatas) — hormigón elaborado',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:30},
+  {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.25},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.0,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:4.44},{rol:'ay',hh:4.44}]
+},
+{cod:'HA01B',nom:'Bases de HºAº (Zapatas) — hormigón in situ c/hormigonera',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -5981,10 +5973,25 @@ var CP_CATALOGO_EXTRA = [
   {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:30},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.25},
   {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.0,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
  ],
- mo:[{rol:'of',hh:4.44},{rol:'ay',hh:4.44}]
+ mo:[{rol:'of',hh:4.84},{rol:'ay',hh:4.84}]
 },
-{cod:'HA02',nom:'Columnas HºAº',un:'m³',
+{cod:'HA02',nom:'Columnas HºAº — hormigón elaborado',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:100},
+  {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
+  {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:23.1},
+  {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:13.0},
+  {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.18,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:9.22},{rol:'ay',hh:9.22}]
+},
+{cod:'HA02B',nom:'Columnas HºAº — hormigón in situ c/hormigonera',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -5997,10 +6004,25 @@ var CP_CATALOGO_EXTRA = [
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:13.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
   {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.18,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
  ],
- mo:[{rol:'of',hh:9.22},{rol:'ay',hh:9.22}]
+ mo:[{rol:'of',hh:9.62},{rol:'ay',hh:9.62}]
 },
-{cod:'HA03',nom:'Vigas de Fundación',un:'m³',
+{cod:'HA03',nom:'Vigas de Fundación — hormigón elaborado',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:90},
+  {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
+  {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
+  {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
+  {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.45,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:9.71},{rol:'ay',hh:9.71}]
+},
+{cod:'HA03B',nom:'Vigas de Fundación — hormigón in situ c/hormigonera',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -6013,10 +6035,23 @@ var CP_CATALOGO_EXTRA = [
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
   {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.45,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
  ],
- mo:[{rol:'of',hh:9.71},{rol:'ay',hh:9.71}]
+ mo:[{rol:'of',hh:10.11},{rol:'ay',hh:10.11}]
 },
-{cod:'HA04',nom:'Losa de Fundación',un:'m³',
+{cod:'HA04',nom:'Losa de Fundación — hormigón elaborado',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:60},
+  {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:20.0},
+  {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:0.25},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:5.78},{rol:'ay',hh:5.78}]
+},
+{cod:'HA04B',nom:'Losa de Fundación — hormigón in situ c/hormigonera',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -6027,10 +6062,25 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:20.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:0.25},
   {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
  ],
- mo:[{rol:'of',hh:5.78},{rol:'ay',hh:5.78}]
+ mo:[{rol:'of',hh:6.18},{rol:'ay',hh:6.18}]
 },
-{cod:'HA05',nom:'Vigas de HºAº',un:'m³',
+{cod:'HA05',nom:'Vigas de HºAº — hormigón elaborado',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:90},
+  {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
+  {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
+  {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
+  {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.45,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:9.71},{rol:'ay',hh:9.71}]
+},
+{cod:'HA05B',nom:'Vigas de HºAº — hormigón in situ c/hormigonera',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -6043,10 +6093,25 @@ var CP_CATALOGO_EXTRA = [
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
   {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.45,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
  ],
- mo:[{rol:'of',hh:9.71},{rol:'ay',hh:9.71}]
+ mo:[{rol:'of',hh:10.11},{rol:'ay',hh:10.11}]
 },
-{cod:'HA06',nom:'Losas HºAº',un:'m³',
+{cod:'HA06',nom:'Losas HºAº — hormigón elaborado',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
+  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:40},
+  {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.6},
+  {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:6.0},
+  {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:16.0},
+  {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
+ ],
+ mo:[{rol:'of',hh:5.09},{rol:'ay',hh:5.09}]
+},
+{cod:'HA06B',nom:'Losas HºAº — hormigón in situ c/hormigonera',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -6059,8 +6124,9 @@ var CP_CATALOGO_EXTRA = [
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:16.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
   {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
  ],
- mo:[{rol:'of',hh:5.09},{rol:'ay',hh:5.09}]
+ mo:[{rol:'of',hh:5.49},{rol:'ay',hh:5.49}]
 },
 {cod:'HA07',nom:'Mampostería (MO estándar — verificar)',un:'m²',
  cat:'ESTRUCTURA HºAº',
@@ -8987,6 +9053,7 @@ var PR_DATA = [
 {cod:'3212',nom:'Camion con brazo de grua',cat:'EQUIPOS',un:'hh',pu:250000,medida:'hh',fuente:'dato sergio',modif:0,fecha:'2026-06'},
 {cod:'3213',nom:'Martillo electrico 30kg',cat:'EQUIPOS',un:'hh',pu:10000,medida:'hh',fuente:'hno sergio bari',modif:0,fecha:'2026-06'},
 {cod:'3214',nom:'Acarreo',cat:'EQUIPOS',un:'un',pu:125000,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'3215',nom:'Hormigonera 130L (amortización)',cat:'EQUIPOS',un:'hh',pu:400,medida:'hh',fuente:'Amortización: $599.769 IMCOFUE (Hormigonera 130L Rueda Maciza Deper, 2026-07) ÷ 1.500 hs de vida útil estimada — ajustable si tenés dato real de uso/mantenimiento',modif:0,fecha:'2026-07'},
 {cod:'9XXX',nom:'PLACAS CEMENTICIAS-YESO-CONSTRUCCION EN SECO',cat:'EQUIPOS',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'amoladora',nom:'Amoladora 4.5" (amortización)',cat:'EQUIPOS',un:'hh',pu:2800,medida:'hh',fuente:'Estimado uso profesional',modif:0},
 {cod:'andamio_tubul',nom:'Andamio tubular (alquiler)',cat:'EQUIPOS',un:'hh',pu:1800,medida:'hh',fuente:'Estimado mercado local',modif:0},
