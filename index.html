@@ -6848,6 +6848,169 @@ function apuRenderCuadrillaWrap(){
   cont.innerHTML=apuRenderCuadrilla(it);
 }
 
+// ============================================================
+// CALCULADORA DE RENDIMIENTO — DEMOLICIÓN Y RETIRO. Agregado 23-jul-2026
+// a pedido de Diego: "para este tipo de rubro quiero que se haga un
+// análisis automático para que se setee de forma automática los
+// rendimientos... para que sea lo más acertado posible", en reemplazo del
+// "1" fijo que traían Camión volcador / Motocompresor con martillo /
+// Retroexcavadora / MO Ayudante en los ítems "gl" de demolición (no
+// escalaba con el tamaño real del trabajo).
+//
+// Funciona igual en la librería de Análisis de Precios ('apu:'+cod) y en
+// un ítem real de Cómputo de una obra (mismo 'iid' que usan cpUM/
+// apuCambiarVarianteMaterial, vía cpFindItem/cpRenderActive).
+//
+// FUENTES REALES usadas para los rendimientos de partida (todas editables
+// por Diego si su equipo/condiciones reales rinden distinto — nunca son
+// valores ocultos ni definitivos):
+// - Martillo neumático + compresor, demolición de HORMIGÓN ARMADO:
+//   3.075 hs/m³ (CYPE Ingenieros Chile, partida DEH040 "Demolición de
+//   muro de hormigón armado", chile.generadordeprecios.info).
+// - Martillo neumático, demolición de MAMPOSTERÍA / hormigón simple:
+//   3.40 hs/m³ ("Derrocamiento de mampostería de ladrillo", banco de
+//   precios unitarios INSUCONS Ecuador, insucons.com).
+// - Retroexcavadora cargando escombro a un camión volcador ("carga de
+//   material en volquetas"): 80 m³/h (analisisdepreciosunitarios.com,
+//   México, costo horario de retroexcavadora).
+// - Ciclo del camión volcador: tiempo total = tiempo de carga + ida +
+//   descarga/maniobras + vuelta (metodología estándar de "tiempo de
+//   ciclo de volquetes"); el tiempo de carga sale de dividir la capacidad
+//   del camión por el rendimiento de la retroexcavadora de arriba; el
+//   tiempo fijo de descarga/maniobras (2-3 min) es de esa misma
+//   metodología. La velocidad promedio de acarreo y el factor de
+//   esponjamiento del escombro (aumento de volumen del material roto
+//   respecto al material in-situ, típicamente 1.15-1.4 en literatura de
+//   movimiento de suelos) quedan como valores editables porque dependen
+//   fuertemente del terreno/distancia real de cada obra — no hay una
+//   única fuente aplicable a todos los casos.
+// ============================================================
+var CP_DEMO_TASAS={
+  ha:{lbl:'Hormigón Armado', hsPorM3:3.075},
+  mamp:{lbl:'Mampostería / Hormigón Simple', hsPorM3:3.40},
+  mixto:{lbl:'Mixto (promedio)', hsPorM3:3.2375}
+};
+var CP_DEMO_RETRO_M3H=80;    // m³/h de retroexcavadora cargando escombro a camión (fuente: ver comentario arriba)
+var CP_DEMO_DESCARGA_MIN=3;  // minutos fijos de descarga+maniobra por viaje de camión
+
+function cpDemoGet(it){
+  if(!it.demo) it.demo={volumen:0, tipoMaterial:'ha', distanciaKm:1, capacidadCamion:6, esponjamiento:1.3, velocidadKmh:25};
+  return it.demo;
+}
+
+// Detecta si este ítem es del "tipo de rubro" que pidió Diego: un ítem
+// global ("gl") que tiene equipo pesado de demolición/retiro. Si no
+// cumple, cpRenderDemo() devuelve vacío y no se muestra la calculadora
+// (no tiene sentido, por ejemplo, en un ítem por m² con un volquete
+// chico — ese ya tiene su propio rendimiento fijo razonable).
+function cpDemoEsAplicable(it){
+  if((it.un||'')!=='gl') return false;
+  var pats=[/martillo/i,/retroexcavadora/i,/cami[oó]n\s*volcador/i];
+  return (it.mats||[]).some(function(m){return pats.some(function(re){return re.test(m.nom||'');});});
+}
+
+function cpDemoCalcular(it){
+  var d=cpDemoGet(it);
+  var tasa=(CP_DEMO_TASAS[d.tipoMaterial]||CP_DEMO_TASAS.ha).hsPorM3;
+  var vol=+d.volumen||0;
+  var horasMartillo=+(vol*tasa).toFixed(3);
+  var horasRetro=+(vol/CP_DEMO_RETRO_M3H).toFixed(3);
+  // La MO Ayudante acompaña ambas etapas (rotura con martillo y carga con
+  // retro), que en la práctica son secuenciales dentro de la misma zona.
+  var horasAyudante=+(horasMartillo+horasRetro).toFixed(3);
+  var capacidad=+d.capacidadCamion||0;
+  var espon=+d.esponjamiento||1;
+  var volEsponjado=+(vol*espon).toFixed(2);
+  var viajes=capacidad>0?Math.ceil(volEsponjado/capacidad):0;
+  var minCargaPorViaje=(CP_DEMO_RETRO_M3H>0&&capacidad>0)?(capacidad/CP_DEMO_RETRO_M3H*60):0;
+  var dist=+d.distanciaKm||0;
+  var vel=+d.velocidadKmh||0;
+  var minViajePorDistancia=vel>0?(2*dist/vel*60):0;
+  var minPorViaje=minCargaPorViaje+CP_DEMO_DESCARGA_MIN+minViajePorDistancia;
+  var horasCamion=+(viajes*minPorViaje/60).toFixed(3);
+  return {horasMartillo:horasMartillo, horasRetro:horasRetro, horasAyudante:horasAyudante, viajes:viajes, horasCamion:horasCamion, volEsponjado:volEsponjado};
+}
+
+function cpDemoUCampo(iid, campo, val){
+  var it=cpFindItem(iid); if(!it)return;
+  var d=cpDemoGet(it);
+  if(campo==='tipoMaterial'){
+    d.tipoMaterial=val;
+  }else{
+    var n=(typeof parseARNum==='function')?parseARNum(val):parseFloat(val);
+    d[campo]=isNaN(n)?0:n;
+  }
+  if(typeof iid==='string'&&iid.indexOf('apu:')===0&&typeof apuPersistirItem==='function')apuPersistirItem(iid.slice(4));
+  cpDemoRenderWrap(iid);
+}
+
+// Vuelca el resultado calculado a las líneas reales del ítem: busca por
+// nombre (martillo/retroexcavadora/camión volcador) entre los materiales
+// ya agregados, y el rol 'ay' entre la MO. No inventa líneas nuevas — si
+// Diego todavía no agregó el equipo con "+ Equipo", no hay nada para
+// actualizar y se lo avisa.
+function cpDemoAplicar(iid){
+  var it=cpFindItem(iid); if(!it)return;
+  var d=cpDemoGet(it);
+  if(!d.volumen){toast('Ingresá el volumen a demoler antes de aplicar',false);return;}
+  var res=cpDemoCalcular(it);
+  var aplicados=[];
+  (it.mats||[]).forEach(function(m){
+    if(/martillo/i.test(m.nom||'')){m.rend=res.horasMartillo;aplicados.push(m.nom);}
+    else if(/retroexcavadora/i.test(m.nom||'')){m.rend=res.horasRetro;aplicados.push(m.nom);}
+    else if(/cami[oó]n\s*volcador/i.test(m.nom||'')){m.rend=res.horasCamion;aplicados.push(m.nom);}
+  });
+  (it.mo||[]).forEach(function(mo){
+    if(mo.rol==='ay'){mo.hh=res.horasAyudante;aplicados.push('MO Ayudante');}
+  });
+  cpRenderActive(iid);
+  if(aplicados.length){
+    toast('✓ Rendimientos actualizados para '+d.volumen+' m³ a demoler: '+aplicados.join(', '));
+  }else{
+    toast('No se encontraron líneas de Martillo/Retroexcavadora/Camión volcador ni MO Ayudante para actualizar',false);
+  }
+}
+
+function cpRenderDemo(iid){
+  var it=cpFindItem(iid); if(!it||!cpDemoEsAplicable(it))return '';
+  var d=cpDemoGet(it);
+  var res=cpDemoCalcular(it);
+  var h='<div style="margin-top:12px;border:1px dashed var(--golt);border-radius:6px;padding:8px 10px;background:rgba(251,191,36,.04)">';
+  h+='<div style="font-size:11px;font-weight:700;color:var(--golt);margin-bottom:4px">🧮 Calculadora de Rendimiento — Demolición y Retiro</div>';
+  h+='<div style="font-size:9.5px;color:var(--tx3);margin-bottom:8px">Ingresá el volumen real a demoler y las condiciones de acarreo: el sistema calcula las horas de cada equipo y de la MO Ayudante en base a rendimientos de obra reales y documentados (ver comentario en el código fuente), en vez de dejarlos en un valor fijo. Los valores de partida son editables si tu equipo real rinde distinto.</div>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">';
+  h+='<div class="fg" style="margin:0"><label class="fl">Volumen a demoler (m³)</label><input class="cp-di" type="text" inputmode="decimal" value="'+(d.volumen||0)+'" onfocus="this.select()" onblur="cpDemoUCampo(\''+iid+'\',\'volumen\',this.value)" style="width:75px;text-align:right"></div>';
+  h+='<div class="fg" style="margin:0"><label class="fl">Tipo de material</label><select class="fis" onchange="cpDemoUCampo(\''+iid+'\',\'tipoMaterial\',this.value)" style="font-size:10.5px">';
+  Object.keys(CP_DEMO_TASAS).forEach(function(k){h+='<option value="'+k+'"'+(d.tipoMaterial===k?' selected':'')+'>'+CP_DEMO_TASAS[k].lbl+' ('+CP_DEMO_TASAS[k].hsPorM3+' h/m³)</option>';});
+  h+='</select></div>';
+  h+='<div class="fg" style="margin:0"><label class="fl">Distancia acarreo (km, ida)</label><input class="cp-di" type="text" inputmode="decimal" value="'+(d.distanciaKm||0)+'" onfocus="this.select()" onblur="cpDemoUCampo(\''+iid+'\',\'distanciaKm\',this.value)" style="width:55px;text-align:right"></div>';
+  h+='<div class="fg" style="margin:0"><label class="fl">Capacidad camión (m³)</label><input class="cp-di" type="text" inputmode="decimal" value="'+(d.capacidadCamion||0)+'" onfocus="this.select()" onblur="cpDemoUCampo(\''+iid+'\',\'capacidadCamion\',this.value)" style="width:50px;text-align:right"></div>';
+  h+='<div class="fg" style="margin:0"><label class="fl" title="Aumento de volumen del escombro roto respecto al material in-situ (típico 1.15-1.4)">Esponjamiento</label><input class="cp-di" type="text" inputmode="decimal" value="'+(d.esponjamiento||0)+'" onfocus="this.select()" onblur="cpDemoUCampo(\''+iid+'\',\'esponjamiento\',this.value)" style="width:45px;text-align:right"></div>';
+  h+='<div class="fg" style="margin:0"><label class="fl">Velocidad acarreo (km/h)</label><input class="cp-di" type="text" inputmode="decimal" value="'+(d.velocidadKmh||0)+'" onfocus="this.select()" onblur="cpDemoUCampo(\''+iid+'\',\'velocidadKmh\',this.value)" style="width:45px;text-align:right"></div>';
+  h+='</div>';
+  h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;margin-bottom:8px;font-size:10px">';
+  h+='<div style="font-weight:700;margin-bottom:3px">Resultado (volumen esponjado: '+res.volEsponjado+' m³ · '+res.viajes+' viaje(s) de camión)</div>';
+  h+='<div style="color:var(--tx2)">Motocompresor con martillo: '+res.horasMartillo+' hh · Retroexcavadora: '+res.horasRetro+' hh · Camión volcador: '+res.horasCamion+' hh · MO Ayudante: '+res.horasAyudante+' hh</div>';
+  h+='</div>';
+  h+='<button onclick="cpDemoAplicar(\''+iid+'\')" style="font-size:10px;background:var(--golt);color:#fff;padding:5px 12px;border:none;border-radius:4px;cursor:pointer;font-weight:600">✓ Aplicar al ítem (actualiza rendimientos de Equipo y MO)</button>';
+  h+='</div>';
+  return h;
+}
+
+// Re-renderiza SOLO el bloque de la calculadora de demolición (no todo el
+// editor/ítem), para no perder foco mientras Diego tipea volumen/distancia.
+// Busca el contenedor tanto en la librería (id fijo) como en un ítem real
+// de Cómputo (id por it.id, puede haber varios abiertos a la vez).
+function cpDemoRenderWrap(iid){
+  var it=cpFindItem(iid); if(!it)return;
+  var html=cpRenderDemo(iid);
+  if(typeof iid==='string'&&iid.indexOf('apu:')===0){
+    var c1=document.getElementById('apu-demo-wrap'); if(c1)c1.innerHTML=html;
+  }else{
+    var c2=document.getElementById('cp-demo-wrap-'+iid); if(c2)c2.innerHTML=html;
+  }
+}
+
 function apuRenderEditor(){
   var cont=document.getElementById('apu-editor');
   if(!cont)return;
@@ -6875,6 +7038,7 @@ function apuRenderEditor(){
   h+='<button onclick="cpAbrirCatPicker(\'apu:'+it.cod+'\',\'mo\')" style="font-size:10px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:3px 10px;border-radius:4px;cursor:pointer">+ MO</button>';
   h+='</div>';
   h+='<div id="apu-cuadrilla-wrap">'+apuRenderCuadrilla(it)+'</div>';
+  h+='<div id="apu-demo-wrap">'+(typeof cpRenderDemo==='function'?cpRenderDemo('apu:'+it.cod):'')+'</div>';
   if(calc){
     h+='<div style="margin-top:10px;background:var(--bg);border-radius:6px;padding:8px 10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">';
     h+='<div style="font-size:11px;font-weight:700">Precio Unitario resultante (con gastos generales/beneficio/financieros/IVA): <span style="color:var(--rt);font-size:13px">$'+calc.pu_adopt.toLocaleString('es-AR')+' / '+(it.un||'un')+'</span></div>';
@@ -7424,6 +7588,7 @@ function cpRenderItem(rid,it){
   h+='<div style="background:var(--bg);border-radius:6px;padding:8px;margin-bottom:8px">';
   h+='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">DESGLOSE MATERIALES Y MANO DE OBRA</div>';
   h+=cpRenderMats(it)+'</div>';
+  h+='<div id="cp-demo-wrap-'+it.id+'">'+(typeof cpRenderDemo==='function'?cpRenderDemo(it.id):'')+'</div>';
   h+='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin:8px 0 4px">AN\u00c1LISIS DE PRECIO UNITARIO (por 1 '+it.un+')</div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1.15fr 1.3fr;gap:6px">';
   h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--gt);font-weight:700;text-transform:uppercase;margin-bottom:2px">Materiales</div><div style="font-size:13px;font-weight:800;color:var(--gt)">$'+uniM.toLocaleString()+'</div><div style="font-size:8px;color:var(--tx3)">c/varios 0,01%</div></div>';
