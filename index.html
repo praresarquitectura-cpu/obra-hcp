@@ -5904,8 +5904,74 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[]
 },
-// ══ ESTRUCTURA DE HºAº — incidencias reales (planilla 3CM/INCIDENCIAS), MO estándar ESTIMADA (ajustar) ══
-{cod:'HA01',nom:'Bases de HºAº (MO estándar — verificar)',un:'m³',
+// ══ ESTRUCTURA DE HºAº ══════════════════════════════════════════════════
+// MATERIALES: incidencias reales tomadas de tu propio archivo "3 CM - List
+// Mat - MO.xls" → hoja INCIDENCIAS (filas 229-339, sección 6-ESTRUCTURAS),
+// sin cambios respecto a la carga original (kg cemento/m³, m³ arena, m³
+// ripio, kg hierro, kg alambre, Pie² madera/tirantes, kg clavos por cada
+// 1 m³ del elemento). Esa hoja usa dosificación tipo 1:2:3/1:3:4 (cemento:
+// arena:ripio en volumen), o sea asume HORMIGÓN ARMADO EN OBRA (mezclado
+// en el lugar), no hormigón elaborado/bombeado comprado a MASCIOTRA — si
+// en la práctica comprás elaborado, avisame y cambio estos materiales por
+// el ítem HORMIGONES (H13/H17/etc, $/m³ ya puesto) en una sola línea.
+//
+// MANO DE OBRA Y EQUIPO (23-jul-2026 — antes decía "MO estándar verificar"
+// porque NINGUNO de tus 3 archivos (ANALISIS DE PRECIOS 2026.xlsx, 3 CM -
+// List Mat - MO.xls, MATRIZ Y MANO DE OBRA 2026.xlsx) tiene rendimiento de
+// mano de obra ni equipo para Bases/Columnas/Vigas/Losas de hormigón
+// armado de edificios: ANALISIS DE PRECIOS 2026.xlsx es un catálogo de
+// OBRA PÚBLICA/URBANA (veredas, cordones, cercos, luminarias, canchas) que
+// nunca incluyó estructura de edificios; la hoja INCIDENCIAS del 3 CM
+// tiene las filas "Oficial"/"Ayudante" con la celda de incidencia VACÍA
+// (nunca se completó); y MATRIZ Y MANO DE OBRA 2026.xlsx solo tiene el
+// valor $/hora de cada rol, no rendimientos. Ante la falta de dato propio,
+// usé un estudio de campo real y revisado por pares: A. Remolina Millán y
+// L. M. Polanco Sánchez, "Estudio de rendimientos para las actividades
+// estructura y mampostería para un proyecto de construcción en el campus
+// de la UPB", Revista Prospect, Vol. 12 N°2, Universidad Pontificia
+// Bolivariana (Bucaramanga, Colombia), 2014 — mediciones reales de tiempo
+// en obra (edificio de 7.749 m²), separadas por proceso (Refuerzo/armado
+// de hierro, Encofrado, Fundida/hormigonado+vibrado, Desencofrado) en
+// horas-cuadrilla (1 Oficial + 1 Ayudante trabajando juntos) por m³, y
+// cruzadas contra Construdata (la base de datos de rendimientos de
+// referencia de la industria de la construcción en Latinoamérica). Como
+// la cuadrilla base del estudio es 1 Oficial + 1 Ayudante actuando en
+// conjunto, les asigné a AMBOS roles la misma cantidad de horas (hh) del
+// total medido por elemento — es una aproximación razonable ante la falta
+// de reparto Oficial/Ayudante propio, AJUSTALO cuando tengas tu dato real
+// de obra en Ushuaia (clima/logística distintos a Bucaramanga).
+// Zapatas/Bases:  Refuerzo 0.03 + Encofrado 2.70 + Desencofrado 0.71 = 3.44
+//   h/m³ MEDIDOS + Fundida ~1.00 h/m³ ESTIMADA por mí (el estudio no midió
+//   fundida de zapatas puntualmente; tomé un valor conservador, menor al
+//   de columnas/vigas, porque la zapata tiene cara de vaciado más abierta
+//   y accesible) = 4.44 h/m³ total.
+// Columnas:       Refuerzo 3.47 + Encofrado 2.54 + Fundida 2.18 +
+//   Desencofrado 1.03 = 9.22 h/m³ — los 4 procesos MEDIDOS directamente.
+// Vigas (de Fundación y de entrepiso): Refuerzo 3.93 + Encofrado 1.93 +
+//   Fundida 2.45 + Desencofrado 1.41 = 9.71 h/m³ — los 4 procesos MEDIDOS
+//   directamente para vigas; usé el mismo valor para Vigas de Fundación
+//   por no existir dato específico separado (aproximación razonable, son
+//   el mismo proceso constructivo esencialmente).
+// Losas (de Fundación y de entrepiso): el estudio NO midió losas. Estimé
+//   por criterio propio, escalando Refuerzo por la cuantía de hierro
+//   respecto a columnas (60 y 40 kg/m³ vs 100 kg/m³) y bajando Encofrado/
+//   Fundida/Desencofrado respecto a columnas (una losa tiene mucho más
+//   volumen de hormigón por m² de encofrado que una columna, por eso es
+//   más rápida por m³) — ESTO SÍ ES UNA ESTIMACIÓN MÍA, no una medición,
+//   ajustalo con más confianza que las demás cuando tengas dato real.
+// EQUIPO: Vibrador de inmersión (cod 3207, ya en tu Listado de Precios,
+// $162.100/hh, fuente Municipalidad Ushuaia 2026) — es el equipo mínimo
+// indispensable para consolidar hormigón armado (elimina el aire atrapado
+// y evita "nidos de abeja"/coqueras). Le puse como rendimiento la misma
+// cantidad de horas que la Fundida (es cuando se usa). NO agregué
+// Hormigonera/Trompo: como los materiales están armados como hormigón
+// EN OBRA (cemento+arena+ripio sueltos), en rigor también haría falta una
+// hormigonera si mezclás en el lugar — no la agregué porque no hay ninguna
+// cargada todavía en tu catálogo de Equipos y no quise inventar un precio
+// sin dato real. Decime si mezclás en obra (agrego Hormigonera con precio
+// real) o si en la práctica comprás hormigón elaborado (en ese caso te
+// simplifico todo el ítem a 1 línea de material + solo el Vibrador).
+{cod:'HA01',nom:'Bases de HºAº (Zapatas)',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -5914,10 +5980,11 @@ var CP_CATALOGO_EXTRA = [
   {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.85},
   {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:30},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.25},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.0,esEquipo:true},
  ],
- mo:[{rol:'of',hh:2.5},{rol:'ay',hh:4}]
+ mo:[{rol:'of',hh:4.44},{rol:'ay',hh:4.44}]
 },
-{cod:'HA02',nom:'Columnas HºAº (MO estándar — verificar)',un:'m³',
+{cod:'HA02',nom:'Columnas HºAº',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -5929,10 +5996,11 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:23.1},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:13.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.18,esEquipo:true},
  ],
- mo:[{rol:'of',hh:6},{rol:'ay',hh:8}]
+ mo:[{rol:'of',hh:9.22},{rol:'ay',hh:9.22}]
 },
-{cod:'HA03',nom:'Vigas de Fundación (MO estándar — verificar)',un:'m³',
+{cod:'HA03',nom:'Vigas de Fundación',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -5944,10 +6012,11 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.45,esEquipo:true},
  ],
- mo:[{rol:'of',hh:4},{rol:'ay',hh:5.5}]
+ mo:[{rol:'of',hh:9.71},{rol:'ay',hh:9.71}]
 },
-{cod:'HA04',nom:'Losa de Fundación (MO estándar — verificar)',un:'m³',
+{cod:'HA04',nom:'Losa de Fundación',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -5957,10 +6026,11 @@ var CP_CATALOGO_EXTRA = [
   {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:60},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:20.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:0.25},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
  ],
- mo:[{rol:'of',hh:2.5},{rol:'ay',hh:3.5}]
+ mo:[{rol:'of',hh:5.78},{rol:'ay',hh:5.78}]
 },
-{cod:'HA05',nom:'Vigas de HºAº (MO estándar — verificar)',un:'m³',
+{cod:'HA05',nom:'Vigas de HºAº',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -5972,10 +6042,11 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.45,esEquipo:true},
  ],
- mo:[{rol:'of',hh:5.5},{rol:'ay',hh:7}]
+ mo:[{rol:'of',hh:9.71},{rol:'ay',hh:9.71}]
 },
-{cod:'HA06',nom:'Losas HºAº (MO estándar — verificar)',un:'m³',
+{cod:'HA06',nom:'Losas HºAº',un:'m³',
  cat:'ESTRUCTURA HºAº',
  unidades_permitidas:['m³'],
  mats:[
@@ -5987,8 +6058,9 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:6.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:16.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
  ],
- mo:[{rol:'of',hh:3.5},{rol:'ay',hh:4.5}]
+ mo:[{rol:'of',hh:5.09},{rol:'ay',hh:5.09}]
 },
 {cod:'HA07',nom:'Mampostería (MO estándar — verificar)',un:'m²',
  cat:'ESTRUCTURA HºAº',
