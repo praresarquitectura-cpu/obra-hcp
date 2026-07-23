@@ -7175,8 +7175,29 @@ function cpRenderMats(it){
     var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
     var largoBarra=cpLargoBarra(m.id);
     var barras=esBarra?cpCantBarras(cant,desp,largoBarra):null;
+    var hierroVar=(typeof cpHierroVariante==='function')?cpHierroVariante(m.id):null;
+    var famGen=(!hierroVar&&typeof cpFamiliasGenerico==='function')?(cpFamiliasGenerico()[m.id]||null):null;
     h+='<tr style="border-bottom:1px solid var(--br);background:'+(m.esEquipo?'rgba(251,146,60,.06)':'')+'">';
-    h+='<td style="padding:3px 5px"><div style="display:flex;align-items:center;gap:3px"><input class="cp-di" value="'+m.nom+'" oninput="cpUM(\''+it.id+'\','+mi+',\'nom\',this.value)" style="width:100%;min-width:110px;background:transparent;border:none;color:var(--tx);font-size:10px;padding:0">'+(m.sinPrecio?'<span title="Sin precio — ingresalo manualmente" style="color:var(--rt);font-weight:700;font-size:11px;flex-shrink:0;cursor:help">!</span>':'')+' </div></td>';
+    h+='<td style="padding:3px 5px"><div style="display:flex;align-items:center;gap:3px">';
+    if(hierroVar){
+      h+='<select onchange="apuCambiarVarianteMaterial(\''+it.id+'\','+mi+',this.value)" title="Elegí el diámetro real — el rendimiento se recalcula solo, preservando el mismo kilaje total de acero" style="font-size:10px;padding:2px 3px;border-radius:3px;border:1px solid var(--bt);background:var(--bg);color:var(--tx1);max-width:150px">';
+      CP_FAM_HIERRO.variantes.forEach(function(v){
+        var pv=(typeof PR_DATA!=='undefined')?PR_DATA.find(function(x){return x.cod===v.cod;}):null;
+        h+='<option value="'+v.cod+'"'+(m.id===v.cod?' selected':'')+'>Ø'+v.mm+'mm'+(pv?' — $'+pv.pu.toLocaleString('es-AR')+'/m':'')+'</option>';
+      });
+      h+='</select>';
+    }else if(famGen&&famGen.length>1){
+      h+='<select onchange="apuCambiarVarianteMaterial(\''+it.id+'\','+mi+',this.value)" title="Elegí otra medida/variante del mismo material — el rendimiento NO cambia solo, revisalo si corresponde" style="font-size:10px;padding:2px 3px;border-radius:3px;border:1px solid var(--br);background:var(--bg);color:var(--tx1);max-width:170px">';
+      famGen.forEach(function(cod){
+        var pv=(typeof PR_DATA!=='undefined')?PR_DATA.find(function(x){return x.cod===cod;}):null;
+        if(!pv)return;
+        h+='<option value="'+cod+'"'+(m.id===cod?' selected':'')+'>'+pv.nom+'</option>';
+      });
+      h+='</select>';
+    }else{
+      h+='<input class="cp-di" value="'+m.nom+'" oninput="cpUM(\''+it.id+'\','+mi+',\'nom\',this.value)" style="width:100%;min-width:110px;background:transparent;border:none;color:var(--tx);font-size:10px;padding:0">';
+    }
+    h+=(m.sinPrecio?'<span title="Sin precio — ingresalo manualmente" style="color:var(--rt);font-weight:700;font-size:11px;flex-shrink:0;cursor:help">!</span>':'')+' </div></td>';
     h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">'+m.un+'</td>';
     h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="'+m.rend+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>0)cpUM(\''+it.id+'\','+mi+',\'rend\',v);" style="width:75px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--bt);font-weight:600">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td>';
