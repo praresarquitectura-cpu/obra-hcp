@@ -322,6 +322,7 @@ input,select,textarea,button{font-family:var(--font)}
     <button class="nb" onclick="goTo('honorarios',this)">Honorarios</button>
     <button class="nb" onclick="goTo('motor',this)">Motor Hon.</button>
     <button class="nb" onclick="goTo('computo',this)">Cómputo</button>
+    <button class="nb" onclick="goTo('apu',this)">An. Precios</button>
     <button class="nb" onclick="goTo('sistemas',this)">Sistemas</button>
     <button class="nb" onclick="goTo('precios',this)">Precios</button>
     <button class="nb" onclick="goTo('config',this)">Config</button>
@@ -629,6 +630,20 @@ input,select,textarea,button{font-family:var(--font)}
     </div>
     <div id="cp-resumen"></div>
   </div>
+</section>
+<section id="s-apu" class="scr">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+    <div><div class="pgt">Análisis de Precios</div>
+    <div class="pgs">Librería de rendimiento/incidencia por Rubro → Ítem — separada del Cómputo de cada obra. Acá se carga CUÁNTO material hace falta por cada 1 unidad (m²/ml/m³/un) de un ítem; en el Cómputo de cada obra solo se elige el ítem y se carga la medición real.</div></div>
+  </div>
+  <div class="card" style="margin-bottom:10px">
+    <label class="fl">Buscar por material (auditar en qué ítems se usa y con qué rendimiento)</label>
+    <input class="fi" id="apu-buscar-input" type="text" placeholder="ej: tornillo T1, cemento, PGU 100..." oninput="apuBuscarMaterialInput(this.value)" style="font-size:12px;margin-top:4px">
+    <div id="apu-buscador-res" style="display:none;margin-top:6px;border:1px solid var(--br);border-radius:6px;overflow:hidden;max-height:260px;overflow-y:auto"></div>
+  </div>
+  <div id="apu-rubros" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+  <div class="card" id="apu-items"></div>
+  <div id="apu-editor" style="display:none"></div>
 </section>
 <section id="s-sistemas" class="scr">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
@@ -2345,7 +2360,7 @@ function generarPDF(id){
 
 
 /* ── NAV ──────────────────────────────────────────────────────────────── */
-var SM={dashboard:'s-dashboard',clientes:'s-clientes',obras:'s-obras',honorarios:'s-honorarios',motor:'s-motor',computo:'s-computo',sistemas:'s-sistemas',precios:'s-precios',config:'s-config',admin:'s-admin'};
+var SM={dashboard:'s-dashboard',clientes:'s-clientes',obras:'s-obras',honorarios:'s-honorarios',motor:'s-motor',computo:'s-computo',apu:'s-apu',sistemas:'s-sistemas',precios:'s-precios',config:'s-config',admin:'s-admin'};
 function goTo(id,btn,sb){
   document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on');});
   var t=SM[id];if(t)document.getElementById(t).classList.add('on');
@@ -2355,6 +2370,7 @@ function goTo(id,btn,sb){
   document.getElementById('main').scrollTop=0;
   if(id==='motor')motorInit();
   if(id==='computo')cpEntrarConObraActiva();
+  if(id==='apu'){if(typeof cpCargarCatalogoUser==='function')cpCargarCatalogoUser();apuTabRender();}
   if(id==='sistemas'){scFiltrar('');}
   if(id==='precios')prRender();
   if(id==='config'){setTimeout(function(){loadEmpresaToForm();actualizarUIEmpresa();},60);}
@@ -3361,13 +3377,13 @@ var PLANES = {
     precio_mensual: 25,
     precio_anual: 200,
     color:'var(--golt)',
-    modulos:['dashboard','clientes','obras','honorarios','motor','computo','sistemas','precios','config'],
+    modulos:['dashboard','clientes','obras','honorarios','motor','computo','apu','sistemas','precios','config'],
     descripcion:'Todo Base + Cómputo + Materiales + Mano de obra + Presupuesto de obra'
   },
   admin: {
     nm:'Administrador',
     color:'var(--rt)',
-    modulos:['dashboard','clientes','obras','honorarios','motor','computo','config','admin']
+    modulos:['dashboard','clientes','obras','honorarios','motor','computo','apu','config','admin']
   }
 };
 
@@ -6113,8 +6129,13 @@ function cpCargarCatalogoUser(){
     if(d.rubros)CP_RUBROS_USER=d.rubros;
     if(d.items){
       CP_CATALOGO_USER=d.items;
+      // NOTA v88: antes solo hacía push si el cod no existía todavía, así que una edición
+      // guardada de un ítem YA preestablecido (built-in) nunca pisaba el valor original al
+      // recargar la página. Ahora reemplaza en el lugar si el cod ya está (permite editar y
+      // persistir rendimientos de los 164 ítems preestablecidos, no solo agregar ítems nuevos).
       CP_CATALOGO_USER.forEach(function(it){
-        if(!CP_CATALOGO.some(function(x){return x.cod===it.cod;}))CP_CATALOGO.push(it);
+        var idx=CP_CATALOGO.findIndex(function(x){return x.cod===it.cod;});
+        if(idx>=0)CP_CATALOGO[idx]=it;else CP_CATALOGO.push(it);
       });
     }
   }
@@ -6133,6 +6154,292 @@ function cpCargarCatalogoUser(){
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   MÓDULO ANÁLISIS DE PRECIOS (librería de rendimiento/incidencia) — v88
+   ══════════════════════════════════════════════════════════════════════
+   Pedido de Diego (23-jul-2026): venía cargando cantidades de materiales
+   directamente dentro del Cómputo de cada obra real, mezclando sin darse
+   cuenta dos cosas distintas: (a) la INCIDENCIA/RENDIMIENTO técnico de un
+   ítem (cuánto material hace falta por CADA 1 unidad de medida, ej. "1.05
+   bolsas de cemento por m²") — que es un dato reutilizable en cualquier
+   obra — con (b) la MEDICIÓN real de una obra puntual (cuántos m²/ml/m³
+   tiene ese ítem en ESTA obra). Al no haber una pantalla separada para lo
+   primero, el campo "Rend/un" del Cómputo terminaba recibiendo a veces la
+   cantidad TOTAL de una medición real en vez de la incidencia por unidad,
+   duplicando el error (el motor multiplica cantidad medida × rendimiento).
+
+   Esta pestaña nueva es la librería técnica (Rubro → Ítem → Materiales/
+   Equipos/MO con su rendimiento), separada de cualquier obra puntual. El
+   Cómputo de cada obra sigue funcionando igual que antes (elegís un ítem
+   de esta librería + cargás la medición real), pero ahora la librería se
+   puede ver y editar directamente, en vez de vivir escondida en código o
+   mezclada dentro de un ítem de una obra real.
+
+   Reutiliza al máximo lo que ya existía:
+   - CP_CATALOGO / CP_CATALOGO_USER / CP_RUBROS_USER (ya existían, pero
+     sin ninguna pantalla propia — solo se llenaban de a uno vía el botón
+     "Guardar ítem en catálogo" desde dentro de un Cómputo real).
+   - cpAbrirCatPicker/cpAbrirPickerMat (el mismo buscador de +Material/
+     +Equipo/+MO que ya usa el Cómputo) — se generalizó cpFindItem() para
+     que además de buscar ítems de obras reales (CP_RUBROS), también sepa
+     resolver ítems de esta librería usando un id con prefijo "apu:"+cod.
+   - cpUM/cpUMO/cpBorrarMat/cpBorrarMO y los 4 "elegir" del picker — se
+     generalizó el cpRender() final de cada uno a cpRenderActive(iid), que
+     detecta el prefijo "apu:" y persiste+refresca el editor de la
+     librería en vez de refrescar un Cómputo real.
+   - A propósito, las ediciones acá NO tocan retroactivamente los ítems ya
+     cargados en Cómputos de obras existentes: cpAplicarCatalogoAItem hace
+     una copia por valor (snapshot) al momento de agregar un ítem de la
+     librería a una obra real, no una referencia — así que perfeccionar la
+     librería de acá en más no altera presupuestos ya armados o entregados
+     (decisión de Diego, 23-jul-2026).
+   ────────────────────────────────────────────────────────────────────── */
+var APU_RUBRO_SEL=null, APU_ITEM_SEL=null, APU_BUSCAR_MAT='';
+
+// Guarda (persiste) el estado actual de un ítem de la librería — sea uno de
+// los 164 preestablecidos (built-in) o uno agregado por Diego — en
+// CP_CATALOGO_USER, reutilizando cpGuardarCatalogoUser() (localStorage +
+// Firebase) que ya existía para los ítems que el usuario guarda desde el
+// Cómputo. Como CP_CATALOGO_USER ahora puede "pisar" built-ins por cod (ver
+// fix en cpCargarCatalogoUser), esto permite editar y persistir el
+// rendimiento de CUALQUIER ítem de la librería, no solo los nuevos.
+function apuPersistirItem(cod){
+  var it=(typeof CP_CATALOGO!=='undefined')?CP_CATALOGO.find(function(x){return x.cod===cod;}):null;
+  if(!it)return;
+  var idx=CP_CATALOGO_USER.findIndex(function(x){return x.cod===cod;});
+  if(idx>=0)CP_CATALOGO_USER[idx]=it;else CP_CATALOGO_USER.push(it);
+  cpGuardarCatalogoUser();
+}
+
+function apuRubros(){
+  var set={};
+  (typeof CP_CATALOGO!=='undefined'?CP_CATALOGO:[]).forEach(function(it){if(it.cat)set[it.cat]=true;});
+  (typeof CP_RUBROS_USER!=='undefined'?CP_RUBROS_USER:[]).forEach(function(r){if(r)set[r]=true;});
+  return Object.keys(set).sort(function(a,b){return a.localeCompare(b,'es');});
+}
+function apuItemsDeRubro(rubro){
+  return (typeof CP_CATALOGO!=='undefined'?CP_CATALOGO:[]).filter(function(it){return it.cat===rubro;})
+    .sort(function(a,b){return (a.nom||'').localeCompare(b.nom||'','es');});
+}
+function apuItemPU(it){
+  return (typeof cpCalcPU==='function')?cpCalcPU(it).puTotal:0;
+}
+
+function apuNuevoRubro(){
+  var nom=prompt('Nombre del nuevo Rubro (ej: REVOQUES, PISOS, CUBIERTAS):');
+  if(!nom||!nom.trim())return;
+  nom=nom.trim().toUpperCase();
+  if(CP_RUBROS_USER.indexOf(nom)<0){CP_RUBROS_USER.push(nom);cpGuardarCatalogoUser();}
+  APU_RUBRO_SEL=nom;
+  APU_ITEM_SEL=null;
+  apuTabRender();
+}
+function apuNuevoItem(){
+  if(!APU_RUBRO_SEL){toast('Elegí o creá un Rubro primero',false);return;}
+  var cod='U'+Date.now().toString(36).toUpperCase();
+  var nuevo={cod:cod,nom:'(nuevo ítem — ponele nombre)',un:'m²',cat:APU_RUBRO_SEL,mats:[],mo:[]};
+  CP_CATALOGO.push(nuevo);
+  CP_CATALOGO_USER.push(nuevo);
+  cpGuardarCatalogoUser();
+  APU_ITEM_SEL=cod;
+  apuTabRender();
+}
+function apuDuplicarItem(cod){
+  var it=(typeof CP_CATALOGO!=='undefined')?CP_CATALOGO.find(function(x){return x.cod===cod;}):null;
+  if(!it)return;
+  var copia={cod:'U'+Date.now().toString(36).toUpperCase(),nom:it.nom+' (copia)',un:it.un,cat:it.cat,
+    mats:(it.mats||[]).map(function(m){return Object.assign({},m);}),
+    mo:(it.mo||[]).map(function(m){return Object.assign({},m);})};
+  CP_CATALOGO.push(copia);
+  CP_CATALOGO_USER.push(copia);
+  cpGuardarCatalogoUser();
+  APU_ITEM_SEL=copia.cod;
+  apuTabRender();
+  toast('✓ Ítem duplicado — editalo y ponele su propio nombre');
+}
+function apuEliminarItem(cod){
+  var it=(typeof CP_CATALOGO!=='undefined')?CP_CATALOGO.find(function(x){return x.cod===cod;}):null;
+  if(!it)return;
+  if(!confirm('¿Eliminar "'+it.nom+'" de la librería de Análisis de Precios?\n\nEsto NO borra ítems ya cargados en Cómputos de obras existentes (son copias independientes), solo evita que aparezca como opción para nuevos ítems de ahora en más.'))return;
+  var i1=CP_CATALOGO.findIndex(function(x){return x.cod===cod;});if(i1>=0)CP_CATALOGO.splice(i1,1);
+  var i2=CP_CATALOGO_USER.findIndex(function(x){return x.cod===cod;});
+  if(i2>=0)CP_CATALOGO_USER.splice(i2,1);
+  cpGuardarCatalogoUser();
+  if(APU_ITEM_SEL===cod)APU_ITEM_SEL=null;
+  apuTabRender();
+  toast('✓ Ítem eliminado de la librería');
+}
+function apuSelRubro(rubro){APU_RUBRO_SEL=rubro;APU_ITEM_SEL=null;apuTabRender();}
+function apuSelItem(cod){APU_ITEM_SEL=cod;apuTabRender();}
+function apuCerrarEditor(){APU_ITEM_SEL=null;apuTabRender();}
+function apuUNombre(cod,val){
+  var it=(typeof CP_CATALOGO!=='undefined')?CP_CATALOGO.find(function(x){return x.cod===cod;}):null;
+  if(!it)return;
+  it.nom=val;
+  apuPersistirItem(cod);
+}
+function apuUUnidad(cod,val){
+  var it=(typeof CP_CATALOGO!=='undefined')?CP_CATALOGO.find(function(x){return x.cod===cod;}):null;
+  if(!it)return;
+  it.un=val;
+  apuPersistirItem(cod);
+  apuRenderEditor();
+}
+function apuBuscarMaterialInput(val){
+  APU_BUSCAR_MAT=val||'';
+  apuRenderBuscador();
+}
+
+// Tabla de Materiales/Equipos/MO de un ítem de la librería. A diferencia de
+// cpRenderMats() (que se usa en el Cómputo de una obra real y multiplica
+// rend × cantidad MEDIDA), acá el "Rendimiento" YA ES la cantidad final
+// que se muestra — es la incidencia técnica por 1 unidad del ítem, no hay
+// ninguna medición de obra de por medio en esta pantalla.
+function apuRenderMatsTable(it){
+  var h='';
+  if(!(it.mats||[]).length&&!(it.mo||[]).length){
+    h+='<div style="font-size:10px;color:var(--tx3);padding:6px 2px">Sin materiales ni mano de obra todavía. Agregá con los botones de abajo.</div>';
+    return h;
+  }
+  h+='<div style="overflow-x:auto"><table style="width:100%;font-size:10px;border-collapse:collapse;margin-top:4px">';
+  h+='<thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:3px 5px;color:var(--tx3)">Material / Equipo</th><th style="text-align:center;padding:3px 5px;color:var(--tx3)">Un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)" title="Cantidad de este insumo que hace falta por CADA 1 '+(it.un||'un')+' de este ítem (ej: 1.05 bolsas/m²). NO es la cantidad total de tu obra — eso se carga en el Cómputo de cada obra, multiplicando esta incidencia por la medición real.">Rendimiento (por 1 '+(it.un||'un')+')</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">$/un (vivo, Listado de Precios)</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Subtotal</th><th></th></tr></thead><tbody>';
+  (it.mats||[]).forEach(function(m,mi){
+    var pu=(typeof apuGetPU==='function')?apuGetPU(m.id,m.pu||0):(m.pu||0);
+    var sub=Math.round((m.rend||0)*pu);
+    h+='<tr style="border-bottom:1px solid var(--br);background:'+(m.esEquipo?'rgba(251,146,60,.06)':'')+'">';
+    h+='<td style="padding:3px 5px">'+m.nom+(!pu?' <span title="Sin precio — cargalo en Listado de Precios" style="color:var(--rt);font-weight:700">!</span>':'')+'</td>';
+    h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">'+m.un+'</td>';
+    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="'+m.rend+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUM(\'apu:'+it.cod+'\','+mi+',\'rend\',v);" style="width:75px;text-align:right;font-weight:700;color:var(--bt)"></td>';
+    h+='<td style="text-align:right;padding:3px 5px;color:var(--tx3)">$'+pu.toLocaleString('es-AR')+'</td>';
+    h+='<td style="text-align:right;padding:3px 5px;color:'+(m.esEquipo?'var(--golt)':'var(--gt)')+';font-weight:700">$'+sub.toLocaleString('es-AR')+'</td>';
+    h+='<td><button onclick="cpBorrarMat(\'apu:'+it.cod+'\','+mi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px;padding:0">×</button></td></tr>';
+  });
+  (it.mo||[]).forEach(function(m,mi){
+    var pu=(typeof apuGetMOpu==='function')?apuGetMOpu(m.rol):0;
+    var hh=m.hh||m.hs||0;
+    var sub=Math.round(hh*pu);
+    var rn={ofEsp:'Of. Esp.',of:'Oficial',mo:'Medio Of.',ay:'Ayudante'}[m.rol]||m.rol;
+    h+='<tr style="border-bottom:1px solid var(--br);background:rgba(251,191,36,.05)">';
+    h+='<td style="padding:3px 5px;color:var(--golt)">⚒ MO — '+rn+'</td>';
+    h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">hs</td>';
+    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" title="Horas por 1 '+(it.un||'un')+'" value="'+hh+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUMO(\'apu:'+it.cod+'\','+mi+',\'hh\',v);" style="width:75px;text-align:right;font-weight:700;color:var(--bt)"></td>';
+    h+='<td style="text-align:right;padding:3px 5px;color:var(--tx3)">$'+pu.toLocaleString('es-AR')+'</td>';
+    h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:700">$'+sub.toLocaleString('es-AR')+'</td>';
+    h+='<td><button onclick="cpBorrarMO(\'apu:'+it.cod+'\','+mi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px;padding:0">×</button></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  return h;
+}
+
+function apuRenderEditor(){
+  var cont=document.getElementById('apu-editor');
+  if(!cont)return;
+  if(!APU_ITEM_SEL){cont.innerHTML='';cont.style.display='none';return;}
+  var it=(typeof CP_CATALOGO!=='undefined')?CP_CATALOGO.find(function(x){return x.cod===APU_ITEM_SEL;}):null;
+  if(!it){cont.innerHTML='';cont.style.display='none';return;}
+  cont.style.display='block';
+  var calc=(typeof cpCalcPreciso==='function')?cpCalcPreciso(it.mats,it.mo,1):null;
+  var h='<div class="card" style="border:1px solid var(--bt);margin-top:10px">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px;flex-wrap:wrap">';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:260px">';
+  h+='<div class="fg" style="flex:2;min-width:200px;margin:0"><label class="fl">Nombre del ítem</label><input class="fi" type="text" value="'+(it.nom||'').replace(/"/g,'&quot;')+'" onblur="apuUNombre(\''+it.cod+'\',this.value)" style="font-size:12px;font-weight:600"></div>';
+  h+='<div class="fg" style="flex:1;min-width:90px;margin:0"><label class="fl">Unidad</label><select class="fis" onchange="apuUUnidad(\''+it.cod+'\',this.value)" style="font-size:11px">';
+  ['m²','m³','ml','m','un','kg','gl','hs','lt'].forEach(function(u){h+='<option value="'+u+'"'+(it.un===u?' selected':'')+'>'+u+'</option>';});
+  h+='</select></div></div>';
+  h+='<div style="display:flex;gap:6px"><button onclick="apuDuplicarItem(\''+it.cod+'\')" style="font-size:10px;background:none;border:1px solid var(--br);color:var(--tx2);padding:5px 10px;border-radius:4px;cursor:pointer" title="Duplicar este ítem como punto de partida para una variante">⧉ Duplicar</button>';
+  h+='<button onclick="apuEliminarItem(\''+it.cod+'\')" style="font-size:10px;background:none;border:1px solid var(--rt);color:var(--rt);padding:5px 10px;border-radius:4px;cursor:pointer">🗑 Eliminar</button>';
+  h+='<button onclick="apuCerrarEditor()" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:20px;line-height:1;padding:0 4px">×</button></div>';
+  h+='</div>';
+  h+=apuRenderMatsTable(it);
+  h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
+  h+='<button onclick="cpAbrirCatPicker(\'apu:'+it.cod+'\',\'material\')" style="font-size:10px;background:none;border:1px dashed var(--gt);color:var(--gt);padding:3px 10px;border-radius:4px;cursor:pointer">+ Material</button>';
+  h+='<button onclick="cpAbrirPickerMat(\'apu:'+it.cod+'\')" style="font-size:10px;background:none;border:1px dashed var(--bt);color:var(--bt);padding:3px 10px;border-radius:4px;cursor:pointer">+ Cañería / Insumo (tipo y diámetro)</button>';
+  h+='<button onclick="cpAbrirCatPicker(\'apu:'+it.cod+'\',\'equipo\')" style="font-size:10px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:3px 10px;border-radius:4px;cursor:pointer">+ Equipo</button>';
+  h+='<button onclick="cpAbrirCatPicker(\'apu:'+it.cod+'\',\'mo\')" style="font-size:10px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:3px 10px;border-radius:4px;cursor:pointer">+ MO</button>';
+  h+='</div>';
+  if(calc){
+    h+='<div style="margin-top:10px;background:var(--bg);border-radius:6px;padding:8px 10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">';
+    h+='<div style="font-size:11px;font-weight:700">Precio Unitario resultante (con gastos generales/beneficio/financieros/IVA): <span style="color:var(--rt);font-size:13px">$'+calc.pu_adopt.toLocaleString('es-AR')+' / '+(it.un||'un')+'</span></div>';
+    h+='<div style="font-size:10px;color:var(--tx3)">Este es el mismo cálculo que va a usar el Cómputo cuando elijas este ítem y cargues la medición real de la obra.</div>';
+    h+='</div>';
+  }
+  h+='</div>';
+  cont.innerHTML=h;
+}
+
+function apuRenderItems(){
+  var cont=document.getElementById('apu-items');
+  if(!cont)return;
+  if(!APU_RUBRO_SEL){cont.innerHTML='<div style="padding:16px;text-align:center;color:var(--tx3);font-size:12px">Elegí un Rubro arriba, o creá uno nuevo.</div>';return;}
+  var items=apuItemsDeRubro(APU_RUBRO_SEL);
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+  h+='<div class="csec" style="margin:0">'+APU_RUBRO_SEL+' <span style="color:var(--tx3);font-weight:400">('+items.length+' ítems)</span></div>';
+  h+='<button onclick="apuNuevoItem()" style="font-size:11px;background:var(--gt);color:#fff;padding:5px 12px;border:none;border-radius:4px;cursor:pointer">+ Ítem</button>';
+  h+='</div>';
+  if(!items.length){
+    h+='<div style="padding:16px;text-align:center;color:var(--tx3);font-size:12px">Todavía no hay ítems en este rubro. Creá el primero con "+ Ítem".</div>';
+  }else{
+    h+='<div style="display:flex;flex-direction:column;gap:4px">';
+    items.forEach(function(it){
+      var activo=it.cod===APU_ITEM_SEL;
+      var pu=apuItemPU(it);
+      h+='<div onclick="apuSelItem(\''+it.cod+'\')" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-radius:5px;cursor:pointer;border:1px solid '+(activo?'var(--bt)':'var(--br)')+';background:'+(activo?'rgba(96,165,250,.08)':'var(--bg)')+'">';
+      h+='<div style="min-width:0"><div style="font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+it.nom+'</div><div style="font-size:9px;color:var(--tx3)">'+((it.mats||[]).length+(it.mo||[]).length)+' insumos/MO · '+it.un+'</div></div>';
+      h+='<div style="white-space:nowrap;font-size:11px;font-weight:700;color:var(--bt)">$'+pu.toLocaleString('es-AR')+'</div>';
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+  cont.innerHTML=h;
+}
+
+function apuRenderRubros(){
+  var cont=document.getElementById('apu-rubros');
+  if(!cont)return;
+  var rubros=apuRubros();
+  if(!APU_RUBRO_SEL||rubros.indexOf(APU_RUBRO_SEL)<0)APU_RUBRO_SEL=rubros[0]||null;
+  var h=rubros.map(function(r){
+    var activo=r===APU_RUBRO_SEL;
+    var n=apuItemsDeRubro(r).length;
+    return '<button onclick="apuSelRubro(\''+r+'\')" style="font-size:11px;padding:7px 12px;cursor:pointer;white-space:nowrap;border:1px solid '+(activo?'var(--bt)':'var(--br)')+';border-radius:6px;background:'+(activo?'var(--bt)':'var(--bg3)')+';color:'+(activo?'#fff':'var(--tx2)')+';font-weight:'+(activo?'700':'500')+'">'+r+' <span style="opacity:.7">('+n+')</span></button>';
+  }).join('');
+  h+='<button onclick="apuNuevoRubro()" style="font-size:11px;padding:7px 12px;cursor:pointer;white-space:nowrap;border:1px dashed var(--gt);border-radius:6px;background:none;color:var(--gt);font-weight:600">+ Rubro</button>';
+  cont.innerHTML=h;
+}
+
+function apuRenderBuscador(){
+  var cont=document.getElementById('apu-buscador-res');
+  if(!cont)return;
+  var q=(typeof cpPetpNormaliza==='function')?cpPetpNormaliza(APU_BUSCAR_MAT):(APU_BUSCAR_MAT||'').toLowerCase();
+  if(!q||q.length<2){cont.style.display='none';cont.innerHTML='';return;}
+  var out=[];
+  (typeof CP_CATALOGO!=='undefined'?CP_CATALOGO:[]).forEach(function(it){
+    (it.mats||[]).forEach(function(m){
+      var nomN=(typeof cpPetpNormaliza==='function')?cpPetpNormaliza(m.nom):(m.nom||'').toLowerCase();
+      if(nomN.indexOf(q)!==-1)out.push({it:it,m:m});
+    });
+  });
+  if(!out.length){
+    cont.style.display='block';
+    cont.innerHTML='<div style="padding:10px;font-size:11px;color:var(--tx3)">Ningún ítem de la librería usa un material que coincida con "'+APU_BUSCAR_MAT+'".</div>';
+    return;
+  }
+  cont.style.display='block';
+  cont.innerHTML='<div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;padding:6px 10px 2px">'+out.length+' ítem(s) usan un material que coincide con "'+APU_BUSCAR_MAT+'" — hacé clic para auditar su rendimiento</div>'
+    +out.map(function(o){
+      return '<div onclick="apuSelRubro(\''+o.it.cat+'\');apuSelItem(\''+o.it.cod+'\');document.getElementById(\'apu-buscar-input\').value=\'\';apuBuscarMaterialInput(\'\');" style="display:flex;justify-content:space-between;gap:8px;padding:7px 10px;border-bottom:1px solid var(--br);cursor:pointer" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'\'">'
+        +'<div><div style="font-size:11px;font-weight:600">'+o.it.nom+'</div><div style="font-size:9.5px;color:var(--tx3)">'+o.it.cat+' · usa '+o.m.nom+'</div></div>'
+        +'<div style="font-size:11px;font-weight:700;color:var(--bt);white-space:nowrap">Rend: '+o.m.rend+' '+o.m.un+'/'+o.it.un+'</div>'
+        +'</div>';
+    }).join('');
+}
+
+function apuTabRender(){
+  apuRenderRubros();
+  apuRenderItems();
+  apuRenderEditor();
+  apuRenderBuscador();
+}
 
 
 /* ══ MÓDULO CÓMPUTO Y PRESUPUESTO v7 ══════════════════════════════════ */
@@ -6229,9 +6536,27 @@ function cpBuscar(q){
 }
 
 function cpFindItem(iid){
+  if(typeof iid==='string'&&iid.indexOf('apu:')===0){
+    var cod=iid.slice(4);
+    return (typeof CP_CATALOGO!=='undefined')?CP_CATALOGO.find(function(x){return x.cod===cod;}):null;
+  }
   var found=null;
   CP_RUBROS.forEach(function(r){var f=r.items.find(function(i){return i.id===iid;});if(f)found=f;});
   return found;
+}
+// Dispatcher: si iid pertenece a la librería de Análisis de Precios (prefijo 'apu:'), persiste
+// el cambio en CP_CATALOGO_USER/Firebase y refresca el editor de la librería; si no, es un ítem
+// de un Cómputo real y sigue el flujo de siempre (cpRender). Así se reutilizan sin duplicar los
+// mismos pickers/inputs de +Material/+Equipo/+MO para ambos contextos.
+function cpRenderActive(iid){
+  if(typeof iid==='string'&&iid.indexOf('apu:')===0){
+    var cod=iid.slice(4);
+    if(typeof apuPersistirItem==='function')apuPersistirItem(cod);
+    if(typeof apuRenderEditor==='function')apuRenderEditor();
+    if(typeof apuRenderItems==='function')apuRenderItems();
+  }else{
+    cpRender();
+  }
 }
 function cpFindRubroDeItem(iid){
   var found=null;
@@ -6887,10 +7212,10 @@ function cpAD(iid){var it=cpFindItem(iid);if(!it)return;it.dims.push({id:cpNID()
 function cpADVano(iid){var it=cpFindItem(iid);if(!it)return;it.dims.push({id:cpNID(),desc:'Abertura/Vano',l:0,a:0,h:0,q:1,sust:true});cpRender();}
 function cpBD(iid,did){var it=cpFindItem(iid);if(!it)return;it.dims=it.dims.filter(function(d){return d.id!==did;});cpRender();}
 function cpUD(iid,did,campo,val){var it=cpFindItem(iid);if(!it)return;var d=it.dims.find(function(d){return d.id===did;});if(!d)return;d[campo]=val;if(campo!=='desc')cpRender();}
-function cpUM(iid,mi,campo,val){var it=cpFindItem(iid);if(!it||!it.mats[mi])return;it.mats[mi][campo]=val;if(campo!=='nom')cpRender();}
-function cpUMO(iid,mi,campo,val){var it=cpFindItem(iid);if(!it||!it.mo[mi])return;it.mo[mi][campo]=val;if(campo!=='nom')cpRender();}
-function cpBorrarMat(iid,mi){var it=cpFindItem(iid);if(!it)return;it.mats.splice(mi,1);cpRender();}
-function cpBorrarMO(iid,mi){var it=cpFindItem(iid);if(!it)return;it.mo.splice(mi,1);cpRender();}
+function cpUM(iid,mi,campo,val){var it=cpFindItem(iid);if(!it||!it.mats[mi])return;it.mats[mi][campo]=val;if(campo!=='nom')cpRenderActive(iid);}
+function cpUMO(iid,mi,campo,val){var it=cpFindItem(iid);if(!it||!it.mo[mi])return;it.mo[mi][campo]=val;if(campo!=='nom')cpRenderActive(iid);}
+function cpBorrarMat(iid,mi){var it=cpFindItem(iid);if(!it)return;it.mats.splice(mi,1);cpRenderActive(iid);}
+function cpBorrarMO(iid,mi){var it=cpFindItem(iid);if(!it)return;it.mo.splice(mi,1);cpRenderActive(iid);}
 function cpAgregarMat(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'',nom:'Nuevo material',un:'m\u00b2',rend:1,pu:0,esEquipo:false});cpRender();}
 function cpAgregarEquipo(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'',nom:'Nuevo equipo',un:'hh',rend:1,pu:0,esEquipo:true});cpRender();}
 function cpAgregarMO(iid){var it=cpFindItem(iid);if(!it)return;it.mo.push({rol:'of',hh:1,pu:CP_PRECIOS_MAT['of']||22299});cpRender();}
@@ -6917,9 +7242,10 @@ function cpElegirMatPicker(){
   if(!p){toast('No encontrado en el catálogo',false);return;}
   var rendVal=parseARNum(document.getElementById('mp-rend').value);
   if(isNaN(rendVal)||rendVal<=0)rendVal=1;
-  it.mats.push({id:p.cod,nom:p.nom,un:p.un,rend:rendVal,pu:p.pu||0,esEquipo:false,sinPrecio:!(p.pu>0)});
+  var esApu=String(iid).indexOf('apu:')===0;
+  it.mats.push({id:p.cod,nom:p.nom,un:p.un,rend:rendVal,pu:esApu?0:(p.pu||0),esEquipo:false,sinPrecio:!(p.pu>0)});
   closeM('mod-mat-picker');
-  cpRender();
+  cpRenderActive(iid);
   toast('✓ '+p.nom+' agregado');
 }
 
@@ -7007,17 +7333,19 @@ function cpCatPickerElegir(cod){
   var iid=CP_CATPICKER_IID;var it=cpFindItem(iid);if(!it)return;
   var p=(typeof PR_DATA!=='undefined'?PR_DATA:[]).find(function(x){return x.cod===cod;});
   if(!p){toast('No encontrado en el catálogo',false);return;}
-  it.mats.push({id:p.cod,nom:p.nom,un:p.un,rend:1,pu:p.pu||0,esEquipo:(CP_CATPICKER_TIPO==='equipo'),sinPrecio:!(p.pu>0)});
+  var esApu=String(iid).indexOf('apu:')===0;
+  it.mats.push({id:p.cod,nom:p.nom,un:p.un,rend:1,pu:esApu?0:(p.pu||0),esEquipo:(CP_CATPICKER_TIPO==='equipo'),sinPrecio:!(p.pu>0)});
   closeM('mod-cat-picker');
-  cpRender();
+  cpRenderActive(iid);
   toast('✓ '+p.nom+' agregado'+(p.pu>0?'':' (sin precio, completalo en Listado de Precios)'));
 }
 function cpCatPickerElegirRol(rol){
   var iid=CP_CATPICKER_IID;var it=cpFindItem(iid);if(!it)return;
+  var esApu=String(iid).indexOf('apu:')===0;
   var pu=(typeof apuGetMOpu==='function')?apuGetMOpu(rol):(CP_PRECIOS_MAT[rol]||0);
-  it.mo.push({rol:rol,hh:1,pu:pu});
+  it.mo.push({rol:rol,hh:1,pu:esApu?0:pu});
   closeM('mod-cat-picker');
-  cpRender();
+  cpRenderActive(iid);
   var lbl=(CP_MO_ROLES.find(function(r){return r.rol===rol;})||{}).lbl||rol;
   toast('✓ '+lbl+' agregado');
 }
@@ -7050,9 +7378,10 @@ function cpCatPickerGuardarNuevo(){
   if(typeof PR_DATA==='undefined')window.PR_DATA=[];
   PR_DATA.push(nuevo);
   if(typeof prGuardar==='function')prGuardar();
-  it.mats.push({id:cod,nom:nom,un:un,rend:1,pu:pu,esEquipo:(CP_CATPICKER_TIPO==='equipo'),sinPrecio:!(pu>0)});
+  var esApu=String(iid).indexOf('apu:')===0;
+  it.mats.push({id:cod,nom:nom,un:un,rend:1,pu:esApu?0:pu,esEquipo:(CP_CATPICKER_TIPO==='equipo'),sinPrecio:!(pu>0)});
   closeM('mod-cat-picker');
-  cpRender();
+  cpRenderActive(iid);
   toast('✓ '+nom+' creado en el catálogo, guardado y agregado al ítem');
 }
 
