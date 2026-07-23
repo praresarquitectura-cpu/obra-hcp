@@ -5914,6 +5914,24 @@ var CP_CATALOGO_EXTRA = [
  mo:[]
 },
 // ══ ESTRUCTURA DE HºAº ══════════════════════════════════════════════════
+// FIX DE PRECIO (23-jul-2026, 3ra vuelta): las 12 líneas de Hierro de estos
+// ítems (HA01-HA06 y sus variantes "B") apuntaban al cod '522' pensando que
+// seguía siendo el placeholder genérico cotizado en $/KG. Pero en la tanda
+// de importación de precios de barras por diámetro (commit v69, cod
+// 522/524-529 "Hierro Torsionado Nmm") ese mismo código pasó a ser un
+// producto real cotizado en $/METRO (precio de barra). Como nadie actualizó
+// estos 12 ítems, el motor de cálculo venía multiplicando mal: kilos × $/m
+// (tratando el precio por metro como si fuera precio por kilo) — un error
+// de varios cientos por ciento en el costo de hierro de TODOS los ítems de
+// Hormigón Armado. Se corrige acá junto con el pedido de Diego de poder
+// elegir el diámetro real de hierro con un desplegable (ver CP_FAM_HIERRO
+// más abajo): cada línea ahora guarda 'kgBase' (el kilaje real medido, que
+// NO cambia con el diámetro — es el mismo acero de tu incidencia real) y
+// 'rend' se calcula a partir de eso para un diámetro por defecto (elegible
+// y recalculable en vivo desde el desplegable nuevo en la pestaña Análisis
+// de Precios). Diámetro por defecto usado acá — AJUSTALO si tu cálculo
+// estructural real usa otro: Zapatas Ø10, Columnas/Vigas Ø12, Losas Ø8.
+
 // (23-jul-2026, 2da vuelta): a pedido de Diego, cada elemento (Bases,
 // Columnas, Vigas, Losas) ahora tiene DOS versiones para elegir según cómo
 // se resuelva el hormigón en tu obra real:
@@ -5966,7 +5984,7 @@ var CP_CATALOGO_EXTRA = [
  unidades_permitidas:['m³'],
  mats:[
   {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:30},
+  {id:'525',nom:'Hierro Torsionado 10mm',un:'m',kgBase:30,rend:48.6588},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.25},
   {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.0,esEquipo:true},
  ],
@@ -5979,7 +5997,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1001',nom:'Cemento portland',un:'kg',rend:280},
   {id:'203',nom:'Arena gruesa',un:'m³',rend:0.42},
   {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.85},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:30},
+  {id:'525',nom:'Hierro Torsionado 10mm',un:'m',kgBase:30,rend:48.6588},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.25},
   {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.0,esEquipo:true},
   {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
@@ -5991,7 +6009,7 @@ var CP_CATALOGO_EXTRA = [
  unidades_permitidas:['m³'],
  mats:[
   {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:100},
+  {id:'526',nom:'Hierro Torsionado 12mm',un:'m',kgBase:100,rend:112.6361},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:23.1},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:13.0},
@@ -6007,7 +6025,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1001',nom:'Cemento portland',un:'kg',rend:326},
   {id:'203',nom:'Arena gruesa',un:'m³',rend:0.5},
   {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.75},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:100},
+  {id:'526',nom:'Hierro Torsionado 12mm',un:'m',kgBase:100,rend:112.6361},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:23.1},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:13.0},
@@ -6022,7 +6040,7 @@ var CP_CATALOGO_EXTRA = [
  unidades_permitidas:['m³'],
  mats:[
   {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:90},
+  {id:'526',nom:'Hierro Torsionado 12mm',un:'m',kgBase:90,rend:101.3725},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
@@ -6038,7 +6056,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1001',nom:'Cemento portland',un:'kg',rend:326},
   {id:'203',nom:'Arena gruesa',un:'m³',rend:0.5},
   {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.75},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:90},
+  {id:'526',nom:'Hierro Torsionado 12mm',un:'m',kgBase:90,rend:101.3725},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
@@ -6053,7 +6071,7 @@ var CP_CATALOGO_EXTRA = [
  unidades_permitidas:['m³'],
  mats:[
   {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:60},
+  {id:'524',nom:'Hierro Torsionado 8mm',un:'m',kgBase:60,rend:152.0588},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:20.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:0.25},
   {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
@@ -6067,7 +6085,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1001',nom:'Cemento portland',un:'kg',rend:326},
   {id:'203',nom:'Arena gruesa',un:'m³',rend:0.5},
   {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.75},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:60},
+  {id:'524',nom:'Hierro Torsionado 8mm',un:'m',kgBase:60,rend:152.0588},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:20.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:0.25},
   {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
@@ -6080,7 +6098,7 @@ var CP_CATALOGO_EXTRA = [
  unidades_permitidas:['m³'],
  mats:[
   {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:90},
+  {id:'526',nom:'Hierro Torsionado 12mm',un:'m',kgBase:90,rend:101.3725},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
@@ -6096,7 +6114,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1001',nom:'Cemento portland',un:'kg',rend:326},
   {id:'203',nom:'Arena gruesa',un:'m³',rend:0.5},
   {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.75},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:90},
+  {id:'526',nom:'Hierro Torsionado 12mm',un:'m',kgBase:90,rend:101.3725},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:1.0},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
@@ -6111,7 +6129,7 @@ var CP_CATALOGO_EXTRA = [
  unidades_permitidas:['m³'],
  mats:[
   {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:40},
+  {id:'524',nom:'Hierro Torsionado 8mm',un:'m',kgBase:40,rend:101.3725},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.6},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:6.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:16.0},
@@ -6127,7 +6145,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1001',nom:'Cemento portland',un:'kg',rend:326},
   {id:'203',nom:'Arena gruesa',un:'m³',rend:0.5},
   {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.75},
-  {id:'522',nom:'Hierro Torsionado (genérico)',un:'kg',rend:40},
+  {id:'524',nom:'Hierro Torsionado 8mm',un:'m',kgBase:40,rend:101.3725},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.6},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:6.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:16.0},
@@ -6447,6 +6465,137 @@ function apuBuscarMaterialInput(val){
 // rend × cantidad MEDIDA), acá el "Rendimiento" YA ES la cantidad final
 // que se muestra — es la incidencia técnica por 1 unidad del ítem, no hay
 // ninguna medición de obra de por medio en esta pantalla.
+// ══════════════════════════════════════════════════════════════════════
+// FAMILIAS DE MATERIALES CON VARIANTES POR MEDIDA/DIÁMETRO (23-jul-2026)
+// ══════════════════════════════════════════════════════════════════════
+// Pedido de Diego: en la librería de Análisis de Precios, cuando un material
+// tiene variantes reales por medida en el Listado de Precios (ej: Hierro
+// Ø6/Ø8/Ø10/Ø12/Ø16/Ø20/Ø25, no todos "pesan lo mismo ni abarcan lo mismo"),
+// poder ELEGIR la variante específica desde un desplegable en vez de quedar
+// pegado a un material "genérico". Para Hierro además el rendimiento se
+// recalcula SOLO al cambiar de diámetro, preservando el KILAJE TOTAL real
+// de acero que hace falta (el dato técnico que NO depende de qué diámetro
+// elijas — es el mismo acero medido en tu obra) y convirtiéndolo a los
+// metros lineales que corresponden a esa barra puntual, porque el Listado
+// de Precios cotiza el hierro en $/metro (precio de barra), no en $/kg.
+//
+// Peso por metro de una barra conformada de diámetro d (mm):
+//   kg/m = (π/4) × d² × 7850 kg/m³ × 1e-6 = 0.00616538 × d²
+// Es la fórmula física exacta (densidad real del acero, sección circular),
+// la misma que usa cualquier tabla de barras IRAM-IAS U 500-528 / CIRSOC
+// 201 — no es un número inventado por ítem, es la física del acero.
+function cpKgPorMetroHierro(diamMM){ return 0.00616538*diamMM*diamMM; }
+
+// Variantes reales de Hierro/Barras ya cargadas en el Listado de Precios
+// (PR_DATA, categoría BARRAS Y MALLAS). AVISO PARA DIEGO: el catálogo tiene
+// 2 series parcialmente duplicadas de hierro por diámetro — cod 501-506
+// ("Fe ØN", cargados en distintas tandas 2026-06/07) y cod 522+524-529
+// ("Hierro Torsionado Nmm", relevamiento en vivo IMCOFUE 2026-07) — con
+// precios levemente distintos (2-4%) para los MISMOS diámetros 6/8/10/12/16.
+// Quedó pendiente unificarlas en una sola serie; mientras tanto este
+// selector usa la serie 522+524-529 por ser la más completa (única con
+// 20mm y 25mm) y porque ya era la que usaban los ítems de Hormigón Armado.
+var CP_FAM_HIERRO = {
+  label: 'Hierro / Barras (elegí el diámetro)',
+  variantes: [
+    {cod:'501', mm:5},
+    {cod:'522', mm:6},
+    {cod:'524', mm:8},
+    {cod:'525', mm:10},
+    {cod:'526', mm:12},
+    {cod:'527', mm:16},
+    {cod:'528', mm:20},
+    {cod:'529', mm:25}
+  ]
+};
+function cpHierroVariante(cod){
+  return CP_FAM_HIERRO.variantes.find(function(v){return v.cod===String(cod);})||null;
+}
+
+// ── Familias genéricas por categoría + nombre-base (resto de materiales) ──
+// Agrupa automáticamente ítems del Listado de Precios que comparten
+// categoría y un "nombre base" (sacando números/medidas/espesores/símbolos
+// del nombre), para ofrecer un desplegable de variantes en CUALQUIER
+// material de la librería que tenga más de una opción cargada (perfiles,
+// tubos, chapas, maderas, membranas, etc. — ej: "Tubo Cuadrado 40x40" y
+// "Tubo Cuadrado 100x100" comparten nombre base "tubo cuadrado"). A
+// diferencia del Hierro, acá NO se recalcula el rendimiento automáticamente
+// al cambiar de variante (no hay una fórmula física universal como el kg/m
+// del acero para cada familia posible) — se mantiene el mismo rendimiento
+// técnico y sólo cambia el producto/precio elegido; Diego puede ajustar el
+// rendimiento a mano si la medida elegida realmente requiere otra cantidad.
+function cpFamiliaBaseNombre(nom){
+  return (nom||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[øØ]/g,' ')
+    .replace(/\d+([.,]\d+)?\s*(mm|cm|kg|lts|lt|hh)?/g,' ')
+    .replace(/[^a-z\s]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+var _CP_FAMILIAS_CACHE=null;
+function cpFamiliasGenerico(){
+  if(_CP_FAMILIAS_CACHE) return _CP_FAMILIAS_CACHE;
+  var map={};
+  (typeof PR_DATA!=='undefined'?PR_DATA:[]).forEach(function(p){
+    if(!p.cat||!p.nom)return;
+    var base=cpFamiliaBaseNombre(p.nom);
+    if(base.length<3)return;
+    var key=p.cat+'||'+base;
+    if(!map[key])map[key]=[];
+    map[key].push(p.cod);
+  });
+  var out={};
+  Object.keys(map).forEach(function(k){
+    if(map[k].length>1){
+      map[k].forEach(function(cod){out[cod]=map[k];});
+    }
+  });
+  _CP_FAMILIAS_CACHE=out;
+  return out;
+}
+// Invalida el caché de familias genéricas — llamar si PR_DATA cambia en la
+// misma sesión (ej. se agrega un material nuevo desde el picker de +Material).
+function cpFamiliasInvalidar(){_CP_FAMILIAS_CACHE=null;}
+
+// Cambia la variante específica (medida/diámetro) de un material dentro de
+// un ítem de la librería de Análisis de Precios (o de un Cómputo real, es
+// genérico gracias a cpFindItem/cpRenderActive). Para Hierro, recalcula el
+// rendimiento preservando el kilaje total real (m.kgBase); para el resto,
+// mantiene el mismo rendimiento y sólo cambia el producto/precio elegido.
+function apuCambiarVarianteMaterial(iid, mi, nuevoCod){
+  var it=cpFindItem(iid); if(!it||!it.mats||!it.mats[mi])return;
+  var m=it.mats[mi];
+  var p=(typeof PR_DATA!=='undefined'?PR_DATA:[]).find(function(x){return x.cod===nuevoCod;});
+  if(!p){toast('No encontrado en el catálogo',false);return;}
+  var esHierro=!!cpHierroVariante(m.id)||!!cpHierroVariante(nuevoCod);
+  if(esHierro){
+    var varNueva=cpHierroVariante(nuevoCod);
+    if(!varNueva){toast('Diámetro no reconocido',false);return;}
+    // kgBase = el kilaje total real (kg por 1 unidad del ítem) — se toma de
+    // m.kgBase si ya existe (fue cambiado antes con este selector), o se
+    // migra de la convención vieja: si m.un ya era 'kg', el rend ERA el
+    // kilaje directamente; si ya estaba en 'm' (variante previa), se
+    // reconstruye multiplicando por el kg/m del diámetro que tenía antes.
+    var kgBase;
+    if(m.kgBase!=null){
+      kgBase=m.kgBase;
+    }else if(m.un==='kg'){
+      kgBase=m.rend||0;
+    }else{
+      var varVieja=cpHierroVariante(m.id);
+      kgBase=(m.rend||0)*cpKgPorMetroHierro(varVieja?varVieja.mm:10);
+    }
+    m.kgBase=kgBase;
+    m.rend=+(kgBase/cpKgPorMetroHierro(varNueva.mm)).toFixed(4);
+    m.un='m';
+  }
+  m.id=p.cod; m.nom=p.nom; m.pu=0;
+  cpRenderActive(iid);
+  toast('✓ Cambiado a '+p.nom+(esHierro?' — rendimiento recalculado a '+m.rend+' m (mismo kilaje: '+m.kgBase+' kg)':' (mismo rendimiento, revisalo si la medida elegida requiere otra cantidad)'));
+}
+
 function apuRenderMatsTable(it){
   var h='';
   if(!(it.mats||[]).length&&!(it.mo||[]).length){
@@ -6458,8 +6607,29 @@ function apuRenderMatsTable(it){
   (it.mats||[]).forEach(function(m,mi){
     var pu=(typeof apuGetPU==='function')?apuGetPU(m.id,m.pu||0):(m.pu||0);
     var sub=Math.round((m.rend||0)*pu);
+    var hierroVar=cpHierroVariante(m.id);
+    var famGen=(!hierroVar)?(cpFamiliasGenerico()[m.id]||null):null;
     h+='<tr style="border-bottom:1px solid var(--br);background:'+(m.esEquipo?'rgba(251,146,60,.06)':'')+'">';
-    h+='<td style="padding:3px 5px">'+m.nom+(!pu?' <span title="Sin precio — cargalo en Listado de Precios" style="color:var(--rt);font-weight:700">!</span>':'')+'</td>';
+    h+='<td style="padding:3px 5px">';
+    if(hierroVar){
+      h+='<select onchange="apuCambiarVarianteMaterial(\'apu:'+it.cod+'\','+mi+',this.value)" title="Elegí el diámetro real — el rendimiento se recalcula solo, preservando el mismo kilaje total de acero" style="font-size:10px;padding:2px 4px;border-radius:3px;border:1px solid var(--bt);background:var(--bg);color:var(--tx1);max-width:190px">';
+      CP_FAM_HIERRO.variantes.forEach(function(v){
+        var pv=(typeof PR_DATA!=='undefined')?PR_DATA.find(function(x){return x.cod===v.cod;}):null;
+        h+='<option value="'+v.cod+'"'+(m.id===v.cod?' selected':'')+'>Ø'+v.mm+'mm'+(pv?' — $'+pv.pu.toLocaleString('es-AR')+'/m':'')+'</option>';
+      });
+      h+='</select>';
+    }else if(famGen&&famGen.length>1){
+      h+='<select onchange="apuCambiarVarianteMaterial(\'apu:'+it.cod+'\','+mi+',this.value)" title="Elegí otra medida/variante del mismo material — el rendimiento NO cambia solo, revisalo si corresponde" style="font-size:10px;padding:2px 4px;border-radius:3px;border:1px solid var(--br);background:var(--bg);color:var(--tx1);max-width:220px">';
+      famGen.forEach(function(cod){
+        var pv=(typeof PR_DATA!=='undefined')?PR_DATA.find(function(x){return x.cod===cod;}):null;
+        if(!pv)return;
+        h+='<option value="'+cod+'"'+(m.id===cod?' selected':'')+'>'+pv.nom+'</option>';
+      });
+      h+='</select>';
+    }else{
+      h+=m.nom;
+    }
+    h+=(!pu?' <span title="Sin precio — cargalo en Listado de Precios" style="color:var(--rt);font-weight:700">!</span>':'')+'</td>';
     h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">'+m.un+'</td>';
     h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="'+m.rend+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUM(\'apu:'+it.cod+'\','+mi+',\'rend\',v);" style="width:75px;text-align:right;font-weight:700;color:var(--bt)"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--tx3)">$'+pu.toLocaleString('es-AR')+'</td>';
@@ -6481,6 +6651,201 @@ function apuRenderMatsTable(it){
   });
   h+='</tbody></table></div>';
   return h;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CALCULADORA DE RENDIMIENTO POR CUADRILLA (23-jul-2026)
+   ══════════════════════════════════════════════════════════════════════
+   Pedido de Diego: que el rendimiento de mano de obra y equipo salga de
+   analizar de manera criteriosa y real el MÉTODO CONSTRUCTIVO — la
+   cuadrilla que participa, el tiempo real de CADA tarea (no un número
+   único global) y las condiciones reales de ejecución — en vez de un
+   número de rendimiento "caído del cielo" o tomado de un estudio ajeno.
+
+   Esta herramienta es GENÉRICA (sirve para cualquier ítem del catálogo,
+   no solo Hormigón Armado) y NO INVENTA tiempos: Diego carga sus propias
+   sub-tareas con SU tiempo real medido en obra (ej: "Armado de hierro:
+   60 min", "Encofrado: 120 min", "Hormigonado y vibrado: 90 min",
+   "Desencofrado: 40 min") y para cada tarea marca qué roles de mano de
+   obra y qué equipos participan. El sistema suma los minutos de las
+   tareas en las que participa cada rol/equipo y calcula las hh
+   resultantes por 1 unidad del ítem — quedando el desglose guardado
+   junto al ítem para poder auditarlo o corregirlo después.
+
+   Estructura de datos (se guarda en it.cuadrilla):
+   {
+     tareas: [{nombre, minutos, mo:['of','ay',...], equipo:['3207',...]}],
+     condiciones: 'texto libre — clima, acceso, terreno, etc.'
+   }
+   ────────────────────────────────────────────────────────────────────── */
+var CP_MO_ROLES_CUADRILLA=[
+  {rol:'ofEsp', lbl:'Of. Especializado'},
+  {rol:'of', lbl:'Oficial'},
+  {rol:'mo', lbl:'Medio Oficial'},
+  {rol:'ay', lbl:'Ayudante'}
+];
+
+function apuCuadrillaGet(it){
+  if(!it.cuadrilla) it.cuadrilla={tareas:[], condiciones:''};
+  if(!it.cuadrilla.tareas) it.cuadrilla.tareas=[];
+  return it.cuadrilla;
+}
+
+function apuCuadrillaNuevaTarea(cod){
+  var it=cpFindItem('apu:'+cod); if(!it)return;
+  var cu=apuCuadrillaGet(it);
+  cu.tareas.push({nombre:'', minutos:0, mo:[], equipo:[]});
+  apuPersistirItem(cod);
+  apuRenderCuadrillaWrap();
+}
+function apuCuadrillaBorrarTarea(cod, idx){
+  var it=cpFindItem('apu:'+cod); if(!it)return;
+  var cu=apuCuadrillaGet(it);
+  cu.tareas.splice(idx,1);
+  apuPersistirItem(cod);
+  apuRenderCuadrillaWrap();
+}
+function apuCuadrillaUTarea(cod, idx, campo, val){
+  var it=cpFindItem('apu:'+cod); if(!it)return;
+  var cu=apuCuadrillaGet(it);
+  if(!cu.tareas[idx])return;
+  cu.tareas[idx][campo]=val;
+  apuPersistirItem(cod);
+  apuRenderCuadrillaWrap();
+}
+function apuCuadrillaUCondiciones(cod, val){
+  var it=cpFindItem('apu:'+cod); if(!it)return;
+  var cu=apuCuadrillaGet(it);
+  cu.condiciones=val;
+  apuPersistirItem(cod);
+}
+function apuCuadrillaToggleParticipante(cod, idx, tipo, key){
+  var it=cpFindItem('apu:'+cod); if(!it)return;
+  var cu=apuCuadrillaGet(it);
+  var t=cu.tareas[idx]; if(!t)return;
+  if(!t[tipo])t[tipo]=[];
+  var i=t[tipo].indexOf(key);
+  if(i>=0)t[tipo].splice(i,1);else t[tipo].push(key);
+  apuPersistirItem(cod);
+  apuRenderCuadrillaWrap();
+}
+
+// Calcula, a partir de las tareas cargadas, las hh resultantes por rol de
+// MO y por equipo — sumando SOLO los minutos de las tareas en las que ese
+// rol/equipo efectivamente participa (no todas: un Capataz que sólo
+// supervisa el hormigonado no debe cargar las horas de armado/encofrado).
+function apuCuadrillaCalcular(it){
+  var cu=apuCuadrillaGet(it);
+  var porRol={}, porEquipo={}, totalMin=0;
+  cu.tareas.forEach(function(t){
+    var min=t.minutos||0;
+    totalMin+=min;
+    (t.mo||[]).forEach(function(rol){porRol[rol]=(porRol[rol]||0)+min;});
+    (t.equipo||[]).forEach(function(cod){porEquipo[cod]=(porEquipo[cod]||0)+min;});
+  });
+  Object.keys(porRol).forEach(function(r){porRol[r]=+(porRol[r]/60).toFixed(4);});
+  Object.keys(porEquipo).forEach(function(c){porEquipo[c]=+(porEquipo[c]/60).toFixed(4);});
+  return {porRol:porRol, porEquipo:porEquipo, totalMin:totalMin, totalHoras:+(totalMin/60).toFixed(4)};
+}
+
+// Vuelca el resultado calculado a los datos reales del ítem: actualiza (o
+// crea) las líneas de it.mo por rol, y actualiza el 'rend' de los equipos
+// ya presentes en it.mats que participaron en alguna tarea. No inventa
+// equipos nuevos — si un equipo participa en una tarea pero todavía no fue
+// agregado al ítem con "+ Equipo", avisa para que lo agregue primero.
+function apuCuadrillaAplicar(cod){
+  var it=cpFindItem('apu:'+cod); if(!it)return;
+  var res=apuCuadrillaCalcular(it);
+  if(!Object.keys(res.porRol).length&&!Object.keys(res.porEquipo).length){
+    toast('Cargá al menos una tarea con minutos y participantes antes de aplicar',false);
+    return;
+  }
+  var faltantes=[];
+  Object.keys(res.porEquipo).forEach(function(codEq){
+    var m=(it.mats||[]).find(function(x){return x.id===codEq&&x.esEquipo;});
+    if(m){m.rend=res.porEquipo[codEq];}
+    else faltantes.push(codEq);
+  });
+  Object.keys(res.porRol).forEach(function(rol){
+    var existente=(it.mo||[]).find(function(x){return x.rol===rol;});
+    if(existente){existente.hh=res.porRol[rol];}
+    else{ if(!it.mo)it.mo=[]; it.mo.push({rol:rol, hh:res.porRol[rol]}); }
+  });
+  apuPersistirItem(cod);
+  apuRenderEditor();
+  apuRenderItems();
+  if(faltantes.length){
+    toast('✓ MO aplicada. OJO: '+faltantes.length+' equipo(s) de las tareas no están agregados al ítem todavía — agregalos con "+ Equipo" y volvé a aplicar',false);
+  }else{
+    toast('✓ Rendimiento de MO y Equipo actualizado según la cuadrilla y tiempos cargados');
+  }
+}
+
+function apuRenderCuadrilla(it){
+  var cu=apuCuadrillaGet(it);
+  var equiposDelItem=(it.mats||[]).filter(function(m){return m.esEquipo;});
+  var res=apuCuadrillaCalcular(it);
+  var h='<div style="margin-top:12px;border:1px dashed var(--golt);border-radius:6px;padding:8px 10px;background:rgba(251,191,36,.04)">';
+  h+='<div style="font-size:11px;font-weight:700;color:var(--golt);margin-bottom:4px">🧮 Calculadora de Rendimiento por Cuadrilla y Tiempos</div>';
+  h+='<div style="font-size:9.5px;color:var(--tx3);margin-bottom:8px">Cargá cada sub-tarea real de ejecución con su tiempo medido y quién participa (mano de obra y/o equipo). El sistema suma los minutos de las tareas en que participa cada rol/equipo y calcula las hh por 1 '+(it.un||'un')+' — quedando documentado acá para poder auditarlo después.</div>';
+  if(cu.tareas.length){
+    h+='<div style="overflow-x:auto"><table style="width:100%;font-size:9.5px;border-collapse:collapse;margin-bottom:6px">';
+    h+='<thead><tr style="color:var(--tx3)"><th style="text-align:left;padding:2px 4px">Tarea</th><th style="text-align:right;padding:2px 4px">Minutos</th><th style="text-align:left;padding:2px 4px">Participan (MO)</th><th style="text-align:left;padding:2px 4px">Participan (Equipo)</th><th></th></tr></thead><tbody>';
+    cu.tareas.forEach(function(t,ti){
+      h+='<tr style="border-bottom:1px solid var(--br)">';
+      h+='<td style="padding:2px 4px"><input class="fi" type="text" value="'+(t.nombre||'').replace(/"/g,'&quot;')+'" placeholder="ej: Armado de hierro" onblur="apuCuadrillaUTarea(\''+it.cod+'\','+ti+',\'nombre\',this.value)" style="font-size:9.5px;padding:3px 5px;width:140px"></td>';
+      h+='<td style="padding:2px 4px;text-align:right"><input class="cp-di" type="text" inputmode="decimal" value="'+(t.minutos||0)+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);apuCuadrillaUTarea(\''+it.cod+'\','+ti+',\'minutos\',isNaN(v)?0:v)" style="width:55px;text-align:right"></td>';
+      h+='<td style="padding:2px 4px">';
+      CP_MO_ROLES_CUADRILLA.forEach(function(r){
+        var activo=(t.mo||[]).indexOf(r.rol)!==-1;
+        h+='<label style="font-size:9px;margin-right:6px;cursor:pointer;white-space:nowrap"><input type="checkbox" '+(activo?'checked':'')+' onchange="apuCuadrillaToggleParticipante(\''+it.cod+'\','+ti+',\'mo\',\''+r.rol+'\')" style="vertical-align:middle"> '+r.lbl+'</label>';
+      });
+      h+='</td>';
+      h+='<td style="padding:2px 4px">';
+      if(!equiposDelItem.length){
+        h+='<span style="color:var(--tx3)">— agregá equipo con "+ Equipo" arriba —</span>';
+      }else{
+        equiposDelItem.forEach(function(eq){
+          var activo=(t.equipo||[]).indexOf(eq.id)!==-1;
+          h+='<label style="font-size:9px;margin-right:6px;cursor:pointer;white-space:nowrap"><input type="checkbox" '+(activo?'checked':'')+' onchange="apuCuadrillaToggleParticipante(\''+it.cod+'\','+ti+',\'equipo\',\''+eq.id+'\')" style="vertical-align:middle"> '+eq.nom+'</label>';
+        });
+      }
+      h+='</td>';
+      h+='<td><button onclick="apuCuadrillaBorrarTarea(\''+it.cod+'\','+ti+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px;padding:0">×</button></td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  h+='<button onclick="apuCuadrillaNuevaTarea(\''+it.cod+'\')" style="font-size:10px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:3px 10px;border-radius:4px;cursor:pointer;margin-bottom:8px">+ Tarea</button>';
+  h+='<div class="fg" style="margin:6px 0 8px 0"><label class="fl">Condiciones reales de ejecución (clima, acceso, terreno, altura, etc. — lo que justifica estos tiempos)</label><textarea class="fi" rows="2" onblur="apuCuadrillaUCondiciones(\''+it.cod+'\',this.value)" style="font-size:10.5px;width:100%;resize:vertical">'+(cu.condiciones||'').replace(/</g,'&lt;')+'</textarea></div>';
+  if(cu.tareas.length){
+    h+='<div style="background:var(--bg);border-radius:5px;padding:6px 8px;margin-bottom:8px;font-size:10px">';
+    h+='<div style="font-weight:700;margin-bottom:3px">Resultado (total: '+res.totalMin+' min = '+res.totalHoras+' h de trabajo secuencial)</div>';
+    var partes=[];
+    Object.keys(res.porRol).forEach(function(rol){
+      var lbl=(CP_MO_ROLES_CUADRILLA.find(function(r){return r.rol===rol;})||{}).lbl||rol;
+      partes.push(lbl+': '+res.porRol[rol]+' hh');
+    });
+    Object.keys(res.porEquipo).forEach(function(cod){
+      var eq=equiposDelItem.find(function(e){return e.id===cod;});
+      partes.push((eq?eq.nom:cod)+': '+res.porEquipo[cod]+' hh');
+    });
+    h+='<div style="color:var(--tx2)">'+(partes.length?partes.join(' · '):'Marcá participantes en al menos una tarea')+'</div>';
+    h+='</div>';
+    h+='<button onclick="apuCuadrillaAplicar(\''+it.cod+'\')" style="font-size:10px;background:var(--golt);color:#fff;padding:5px 12px;border:none;border-radius:4px;cursor:pointer;font-weight:600">✓ Aplicar al ítem (actualiza MO y Equipos)</button>';
+  }
+  h+='</div>';
+  return h;
+}
+
+// Re-renderiza SOLO el bloque de la calculadora de cuadrilla (no todo el
+// editor), para no perder el foco/scroll mientras Diego va tipeando tareas.
+function apuRenderCuadrillaWrap(){
+  var cont=document.getElementById('apu-cuadrilla-wrap');
+  if(!cont||!APU_ITEM_SEL)return;
+  var it=(typeof CP_CATALOGO!=='undefined')?CP_CATALOGO.find(function(x){return x.cod===APU_ITEM_SEL;}):null;
+  if(!it)return;
+  cont.innerHTML=apuRenderCuadrilla(it);
 }
 
 function apuRenderEditor(){
@@ -6509,6 +6874,7 @@ function apuRenderEditor(){
   h+='<button onclick="cpAbrirCatPicker(\'apu:'+it.cod+'\',\'equipo\')" style="font-size:10px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:3px 10px;border-radius:4px;cursor:pointer">+ Equipo</button>';
   h+='<button onclick="cpAbrirCatPicker(\'apu:'+it.cod+'\',\'mo\')" style="font-size:10px;background:none;border:1px dashed var(--golt);color:var(--golt);padding:3px 10px;border-radius:4px;cursor:pointer">+ MO</button>';
   h+='</div>';
+  h+='<div id="apu-cuadrilla-wrap">'+apuRenderCuadrilla(it)+'</div>';
   if(calc){
     h+='<div style="margin-top:10px;background:var(--bg);border-radius:6px;padding:8px 10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">';
     h+='<div style="font-size:11px;font-weight:700">Precio Unitario resultante (con gastos generales/beneficio/financieros/IVA): <span style="color:var(--rt);font-size:13px">$'+calc.pu_adopt.toLocaleString('es-AR')+' / '+(it.un||'un')+'</span></div>';
