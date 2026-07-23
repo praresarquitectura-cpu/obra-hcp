@@ -8096,25 +8096,44 @@ var PR_FECHA_CATALOGO = '2026-06';
 //         de las familias de producto (placas yeso/cementicia/PVC, tapas inspección, cintas,
 //         membrana hidrófuga, siding). No se agregaron variantes decorativas de nicho (líneas
 //         Simplísima/Marmore con >10 colores cada una) por no aportar al cómputo de obra.
-//     [ ] Perfileria (207) - parcialmente cubierta vía auditoría Perfiles Hierro Negro (v58-v59),
-//         faltan C/UPN/PGO/PGC en otras medidas, cielorraso, etc.
-//     [ ] Adhesivos y Otros Químicos (135)
+//     [x] Perfileria (207) - cubierta la línea de uso más frecuente en obra: refresco de
+//         precios de 13 perfiles ya cargados (PGU/PGC/Montante/Solera/Omega/Cantonera/Buña,
+//         relevamiento en vivo 2026-07) + 15 items nuevos (grid cielorraso suspendido 9/16
+//         completo, travesaño largo 15/16, PGU 140/200mm, cantonera Cal.30, planchuela
+//         galvanizada, terminaciones PVC Barbieri) (v83). Quedan afuera variantes C/UPN/PGO
+//         de uso poco frecuente en Tierra del Fuego.
+//     [~] Adhesivos y Otros Químicos (135) - 5 items nuevos representativos (Sikafloor-200
+//         Level autonivelante, Poxilina epoxi, Adhesivo Epoxi Protex 215, Cola Vinílica K2,
+//         Sellador Montaje Fischer) (v83). No es cobertura completa de las 135 variantes.
 //   [ ] Muebles (subcategorías sin relevar)
 //   [ ] Baño (subcategorías sin relevar)
 //   [ ] Cocina y Lavadero (subcategorías sin relevar)
 //   [ ] Electrodomésticos (subcategorías sin relevar — evaluar relevancia para cómputo de obra)
 //   [ ] Pisos y Revestimientos (subcategorías sin relevar — related a SOLADOS, ver también v62)
-//   [ ] Calefacción (subcategorías sin relevar)
+//   [ ] Calefacción (subcategorías sin relevar) - ver también Termotanque 225L (INSTALACIÓN
+//         SANITARIA AGUA cod 2451, pu:0): buscado en IMCOFUE y Casa Fuegia, ambos solo ofrecen
+//         hasta 50L; 225L probablemente sea línea industrial/solar no vendida en Ushuaia por
+//         estos 2 proveedores. Queda pendiente cotizar con Casa Zeila u otro proveedor.
 //   [ ] Herramientas y Máquinas (subcategorías sin relevar)
 //   [~] Ferretería (subcategorías sin relevar) - Tarugos/Fijaciones: se agrego set representativo
 //         de 12 items reales (plasticos S4-S12 Fijaciones Py, espiral y autoperforante p/durlock,
 //         Hyperfix 10x85/105/125mm alta resistencia) tras aviso de Diego de que 'tarugo' no
 //         devolvia ningun resultado en el catalogo (nunca se habia buscado ese termino). No se
 //         cargaron las 63 variantes completas (quedan afuera duplicados por marca/tope y tarugos
-//         de madera para mueble, poco relevantes para obra) (v81)
-//   [ ] Aberturas (subcategorías sin relevar)
+//         de madera para mueble, poco relevantes para obra) (v81). Herrajes/Cerraduras: categoría
+//         nueva CERRADURA (0 items previos), 5 productos Yale representativos + gancho contra
+//         viento para ventanas (v85).
+//   [~] Aberturas (subcategorías sin relevar) - se completaron 4 huecos pu:0 de Carpinterías
+//         (puertas Acero/Placa Nativa/Enchapada Cedro, precio real IMCOFUE) + línea completamente
+//         nueva de Ventanas de Aluminio (5 items: Corrediza 150x110/150x150, Proyectante 80x40,
+//         Paño Fijo 120x110, Batiente 150x150 — primera vez que el catálogo tiene ventanas) (v84).
 //   [ ] Pinturas (subcategorías sin relevar)
-// Casa Fuegia (casafuegia.com): [ ] sin relevar (catálogo completo, no solo huecos)
+// Casa Fuegia (casafuegia.com): [~] sin relevar en general, pero se agregó categoría GRIFERÍA
+//   completa (0 items previos): 5 productos línea FV Radal/Kansas/Ecomatic (lavatorio, ducha
+//   c/transferencia, bidet, cocina monocomando, pared utilitario/exterior) (v86). Búsqueda de
+//   'ducha telefono' (repuesto ducha manual) sin resultados en el sitio. Explorado también
+//   'inodoro' (22 resultados, ya cubierto por cod 2505/2512 existentes, sin agregar duplicados)
+//   y 'bacha cocina' (sin resultados en el sitio).
 // Casa Zeila (casazeila.com.ar): [ ] sin relevar (catálogo completo, no solo huecos)
 // ═══════════════════════════════════════════════════════════════════
 var PR_DATA = [
