@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#09090b">
 <meta name="description" content="Motor de honorarios profesionales · PRARES ARQUITECTURA · Ushuaia TDF">
 <title>OBRAERP · Ushuaia TDF</title>
-<!-- build v96: formulas de calculo (APU + rendimientos) visibles en pantalla y PDF - 2026-07-24 -->
+<!-- build v97: logo PDF a la izquierda sin texto, header/footer sin position:fixed (fix portada) - 2026-07-24 -->
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -8269,29 +8269,32 @@ function cpPDFCss(){
   // nunca antes del primero.
   +'.rubro-block + .rubro-block{page-break-before:always}'
   +'.item-block{page-break-inside:avoid}'
-  // Encabezado y pie de página repetidos en cada hoja impresa (técnica válida en el motor de
-  // impresión de Chrome: los elementos position:fixed se repiten en cada página del PDF/impresión,
-  // posicionados con un offset negativo para caer dentro del margen reservado en @page de arriba).
-  +'.pdf-header-fixed{position:fixed;top:-4.7cm;left:0;right:0;height:4.4cm;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #94a3b8;padding-bottom:6px}'
-  +'.pdf-header-fixed .txt{font-size:8.5pt;color:#334155;line-height:1.3;max-width:70%}'
-  +'.pdf-header-fixed .txt b{font-size:9.5pt;color:#111}'
-  +'.pdf-header-fixed img{max-height:3.6cm;max-width:3.6cm;object-fit:contain}'
-  +'.pdf-footer-fixed{position:fixed;bottom:-1.3cm;left:0;right:0;height:1cm;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #cbd5e1;padding-top:3px;font-size:7.5pt;color:#64748b}'
+  // FIX 24-jul-2026: la versión anterior usaba position:fixed con offset negativo para que el
+  // encabezado/pie repitieran en cada hoja impresa — Diego reportó que esto rompía el layout
+  // (el título quedaba solo en una hoja en blanco y el logo/texto aparecían mal ubicados, abajo
+  // en vez de arriba). Ese comportamiento de position:fixed dentro de @page con offsets negativos
+  // no es fiable entre versiones/plataformas de Chrome. Se reemplaza por bloques NORMALES (sin
+  // position:fixed): el logo va en flujo justo antes del título (arriba a la izquierda, sólo en la
+  // primera página) y el pie de página va en flujo al final del documento (última página). Al no
+  // usar position:fixed, no pueden alterar la paginación de nada — el título nunca más puede
+  // quedar aislado por esto.
+  +'.pdf-header-logo{margin-bottom:10px}'
+  +'.pdf-header-logo img{max-height:2.6cm;max-width:2.6cm;object-fit:contain}'
+  +'.pdf-footer-line{margin-top:18px;padding-top:6px;border-top:1px solid #cbd5e1;font-size:7.5pt;color:#64748b;text-align:center;page-break-inside:avoid}'
   +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
 }
 // Logo/escudo institucional (ej. Municipalidad de Ushuaia) para el encabezado de los PDF de
 // Cómputo y Presupuesto / Análisis de Precios — Diego lo sube desde el modal de Exportar, se
-// guarda en localStorage (igual que EMPRESA.logo) y se ubica en el margen superior derecho.
+// guarda en localStorage (igual que EMPRESA.logo). Pedido de Diego (24-jul-2026): sólo el logo,
+// SIN texto, ubicado arriba a la IZQUIERDA, en flujo normal (no repite en cada hoja — ver nota
+// arriba en cpPDFCss sobre por qué se abandonó la técnica de position:fixed).
 function cpPDFHeaderHtml(){
   var logo=(typeof CP_LOGO_MUNICIPAL!=='undefined'&&CP_LOGO_MUNICIPAL)?CP_LOGO_MUNICIPAL:'';
-  var obraNom=(document.getElementById('cp-obra-nom')||{}).value||'';
-  return '<div class="pdf-header-fixed">'
-    +'<div class="txt"><b>MUNICIPALIDAD DE USHUAIA</b><br>Secretaría de Planificación e Inversión Pública — Dirección de Arquitectura'+(obraNom?'<br>Obra: '+obraNom:'')+'</div>'
-    +(logo?'<img src="'+logo+'">':'')
-    +'</div>';
+  if(!logo)return'';
+  return '<div class="pdf-header-logo"><img src="'+logo+'"></div>';
 }
 function cpPDFFooterHtml(){
-  return '<div class="pdf-footer-fixed"><span>PRARES ARQUITECTURA — Cómputo y Presupuesto / Análisis de Precios</span><span>Precios 2026</span></div>';
+  return '<div class="pdf-footer-line">PRARES ARQUITECTURA — Cómputo y Presupuesto / Análisis de Precios — Precios 2026</div>';
 }
 function cpAPUEmbedCss(){
   return '.cp-apu-embed{background:#fff;color:#111;border-radius:8px;padding:12px 14px;font-family:Arial,Helvetica,sans-serif;font-size:10pt;line-height:1.35;overflow-x:auto}'
@@ -8519,7 +8522,9 @@ function cpPDF(modo){
     +'</tbody></table>';
   }
   d+=tabPDF(mArr,'Materiales')+tabPDF(eArr,'Equipos')+tabPDF(oArr,'Mano de Obra');
-  var full='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+cpPDFHeaderHtml()+cpPDFFooterHtml()+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
+  // Logo en flujo antes del título (arriba a la izq., sólo pág. 1) y pie de página en flujo
+  // al final del documento (última página) — ver nota en cpPDFCss (24-jul-2026).
+  var full='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+cpPDFHeaderHtml()+d+cpPDFFooterHtml()+'<script>window.onload=function(){window.print();}<\/script></body></html>';
   try{var blob=new Blob([full],{type:'text/html;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);}catch(e){toast('Error PDF: '+e.message,false);}
 }
 
@@ -8564,7 +8569,7 @@ function cpRubrosScope(modo){
   return {rubros:CP_RUBROS,titulo:'TODOS LOS RUBROS'};
 }
 function cpAbrirPDF(d,css){
-  var full='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+cpPDFHeaderHtml()+cpPDFFooterHtml()+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
+  var full='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+cpPDFHeaderHtml()+d+cpPDFFooterHtml()+'<script>window.onload=function(){window.print();}<\/script></body></html>';
   try{var blob=new Blob([full],{type:'text/html;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);}catch(e){toast('Error PDF: '+e.message,false);}
 }
 function cpDescargarXLS(wb,filename){
@@ -8898,14 +8903,15 @@ function cpGenerarPliego(){
   }).catch(function(e){toast('Error generando el Word: '+e.message,false);});
 }
 
-// Dibuja el logo/escudo institucional (CP_LOGO_MUNICIPAL) en el margen superior derecho de la
+// Dibuja el logo/escudo institucional (CP_LOGO_MUNICIPAL) en el margen superior IZQUIERDO de la
 // hoja jsPDF — compartido por cpComputoPresupuestoBuild y cpComputoIncidenciaBuild. Si Diego
 // todavía no subió un logo (modal Exportar), no dibuja nada — no inventa ni fuerza un placeholder.
-function cpJsPDFLogo(doc,pageW,mR){
+// Pedido de Diego (24-jul-2026): el logo va a la izquierda (antes estaba a la derecha).
+function cpJsPDFLogo(doc,pageW,mL){
   if(typeof CP_LOGO_MUNICIPAL==='undefined'||!CP_LOGO_MUNICIPAL)return;
   try{
     var fmt=/^data:image\/png/i.test(CP_LOGO_MUNICIPAL)?'PNG':(/^data:image\/jpe?g/i.test(CP_LOGO_MUNICIPAL)?'JPEG':'PNG');
-    doc.addImage(CP_LOGO_MUNICIPAL,fmt,pageW-mR-20,6,20,20);
+    doc.addImage(CP_LOGO_MUNICIPAL,fmt,mL,6,20,20);
   }catch(e){/* logo con formato no soportado por jsPDF — no interrumpe la generación del PDF */}
 }
 function cpComputoPresupuestoBuild(modo){
@@ -8930,16 +8936,19 @@ function cpComputoPresupuestoBuild(modo){
   var direccion=obra.direccion||'';
 
   function drawHeaderBlock(seccionTitulo){
-    cpJsPDFLogo(doc,pageW,mR);
+    cpJsPDFLogo(doc,pageW,mL);
+    // Si hay logo (a la izquierda, ver cpJsPDFLogo), el texto arranca más a la derecha para no
+    // superponerse (logo ocupa ~20mm de ancho desde mL).
+    var textX=(typeof CP_LOGO_MUNICIPAL!=='undefined'&&CP_LOGO_MUNICIPAL)?mL+24:mL;
     var y=12;
     doc.setFont('helvetica','bold');doc.setFontSize(11);
-    doc.text(tituloObra,mL,y);y+=5;
+    doc.text(tituloObra,textX,y);y+=5;
     doc.setFont('helvetica','normal');doc.setFontSize(9);
-    if(propietario){doc.text('PROPIETARIO: '+propietario,mL,y);y+=5;}
-    if(direccion){doc.text(direccion,mL,y);y+=5;}
+    if(propietario){doc.text('PROPIETARIO: '+propietario,textX,y);y+=5;}
+    if(direccion){doc.text(direccion,textX,y);y+=5;}
     y+=2;
     doc.setFont('helvetica','bold');doc.setFontSize(10);
-    doc.text(seccionTitulo,mL,y);
+    doc.text(seccionTitulo,textX,y);
     doc.setDrawColor(0,0,0);doc.setLineWidth(0.2);
     doc.line(mL,y+2,pageW-mR,y+2);
   }
@@ -9120,16 +9129,17 @@ function cpComputoIncidenciaBuild(modo){
   var direccion=obra.direccion||'';
 
   function drawHeaderBlock(seccionTitulo){
-    cpJsPDFLogo(doc,pageW,mR);
+    cpJsPDFLogo(doc,pageW,mL);
+    var textX=(typeof CP_LOGO_MUNICIPAL!=='undefined'&&CP_LOGO_MUNICIPAL)?mL+24:mL;
     var y=12;
     doc.setFont('helvetica','bold');doc.setFontSize(11);
-    doc.text(tituloObra,mL,y);y+=5;
+    doc.text(tituloObra,textX,y);y+=5;
     doc.setFont('helvetica','normal');doc.setFontSize(9);
-    if(propietario){doc.text('PROPIETARIO: '+propietario,mL,y);y+=5;}
-    if(direccion){doc.text(direccion,mL,y);y+=5;}
+    if(propietario){doc.text('PROPIETARIO: '+propietario,textX,y);y+=5;}
+    if(direccion){doc.text(direccion,textX,y);y+=5;}
     y+=2;
     doc.setFont('helvetica','bold');doc.setFontSize(10);
-    doc.text(seccionTitulo,mL,y);
+    doc.text(seccionTitulo,textX,y);
     doc.setDrawColor(0,0,0);doc.setLineWidth(0.2);
     doc.line(mL,y+2,pageW-mR,y+2);
   }
