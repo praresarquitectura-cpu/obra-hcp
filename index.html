@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#09090b">
 <meta name="description" content="Motor de honorarios profesionales · PRARES ARQUITECTURA · Ushuaia TDF">
 <title>OBRAERP · Ushuaia TDF</title>
-<!-- build v97: logo PDF a la izquierda sin texto, header/footer sin position:fixed (fix portada) - 2026-07-24 -->
+<!-- build v98: header/footer repetido en cada hoja (tabla thead/tfoot) + texto libre + teoria en formulas - 2026-07-24 -->
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -1119,11 +1119,23 @@ input,select,textarea,button{font-family:var(--font)}
     <div style="margin-top:14px;border:1px solid var(--br);border-radius:8px;padding:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <div style="flex:1;min-width:220px">
         <div style="font-weight:700;font-size:12px;margin-bottom:2px">Logo/escudo para el encabezado de los PDF</div>
-        <div style="font-size:10px;color:var(--tx3)">Se ubica en el margen superior derecho de cada hoja (ej: escudo de la Municipalidad de Ushuaia). Aplica a todos los reportes de este menú.</div>
+        <div style="font-size:10px;color:var(--tx3)">Se ubica en el margen superior izquierdo, y se repite en TODAS las hojas (ej: escudo de la Municipalidad de Ushuaia). Aplica a todos los reportes de este menú.</div>
       </div>
       <div id="logo-municipal-preview-wrap" style="display:none" class="img-pv"><img id="logo-municipal-preview" style="max-height:60px;max-width:120px"></div>
       <label class="btn btn-sm" style="cursor:pointer">↑ Cargar logo<input type="file" accept="image/*" onchange="handleLogoMunicipalUpload(this)" style="display:none"></label>
       <button class="btn btn-sm" onclick="clearLogoMunicipal()" style="background:none;border:1px solid var(--rt);color:var(--rt)">Quitar</button>
+    </div>
+    <div style="margin-top:10px;border:1px solid var(--br);border-radius:8px;padding:10px;display:flex;gap:10px;flex-wrap:wrap">
+      <div style="flex:1;min-width:260px">
+        <div style="font-weight:700;font-size:12px;margin-bottom:4px">Encabezado (texto libre)</div>
+        <div style="font-size:10px;color:var(--tx3);margin-bottom:6px">Se repite en TODAS las hojas, junto al logo.</div>
+        <textarea id="cp-header-texto" rows="2" placeholder="Ej: Municipalidad de Ushuaia — Dirección de Arquitectura" style="width:100%;resize:vertical;font-size:11px;padding:6px;border:1px solid var(--br);border-radius:6px;background:var(--bg2,transparent);color:inherit" onchange="saveHeaderFooterTexto()"></textarea>
+      </div>
+      <div style="flex:1;min-width:260px">
+        <div style="font-weight:700;font-size:12px;margin-bottom:4px">Pie de página (texto libre)</div>
+        <div style="font-size:10px;color:var(--tx3);margin-bottom:6px">Se repite en TODAS las hojas, abajo.</div>
+        <textarea id="cp-footer-texto" rows="2" placeholder="Ej: PRARES ARQUITECTURA — Precios 2026" style="width:100%;resize:vertical;font-size:11px;padding:6px;border:1px solid var(--br);border-radius:6px;background:var(--bg2,transparent);color:inherit" onchange="saveHeaderFooterTexto()"></textarea>
+      </div>
     </div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
       <div style="border:1px solid var(--br);border-radius:8px;padding:10px">
@@ -1210,6 +1222,11 @@ let editandoId=null;
 // margen superior derecho de las planillas técnicas de obra, no en las facturas de honorarios.
 // Se guarda solo en localStorage (igual que EMPRESA.logo/qr) porque en base64 pesa demasiado para Firestore.
 var CP_LOGO_MUNICIPAL=null;
+// Encabezado/pie de página de texto libre para los PDF de Cómputo y Presupuesto — pedido de Diego
+// (24-jul-2026): además del logo, necesita poder escribir su propio texto y que se repita en TODAS
+// las hojas impresas (no sólo la primera). Se guardan igual que el logo, en localStorage.
+var CP_HEADER_TEXTO='';
+var CP_FOOTER_TEXTO='';
 
 function guardarTodo(){
   try{
@@ -1221,6 +1238,8 @@ function guardarTodo(){
     else localStorage.removeItem('obraerp_qr');
     if(CP_LOGO_MUNICIPAL)localStorage.setItem('obraerp_logo_municipal',CP_LOGO_MUNICIPAL);
     else localStorage.removeItem('obraerp_logo_municipal');
+    localStorage.setItem('obraerp_header_texto',CP_HEADER_TEXTO||'');
+    localStorage.setItem('obraerp_footer_texto',CP_FOOTER_TEXTO||'');
     localStorage.setItem('obraerp_clientes',JSON.stringify(CLIENTES));
     localStorage.setItem('obraerp_hon',JSON.stringify(HON_DATA));
     localStorage.setItem('obraerp_obras',JSON.stringify(OBRAS_DATA));
@@ -1232,6 +1251,8 @@ function cargarTodo(){
     var ls=localStorage.getItem('obraerp_logo');if(ls)EMPRESA.logo=ls;
     var qs=localStorage.getItem('obraerp_qr');if(qs)EMPRESA.qr=qs;
     var lm=localStorage.getItem('obraerp_logo_municipal');if(lm)CP_LOGO_MUNICIPAL=lm;
+    var ht=localStorage.getItem('obraerp_header_texto');if(ht!=null)CP_HEADER_TEXTO=ht;
+    var ft=localStorage.getItem('obraerp_footer_texto');if(ft!=null)CP_FOOTER_TEXTO=ft;
     var cs=localStorage.getItem('obraerp_clientes');if(cs)CLIENTES=JSON.parse(cs);
     var hs=localStorage.getItem('obraerp_hon');if(hs)HON_DATA=JSON.parse(hs);
     var os=localStorage.getItem('obraerp_obras');if(os)OBRAS_DATA=JSON.parse(os);
@@ -1253,6 +1274,14 @@ function clearLogoMunicipal(){
   var lp=document.getElementById('logo-municipal-preview'),lpw=document.getElementById('logo-municipal-preview-wrap');
   if(lp)lp.src='';if(lpw)lpw.style.display='none';
   guardarTodo();toast('Logo/escudo eliminado');
+}
+// Encabezado/pie de página de texto libre (repiten en cada hoja de los PDF de Cómputo) — pedido de
+// Diego 24-jul-2026.
+function saveHeaderFooterTexto(){
+  var eh=document.getElementById('cp-header-texto'),ef=document.getElementById('cp-footer-texto');
+  CP_HEADER_TEXTO=eh?eh.value:'';
+  CP_FOOTER_TEXTO=ef?ef.value:'';
+  guardarTodo();toast('✓ Encabezado/pie de página guardados');
 }
 function saveEmpresa(){
   var g=function(id){var el=document.getElementById(id);return el?el.value:'';};
@@ -1279,6 +1308,9 @@ function actualizarUIEmpresa(){
   if(EMPRESA.logo){var lp=document.getElementById('logo-preview'),lpw=document.getElementById('logo-preview-wrap');if(lp)lp.src=EMPRESA.logo;if(lpw)lpw.style.display='';}
   if(EMPRESA.qr){var qp=document.getElementById('qr-preview'),qpw=document.getElementById('qr-preview-wrap');if(qp)qp.src=EMPRESA.qr;if(qpw)qpw.style.display='';}
   if(CP_LOGO_MUNICIPAL){var lmp=document.getElementById('logo-municipal-preview'),lmpw=document.getElementById('logo-municipal-preview-wrap');if(lmp)lmp.src=CP_LOGO_MUNICIPAL;if(lmpw)lmpw.style.display='';}
+  var eh=document.getElementById('cp-header-texto'),ef=document.getElementById('cp-footer-texto');
+  if(eh)eh.value=CP_HEADER_TEXTO||'';
+  if(ef)ef.value=CP_FOOTER_TEXTO||'';
 }
 function handleLogoUpload(inp){if(!inp.files||!inp.files[0])return;var r=new FileReader();r.onload=function(e){EMPRESA.logo=e.target.result;var lp=document.getElementById('logo-preview'),lpw=document.getElementById('logo-preview-wrap');if(lp)lp.src=e.target.result;if(lpw)lpw.style.display='';guardarTodo();toast('✓ Logo guardado');};r.readAsDataURL(inp.files[0]);}
 function clearLogo(){EMPRESA.logo=null;var lp=document.getElementById('logo-preview'),lpw=document.getElementById('logo-preview-wrap');if(lp)lp.src='';if(lpw)lpw.style.display='none';guardarTodo();toast('Logo eliminado');}
@@ -8269,32 +8301,54 @@ function cpPDFCss(){
   // nunca antes del primero.
   +'.rubro-block + .rubro-block{page-break-before:always}'
   +'.item-block{page-break-inside:avoid}'
-  // FIX 24-jul-2026: la versión anterior usaba position:fixed con offset negativo para que el
-  // encabezado/pie repitieran en cada hoja impresa — Diego reportó que esto rompía el layout
-  // (el título quedaba solo en una hoja en blanco y el logo/texto aparecían mal ubicados, abajo
-  // en vez de arriba). Ese comportamiento de position:fixed dentro de @page con offsets negativos
-  // no es fiable entre versiones/plataformas de Chrome. Se reemplaza por bloques NORMALES (sin
-  // position:fixed): el logo va en flujo justo antes del título (arriba a la izquierda, sólo en la
-  // primera página) y el pie de página va en flujo al final del documento (última página). Al no
-  // usar position:fixed, no pueden alterar la paginación de nada — el título nunca más puede
-  // quedar aislado por esto.
-  +'.pdf-header-logo{margin-bottom:10px}'
-  +'.pdf-header-logo img{max-height:2.6cm;max-width:2.6cm;object-fit:contain}'
-  +'.pdf-footer-line{margin-top:18px;padding-top:6px;border-top:1px solid #cbd5e1;font-size:7.5pt;color:#64748b;text-align:center;page-break-inside:avoid}'
+  // FIX 24-jul-2026 (v97): la versión con position:fixed y offset negativo resultó frágil (el
+  // título quedaba solo en una hoja en blanco y el logo/texto aparecían mal ubicados). Se pasó a
+  // un logo+footer que aparecían UNA sola vez (portada/última hoja), pero Diego pidió que SÍ se
+  // repitan en TODAS las hojas. FIX 24-jul-2026 (v98): técnica estándar de HTML para impresión —
+  // se envuelve TODO el contenido del documento en una única <table class="pdf-repeat-table"> con
+  // <thead> (encabezado: logo + texto libre) y <tfoot> (pie de página: texto libre). El motor de
+  // impresión de Chrome SÍ repite de forma confiable el thead/tfoot de una tabla en cada hoja
+  // cuando la tabla se fragmenta entre páginas — a diferencia de position:fixed, esto es
+  // comportamiento estándar de tablas HTML, no un hack. La regla genérica 'table{page-break-inside:
+  // avoid}' de arriba NO debe aplicar a esta tabla envoltorio (si no, nunca se fragmentaría entre
+  // páginas y el thead/tfoot no se repetirían) — se sobreescribe explícitamente abajo con una regla
+  // de mayor especificidad (selector de clase > selector de tag).
+  +'.pdf-repeat-table{width:100%;border-collapse:collapse;page-break-inside:auto;margin:0}'
+  +'.pdf-repeat-table>thead>tr>td,.pdf-repeat-table>tfoot>tr>td,.pdf-repeat-table>tbody>tr>td{border:none;padding:0}'
+  +'.pdf-header-row .inner{display:flex;align-items:flex-start;gap:10px;padding-bottom:8px;border-bottom:1px solid #94a3b8;margin-bottom:10px}'
+  +'.pdf-header-row img{max-height:2.2cm;max-width:2.2cm;object-fit:contain;flex-shrink:0}'
+  +'.pdf-header-row .txt{font-size:8.5pt;color:#334155;line-height:1.35;white-space:pre-wrap;padding-top:2px}'
+  +'.pdf-footer-row .inner{padding-top:6px;border-top:1px solid #cbd5e1;margin-top:10px;font-size:7.5pt;color:#64748b;white-space:pre-wrap;text-align:center}'
+  +'.cp-teoria{color:#4338ca;font-style:italic}'
   +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
 }
-// Logo/escudo institucional (ej. Municipalidad de Ushuaia) para el encabezado de los PDF de
-// Cómputo y Presupuesto / Análisis de Precios — Diego lo sube desde el modal de Exportar, se
-// guarda en localStorage (igual que EMPRESA.logo). Pedido de Diego (24-jul-2026): sólo el logo,
-// SIN texto, ubicado arriba a la IZQUIERDA, en flujo normal (no repite en cada hoja — ver nota
-// arriba en cpPDFCss sobre por qué se abandonó la técnica de position:fixed).
+// Logo/escudo institucional (ej. Municipalidad de Ushuaia) + texto libre de encabezado — Diego los
+// carga desde el modal de Exportar, se guardan en localStorage. Van dentro del <thead> de la tabla
+// envoltorio (pdf-repeat-table) para repetirse en TODAS las hojas impresas (pedido 24-jul-2026).
 function cpPDFHeaderHtml(){
   var logo=(typeof CP_LOGO_MUNICIPAL!=='undefined'&&CP_LOGO_MUNICIPAL)?CP_LOGO_MUNICIPAL:'';
-  if(!logo)return'';
-  return '<div class="pdf-header-logo"><img src="'+logo+'"></div>';
+  var texto=(typeof CP_HEADER_TEXTO!=='undefined'&&CP_HEADER_TEXTO)?CP_HEADER_TEXTO:'';
+  if(!logo&&!texto)return'';
+  return '<div class="inner">'
+    +(logo?'<img src="'+logo+'">':'')
+    +(texto?'<div class="txt">'+cpEscapeHtml(texto).replace(/\n/g,'<br>')+'</div>':'')
+    +'</div>';
 }
 function cpPDFFooterHtml(){
-  return '<div class="pdf-footer-line">PRARES ARQUITECTURA — Cómputo y Presupuesto / Análisis de Precios — Precios 2026</div>';
+  var texto=(typeof CP_FOOTER_TEXTO!=='undefined'&&CP_FOOTER_TEXTO)?CP_FOOTER_TEXTO:'';
+  if(!texto)return'';
+  return '<div class="inner">'+cpEscapeHtml(texto).replace(/\n/g,'<br>')+'</div>';
+}
+function cpEscapeHtml(s){return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// Arma el <body> completo envolviendo el contenido 'd' en la tabla repetible (thead=encabezado con
+// logo+texto, tfoot=pie de página, tbody=todo el contenido real) — compartido por cpPDF y
+// cpAbrirPDF para que TODOS los exports del motor CSS/impresión repitan header/footer en cada hoja
+// (pedido de Diego 24-jul-2026). Si no hay logo ni texto de encabezado/pie, esas filas se omiten.
+function cpWrapPDFBody(d){
+  var headerInner=cpPDFHeaderHtml(), footerInner=cpPDFFooterHtml();
+  var thead=headerInner?'<thead><tr><td class="pdf-header-row">'+headerInner+'</td></tr></thead>':'';
+  var tfoot=footerInner?'<tfoot><tr><td class="pdf-footer-row">'+footerInner+'</td></tr></tfoot>':'';
+  return '<table class="pdf-repeat-table">'+thead+tfoot+'<tbody><tr><td>'+d+'</td></tr></tbody></table>';
 }
 function cpAPUEmbedCss(){
   return '.cp-apu-embed{background:#fff;color:#111;border-radius:8px;padding:12px 14px;font-family:Arial,Helvetica,sans-serif;font-size:10pt;line-height:1.35;overflow-x:auto}'
@@ -8304,7 +8358,8 @@ function cpAPUEmbedCss(){
   +'.cp-apu-embed th{background:#f1f5f9;padding:4px 6px;border:1px solid #cbd5e1;text-align:left;font-weight:700}'
   +'.cp-apu-embed td{padding:4px 6px;border:1px solid #e2e8f0}'
   +'.cp-apu-embed .r{text-align:right}.cp-apu-embed .mat{color:#166534}.cp-apu-embed .mo{color:#92400e}'
-  +'.cp-apu-embed .tot{font-weight:700;background:#eff6ff}.cp-apu-embed .grand{font-weight:800;background:#dbeafe}';
+  +'.cp-apu-embed .tot{font-weight:700;background:#eff6ff}.cp-apu-embed .grand{font-weight:800;background:#dbeafe}'
+  +'.cp-apu-embed .cp-teoria{color:#4338ca;font-style:italic}';
 }
 var CP_APU_CSS_INJECTED=false;
 function cpToggleAPU(iid){
@@ -8416,6 +8471,9 @@ function cpAPUItemHtml(it){
 // cálculo real, no una simplificación.
 function cpFormulaCascadaHtml(calc){
   var h='<div style="font-size:8pt;font-weight:700;margin:10px 0 3px">FÓRMULAS — Cómo se calculó el Precio Unitario</div>';
+  h+='<div style="font-size:7.6pt;color:#475569;line-height:1.6;background:#eef2ff;border:1px solid #c7d2fe;border-radius:4px;padding:5px 8px;margin-bottom:5px">'
+    +'<b>Teoría:</b> el Precio Unitario se arma en dos etapas. Primero el <b>Costo Unitario Total (C.U.T.)</b>: lo que realmente cuesta comprar los materiales, alquilar/amortizar los equipos y pagar la mano de obra para hacer 1 unidad del ítem. Después, sobre ese costo directo se aplican en cascada los recargos de la empresa (Gastos Generales, Beneficio, Gastos Financieros e Impuestos) — cada uno calculado como un % sobre el subtotal acumulado hasta ese paso, nunca sobre el C.U.T. puro. Es el mismo esquema que usan los pliegos de licitación pública en Argentina.'
+    +'</div>';
   h+='<div style="font-size:7.8pt;color:#334155;line-height:1.7;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:6px 8px">';
   h+='(1) Costo Unit. Materiales = Σ(Cantidad×Precio) + Varios(1%×Σ) = $'+cpFmtAR(calc.sumMat)+' + $'+cpFmtAR(calc.varios)+' = <b>$'+cpFmtAR(calc.costoMat)+'</b><br>';
   h+='(2) Costo Unit. Equipos = Σ(Cantidad×Precio) + Herramientas(2%×Costo M.O.) = $'+cpFmtAR(calc.sumEquipo)+' + $'+cpFmtAR(calc.herram)+' = <b>$'+cpFmtAR(calc.costoEquipo)+'</b><br>';
@@ -8441,16 +8499,22 @@ function cpFormulaRendimientosHtml(it){
     var v=(typeof cpHierroVariante==='function')?cpHierroVariante(m.id):null;
     if(v&&m.kgBase!=null){
       var kgm=cpKgPorMetroHierro(v.mm);
-      notas.push('<b>'+m.nom+'</b>: fórmula real IRAM-IAS (kg/m = 0,00616538 × diámetro²) → Ø'+v.mm+'mm = '+kgm.toFixed(3)+' kg/m. Rendimiento = '+m.kgBase.toLocaleString('es-AR')+' kg (kilaje real, fijo) ÷ '+kgm.toFixed(3)+' kg/m = <b>'+m.rend+' m</b> por 1 '+(it.un||'un')+'.');
+      notas.push('<b>'+m.nom+'</b><br>'
+        +'<span class="cp-teoria"><b>Teoría:</b> el peso de una barra de acero es Peso = Volumen × Densidad. El volumen de una barra circular es (Área de la sección circular) × (Longitud) = (π × diámetro²/4) × L. Reemplazando la densidad real del acero (7.850 kg/m³) y agrupando todas las constantes en una sola, queda la fórmula simplificada que usa toda la industria (norma IRAM-IAS 500-528): <b>kg/m = 0,00616538 × diámetro²(mm)</b> — es el mismo tipo de fórmula teórica que, por ejemplo, el área de un triángulo = base×altura÷2: una relación general válida para cualquier diámetro, en la que después se reemplaza el valor real.</span><br>'
+        +'<b>Aplicación con los datos reales de este ítem:</b> Ø'+v.mm+'mm → kg/m = 0,00616538 × '+v.mm+'² = '+kgm.toFixed(3)+' kg/m. Rendimiento = '+m.kgBase.toLocaleString('es-AR')+' kg (kilaje real de la armadura, dato fijo del ítem) ÷ '+kgm.toFixed(3)+' kg/m = <b>'+m.rend+' m</b> de hierro por 1 '+(it.un||'un')+'.');
     }
   });
   if(it.cuadrilla&&it.cuadrilla.tareas&&it.cuadrilla.tareas.length){
     var totalMin=it.cuadrilla.tareas.reduce(function(s,t){return s+(+t.minutos||0);},0);
-    notas.push('Rendimientos de Mano de Obra/Equipo calculados con la <b>Calculadora de Rendimiento por Cuadrilla</b>: por cada rol/equipo, se suman los minutos de las tareas en las que efectivamente participa (de un total cargado de '+totalMin+' min en '+it.cuadrilla.tareas.length+' tarea(s)) y se dividen ÷60 → hh por 1 '+(it.un||'un')+'.');
+    notas.push('<b>Calculadora de Rendimiento por Cuadrilla (Mano de Obra/Equipo)</b><br>'
+      +'<span class="cp-teoria"><b>Teoría:</b> el rendimiento de un recurso (oficial, ayudante, equipo) es la cantidad de horas necesarias para producir 1 unidad del ítem: <b>Rendimiento (hs/unidad) = Tiempo que ese recurso dedica a la tarea ÷ Cantidad de unidades producidas</b>. Cuando una cuadrilla hace varias tareas para completar 1 unidad del ítem (por ejemplo replanteo + armado + hormigonado), el tiempo total de cada rol/equipo se obtiene sumando sólo los minutos de las tareas en las que efectivamente participa, y convirtiendo a horas (÷60) — no todos los roles participan de todas las tareas por igual.</span><br>'
+      +'<b>Aplicación con los datos reales de este ítem:</b> '+it.cuadrilla.tareas.length+' tarea(s) cargada(s), '+totalMin+' minutos en total; cada rol/equipo suma los minutos de las tareas en que participa ÷60 → horas por 1 '+(it.un||'un')+'.');
   }
   if(it.demo&&it.demo.volumen&&(typeof CP_DEMO_TASAS!=='undefined')){
     var d=it.demo,tasa=(CP_DEMO_TASAS[d.tipoMaterial]||CP_DEMO_TASAS.ha);
-    notas.push('Rendimientos de equipo calculados con la <b>Calculadora de Demolición y Retiro</b>: Motocompresor+martillo = Volumen('+d.volumen+' m³) × '+tasa.hsPorM3+' h/m³ ('+tasa.lbl+'); Retroexcavadora = Volumen ÷ '+CP_DEMO_RETRO_M3H+' m³/h (carga a camión); Camión volcador = N° de viajes (Volumen esponjado ÷ capacidad) × tiempo de ciclo por viaje (carga + descarga/maniobra + ida y vuelta según distancia).');
+    notas.push('<b>Calculadora de Demolición y Retiro</b><br>'
+      +'<span class="cp-teoria"><b>Teoría:</b> el tiempo que un equipo de demolición necesita para un volumen dado depende de la dureza del material: <b>Horas de equipo = Volumen a demoler (m³) × Tasa de productividad (h/m³)</b>, donde la tasa es mayor cuanto más duro/resistente es el material (hormigón armado tarda más por m³ que mampostería). Para el retiro de escombros en camión, se calcula primero cuántos viajes hacen falta (Volumen esponjado ÷ capacidad de la caja) y luego el tiempo de cada viaje (carga + descarga/maniobra + ida y vuelta según la distancia real a depositar).</span><br>'
+      +'<b>Aplicación con los datos reales de este ítem:</b> Motocompresor+martillo = '+d.volumen+' m³ × '+tasa.hsPorM3+' h/m³ ('+tasa.lbl+'); Retroexcavadora = '+d.volumen+' m³ ÷ '+CP_DEMO_RETRO_M3H+' m³/h (carga a camión); Camión volcador = N° de viajes (volumen esponjado ÷ capacidad) × tiempo de ciclo por viaje.');
   }
   if(!notas.length)return'';
   var h='<div style="font-size:8pt;font-weight:700;margin:10px 0 3px">Cómo se calcularon los rendimientos de este ítem</div>';
@@ -8522,9 +8586,9 @@ function cpPDF(modo){
     +'</tbody></table>';
   }
   d+=tabPDF(mArr,'Materiales')+tabPDF(eArr,'Equipos')+tabPDF(oArr,'Mano de Obra');
-  // Logo en flujo antes del título (arriba a la izq., sólo pág. 1) y pie de página en flujo
-  // al final del documento (última página) — ver nota en cpPDFCss (24-jul-2026).
-  var full='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+cpPDFHeaderHtml()+d+cpPDFFooterHtml()+'<script>window.onload=function(){window.print();}<\/script></body></html>';
+  // Logo+texto de encabezado y pie de página repiten en CADA hoja vía tabla envoltorio con
+  // thead/tfoot — ver cpWrapPDFBody y nota en cpPDFCss (24-jul-2026).
+  var full='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+cpWrapPDFBody(d)+'<script>window.onload=function(){window.print();}<\/script></body></html>';
   try{var blob=new Blob([full],{type:'text/html;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);}catch(e){toast('Error PDF: '+e.message,false);}
 }
 
@@ -8569,7 +8633,7 @@ function cpRubrosScope(modo){
   return {rubros:CP_RUBROS,titulo:'TODOS LOS RUBROS'};
 }
 function cpAbrirPDF(d,css){
-  var full='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+cpPDFHeaderHtml()+d+cpPDFFooterHtml()+'<script>window.onload=function(){window.print();}<\/script></body></html>';
+  var full='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'+cpWrapPDFBody(d)+'<script>window.onload=function(){window.print();}<\/script></body></html>';
   try{var blob=new Blob([full],{type:'text/html;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);}catch(e){toast('Error PDF: '+e.message,false);}
 }
 function cpDescargarXLS(wb,filename){
@@ -8903,6 +8967,20 @@ function cpGenerarPliego(){
   }).catch(function(e){toast('Error generando el Word: '+e.message,false);});
 }
 
+// Texto libre de encabezado/pie de página (CP_HEADER_TEXTO/CP_FOOTER_TEXTO) — pedido de Diego
+// (24-jul-2026): además del logo, necesita poder escribir su propio texto para que aparezca en
+// cada hoja de los PDF del motor jsPDF (Cómputo y Presupuesto Unificado / Resumen c/ Incidencia).
+// Compartido por los dos drawHeaderBlock/drawFooter de este archivo.
+function cpJsPDFHeaderTexto(doc,textX,y){
+  if(typeof CP_HEADER_TEXTO==='undefined'||!CP_HEADER_TEXTO)return y;
+  doc.setFont('helvetica','normal');doc.setFontSize(8);
+  CP_HEADER_TEXTO.split('\n').slice(0,3).forEach(function(line){if(line){doc.text(line,textX,y);y+=4;}});
+  return y;
+}
+function cpJsPDFFooterTexto(doc,mL,y,defaultTexto){
+  var t=(typeof CP_FOOTER_TEXTO!=='undefined'&&CP_FOOTER_TEXTO)?CP_FOOTER_TEXTO.split('\n')[0]:defaultTexto;
+  doc.text(t,mL,y);
+}
 // Dibuja el logo/escudo institucional (CP_LOGO_MUNICIPAL) en el margen superior IZQUIERDO de la
 // hoja jsPDF — compartido por cpComputoPresupuestoBuild y cpComputoIncidenciaBuild. Si Diego
 // todavía no subió un logo (modal Exportar), no dibuja nada — no inventa ni fuerza un placeholder.
@@ -8948,16 +9026,18 @@ function cpComputoPresupuestoBuild(modo){
     if(direccion){doc.text(direccion,textX,y);y+=5;}
     y+=2;
     doc.setFont('helvetica','bold');doc.setFontSize(10);
-    doc.text(seccionTitulo,textX,y);
+    doc.text(seccionTitulo,textX,y);y+=5;
+    // Encabezado de texto libre de Diego (repite en cada hoja, ver cpJsPDFHeaderTexto).
+    y=cpJsPDFHeaderTexto(doc,textX,y);
     doc.setDrawColor(0,0,0);doc.setLineWidth(0.2);
-    doc.line(mL,y+2,pageW-mR,y+2);
+    doc.line(mL,y-2,pageW-mR,y-2);
   }
   function drawFooter(){
     // OJO: data.pageNumber en didDrawPage es relativo a CADA tabla (se reinicia en 1 en cada autoTable()
     // nueva), no es el número de página absoluto del documento. Usamos el conteo real de páginas del doc.
     var pageNumber=doc.internal.getNumberOfPages();
     doc.setFont('helvetica','normal');doc.setFontSize(8);
-    doc.text('PRARES ARQUITECTURA — Cómputo y Presupuesto / Análisis de Precios',mL,pageH-8);
+    cpJsPDFFooterTexto(doc,mL,pageH-8,'PRARES ARQUITECTURA — Cómputo y Presupuesto / Análisis de Precios');
     doc.text('PÁGINA '+pageNumber+' DE '+totalPagesExp,pageW-mR,pageH-8,{align:'right'});
   }
   var tableBaseOpts={
@@ -9146,6 +9226,7 @@ function cpComputoIncidenciaBuild(modo){
   function drawFooter(){
     var pageNumber=doc.internal.getNumberOfPages();
     doc.setFont('helvetica','normal');doc.setFontSize(8);
+    cpJsPDFFooterTexto(doc,mL,pageH-8,'PRARES ARQUITECTURA — Cómputo y Presupuesto / Análisis de Precios');
     doc.text('PÁGINA '+pageNumber+' DE '+totalPagesExp,pageW-mR,pageH-8,{align:'right'});
   }
   function fmtPct(frac){return (frac*100).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';}
