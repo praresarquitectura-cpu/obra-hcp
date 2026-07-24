@@ -8394,7 +8394,63 @@ function cpAPUItemHtml(it){
   if(qtyReal!==1){
     h+='<div style="font-size:8pt;margin-top:8px;padding:6px 8px;background:#eff6ff;border-radius:4px">Cantidad total del ítem en este Cómputo: <b>'+qtyReal.toLocaleString('es-AR',{maximumFractionDigits:2})+' '+it.un+'</b> → Monto total: <b>$'+cpFmtAR(calcReal.pu_adopt)+'</b></div>';
   }
+  // Agregado 24-jul-2026 a pedido de Diego: mostrar las FÓRMULAS reales de cálculo (no sólo los
+  // resultados) — tanto en pantalla (esta misma función alimenta el toggle "Ver Análisis de Precio
+  // Unitario detallado" de cada ítem del Cómputo) como en el PDF, porque cpPDF/cpListadoMateriales/
+  // cpListadoMO/scAbrirPDFSistema reutilizan todos esta función para no duplicar el motor de cálculo.
+  h+=cpFormulaCascadaHtml(calc);
+  var notasRend=cpFormulaRendimientosHtml(it);
+  if(notasRend) h+=notasRend;
   return {html:h,calc:calcReal,qty:qtyReal,calcUnit:calc};
+}
+
+// Explica, con la aritmética real (no sólo el % en texto), cómo cpCalcPreciso llega del Costo
+// Unitario Total al Precio Unitario Adoptado. OJO con el detalle real del código: 5.2 (Beneficio)
+// y 5.3 (Financieros) se calculan AMBOS sobre (C.U.T.+5.1), no sobre el Subtotal 1 acumulado —
+// así está en cpCalcPreciso y así se refleja acá para que la fórmula mostrada sea 100% fiel al
+// cálculo real, no una simplificación.
+function cpFormulaCascadaHtml(calc){
+  var h='<div style="font-size:8pt;font-weight:700;margin:10px 0 3px">FÓRMULAS — Cómo se calculó el Precio Unitario</div>';
+  h+='<div style="font-size:7.8pt;color:#334155;line-height:1.7;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:6px 8px">';
+  h+='(1) Costo Unit. Materiales = Σ(Cantidad×Precio) + Varios(1%×Σ) = $'+cpFmtAR(calc.sumMat)+' + $'+cpFmtAR(calc.varios)+' = <b>$'+cpFmtAR(calc.costoMat)+'</b><br>';
+  h+='(2) Costo Unit. Equipos = Σ(Cantidad×Precio) + Herramientas(2%×Costo M.O.) = $'+cpFmtAR(calc.sumEquipo)+' + $'+cpFmtAR(calc.herram)+' = <b>$'+cpFmtAR(calc.costoEquipo)+'</b><br>';
+  h+='(3) Costo Unit. Mano de Obra = Σ(hs×$/hora) = <b>$'+cpFmtAR(calc.costoMO)+'</b><br>';
+  h+='(4) C.U.T. = (1) + (2) + (3) = $'+cpFmtAR(calc.costoMat)+' + $'+cpFmtAR(calc.costoEquipo)+' + $'+cpFmtAR(calc.costoMO)+' = <b>$'+cpFmtAR(calc.CUT)+'</b><br>';
+  h+='5.1 Gastos Grls. = (4) × 15% = $'+cpFmtAR(calc.CUT)+' × 0,15 = <b>$'+cpFmtAR(calc.g51)+'</b> &nbsp;→&nbsp; (4 + 5.1) = $'+cpFmtAR(calc.sub51)+'<br>';
+  h+='5.2 Beneficio = (4 + 5.1) × 10% = $'+cpFmtAR(calc.sub51)+' × 0,10 = <b>$'+cpFmtAR(calc.g52)+'</b> &nbsp;→&nbsp; Subtotal 1 = (4+5.1)+5.2 = $'+cpFmtAR(calc.sub1)+'<br>';
+  h+='5.3 Gastos Financ. = (4 + 5.1) × 3% = $'+cpFmtAR(calc.sub51)+' × 0,03 = <b>$'+cpFmtAR(calc.g53)+'</b> &nbsp;→&nbsp; Subtotal 2 = Subt.1+5.3 = $'+cpFmtAR(calc.sub2)+'<br>';
+  h+='5.4 Impuestos/IVA = Subtotal 2 × 4% = $'+cpFmtAR(calc.sub2)+' × 0,04 = <b>$'+cpFmtAR(calc.g54)+'</b><br>';
+  h+='Precio Unitario = Subtotal 2 + 5.4 = $'+cpFmtAR(calc.sub2)+' + $'+cpFmtAR(calc.g54)+' = <b>$'+cpFmtAR(calc.pu_calc)+'</b><br>';
+  h+='Precio Unitario Adoptado = redondeo hacia arriba (ceil) del anterior = <b>$'+cpFmtAR(calc.pu_adopt)+'</b>';
+  h+='</div>';
+  return h;
+}
+
+// Cuando el rendimiento de algún material/equipo/MO de este ítem viene de una de las calculadoras
+// específicas (variante de hierro por diámetro real, Cuadrilla, o Demolición y Retiro), explica acá
+// la fórmula concreta con los números reales de ESTE ítem — no un texto genérico. Si el ítem no usa
+// ninguna de estas calculadoras (la gran mayoría, con rendimiento cargado a mano), no agrega nada.
+function cpFormulaRendimientosHtml(it){
+  var notas=[];
+  (it.mats||[]).forEach(function(m){
+    var v=(typeof cpHierroVariante==='function')?cpHierroVariante(m.id):null;
+    if(v&&m.kgBase!=null){
+      var kgm=cpKgPorMetroHierro(v.mm);
+      notas.push('<b>'+m.nom+'</b>: fórmula real IRAM-IAS (kg/m = 0,00616538 × diámetro²) → Ø'+v.mm+'mm = '+kgm.toFixed(3)+' kg/m. Rendimiento = '+m.kgBase.toLocaleString('es-AR')+' kg (kilaje real, fijo) ÷ '+kgm.toFixed(3)+' kg/m = <b>'+m.rend+' m</b> por 1 '+(it.un||'un')+'.');
+    }
+  });
+  if(it.cuadrilla&&it.cuadrilla.tareas&&it.cuadrilla.tareas.length){
+    var totalMin=it.cuadrilla.tareas.reduce(function(s,t){return s+(+t.minutos||0);},0);
+    notas.push('Rendimientos de Mano de Obra/Equipo calculados con la <b>Calculadora de Rendimiento por Cuadrilla</b>: por cada rol/equipo, se suman los minutos de las tareas en las que efectivamente participa (de un total cargado de '+totalMin+' min en '+it.cuadrilla.tareas.length+' tarea(s)) y se dividen ÷60 → hh por 1 '+(it.un||'un')+'.');
+  }
+  if(it.demo&&it.demo.volumen&&(typeof CP_DEMO_TASAS!=='undefined')){
+    var d=it.demo,tasa=(CP_DEMO_TASAS[d.tipoMaterial]||CP_DEMO_TASAS.ha);
+    notas.push('Rendimientos de equipo calculados con la <b>Calculadora de Demolición y Retiro</b>: Motocompresor+martillo = Volumen('+d.volumen+' m³) × '+tasa.hsPorM3+' h/m³ ('+tasa.lbl+'); Retroexcavadora = Volumen ÷ '+CP_DEMO_RETRO_M3H+' m³/h (carga a camión); Camión volcador = N° de viajes (Volumen esponjado ÷ capacidad) × tiempo de ciclo por viaje (carga + descarga/maniobra + ida y vuelta según distancia).');
+  }
+  if(!notas.length)return'';
+  var h='<div style="font-size:8pt;font-weight:700;margin:10px 0 3px">Cómo se calcularon los rendimientos de este ítem</div>';
+  h+='<div style="font-size:7.8pt;color:#334155;line-height:1.7;background:#fffbeb;border:1px solid #fde68a;border-radius:4px;padding:6px 8px">'+notas.join('<br><br>')+'</div>';
+  return h;
 }
 
 function cpPDF(modo){
