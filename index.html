@@ -1333,7 +1333,15 @@ function handleLogoUpload(inp){if(!inp.files||!inp.files[0])return;var r=new Fil
 function clearLogo(){EMPRESA.logo=null;var lp=document.getElementById('logo-preview'),lpw=document.getElementById('logo-preview-wrap');if(lp)lp.src='';if(lpw)lpw.style.display='none';guardarTodo();toast('Logo eliminado');}
 function handleQRUpload(inp){if(!inp.files||!inp.files[0])return;var r=new FileReader();r.onload=function(e){EMPRESA.qr=e.target.result;var qp=document.getElementById('qr-preview'),qpw=document.getElementById('qr-preview-wrap');if(qp)qp.src=e.target.result;if(qpw)qpw.style.display='';guardarTodo();toast('✓ QR guardado');};r.readAsDataURL(inp.files[0]);}
 function clearQR(){EMPRESA.qr=null;var qp=document.getElementById('qr-preview'),qpw=document.getElementById('qr-preview-wrap');if(qp)qp.src='';if(qpw)qpw.style.display='none';guardarTodo();toast('QR eliminado');}
-function updTC(){var v=parseFloat(document.getElementById('cfg-tc')?.value)||1350;var el=document.getElementById('db-tc');if(el)el.textContent='$'+v.toLocaleString('es-AR');}
+function updTC(){
+  var v=parseFloat(document.getElementById('cfg-tc')?.value)||1350;
+  TC=v;
+  var mt=document.getElementById('mot-tc');if(mt)mt.value=v;
+  var el=document.getElementById('db-tc');if(el)el.textContent='$'+v.toLocaleString('es-AR');
+  var dbs=document.getElementById('db-tc-src');if(dbs)dbs.textContent='Manual (Config)';
+  var badge=document.getElementById('tc-badge');if(badge)badge.textContent='$'+v.toLocaleString('es-AR')+' (manual)';
+  if(typeof recalc==='function')recalc();
+}
 
 /* ── USD BNA ──────────────────────────────────────────────────────────── */
 var TC=1350;
