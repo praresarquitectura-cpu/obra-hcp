@@ -714,6 +714,23 @@ input,select,textarea,button{font-family:var(--font)}
     </div>
   </div>
 
+  <!-- Parámetros del Cómputo Métrico: Coeficiente de pase + ajuste CAC/IPC Patagonia -->
+  <div class="card" style="margin-bottom:12px;padding:10px 14px">
+    <div class="csec">Parámetros del Cómputo Métrico</div>
+    <div style="font-size:10px;color:var(--tx3);margin:4px 0 10px">Llevan este Listado de Precios (base Municipalidad Ushuaia 2026) a valores actuales. Se aplican a materiales, equipos y mano de obra en el Cómputo, el APU y el Presupuesto.</div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end">
+      <div class="fg" style="min-width:160px">
+        <label class="fl" title="Multiplicador directo sobre el precio base (ej: 1.15 = +15%)">Coeficiente de pase</label>
+        <input class="fi" type="text" inputmode="decimal" id="pr-coef-pase" value="1,00" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUpdCoefPase(isNaN(v)||v<=0?1:v);" style="font-size:13px">
+      </div>
+      <div class="fg" style="min-width:160px">
+        <label class="fl" title="Ajuste porcentual adicional (CAC / IPC Patagonia acumulado desde la fecha del catálogo). Puede ser negativo.">Ajuste CAC/IPC Patagonia (%)</label>
+        <input class="fi" type="text" inputmode="decimal" id="pr-factor-ajuste" value="0" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUpdFactorAjuste(isNaN(v)?0:v);" style="font-size:13px">
+      </div>
+      <div style="font-size:11px;color:var(--tx2);padding-bottom:8px">Factor total aplicado: <b id="pr-factor-total" style="color:var(--bt)">1,00×</b></div>
+    </div>
+  </div>
+
   <!-- Tabs de categorías -->
   <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px" id="pr-tabs"></div>
 
@@ -7215,9 +7232,15 @@ function cpCalcPreciso(mats,mo,qty){
     if(m.esEquipo) sumEquipo+=sub; else sumMat+=sub;
   });
   (mo||[]).forEach(function(m){
-    var pu=m.pu||_pu(m.rol)||0,hs=qty*(m.hs||m.hh||0);
+    var puMO=(typeof apuGetMOpu==='function')?apuGetMOpu(m.rol):_pu(m.rol);
+    var pu=m.pu||puMO||0,hs=qty*(m.hs||m.hh||0);
     sumMO+=hs*pu;
   });
+  // Coeficiente de pase + ajuste CAC/IPC Patagonia: lleva los precios de catálogo a valor actual,
+  // antes de Varios/Herramientas y de la cascada de Gastos Grls./Beneficio/Financieros/Impuestos.
+  var factorAjuste=(typeof cpFactorAjusteTotal==='function')?cpFactorAjusteTotal():1;
+  var sumMatBase=sumMat, sumEquipoBase=sumEquipo, sumMOBase=sumMO;
+  sumMat*=factorAjuste; sumEquipo*=factorAjuste; sumMO*=factorAjuste;
   var VARIOS=(typeof APU_VARIOS!=='undefined')?APU_VARIOS:0.0001;
   var HERRAM=(typeof APU_HERRAM!=='undefined')?APU_HERRAM:0.0002;
   var G51=(typeof APU_G51!=='undefined')?APU_G51:0.15;
@@ -7235,7 +7258,7 @@ function cpCalcPreciso(mats,mo,qty){
   var g53=Math.round(sub51*G53),sub2=sub1+g53;
   var g54=Math.round(sub2*G54),pu_calc=sub2+g54;
   var pu_adopt=Math.ceil(pu_calc);
-  return {sumMat:Math.round(sumMat),varios,costoMat,sumEquipo:Math.round(sumEquipo),herram,costoEquipo,costoMO,CUT,g51,sub51,g52,sub1,g53,sub2,g54,pu_calc,pu_adopt};
+  return {sumMat:Math.round(sumMat),varios,costoMat,sumEquipo:Math.round(sumEquipo),herram,costoEquipo,costoMO,CUT,g51,sub51,g52,sub1,g53,sub2,g54,pu_calc,pu_adopt,sumMatBase:Math.round(sumMatBase),sumEquipoBase:Math.round(sumEquipoBase),sumMOBase:Math.round(sumMOBase),factorAjuste};
 }
 
 function cpCalcPU(cat){
@@ -7254,7 +7277,7 @@ function cpQty(dims,un){
       var largoFaldon=pend>0?(l/Math.cos(Math.atan(pend/100))):l;
       v=largoFaldon*a*q;
     }
-    else if(un==='m\u00b2')v=l*a*q;
+    else if(un==='m\u00b2')v=(d.forma==='triangulo')?(l*a*q/2):(l*a*q);
     else if(un==='m\u00b3')v=l*a*h*q;
     else if(un==='ml'||un==='m')v=l*q;
     else v=q;
@@ -7363,11 +7386,13 @@ function cpRenderDim(iid,d,un){
   var h='<div id="cpd-'+iid+'-'+d.id+'" style="display:flex;gap:3px;align-items:center;margin-bottom:3px;flex-wrap:wrap;padding:'+(isVano?'3px 4px':'0')+';border-radius:4px;background:'+(isVano?'rgba(196,45,70,.08)':'transparent')+'">';
   if(isVano)h+='<span style="font-size:9px;color:var(--rt);font-weight:700;white-space:nowrap">− VANO</span>';
   h+='<input class="cp-di" placeholder="Descripci\u00f3n" value="'+(d.desc||'')+'" oninput="cpUD(\''+iid+'\',\''+d.id+'\',\'desc\',this.value)" style="flex:2;min-width:90px">';
-  if(un==='m\u00b2'||un==='m\u00b3'||un==='ml'||un==='m'||un==='m\u00b2cub')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="'+(isVano?'Ancho vano':(un==='m\u00b2cub'?'Largo horiz.':'Largo'))+'" value="'+(d.l?String(d.l).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'l\',isNaN(v)?0:v);" style="width:68px">';
-  if(un==='m\u00b2'||un==='m\u00b3'||un==='m\u00b2cub')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="'+(isVano?'Alto vano':'Ancho')+'" value="'+(d.a?String(d.a).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'a\',isNaN(v)?0:v);" style="width:68px">';
+  var esTri=(un==='m\u00b2'&&d.forma==='triangulo');
+  if(un==='m\u00b2'||un==='m\u00b3'||un==='ml'||un==='m'||un==='m\u00b2cub')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="'+(esTri?'Base':(isVano?'Ancho vano':(un==='m\u00b2cub'?'Largo horiz.':'Largo')))+'" value="'+(d.l?String(d.l).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'l\',isNaN(v)?0:v);" style="width:68px'+(esTri?';border-color:var(--gt)':'')+'">';
+  if(un==='m\u00b2'||un==='m\u00b3'||un==='m\u00b2cub')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="'+(esTri?'Altura':(isVano?'Alto vano':'Ancho'))+'" value="'+(d.a?String(d.a).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'a\',isNaN(v)?0:v);" style="width:68px'+(esTri?';border-color:var(--gt)':'')+'">';
   if(un==='m\u00b3')h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="Alto" value="'+(d.h?String(d.h).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'h\',isNaN(v)?0:v);" style="width:68px">';
   if(un==='m\u00b2cub')h+='<input class="cp-di" type="text" inputmode="decimal" title="Pendiente del faldón en %" placeholder="Pend. %" value="'+(d.h?String(d.h).replace('.',','):'')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'h\',isNaN(v)?0:v);" style="width:68px;border-color:var(--gt)">';
   h+='<input class="cp-di" type="text" inputmode="decimal" placeholder="Cant" value="'+String(d.q||1).replace('.',',')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);cpUD(\''+iid+'\',\''+d.id+'\',\'q\',(isNaN(v)||v<0)?1:v);" style="width:55px">';
+  if(un==='m²')h+='<label title="Área = Base × Altura ÷ 2 (para tímpanos triangulares, faldones a dos aguas, etc.)" style="font-size:10px;color:var(--gt);white-space:nowrap;cursor:pointer"><input type="checkbox" '+(esTri?'checked':'')+' onchange="cpUD(\''+iid+'\',\''+d.id+'\',\'forma\',this.checked?\'triangulo\':\'rect\')"> △ Triángulo (base×alt÷2)</label>';
   h+='<label style="font-size:10px;color:var(--rt);white-space:nowrap;cursor:pointer"><input type="checkbox" '+(d.sust?'checked':'')+' onchange="cpUD(\''+iid+'\',\''+d.id+'\',\'sust\',this.checked)"> Vano/Abertura (descuenta)</label>';
   h+='<button onclick="cpBD(\''+iid+'\',\''+d.id+'\')" style="background:none;border:none;color:var(--rt);font-size:16px;cursor:pointer;padding:0;line-height:1">\u00d7</button>';
   return h+'</div>';
@@ -7563,7 +7588,7 @@ function cpMetRecalcular(it){
     var grp=g.grupos[cod];
     var mlConDesp=Math.round(grp.ml*g.desp*100)/100;
     var p=(typeof PR_DATA!=='undefined'?PR_DATA:[]).find(function(x){return x.cod===cod;});
-    mats.push({id:cod,nom:grp.nom,un:'m',rend:mlConDesp,pu:p?(p.pu||0):0,esEquipo:false});
+    mats.push({id:cod,nom:grp.nom,un:'m',rend:mlConDesp,pu:p?(p.pu||0):0,esEquipo:false,desp:0});
   });
   it.mats=mats;
   it.un='gl'; // Global (lump-sum): toda la estructura de esta tabla es UN total único, no un valor por m²
@@ -7652,6 +7677,7 @@ function cpRenderItem(rid,it){
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px">';
   h+='<button onclick="cpAD(\''+it.id+'\')" style="font-size:10px;background:none;border:1px dashed var(--br);color:var(--tx3);padding:3px 10px;border-radius:4px;cursor:pointer">+ Medida</button>';
   h+='<button onclick="cpADVano(\''+it.id+'\')" title="Descuenta un vano/abertura (ventana, puerta) del \u00e1rea o volumen total" style="font-size:10px;background:none;border:1px dashed var(--rt);color:var(--rt);padding:3px 10px;border-radius:4px;cursor:pointer;margin-left:4px">− Vano/Abertura</button>';
+  if(it.un==='m\u00b2')h+='<button onclick="cpADTimpano(\''+it.id+'\')" title="Agrega un rengl\u00f3n triangular (t\u00edmpano, fald\u00f3n a dos aguas): \u00c1rea = Base \u00d7 Altura \u00f7 2" style="font-size:10px;background:none;border:1px dashed var(--gt);color:var(--gt);padding:3px 10px;border-radius:4px;cursor:pointer;margin-left:4px">+ △ T\u00edmpano</button>';
   h+='<div style="font-weight:800;color:var(--bt);font-size:15px">'+qty.toLocaleString('es-AR',{maximumFractionDigits:2})+' <span style="font-size:10px;color:var(--tx3)">'+it.un+'</span></div>';
   h+='</div></div>';
   }
@@ -7980,10 +8006,11 @@ function cpCargarEstructura3CM(){
 }
 function cpAI(rid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items.push({id:cpNID(),nom:'',un:'m\u00b2',dims:[],mats:[],mo:[],unidades_permitidas:null});cpRender();}
 function cpBI(rid,iid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items=r.items.filter(function(i){return i.id!==iid;});cpRender();}
-function cpCU(iid,un){var it=cpFindItem(iid);if(!it)return;it.un=un;it.dims=[];cpRender();}
+function cpCU(iid,un){var it=cpFindItem(iid);if(!it)return;var LINEAL={m:1,ml:1};var compat=LINEAL[it.un]&&LINEAL[un];if(!compat&&it.dims&&it.dims.length&&!confirm('Cambiar la unidad borra los renglones de dimensiones ya cargados para este ítem. ¿Continuar?'))return;it.un=un;if(!compat)it.dims=[];cpRender();}
 function cpUSubrubro(iid,val){var it=cpFindItem(iid);if(!it)return;it.subrubro=val;}
 function cpAD(iid){var it=cpFindItem(iid);if(!it)return;it.dims.push({id:cpNID(),desc:'',l:0,a:0,h:0,q:1,sust:false});cpRender();}
 function cpADVano(iid){var it=cpFindItem(iid);if(!it)return;it.dims.push({id:cpNID(),desc:'Abertura/Vano',l:0,a:0,h:0,q:1,sust:true});cpRender();}
+function cpADTimpano(iid){var it=cpFindItem(iid);if(!it)return;it.dims.push({id:cpNID(),desc:'T\u00edmpano',l:0,a:0,h:0,q:1,sust:false,forma:'triangulo'});cpRender();}
 function cpBD(iid,did){var it=cpFindItem(iid);if(!it)return;it.dims=it.dims.filter(function(d){return d.id!==did;});cpRender();}
 function cpUD(iid,did,campo,val){var it=cpFindItem(iid);if(!it)return;var d=it.dims.find(function(d){return d.id===did;});if(!d)return;d[campo]=val;if(campo!=='desc')cpRender();}
 function cpUM(iid,mi,campo,val){var it=cpFindItem(iid);if(!it||!it.mats[mi])return;it.mats[mi][campo]=val;if(campo!=='nom')cpRenderActive(iid);}
@@ -7992,7 +8019,7 @@ function cpBorrarMat(iid,mi){var it=cpFindItem(iid);if(!it)return;it.mats.splice
 function cpBorrarMO(iid,mi){var it=cpFindItem(iid);if(!it)return;it.mo.splice(mi,1);cpRenderActive(iid);}
 function cpAgregarMat(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'',nom:'Nuevo material',un:'m\u00b2',rend:1,pu:0,esEquipo:false});cpRender();}
 function cpAgregarEquipo(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'',nom:'Nuevo equipo',un:'hh',rend:1,pu:0,esEquipo:true});cpRender();}
-function cpAgregarMO(iid){var it=cpFindItem(iid);if(!it)return;it.mo.push({rol:'of',hh:1,pu:CP_PRECIOS_MAT['of']||22299});cpRender();}
+function cpAgregarMO(iid){var it=cpFindItem(iid);if(!it)return;it.mo.push({rol:'of',hh:1,pu:(typeof apuGetMOpu==='function'?apuGetMOpu('of'):0)});cpRender();}
 var CP_PICKER_MAT_IID=null;
 function cpAbrirPickerMat(iid){
   CP_PICKER_MAT_IID=iid;
@@ -8475,6 +8502,9 @@ function cpFormulaCascadaHtml(calc){
     +'<b>Teoría:</b> el Precio Unitario se arma en dos etapas. Primero el <b>Costo Unitario Total (C.U.T.)</b>: lo que realmente cuesta comprar los materiales, alquilar/amortizar los equipos y pagar la mano de obra para hacer 1 unidad del ítem. Después, sobre ese costo directo se aplican en cascada los recargos de la empresa (Gastos Generales, Beneficio, Gastos Financieros e Impuestos) — cada uno calculado como un % sobre el subtotal acumulado hasta ese paso, nunca sobre el C.U.T. puro. Es el mismo esquema que usan los pliegos de licitación pública en Argentina.'
     +'</div>';
   h+='<div style="font-size:7.8pt;color:#334155;line-height:1.7;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:6px 8px">';
+  if(calc.factorAjuste&&Math.abs(calc.factorAjuste-1)>0.0001){
+    h+='(0) Ajuste de precios (Coef. de pase × CAC/IPC Patagonia) = ×'+calc.factorAjuste.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:4})+' → Materiales $'+cpFmtAR(calc.sumMatBase)+'→$'+cpFmtAR(calc.sumMat)+', Equipos $'+cpFmtAR(calc.sumEquipoBase)+'→$'+cpFmtAR(calc.sumEquipo)+', M.O. $'+cpFmtAR(calc.sumMOBase)+'→$'+cpFmtAR(calc.sumMO)+'<br>';
+  }
   h+='(1) Costo Unit. Materiales = Σ(Cantidad×Precio) + Varios(1%×Σ) = $'+cpFmtAR(calc.sumMat)+' + $'+cpFmtAR(calc.varios)+' = <b>$'+cpFmtAR(calc.costoMat)+'</b><br>';
   h+='(2) Costo Unit. Equipos = Σ(Cantidad×Precio) + Herramientas(2%×Costo M.O.) = $'+cpFmtAR(calc.sumEquipo)+' + $'+cpFmtAR(calc.herram)+' = <b>$'+cpFmtAR(calc.costoEquipo)+'</b><br>';
   h+='(3) Costo Unit. Mano de Obra = Σ(hs×$/hora) = <b>$'+cpFmtAR(calc.costoMO)+'</b><br>';
@@ -10215,6 +10245,12 @@ var PR_DATA = [
 var PR_HISTORIAL = [];
 // Códigos eliminados por el usuario del Listado de Precios (para no resucitarlos al mergear el catálogo base)
 var PR_DATA_DELETED = [];
+// Coeficiente de pase y ajuste CAC/IPC Patagonia: llevan el Listado de Precios (base Municipalidad Ushuaia 2026)
+// a valores actuales. Se aplican como multiplicador sobre materiales, equipos y mano de obra ANTES de la
+// cascada de Gastos Grls./Beneficio/Financieros/Impuestos, en cpCalcPreciso() y apuCalcular(). 1 = sin ajuste.
+var CP_COEF_PASE = 1;
+var CP_FACTOR_AJUSTE = 0; // % (puede ser negativo), ej: CAC/IPC Patagonia acumulado desde la fecha del catálogo
+function cpFactorAjusteTotal(){ return (CP_COEF_PASE||1) * (1 + (CP_FACTOR_AJUSTE||0)/100); }
 
 // Categorías únicas
 function prCategorias(){
@@ -10225,7 +10261,24 @@ function prCategorias(){
 
 var PR_CAT_ACTIVA = null;
 
+function prRenderFactorAjuste(){
+  var ic=document.getElementById('pr-coef-pase'),ifa=document.getElementById('pr-factor-ajuste'),tot=document.getElementById('pr-factor-total');
+  if(ic)ic.value=(CP_COEF_PASE||1).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:4});
+  if(ifa)ifa.value=(CP_FACTOR_AJUSTE||0).toLocaleString('es-AR',{maximumFractionDigits:2});
+  if(tot)tot.textContent=(typeof cpFactorAjusteTotal==='function'?cpFactorAjusteTotal():1).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:4})+'×';
+}
+function cpUpdCoefPase(v){
+  CP_COEF_PASE=v;
+  prRenderFactorAjuste();
+  if(typeof cpRender==='function')cpRender();
+}
+function cpUpdFactorAjuste(v){
+  CP_FACTOR_AJUSTE=v;
+  prRenderFactorAjuste();
+  if(typeof cpRender==='function')cpRender();
+}
 function prRender(){
+  prRenderFactorAjuste();
   var fc=document.getElementById('pr-fecha-catalogo');
   if(fc&&typeof PR_FECHA_CATALOGO!=='undefined'){
     var mn=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -10389,7 +10442,7 @@ function prSincronizarConCatalogo(){
 
 // Guardar en Firebase
 function prGuardar(){
-  var data={items:PR_DATA,historial:PR_HISTORIAL.slice(-100),deleted:PR_DATA_DELETED,ts:Date.now()};
+  var data={items:PR_DATA,historial:PR_HISTORIAL.slice(-100),deleted:PR_DATA_DELETED,coefPase:CP_COEF_PASE,factorAjuste:CP_FACTOR_AJUSTE,ts:Date.now()};
   localStorage.setItem('obraerp_precios',JSON.stringify(data));
   if(_db&&_uid){
     _db.collection('users').doc(_uid).collection('config').doc('precios')
@@ -10430,6 +10483,11 @@ function prMergeStored(storedItems, deletedCods){
 }
 
 // Cargar desde Firebase al iniciar
+function prAplicarFactores(d){
+  if(d.coefPase!=null&&d.coefPase>0)CP_COEF_PASE=d.coefPase;
+  if(d.factorAjuste!=null)CP_FACTOR_AJUSTE=d.factorAjuste;
+  if(typeof prRenderFactorAjuste==='function')prRenderFactorAjuste();
+}
 function prCargar(){
   if(_db&&_uid){
     _db.collection('users').doc(_uid).collection('config').doc('precios')
@@ -10439,17 +10497,18 @@ function prCargar(){
           if(d.deleted)PR_DATA_DELETED=d.deleted;
           if(d.items&&d.items.length){prMergeStored(d.items,d.deleted);}
           if(d.historial){PR_HISTORIAL=d.historial;}
+          prAplicarFactores(d);
           prSincronizarConCatalogo();
         }
         cpMergePrecios();
       }).catch(function(){
         var loc=localStorage.getItem('obraerp_precios');
-        if(loc){var d=JSON.parse(loc);if(d.deleted)PR_DATA_DELETED=d.deleted;if(d.items)prMergeStored(d.items,d.deleted);if(d.historial)PR_HISTORIAL=d.historial;prSincronizarConCatalogo();}
+        if(loc){var d=JSON.parse(loc);if(d.deleted)PR_DATA_DELETED=d.deleted;if(d.items)prMergeStored(d.items,d.deleted);if(d.historial)PR_HISTORIAL=d.historial;prAplicarFactores(d);prSincronizarConCatalogo();}
         cpMergePrecios();
       });
   }else{
     var loc=localStorage.getItem('obraerp_precios');
-    if(loc){var d=JSON.parse(loc);if(d.deleted)PR_DATA_DELETED=d.deleted;if(d.items)prMergeStored(d.items,d.deleted);if(d.historial)PR_HISTORIAL=d.historial;prSincronizarConCatalogo();}
+    if(loc){var d=JSON.parse(loc);if(d.deleted)PR_DATA_DELETED=d.deleted;if(d.items)prMergeStored(d.items,d.deleted);if(d.historial)PR_HISTORIAL=d.historial;prAplicarFactores(d);prSincronizarConCatalogo();}
     cpMergePrecios();
   }
 }
@@ -11327,13 +11386,14 @@ var APU_G51=0.15,APU_G52=0.10,APU_G53=0.03,APU_G54=0.04,APU_VARIOS=0.01,APU_HERR
 function apuGetPU(cod,pu_orig){if(typeof PR_DATA!=='undefined'){var p=PR_DATA.find(function(x){return x.cod===String(cod);});if(p&&p.pu>0)return p.pu;}return pu_orig||0;}
 function apuGetMOpu(rol){var mapa={ofEsp:'MO1',of:'MO2',mo:'MO3',ay:'MO4'};var cod=mapa[rol];if(typeof PR_DATA!=='undefined'){var p=PR_DATA.find(function(x){return x.cod===cod;});if(p&&p.pu>0)return p.pu;}return {ofEsp:26067,of:22299,mo:20608,ay:18968}[rol]||0;}
 function apuCalcular(apu){
-  var mats=(apu.mats||[]).map(function(m){var pu=apuGetPU(m.cod,m.pu);return Object.assign({},m,{pu_actual:pu,total_actual:Math.round(m.cant*pu)});});
+  var factorAjuste=(typeof cpFactorAjusteTotal==='function')?cpFactorAjusteTotal():1;
+  var mats=(apu.mats||[]).map(function(m){var pu=apuGetPU(m.cod,m.pu)*factorAjuste;return Object.assign({},m,{pu_actual:pu,total_actual:Math.round(m.cant*pu)});});
   var sum_mat=mats.reduce(function(a,m){return a+m.total_actual;},0);
   var varios=Math.round(sum_mat*APU_VARIOS);
   var CUT_mat=sum_mat+varios;
-  var equipos=(apu.equipos||[]).map(function(e){var pu=apuGetPU(e.cod,e.pu);return Object.assign({},e,{pu_actual:pu,total_actual:Math.round(e.cant*pu)});});
+  var equipos=(apu.equipos||[]).map(function(e){var pu=apuGetPU(e.cod,e.pu)*factorAjuste;return Object.assign({},e,{pu_actual:pu,total_actual:Math.round(e.cant*pu)});});
   var sum_equip=equipos.reduce(function(a,e){return a+e.total_actual;},0);
-  var mo=(apu.mo||[]).map(function(m){var pu=apuGetMOpu(m.rol);return Object.assign({},m,{pu_actual:pu,total_actual:Math.round(m.hs*pu)});});
+  var mo=(apu.mo||[]).map(function(m){var pu=apuGetMOpu(m.rol)*factorAjuste;return Object.assign({},m,{pu_actual:pu,total_actual:Math.round(m.hs*pu)});});
   var sum_mo=mo.reduce(function(a,m){return a+m.total_actual;},0);
   var herram=Math.round(sum_mo*APU_HERRAM);
   var CUT=CUT_mat+sum_equip+herram+sum_mo;
@@ -11341,7 +11401,7 @@ function apuCalcular(apu){
   var sub_51=CUT+g51;
   var g52=Math.round(sub_51*APU_G52);
   var sub1=sub_51+g52;
-  var g53=Math.round(sub1*APU_G53);
+  var g53=Math.round(sub_51*APU_G53);
   var sub2=sub1+g53;
   var g54=Math.round(sub2*APU_G54);
   var pu_calc=sub2+g54;
