@@ -375,7 +375,7 @@ input,select,textarea,button{font-family:var(--font)}
       </label>
     </div></div>
     <div class="csm"><div class="sl" style="margin-bottom:8px">CATDF · Mayo 2026</div>
-      <div style="font-size:11px;color:var(--tx2);line-height:1.9">Dir. Proyecto: <b style="color:var(--bt)">5%</b><br>Dir. de Obra: <b style="color:var(--bt)">5%</b><br>Constructor: <b style="color:var(--pt)">5%</b><br>Repr. Técnico: <b style="color:var(--tt)">3.5%</b><br>Inf. Técnico: <b style="color:var(--ot)">6%</b><br>CPT ≤100m²: <b style="color:var(--golt)">$46.000</b></div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.9">Dir. Proyecto: <b style="color:var(--bt)">4.5%</b><br>Dir. de Obra: <b style="color:var(--bt)">5%</b><br>Admin. de Obra: <b style="color:var(--pt)">3%</b><br>Constructor/Repr. Técnico: <b style="color:var(--tt)">4.5%</b><br>Inf. Técnico: <b style="color:var(--ot)">6%</b><br>CPT ≤100m²: <b style="color:var(--golt)">$46.000</b></div>
     </div>
   </div>
 </section>
@@ -1736,7 +1736,7 @@ function recalc(){
   set('s-neto','USD '+N(afterDesc));
   var gl=document.getElementById('s-gast-lbl');if(gl)gl.textContent='Gastos ('+(gast*100).toFixed(1)+'%) s/bruto Proy.+Calc.';
   set('s-gast','USD '+N(gastos));
-  set('s-ipc',ipcAmt>0?'+ USD '+N(ipcAmt):'—');
+  set('s-ipc',ipcAmt!==0?((ipcAmt>0?'+ ':'− ')+'USD '+N(Math.abs(ipcAmt))):'—');
   if(comisionAmt>0){set('s-tarj','+ USD '+N(comisionAmt));var tl2=document.getElementById('s-tarj-lbl');if(tl2)tl2.textContent='Comisión tarjeta ('+(getN('mot-comision',6.49)).toFixed(2)+'%)';}
   set('s-tot','USD '+N(fin));set('s-ars','ARS $ '+Math.round(fin*tc).toLocaleString('es-AR'));
 
@@ -1850,10 +1850,13 @@ function motorGuardar(draft){
     // $1-2 por debajo/encima del total exacto del rol (ej. 41/12/6/23/12/6% de 4320 suma 4319 y
     // no 4320). Ajustamos la ÚLTIMA subtarea 'normal' del rol para que la suma cierre EXACTO
     // contra el total del rol — mismo criterio que ya se usa en la Planilla de Cuotas.
-    var normalIdxs=[];
-    items.forEach(function(it,idx){if(it.tipo==='normal')normalIdxs.push(idx);});
+    var normalIdxs=[],incSum=0;
+    items.forEach(function(it,idx){if(it.tipo==='normal'){normalIdxs.push(idx);incSum+=(it.inc||0);}});
     if(normalIdxs.length){
-      var targetRol=esCalc?Math.round(rolTotalCalc):Math.round(role.catdf*vObraRole);
+      // El target del residuo tiene que ser el total de SOLO las subtareas seleccionadas
+      // (incSum% de incidencia), no el 100% del rol — si no, cuando el usuario tilda apenas
+      // alguna(s) subtarea(s), la última absorbe el valor de las que no seleccionó (sobrefacturación).
+      var targetRol=esCalc?Math.round(rolTotalCalc*(incSum/100)):Math.round(role.catdf*vObraRole*(incSum/100));
       var sumOtros=0;
       for(var k=0;k<normalIdxs.length-1;k++)sumOtros+=items[normalIdxs[k]].usd;
       items[normalIdxs[normalIdxs.length-1]].usd=targetRol-sumOtros;
@@ -1875,7 +1878,7 @@ function motorGuardar(draft){
   var hon={
     id:editandoId||Date.now(),
     code:editandoId?HON_DATA.find(function(h){return h.id===editandoId;})?.code||('HON-'+String(HON_DATA.length+1).padStart(4,'0')):'HON-'+String(HON_DATA.length+1).padStart(4,'0'),
-    rev:'R01',roles:activeRoles.join(' + '),uso,tipo,m2,cu,cat,tc,calcUsdM2,
+    rev:'R01',roles:activeRoles.join(' + '),uso,tipo,m2,m2dec,m2sind,cu,cat,tc,calcUsdM2,
     descPct:desc*100,gastPct:gast*100,ipc:ipc*100,
     cliente:cli?cli.ap+', '+cli.nm:'—',cliId,
     usd:Math.round(fin),ars:Math.round(fin*tc),
@@ -1911,7 +1914,7 @@ function editarHon(id){
   editandoId=id;
   // Restaurar datos en el formulario
   var sv=function(elId,v){var el=document.getElementById(elId);if(el&&v!==undefined&&v!==null)el.value=v;};
-  sv('mot-uso',hon.uso);sv('mot-tipo',hon.tipo);sv('mot-m2',hon.m2);sv('mot-cu',hon.cu);
+  sv('mot-uso',hon.uso);sv('mot-tipo',hon.tipo);sv('mot-m2',hon.m2);sv('mot-m2-dec',hon.m2dec||0);sv('mot-m2-sind',hon.m2sind||0);sv('mot-cu',hon.cu);
   sv('mot-tc',hon.tc);sv('mot-desc-pct',hon.descPct||0);sv('mot-gast-pct',hon.gastPct||5);sv('mot-calc-usdm2',hon.calcUsdM2||9);
   sv('mot-ipc',hon.ipc||0);sv('mot-sec',hon.catSec);sv('mot-mzo',hon.catMzo);
   sv('mot-parc',hon.catParc);sv('mot-uf',hon.catUF);sv('mot-dom',hon.catDom);
@@ -1935,10 +1938,10 @@ function editarHon(id){
         S[role.id].on=true;S[role.id].open=true;
         rolDet.items.forEach(function(itDet){
           role.tareas.forEach(function(t){
-            S[role.id].tasks[t.id]=true;
             t.grupos.forEach(function(g){g.items.forEach(function(it){
               if(it.nm===itDet.nm){
                 S[role.id].subs[it.id]=true;
+                S[role.id].tasks[t.id]=true;
                 if(it.tipo==='render'&&itDet.qty)it.qty=itDet.qty;
                 if(it.tipo==='render'&&itDet.unitPrice)it.unitPrice=itDet.unitPrice;
               }
@@ -2016,7 +2019,7 @@ function honCalcTotales(h){
   var fixedTotal=fixedRoles.reduce(function(a,r){return a+r.total;},0);
   var comisionAmt=h.comisionAmt||0;
   var total=h.usd||0;
-  var ipcAmt=Math.max(0,Math.round(total-(netoDC+gastosAmt+fixedTotal)-comisionAmt));
+  var ipcAmt=Math.round(total-(netoDC+gastosAmt+fixedTotal)-comisionAmt);
   var cuotasBase=h.cuotasBase!=null?h.cuotasBase:Math.round(netoDC+gastosAmt);
   return {descRoles:descRoles,fixedRoles:fixedRoles,brutoDC:brutoDC,descAmt:descAmt,netoDC:netoDC,
     gastosAmt:gastosAmt,fixedTotal:fixedTotal,ipcAmt:ipcAmt,
@@ -2103,7 +2106,7 @@ function openHonDetail(id){
     +(tots.descRoles.length?'<div class="trow" style="font-weight:600"><span class="tl">TOTAL NETO PROYECTO Y CALCULISTA</span><span class="tv">USD '+N(tots.netoDC)+'</span></div>':'')
     +(tots.descRoles.length?'<div class="trow"><span class="tl">Gastos y gestiones ('+tots.gastPct.toFixed(1)+'% s/bruto Proy.+Calc.)</span><span class="tv">USD '+N(tots.gastosAmt)+'</span></div>':'')
     +tots.fixedRoles.map(function(r){return '<div class="trow"><span class="tl">'+r.rol.toUpperCase()+'</span><span class="tv">USD '+N(r.total)+'</span></div>';}).join('')
-    +(tots.ipcAmt>0?'<div class="trow"><span class="tl">Ajuste IPC</span><span class="tv">+ USD '+N(tots.ipcAmt)+'</span></div>':'')
+    +(tots.ipcAmt!==0?('<div class="trow"><span class="tl">Ajuste IPC</span><span class="tv">'+(tots.ipcAmt>0?'+ ':'− ')+'USD '+N(Math.abs(tots.ipcAmt))+'</span></div>'):'')
     +(tots.comisionAmt>0?'<div class="trow"><span class="tl" style="color:var(--golt)">Comisi\u00f3n tarjeta ('+h.comisionPct+'%)</span><span class="tv" style="color:var(--golt)">+ USD '+N(tots.comisionAmt)+'</span></div>':'')
     +'<div class="trow fin"><span class="tl">TOTAL HONORARIOS PROFESIONALES</span><span class="tv" style="color:var(--bt)">USD '+N(tots.total)+'</span></div>'
     +'<div class="tusd">ARS $ '+Math.round(tots.total*h.tc).toLocaleString('es-AR')+' al TC BNA $'+h.tc.toLocaleString('es-AR')+' ('+h.fecha+')</div>'
@@ -2132,8 +2135,8 @@ function generarPDF(id){
   // Restaurar logo/QR — el presupuesto guardado los tiene nulos para ahorrar espacio
   if(!emp.logo) emp.logo = EMPRESA.logo || localStorage.getItem('obraerp_logo') || '';
   if(!emp.qr)   emp.qr   = EMPRESA.qr   || localStorage.getItem('obraerp_qr')   || '';
-  var C1=emp.brandColor1||EMPRESA.brandColor1||''+C1+''; // color principal
-  var C2=emp.brandColor2||EMPRESA.brandColor2||''+C2+''; // color secundario
+  var C1=emp.brandColor1||EMPRESA.brandColor1||'#8a0e1e'; // color principal
+  var C2=emp.brandColor2||EMPRESA.brandColor2||'#1a1a1a'; // color secundario
   var PFONT=emp.brandFont||EMPRESA.brandFont||'Montserrat'; // fuente
   const N=n=>Math.round(n).toLocaleString('es-AR');
   const tipo={nueva:'Obra nueva',amp:'Ampliación',ref:'Refacción',mod:'Modificación en ejec.',
@@ -2327,9 +2330,11 @@ function generarPDF(id){
   var tots=honCalcTotales(h);
   (h.detalle||[]).forEach(function(rol){
     var esCalcRol=(rol.catdf==null);
-    var rFm=esCalcRol?Math.round((rol.m2calc||0)*(rol.usdm2||0)):Math.round(h.m2*h.cu*h.cat*rol.catdf);
+    var esInfRol=(rol.rol==='Informante T\u00e9cnico');
+    var baseRol=esInfRol?((h.m2sind||0)*h.cu*h.cat):(h.m2*h.cu*h.cat);
+    var rFm=esCalcRol?Math.round((rol.m2calc||0)*(rol.usdm2||0)):Math.round(baseRol*rol.catdf);
     var pctTxt=esCalcRol?('USD '+rol.usdm2+'/m\u00b2'):((rol.catdf*100).toFixed(2)+'%');
-    var baseTxt=esCalcRol?((rol.m2calc||0)+' m\u00b2'):('USD '+N(h.m2*h.cu*h.cat));
+    var baseTxt=esCalcRol?((rol.m2calc||0)+' m\u00b2'):('USD '+N(baseRol));
     var clrRol=rol.descuentable?'#1e3a5f':'#1a3a2a';
     d+='<div class="rol-block">';
     d+='<div class="rol-head" style="background:'+clrRol+'">';
@@ -2356,7 +2361,7 @@ function generarPDF(id){
   if(tots.descRoles.length) d+='<div class="tot-row" style="font-weight:600"><span>TOTAL NETO PROYECTO Y CALCULISTA</span><span>USD '+N(tots.netoDC)+'</span></div>';
   if(tots.descRoles.length) d+='<div class="tot-row"><span>Gastos y gestiones ('+tots.gastPct.toFixed(1)+'% s/bruto Proy.+Calc.)</span><span>USD '+N(tots.gastosAmt)+'</span></div>';
   tots.fixedRoles.forEach(function(r){d+='<div class="tot-row"><span>'+r.rol.toUpperCase()+'</span><span>USD '+N(r.total)+'</span></div>';});
-  if(tots.ipcAmt>0) d+='<div class="tot-row"><span>Ajuste IPC</span><span>+ USD '+N(tots.ipcAmt)+'</span></div>';
+  if(tots.ipcAmt!==0) d+='<div class="tot-row"><span>Ajuste IPC</span><span>'+(tots.ipcAmt>0?'+ ':'− ')+'USD '+N(Math.abs(tots.ipcAmt))+'</span></div>';
   if(tots.comisionAmt>0) d+='<div class="tot-row"><span>Comisi\u00f3n tarjeta ('+h.comisionPct+'%)</span><span>+ USD '+N(tots.comisionAmt)+'</span></div>';
   d+='<div class="tot-row final"><span>TOTAL HONORARIOS PROFESIONALES</span><span>USD '+N(tots.total)+'</span></div>';
   d+='<div class="tot-ars">Equivalente a ARS $'+Math.round(tots.total*h.tc).toLocaleString('es-AR')+' al tipo de cambio BNA oficial venta $'+N(h.tc)+' vigente al '+h.fecha+'</div>';
@@ -2720,8 +2725,9 @@ function renderSeccionPagos(honId){
   var cont=document.getElementById('pagos-cont-'+honId);
   if(!cont)return;
 
-  var pendTotal=hon.pagos.reduce(function(a,p){return a+(p.estado!=='facturado'?0:0);},0);
   var cobradoTotal=hon.pagos.reduce(function(a,p){return a+(p.montoARS||0);},0);
+  var cobradoUSD=hon.pagos.reduce(function(a,p){return a+(p.montoUSD||0);},0);
+  var saldoUSD=Math.round((hon.usd||0)-cobradoUSD);
 
   var html='';
 
@@ -2764,7 +2770,8 @@ function renderSeccionPagos(honId){
       html+='</div></td></tr>';
     });
     html+='</tbody></table></div>';
-    html+='<div style="font-size:11px;color:var(--tx3);margin-bottom:12px">Total cobrado: <b style="color:var(--bt)">$'+Math.round(cobradoTotal).toLocaleString('es-AR')+'</b></div>';
+    html+='<div style="font-size:11px;color:var(--tx3);margin-bottom:12px">Total cobrado: <b style="color:var(--bt)">$'+Math.round(cobradoTotal).toLocaleString('es-AR')+'</b> (USD '+Math.round(cobradoUSD).toLocaleString()+')'
+      +' &nbsp;·&nbsp; Saldo pendiente: <b style="color:'+(saldoUSD>0?'var(--golt)':'var(--gt)')+'">USD '+saldoUSD.toLocaleString()+'</b></div>';
   }
 
   // Formulario agregar pago
@@ -8017,8 +8024,8 @@ function cpUM(iid,mi,campo,val){var it=cpFindItem(iid);if(!it||!it.mats[mi])retu
 function cpUMO(iid,mi,campo,val){var it=cpFindItem(iid);if(!it||!it.mo[mi])return;it.mo[mi][campo]=val;if(campo!=='nom')cpRenderActive(iid);}
 function cpBorrarMat(iid,mi){var it=cpFindItem(iid);if(!it)return;it.mats.splice(mi,1);cpRenderActive(iid);}
 function cpBorrarMO(iid,mi){var it=cpFindItem(iid);if(!it)return;it.mo.splice(mi,1);cpRenderActive(iid);}
-function cpAgregarMat(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'',nom:'Nuevo material',un:'m\u00b2',rend:1,pu:0,esEquipo:false});cpRender();}
-function cpAgregarEquipo(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'',nom:'Nuevo equipo',un:'hh',rend:1,pu:0,esEquipo:true});cpRender();}
+function cpAgregarMat(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'_'+cpNID(),nom:'Nuevo material',un:'m\u00b2',rend:1,pu:0,esEquipo:false});cpRender();}
+function cpAgregarEquipo(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'_'+cpNID(),nom:'Nuevo equipo',un:'hh',rend:1,pu:0,esEquipo:true});cpRender();}
 function cpAgregarMO(iid){var it=cpFindItem(iid);if(!it)return;it.mo.push({rol:'of',hh:1,pu:(typeof apuGetMOpu==='function'?apuGetMOpu('of'):0)});cpRender();}
 var CP_PICKER_MAT_IID=null;
 function cpAbrirPickerMat(iid){
@@ -8247,13 +8254,14 @@ function cpVerResumen(){
   var card=document.getElementById('cp-resumen-card');
   var el=document.getElementById('cp-resumen');if(!el)return;
   var matMap={},totM=0,totE=0,totO=0,totT=0;
+  var factorAjuste=(typeof cpFactorAjusteTotal==='function')?cpFactorAjusteTotal():1;
   CP_RUBROS.forEach(function(rub){
     rub.items.forEach(function(it){
       var qty=cpQty(it.dims,it.un);
       var calc=cpCalcPreciso(it.mats,it.mo,qty);
       totM+=calc.costoMat;totE+=calc.costoEquipo;totO+=calc.costoMO;totT+=calc.pu_adopt;
       (it.mats||[]).forEach(function(m){
-        var pu=m.pu||CP_PRECIOS_MAT[m.id]||0,c=Math.round(qty*m.rend*1000)/1000,s=Math.round(c*pu);
+        var pu=(m.pu||CP_PRECIOS_MAT[m.id]||0)*factorAjuste,c=Math.round(qty*m.rend*1000)/1000,s=Math.round(c*pu);
         var k=(m.id||m.nom||'x').replace(/\s/g,'_');
         var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
         if(!matMap[k])matMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:pu,esEquipo:m.esEquipo||false,isMO:false,desp:desp,cod:m.id};
@@ -8261,7 +8269,7 @@ function cpVerResumen(){
         matMap[k].desp=Math.max(matMap[k].desp,desp);
       });
       (it.mo||[]).forEach(function(m){
-        var pu=m.pu||CP_PRECIOS_MAT[m.rol]||0,hs=Math.round(qty*m.hh*100)/100,s=Math.round(hs*pu);
+        var pu=(m.pu||(typeof apuGetMOpu==='function'?apuGetMOpu(m.rol):0)||CP_PRECIOS_MAT[m.rol]||0)*factorAjuste,hs=Math.round(qty*m.hh*100)/100,s=Math.round(hs*pu);
         var k='MO_'+m.rol;
         var rn={ofEsp:'Of. Esp.',of:'Oficial',mo:'Medio Of.',ay:'Ayudante'}[m.rol]||m.rol;
         if(!matMap[k])matMap[k]={nom:'MO \u2014 '+rn,un:'hs',cant:0,sub:0,pu:pu,isMO:true};
@@ -8567,6 +8575,7 @@ function cpPDF(modo){
   var tituloScope=modo==='rubro'?(rubrosAExportar[0].nom||'').toString().toUpperCase():'Cómputo Completo';
   var d='<h1>Cómputo y Presupuesto — '+tituloScope+'</h1><div class="sub">'+obraNom+' — Precios 2026 — Análisis de Precios Unitario por ítem (estructura ANALISIS DE PRECIOS 2026)</div><hr>';
   var totM=0,totE=0,totO=0,totT=0,lisMap={};
+  var factorAjuste=(typeof cpFactorAjusteTotal==='function')?cpFactorAjusteTotal():1;
   rubrosAExportar.forEach(function(rub){
     if(!rub.items.length)return;
     var rT=0;d+='<div class="rubro-block"><h2>'+(rub.nom||'').toString().toUpperCase()+'</h2>';
@@ -8576,15 +8585,15 @@ function cpPDF(modo){
       d+='<div class="item-block">'+res.html+'</div>';
       var calc=res.calc,qty=res.qty;
       (it.mats||[]).forEach(function(m){
-        var c=Math.round(qty*(m.rend||0)*1000)/1000,s=Math.round(c*(m.pu||0));
+        var puAj=(m.pu||0)*factorAjuste,c=Math.round(qty*(m.rend||0)*1000)/1000,s=Math.round(c*puAj);
         var k=(m.id||m.nom||'x').replace(/\s/g,'_');
         var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
-        if(!lisMap[k])lisMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:m.pu||0,esEquipo:m.esEquipo||false,desp:desp,cod:m.id};
+        if(!lisMap[k])lisMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:puAj,esEquipo:m.esEquipo||false,desp:desp,cod:m.id};
         lisMap[k].cant+=c;lisMap[k].sub+=s;
         lisMap[k].desp=Math.max(lisMap[k].desp,desp);
       });
       (it.mo||[]).forEach(function(m){
-        var pu=m.pu||apuGetMOpu(m.rol)||0,hs=Math.round(qty*(m.hh||m.hs||0)*100)/100,s=Math.round(hs*pu);
+        var pu=(m.pu||apuGetMOpu(m.rol)||0)*factorAjuste,hs=Math.round(qty*(m.hh||m.hs||0)*100)/100,s=Math.round(hs*pu);
         var rn={ofEsp:'Of. Esp.',of:'Oficial',mo:'Medio Of.',ay:'Ayudante'}[m.rol]||m.rol;
         var k='MO_'+m.rol;
         if(!lisMap[k])lisMap[k]={nom:'MO '+rn,un:'hs',cant:0,sub:0,pu:pu,isMO:true};
@@ -8624,6 +8633,7 @@ function cpPDF(modo){
 
 function cpAgregarDatos(rubros){
   var matMap={},moMap={},rubroRows=[],totG={mat:0,mo:0,tot:0};
+  var factorAjuste=(typeof cpFactorAjusteTotal==='function')?cpFactorAjusteTotal():1;
   rubros.forEach(function(rub){
     if(!rub.items.length)return;
     var itemRows=[],rSubMat=0,rSubMO=0,rSubTot=0;
@@ -8634,14 +8644,14 @@ function cpAgregarDatos(rubros){
       itemRows.push({nom:it.nom,un:it.un,qty:qty,costoMat:calc.costoMat,costoMO:calc.costoMO,puAdopt:calc.pu_adopt});
       rSubMat+=calc.costoMat;rSubMO+=calc.costoMO;rSubTot+=calc.pu_adopt;
       (it.mats||[]).forEach(function(m){
-        var c=Math.round(qty*(m.rend||0)*1000)/1000,s=Math.round(c*(m.pu||0));
+        var puAj=(m.pu||0)*factorAjuste,c=Math.round(qty*(m.rend||0)*1000)/1000,s=Math.round(c*puAj);
         var k=(m.id||m.nom||'x').replace(/\s/g,'_');
         var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
-        if(!matMap[k])matMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:m.pu||0,esEquipo:m.esEquipo||false,desp:desp,cod:m.id};
+        if(!matMap[k])matMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:puAj,esEquipo:m.esEquipo||false,desp:desp,cod:m.id};
         matMap[k].cant+=c;matMap[k].sub+=s;matMap[k].desp=Math.max(matMap[k].desp,desp);
       });
       (it.mo||[]).forEach(function(m){
-        var pu=m.pu||apuGetMOpu(m.rol)||0,hs=Math.round(qty*(m.hh||m.hs||0)*100)/100,s=Math.round(hs*pu);
+        var pu=(m.pu||apuGetMOpu(m.rol)||0)*factorAjuste,hs=Math.round(qty*(m.hh||m.hs||0)*100)/100,s=Math.round(hs*pu);
         var rn={ofEsp:'Oficial Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'}[m.rol]||m.rol;
         var k='MO_'+m.rol;
         if(!moMap[k])moMap[k]={nom:rn,un:'hs',cant:0,sub:0,pu:pu};
@@ -9086,6 +9096,7 @@ function cpComputoPresupuestoBuild(modo){
   var bodyMat=[];
   var totalGeneralMat=0;
   var colCountMat=6;
+  var factorAjuste=(typeof cpFactorAjusteTotal==='function')?cpFactorAjusteTotal():1;
   rubrosConItems.forEach(function(rub){
     var letra=rubroLetra[rub.id];
     var subtotalRubro=0;
@@ -9112,7 +9123,7 @@ function cpComputoPresupuestoBuild(modo){
         }
         mats.forEach(function(m){
           var cant=Math.round(qty*(m.rend||0)*1000)/1000;
-          var pu=m.pu||0;
+          var pu=(m.pu||0)*factorAjuste;
           var parcial=cant*pu;
           subtotalRubro+=parcial;
           bodyMat.push([String(n++),m.nom,m.un,cant.toLocaleString('es-AR',{maximumFractionDigits:3}),'$'+cpFmtAR(pu),'$'+cpFmtAR(parcial)]);
@@ -9138,7 +9149,7 @@ function cpComputoPresupuestoBuild(modo){
   var bodyMO=[];
   var totalGeneralMO=0;
   var rolNom={ofEsp:'Oficial Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'};
-  var rolPu={ofEsp:apuGetMOpu('ofEsp'),of:apuGetMOpu('of'),mo:apuGetMOpu('mo'),ay:apuGetMOpu('ay')};
+  var rolPu={ofEsp:apuGetMOpu('ofEsp')*factorAjuste,of:apuGetMOpu('of')*factorAjuste,mo:apuGetMOpu('mo')*factorAjuste,ay:apuGetMOpu('ay')*factorAjuste};
   rubrosConItems.forEach(function(rub){
     var letra=rubroLetra[rub.id];
     var agSum={ofEsp:0,of:0,mo:0,ay:0};
@@ -9180,15 +9191,22 @@ function cpComputoPresupuestoBuild(modo){
 
   // ── Sección III: RESUMEN GENERAL ────────────────────────────────────
   doc.addPage();
-  var CUT=totalGeneralMat+totalGeneralMO;
+  // Misma fórmula que el motor de precios en vivo (cpCalcPreciso): Varios(1%×Mat) y
+  // Herramientas(2%×MO) se suman ANTES del C.U.T., para que este resumen no diverja
+  // del total ya mostrado en el Cómputo/Presupuesto ítem por ítem.
+  var variosMat=Math.round(totalGeneralMat*APU_VARIOS);
+  var herramMO=Math.round(totalGeneralMO*APU_HERRAM);
+  var costoMatTot=Math.round(totalGeneralMat)+variosMat;
+  var costoMOTot=Math.round(totalGeneralMO)+herramMO;
+  var CUT=costoMatTot+costoMOTot;
   var g51=Math.round(CUT*APU_G51),sub51=CUT+g51;
   var g52=Math.round(sub51*APU_G52),sub1=sub51+g52;
   var g53=Math.round(sub51*APU_G53),sub2=sub1+g53;
   var g54=Math.round(sub2*APU_G54),totalGral=sub2+g54;
   var gastosAdicionales=totalGral-CUT;
   var bodyResumen=[
-    ['I','MATERIALES','$'+cpFmtAR(totalGeneralMat)],
-    ['II','MANO DE OBRA','$'+cpFmtAR(totalGeneralMO)],
+    ['I','MATERIALES (c/Varios 1%)','$'+cpFmtAR(costoMatTot)],
+    ['II','MANO DE OBRA (c/Herramientas 2%)','$'+cpFmtAR(costoMOTot)],
     ['III','GASTOS ADICIONALES (grls. 15% + benef. 10% + financ. 3% + IVA 4%)','$'+cpFmtAR(gastosAdicionales)],
     [{content:'TOTAL GENERAL DE LA OBRA',colSpan:2,styles:{fontStyle:'bold',fillColor:[225,225,225],halign:'right'}},{content:'$'+cpFmtAR(totalGral),styles:{fontStyle:'bold',fillColor:[225,225,225],halign:'right'}}]
   ];
