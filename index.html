@@ -1991,11 +1991,12 @@ function cambiarEstado(id,estado){id=isNaN(id)?id:Number(id);var h=HON_DATA.find
 function eliminarHon(id){
   id=isNaN(id)?id:Number(id);
   var h=HON_DATA.find(function(x){return x.id==id;});
-  // Eliminar de Firebase también
-  if(_db&&_uid&&h){
-    _db.collection('users').doc(_uid).collection('honorarios').doc(String(id)).delete().catch(function(){});
-  }if(!h)return;
+  if(!h)return;
   if(!confirm('\u00bfEliminar '+h.code+'?\nEsta acci\u00f3n no se puede deshacer.'))return;
+  // Eliminar de Firebase también (recién después de confirmar)
+  if(_db&&_uid){
+    _db.collection('users').doc(_uid).collection('honorarios').doc(String(id)).delete().catch(function(){});
+  }
   HON_DATA=HON_DATA.filter(function(x){return x.id!==id;});renderHon(HON_DATA);updateDashboard();guardarTodo();toast(h.code+' eliminado');
 }
 
@@ -2511,13 +2512,37 @@ renderCli(CLIENTES);
 function filtCli(v){var q=v.toLowerCase();renderCli(CLIENTES.filter(function(c){return(c.ap+c.nm+(c.cuil||'')+(c.dni||'')).toLowerCase().includes(q);}));}
 function filtCliTp(v){renderCli(v?CLIENTES.filter(function(c){return v==='Física'?c.tp==='fisica':c.tp==='jur';}):CLIENTES);}
 function eliminarCli(id){
-  if(!confirm('\u00bfEliminar este cliente?'))return;
-  CLIENTES=CLIENTES.filter(function(c){return c.id!==id;});renderCli(CLIENTES);populateCliSel();guardarTodo();toast('Cliente eliminado');
+  var vinculados=HON_DATA.filter(function(h){return h.cliId==id;}).length;
+  var msg='\u00bfEliminar este cliente?';
+  if(vinculados>0)msg='Este cliente tiene '+vinculados+' presupuesto'+(vinculados>1?'s':'')+' de Honorarios asociado'+(vinculados>1?'s':'')+' \u2014 no se van a borrar, pero van a quedar sin cliente vinculado. \u00bfEliminar de todos modos?';
+  if(!confirm(msg))return;
+  CLIENTES=CLIENTES.filter(function(c){return c.id!==id;});renderCli(CLIENTES);populateCliSel();guardarTodo();
+  if(_db&&_uid)fbDelete('clientes',id);
+  toast('Cliente eliminado');
 }
 function openCliMod(){
   document.getElementById('ci-edit-id').value='';
   document.getElementById('mod-cli-title').textContent='Nuevo cliente \u00b7 DNI / CUIT / CUIL';
   ['ci-ap','ci-nm','ci-dni','ci-cuil','ci-email','ci-tel','ci-dir'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var rf=document.querySelector('input[name="cli-tp"][value="fisica"]');if(rf){rf.checked=true;togCliTp(rf);}
+  document.getElementById('ci-iva').value='Responsable Inscripto';
+  document.getElementById('mod-cli').classList.add('open');
+}
+function editarCli(id){
+  var c=CLIENTES.find(function(x){return x.id==id;});if(!c)return;
+  var detModal=document.getElementById('mod-cli-det');if(detModal)detModal.classList.remove('open');
+  document.getElementById('ci-edit-id').value=c.id;
+  document.getElementById('mod-cli-title').textContent='Editar cliente';
+  document.getElementById('ci-ap').value=c.ap||'';
+  document.getElementById('ci-nm').value=c.nm||'';
+  document.getElementById('ci-dni').value=c.dni||'';
+  document.getElementById('ci-cuil').value=c.cuil||'';
+  document.getElementById('ci-iva').value=c.iva||'Responsable Inscripto';
+  document.getElementById('ci-email').value=c.email||'';
+  document.getElementById('ci-tel').value=c.tel||'';
+  document.getElementById('ci-dir').value=c.dir||'';
+  var rb=document.querySelector('input[name="cli-tp"][value="'+(c.tp||'fisica')+'"]');
+  if(rb){rb.checked=true;togCliTp(rb);}
   document.getElementById('mod-cli').classList.add('open');
 }
 function closeM(id){document.getElementById(id).classList.remove('open');}
@@ -2528,12 +2553,22 @@ function saveCli(){
   var ap=document.getElementById('ci-ap').value.trim(),nm=document.getElementById('ci-nm').value.trim();
   if(!ap||!nm){toast('Complete apellido y nombre',false);return;}
   var tp=document.querySelector('input[name="cli-tp"]:checked').value;
-  var c={id:Date.now(),tp:tp,ap:ap.toUpperCase(),nm:nm,
+  var editId=document.getElementById('ci-edit-id').value;
+  var existing=editId?CLIENTES.find(function(x){return x.id==editId;}):null;
+  var c={id:existing?existing.id:Date.now(),tp:tp,ap:ap.toUpperCase(),nm:nm,
     dni:document.getElementById('ci-dni').value,cuil:document.getElementById('ci-cuil').value,
     iva:document.getElementById('ci-iva').value,email:document.getElementById('ci-email').value,
     tel:document.getElementById('ci-tel').value,dir:document.getElementById('ci-dir').value,
-    clr:['#2a4a7c','#7c1d2e','#1a5c3a','#5a3a6a','#3a5a3a','#6a4a20'][Math.floor(Math.random()*6)]};
-  CLIENTES.unshift(c);renderCli(CLIENTES);populateCliSel();closeM('mod-cli');guardarTodo();toast(c.ap+', '+c.nm+' guardado');
+    clr:existing?existing.clr:['#2a4a7c','#7c1d2e','#1a5c3a','#5a3a6a','#3a5a3a','#6a4a20'][Math.floor(Math.random()*6)]};
+  if(existing){
+    var idx=CLIENTES.findIndex(function(x){return x.id==editId;});
+    if(idx>=0)CLIENTES[idx]=c;
+  }else{
+    CLIENTES.unshift(c);
+  }
+  renderCli(CLIENTES);populateCliSel();closeM('mod-cli');guardarTodo();
+  if(_db&&_uid)fbSave('clientes',c.id,c);
+  toast(c.ap+', '+c.nm+' guardado');
 }
 
 /* ── OBRAS ────────────────────────────────────────────────────────────── */
@@ -2598,7 +2633,7 @@ function saveObra(){
   if(!nombre){toast('Ingresá el nombre de la obra',false);return;}
   var editId=document.getElementById('ob-edit-id').value;
   var o={
-    id: editId || Date.now(),
+    id: editId?Number(editId):Date.now(),
     nombre:nombre,
     titular:document.getElementById('ob-titular').value.trim(),
     direccion:document.getElementById('ob-direccion').value.trim(),
@@ -2627,7 +2662,7 @@ function saveObra(){
 function eliminarObra(id){
   var o=OBRAS_DATA.find(function(x){return x.id==id;});if(!o)return;
   if(!confirm('¿Eliminar la obra "'+o.nombre+'"? (los cómputos guardados de esta obra no se borran)'))return;
-  OBRAS_DATA=OBRAS_DATA.filter(function(x){return x.id!==id;});
+  OBRAS_DATA=OBRAS_DATA.filter(function(x){return x.id!=id;});
   renderObras(OBRAS_DATA);
   guardarTodo();
   if(_db&&_uid)fbDelete('obras',id);
@@ -3256,11 +3291,17 @@ function guardarFirebaseConfig(){
 /* ── FIRESTORE SAVE/LOAD ───────────────────────────────────────── */
 function fbSave(collection, docId, data){
   if(_syncMode!=='firebase'||!_db||!_uid)return;
-  _db.collection('users').doc(_uid).collection(collection).doc(String(docId)).set(data).catch(function(e){console.warn('fbSave error:',e);});
+  _db.collection('users').doc(_uid).collection(collection).doc(String(docId)).set(data).catch(function(e){
+    console.warn('fbSave error:',e);
+    toast('⚠ No se pudo sincronizar con la nube (se guardó localmente) — '+(e&&e.message?e.message:'sin conexión'),false);
+  });
 }
 function fbDelete(collection, docId){
   if(_syncMode!=='firebase'||!_db||!_uid)return;
-  _db.collection('users').doc(_uid).collection(collection).doc(String(docId)).delete().catch(function(){});
+  _db.collection('users').doc(_uid).collection(collection).doc(String(docId)).delete().catch(function(e){
+    console.warn('fbDelete error:',e);
+    toast('⚠ No se pudo eliminar en la nube (se eliminó localmente) — '+(e&&e.message?e.message:'sin conexión'),false);
+  });
 }
 
 async function fbSyncAll(){
@@ -3410,6 +3451,42 @@ function setupRealtimeListeners(){
       if(!snap.metadata.hasPendingWrites){
         HON_DATA.sort(function(a,b){return b.id-a.id;});
         renderHon(HON_DATA);updateDashboard();
+        guardarTodo();
+      }
+    },function(){});
+  // Listen for clientes changes (other devices) — mismo patrón que honorarios, para que
+  // dos dispositivos abiertos a la vez no se pisen los datos de clientes entre sí.
+  _db.collection('users').doc(_uid).collection('clientes')
+    .onSnapshot(function(snap){
+      snap.docChanges().forEach(function(change){
+        if(change.type==='added'||change.type==='modified'){
+          var d=change.doc.data();
+          var idx=CLIENTES.findIndex(function(c){return c.id===d.id;});
+          if(idx>=0)CLIENTES[idx]=d;else CLIENTES.unshift(d);
+        }else if(change.type==='removed'){
+          CLIENTES=CLIENTES.filter(function(c){return c.id!=change.doc.id;});
+        }
+      });
+      if(!snap.metadata.hasPendingWrites){
+        renderCli(CLIENTES);
+        if(typeof populateCliSel==='function')populateCliSel();
+        guardarTodo();
+      }
+    },function(){});
+  // Listen for obras changes (other devices)
+  _db.collection('users').doc(_uid).collection('obras')
+    .onSnapshot(function(snap){
+      snap.docChanges().forEach(function(change){
+        if(change.type==='added'||change.type==='modified'){
+          var d=change.doc.data();
+          var idx=OBRAS_DATA.findIndex(function(o){return o.id===d.id;});
+          if(idx>=0)OBRAS_DATA[idx]=d;else OBRAS_DATA.unshift(d);
+        }else if(change.type==='removed'){
+          OBRAS_DATA=OBRAS_DATA.filter(function(o){return o.id!=change.doc.id;});
+        }
+      });
+      if(!snap.metadata.hasPendingWrites){
+        renderObras(OBRAS_DATA);
         guardarTodo();
       }
     },function(){});
@@ -3569,8 +3646,9 @@ async function loadUserPlan(uid){
         setPlan(plan);
         // Check if this is Diego (admin)
         if(data.isAdmin){ setPlan('admin'); ADMIN_UID = uid; }
-      } else if(status === 'trial'){
+      } else if(status === 'trial' && (!expires || expires > new Date())){
         setPlan(plan);
+        if(expires)mostrarTimerPrueba(expires);
       } else {
         // Trial expired or no plan - show upgrade prompt
         setPlan('ninguno');
@@ -3666,7 +3744,7 @@ function contactarParaPlan(plan){
 
 /* ── ADMIN PANEL ────────────────────────────────────────────────── */
 async function loadAdminPanel(){
-  if(currentPlan !== 'admin' && currentPlan !== 'premium') return;
+  if(currentPlan !== 'admin') return;
   var cont = document.getElementById('admin-users');
   if(!cont || !_db) return;
   cont.innerHTML = '<div style="color:var(--tx3);font-size:12px">Cargando usuarios...</div>';
@@ -3970,7 +4048,20 @@ function checkMostrarBannerImportar(){
 /* ── CREAR CÓDIGO (Admin) ────────────────────────────────── */
 async function crearCodigo(plan, dias, maxUsos, nombre){
   if(!_db||currentPlan!=='admin'){toast('Solo el admin puede crear códigos',false);return;}
-  var code = nombre || (plan.toUpperCase()+'-'+Math.random().toString(36).substring(2,7).toUpperCase());
+  var code;
+  if(nombre){
+    code = nombre;
+    var existeDoc = await _db.collection('codigos').doc(code).get();
+    if(existeDoc.exists){toast('Ya existe un código con ese nombre — elegí otro',false);return;}
+  }else{
+    // Generar un sufijo aleatorio y verificar que no colisione con uno existente antes de crearlo.
+    for(var intento=0;intento<5;intento++){
+      var candidato = plan.toUpperCase()+'-'+Math.random().toString(36).substring(2,7).toUpperCase();
+      var chk = await _db.collection('codigos').doc(candidato).get();
+      if(!chk.exists){code=candidato;break;}
+    }
+    if(!code){toast('No se pudo generar un código único, probá de nuevo',false);return;}
+  }
   var data = {
     code: code,
     plan: plan,
@@ -3993,33 +4084,36 @@ async function aplicarCodigo(code){
   code = code.trim().toUpperCase();
   if(!code){toast('Ingresá un código',false);return;}
   try{
-    var doc = await _db.collection('codigos').doc(code).get();
-    if(!doc.exists){toast('Código inválido',false);return;}
-    var data = doc.data();
-    if(!data.activo){toast('Este código ya no está activo',false);return;}
-    if(data.maxUsos>0 && data.usados>=data.maxUsos){toast('Este código ya llegó al límite de usos',false);return;}
-    // Verificar que el usuario no lo haya usado antes
-    if(data.usos && data.usos.find(function(u){return u.uid===_uid;})){
-      toast('Ya usaste este código',false);return;
-    }
-    // Aplicar plan
-    var expires = new Date(Date.now() + (data.dias||30)*24*60*60*1000);
-    await _db.collection('users').doc(_uid).update({
-      plan: data.plan,
-      planStatus: 'trial',
-      planExpires: expires.toISOString(),
-      codigoUsado: code
+    var planAplicado=null, diasAplicados=30;
+    // Transacción: evita que dos canjes concurrentes del mismo código con maxUsos limitado
+    // pasen ambos el chequeo de "usados<maxUsos" antes de que el primero lo incremente.
+    await _db.runTransaction(async function(tx){
+      var ref = _db.collection('codigos').doc(code);
+      var doc = await tx.get(ref);
+      if(!doc.exists) throw new Error('Código inválido');
+      var data = doc.data();
+      if(!data.activo) throw new Error('Este código ya no está activo');
+      if(data.maxUsos>0 && data.usados>=data.maxUsos) throw new Error('Este código ya llegó al límite de usos');
+      if(data.usos && data.usos.find(function(u){return u.uid===_uid;})) throw new Error('Ya usaste este código');
+      var expires = new Date(Date.now() + (data.dias||30)*24*60*60*1000);
+      tx.update(_db.collection('users').doc(_uid), {
+        plan: data.plan,
+        planStatus: 'trial',
+        planExpires: expires.toISOString(),
+        codigoUsado: code
+      });
+      tx.update(ref, {
+        usados: (data.usados||0)+1,
+        usos: (data.usos||[]).concat([{uid:_uid,email:currentUser.email,fecha:new Date().toISOString()}])
+      });
+      planAplicado=data.plan; diasAplicados=data.dias||30;
     });
-    // Registrar uso
-    await _db.collection('codigos').doc(code).update({
-      usados: (data.usados||0)+1,
-      usos: (data.usos||[]).concat([{uid:_uid,email:currentUser.email,fecha:new Date().toISOString()}])
-    });
-    setPlan(data.plan);
-    mostrarTimerPrueba(expires);
+    var expiresLocal = new Date(Date.now() + diasAplicados*24*60*60*1000);
+    setPlan(planAplicado);
+    mostrarTimerPrueba(expiresLocal);
     closeM('mod-codigo');
-    toast('\u2713 Código activado — '+(data.dias||30)+' días de '+PLANES[data.plan].nm);
-  }catch(e){toast('Error: '+e.message,false);}
+    toast('\u2713 Código activado — '+diasAplicados+' días de '+PLANES[planAplicado].nm);
+  }catch(e){toast(e.message||('Error: '+e),false);}
 }
 
 /* ── PANEL ADMIN: GESTIÓN DE CÓDIGOS ────────────────────── */
@@ -4144,7 +4238,8 @@ function honCode(hon){
 function abrirDetalleCliente(cliId){
   var cli=CLIENTES.find(function(c){return c.id==cliId;});
   if(!cli)return;
-  var hons=HON_DATA.filter(function(h){return h.cliId==cliId||h.cliente===(cli.nombre||'');});
+  var cliNombreCompleto=cli.ap+', '+cli.nm;
+  var hons=HON_DATA.filter(function(h){return h.cliId==cliId||h.cliente===cliNombreCompleto;});
   
   // Agrupar por Nomenclatura + Tipo de encargo
   var obras={};
@@ -4162,18 +4257,20 @@ function abrirDetalleCliente(cliId){
   if(!m){m=document.createElement('div');m.id='mod-cli-det';m.className='mb';m.onclick=function(e){if(e.target===m)m.classList.remove('open');};var inner=document.createElement('div');inner.className='modal';inner.style.cssText='max-width:800px;max-height:88vh;overflow-y:auto';m.appendChild(inner);document.body.appendChild(m);}
 
   var html='<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px">'
-    +'<div><div style="font-size:18px;font-weight:800;color:var(--tx)">'+cli.nombre+'</div>'
+    +'<div><div style="font-size:18px;font-weight:800;color:var(--tx)">'+cliNombreCompleto+'</div>'
     +'<div style="font-size:11px;color:var(--tx3);margin-top:3px">'
     +(cli.email?'📧 '+cli.email+' &nbsp;':'')+(cli.tel?'📞 '+cli.tel:'')
-    +(cli.cuit?'&nbsp; · &nbsp;CUIT/CUIL: '+cli.cuit:'')+'</div></div>'
-    +'<button class="btn btn-sm" onclick="closeM(\'mod-cli-det\')">✕</button></div>';
+    +(cli.cuil?'&nbsp; · &nbsp;CUIT/CUIL: '+cli.cuil:'')+'</div></div>'
+    +'<div style="display:flex;gap:6px;flex-shrink:0">'
+    +'<button class="btn btn-sm" onclick="editarCli('+cli.id+')">✏ Editar</button>'
+    +'<button class="btn btn-sm" onclick="closeM(\'mod-cli-det\')">✕</button></div></div>';
 
   if(!Object.keys(obras).length){
     html+='<div style="text-align:center;padding:40px;color:var(--tx3);font-size:13px">Sin presupuestos asociados a este cliente</div>';
   } else {
     Object.values(obras).forEach(function(obra){
       var totalUSD=obra.hons.reduce(function(a,h){return a+(h.usd||0);},0);
-      var totalPagado=obra.hons.reduce(function(a,h){return a+((h.pagos||[]).reduce(function(b,p){return b+(p.usd||0);},0));},0);
+      var totalPagado=obra.hons.reduce(function(a,h){return a+((h.pagos||[]).reduce(function(b,p){return b+(p.montoUSD||0);},0));},0);
       
       html+='<div class="card" style="margin-bottom:16px;border-color:rgba(96,165,250,.2)">';
       // Obra header
@@ -4210,7 +4307,7 @@ function abrirDetalleCliente(cliId){
         if(hon.pagos&&hon.pagos.length){
           hon.pagos.forEach(function(p){
             html+='<div style="font-size:10px;color:var(--tx2);padding:5px 0 0 4px;border-top:1px solid var(--br2);margin-top:5px">'
-              +'💰 <b>'+p.concepto+'</b> — USD '+p.usd+' (ARS $'+Math.round((p.usd||0)*(hon.tc||1460)).toLocaleString()+') — '+(p.fecha||'')+' '
+              +'💰 <b>'+p.concepto+'</b> — USD '+(p.montoUSD||0)+' (ARS $'+Math.round(p.montoARS||((p.montoUSD||0)*(hon.tc||1460))).toLocaleString()+') — '+(p.fecha||'')+' '
               +(p.cae?'<span style="color:var(--gt);font-weight:700">· CAE: '+p.cae+'</span>':'')
               +'<span style="color:var(--tx3);margin-left:6px">'+( p.estado==='facturado'?'✓ Facturado':'Pendiente' )+'</span></div>';
           });
@@ -8013,7 +8110,7 @@ function cpCargarEstructura3CM(){
 }
 function cpAI(rid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items.push({id:cpNID(),nom:'',un:'m\u00b2',dims:[],mats:[],mo:[],unidades_permitidas:null});cpRender();}
 function cpBI(rid,iid){var r=CP_RUBROS.find(function(r){return r.id===rid;});if(!r)return;r.items=r.items.filter(function(i){return i.id!==iid;});cpRender();}
-function cpCU(iid,un){var it=cpFindItem(iid);if(!it)return;var LINEAL={m:1,ml:1};var compat=LINEAL[it.un]&&LINEAL[un];if(!compat&&it.dims&&it.dims.length&&!confirm('Cambiar la unidad borra los renglones de dimensiones ya cargados para este ítem. ¿Continuar?'))return;it.un=un;if(!compat)it.dims=[];cpRender();}
+function cpCU(iid,un){var it=cpFindItem(iid);if(!it||un===it.un)return;var LINEAL={m:1,ml:1};var compat=LINEAL[it.un]&&LINEAL[un];if(!compat&&it.dims&&it.dims.length&&!confirm('Cambiar la unidad borra los renglones de dimensiones ya cargados para este ítem. ¿Continuar?'))return;it.un=un;if(!compat)it.dims=[];cpRender();}
 function cpUSubrubro(iid,val){var it=cpFindItem(iid);if(!it)return;it.subrubro=val;}
 function cpAD(iid){var it=cpFindItem(iid);if(!it)return;it.dims.push({id:cpNID(),desc:'',l:0,a:0,h:0,q:1,sust:false});cpRender();}
 function cpADVano(iid){var it=cpFindItem(iid);if(!it)return;it.dims.push({id:cpNID(),desc:'Abertura/Vano',l:0,a:0,h:0,q:1,sust:true});cpRender();}
@@ -8432,6 +8529,7 @@ function cpAPUItemHtml(it){
   var qtyReal=cpQty(it.dims,it.un);
   var calcReal=cpCalcPreciso(it.mats,it.mo,qtyReal);
   var calc=cpCalcPreciso(it.mats,it.mo,1);
+  var factorAjuste=(typeof cpFactorAjusteTotal==='function')?cpFactorAjusteTotal():1;
   var mats=(it.mats||[]).filter(function(m){return !m.esEquipo;});
   var equipos=(it.mats||[]).filter(function(m){return m.esEquipo;});
   var h='';
@@ -8440,8 +8538,9 @@ function cpAPUItemHtml(it){
   h+='<table><thead><tr><th>Cód.</th><th>Descripción</th><th>Unidad</th><th class="r">Cantidad</th><th class="r">Precio Unitario</th><th class="r">Precio Total</th></tr></thead><tbody>';
   mats.forEach(function(m){
     var cant=Math.round((m.rend||0)*1000)/1000;
-    var pt=cant*(m.pu||0);
-    h+='<tr><td>'+(m.id||'')+'</td><td>'+m.nom+(m.sinPrecio?' <span style="color:#c02d46;font-weight:700">!</span>':'')+'</td><td>'+m.un+'</td><td class="r mat">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">$'+cpFmtAR(m.pu)+'</td><td class="r mat">$'+cpFmtAR(pt)+'</td></tr>';
+    var puAj=(m.pu||0)*factorAjuste;
+    var pt=cant*puAj;
+    h+='<tr><td>'+(m.id||'')+'</td><td>'+m.nom+(m.sinPrecio?' <span style="color:#c02d46;font-weight:700">!</span>':'')+'</td><td>'+m.un+'</td><td class="r mat">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">$'+cpFmtAR(puAj)+'</td><td class="r mat">$'+cpFmtAR(pt)+'</td></tr>';
   });
   if(!mats.length) h+='<tr><td colspan="6" style="color:#94a3b8"><i>Sin materiales cargados</i></td></tr>';
   h+='<tr><td colspan="5"><i>Varios (0,01% de Suma Precio)</i></td><td class="r">$'+cpFmtAR(calc.varios)+'</td></tr>';
@@ -8451,8 +8550,9 @@ function cpAPUItemHtml(it){
   h+='<table><thead><tr><th>Cód.</th><th>Descripción</th><th>Unidad</th><th class="r">Cantidad</th><th class="r">Precio Unitario</th><th class="r">Precio Total</th></tr></thead><tbody>';
   equipos.forEach(function(m){
     var cant=Math.round((m.rend||0)*1000)/1000;
-    var pt=cant*(m.pu||0);
-    h+='<tr><td>'+(m.id||'')+'</td><td>'+m.nom+'</td><td>'+m.un+'</td><td class="r mat">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">$'+cpFmtAR(m.pu)+'</td><td class="r mat">$'+cpFmtAR(pt)+'</td></tr>';
+    var puAj=(m.pu||0)*factorAjuste;
+    var pt=cant*puAj;
+    h+='<tr><td>'+(m.id||'')+'</td><td>'+m.nom+'</td><td>'+m.un+'</td><td class="r mat">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">$'+cpFmtAR(puAj)+'</td><td class="r mat">$'+cpFmtAR(pt)+'</td></tr>';
   });
   if(!equipos.length) h+='<tr><td colspan="6" style="color:#94a3b8"><i>Sin equipos cargados</i></td></tr>';
   h+='<tr><td colspan="5"><i>Herramientas menores (0,02% de Mano de Obra)</i></td><td class="r">$'+cpFmtAR(calc.herram)+'</td></tr>';
@@ -8464,7 +8564,7 @@ function cpAPUItemHtml(it){
   roles.forEach(function(r){
     var m=(it.mo||[]).find(function(x){return x.rol===r.rol;});
     var hs=m?(m.hh||m.hs||0):0;
-    var pu=m?(m.pu||apuGetMOpu(r.rol)):apuGetMOpu(r.rol);
+    var pu=(m?(m.pu||apuGetMOpu(r.rol)):apuGetMOpu(r.rol))*factorAjuste;
     var pt=hs*pu;
     h+='<tr><td>'+r.n+'</td><td>'+r.lbl+'</td><td>hs.</td><td class="r mo">'+hs.toLocaleString('es-AR',{maximumFractionDigits:2})+'</td><td class="r">$'+cpFmtAR(pu)+'</td><td class="r mo">$'+cpFmtAR(pt)+'</td></tr>';
   });
@@ -10351,6 +10451,7 @@ function prEliminar(i){
   if(!confirm('¿Eliminar "'+PR_DATA[i].nom+'"?'))return;
   var cod=PR_DATA[i].cod;
   if(cod&&PR_DATA_DELETED.indexOf(cod)===-1)PR_DATA_DELETED.push(cod);
+  if(cod&&typeof CP_PRECIOS_MAT!=='undefined')delete CP_PRECIOS_MAT[cod];
   PR_DATA.splice(i,1);
   prRender();
   if(typeof prGuardar==='function')prGuardar();
