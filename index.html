@@ -1984,9 +1984,13 @@ function buildRoles(){
   var html='';
   ROLES.forEach(function(role){
     var st=S[role.id];
-    var dtag=role.descuentable
-      ?'<span style="background:rgba(248,113,113,.12);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:8px">CON DESCUENTO</span>'
-      :'<span style="background:rgba(212,168,67,.1);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:8px">SIN DESCUENTO</span>';
+    // Dibujante: aunque descuentable=false (no integra el bucket Proy.+Calc.), SÍ recibe el
+    // % Descuento proyecto aplicado a su propio total (ver recalc()) — el badge debe reflejar
+    // eso dinámicamente según mot-desc-pct, igual que el badge de la barra de fórmula (fbar).
+    var esDibujanteRole=role.id==='dibujante';
+    var descPctActual=parseFloat(document.getElementById('mot-desc-pct')?.value)||0;
+    var mostrarConDescuento=role.descuentable||(esDibujanteRole&&descPctActual>0);
+    var dtag='<span id="dtag-'+role.id+'" style="background:'+(mostrarConDescuento?'rgba(248,113,113,.12);color:var(--rt)':'rgba(212,168,67,.1);color:var(--golt)')+';font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:8px">'+(mostrarConDescuento?'CON DESCUENTO':'SIN DESCUENTO')+'</span>';
     var thtml='';
     role.tareas.forEach(function(tarea){
       var ghtml='';
@@ -2115,6 +2119,14 @@ function recalc(){
     var baseValTxt = esCalc ? (m2total+' m²') : esConfObra ? (coTarifaCfg().tramiteNm+' · '+m2total+' m²') : esDibujante ? '—' : ('USD '+Math.round(vObraRole).toLocaleString());
     var pctTxt = esCalc ? ('USD '+calcUsdM2+'/m²') : esConfObra ? ('piso USD '+coTarifaCfg().honorarioMinimo) : esDibujante ? 'u × USD' : ((role.catdf*100).toFixed(2)+'%');
     var descAplicaBadge = role.descuentable || (esDibujante&&desc>0);
+    // Sincronizar el badge del header de la tarjeta (dtag) con el mismo criterio que descAplicaBadge —
+    // evita que muestre "SIN DESCUENTO" en el header mientras la barra de fórmula dice "DESCUENTO APLICA".
+    var dtagEl=document.getElementById('dtag-'+role.id);
+    if(dtagEl){
+      dtagEl.textContent=descAplicaBadge?'CON DESCUENTO':'SIN DESCUENTO';
+      dtagEl.style.background=descAplicaBadge?'rgba(248,113,113,.12)':'rgba(212,168,67,.1)';
+      dtagEl.style.color=descAplicaBadge?'var(--rt)':'var(--golt)';
+    }
     if(fb)fb.innerHTML='<b>Fórmula:</b> '+baseLbl+' '+baseValTxt+' × <b>'+pctTxt+'</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' × % del rol.'+(descAplicaBadge?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>');
     var rs=0;
     role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
@@ -2298,7 +2310,7 @@ var LEYENDAS_HON=[
    autoSuggestWhen:function(){return true;}},
   {id:'presentacion_organismo',nm:'Presentaci\u00f3n ante organismos \u2014 solo si est\u00e1 incluida',
    texto:'Toda presentaci\u00f3n ante {{organismo}} u otro organismo p\u00fablico se realiza \u00fanicamente si el servicio de Gestor\u00eda/Representaci\u00f3n T\u00e9cnica se encuentra expresamente incluido en este presupuesto.',
-   autoSuggestWhen:function(){return !!(S['dibujante']&&S['dibujante'].on);}},
+   autoSuggestWhen:function(){return !!((S['const_rt']&&S['const_rt'].on)||(S['conf_obra_cli']&&S['conf_obra_cli'].on&&S['conf_obra_cli'].tasks&&S['conf_obra_cli'].tasks['ta_co_gest']));}},
   {id:'superficie_declarada',nm:'Superficie seg\u00fan datos suministrados por el comitente',
    texto:'La superficie de {{superficie}} utilizada como base de c\u00e1lculo de honorarios corresponde a los datos suministrados por el comitente y/o relevados en obra ({{obra}}); cualquier diferencia detectada podr\u00e1 dar lugar a un ajuste de honorarios.',
    autoSuggestWhen:function(){return true;}}
@@ -2358,6 +2370,7 @@ function motorGuardar(draft){
   // Selectores propios de Conforme a Obra – Clientes y Dibujante (se guardan para que editarHon() los restaure)
   var coTramite=gs('mot-co-tramite')||'estandar',coComplejidad=gs('mot-co-complejidad')||'estandar',coUrgencia=gs('mot-co-urgencia')||'normal';
   var dibComplejidad=gs('mot-dib-complejidad')||'estandar',dibUrgencia=gs('mot-dib-urgencia')||'normal',dibNivel=gs('mot-dib-nivel')||'basica';
+  var dibOrigenArq=gs('mot-dib-origen-arq')||'cad_actualizado',dibOrigenEstr=gs('mot-dib-origen-estr')||'cad_digital';
   var leyendasSel=(typeof leyendasObtenerSeleccion==='function')?leyendasObtenerSeleccion():[];
   var catSec=gs('mot-sec'),catMzo=gs('mot-mzo'),catParc=gs('mot-parc'),catUF=gs('mot-uf'),catDom=gs('mot-dom');
   var tipo=gs('mot-tipo')||'nueva';
@@ -2383,11 +2396,18 @@ function motorGuardar(draft){
                    : vObraNueva;
     var rolTotalCustom=esCalc?(m2total*calcUsdM2):esConfObra?coRolTotal(m2total):0;
     var items=[];
+    // rawTotal acumula los montos SIN redondear por ítem — igual que recalc(), que suma los usd
+    // en crudo y redondea una sola vez al mostrar el total del rol. Si en cambio sumáramos los
+    // usd YA redondeados por ítem (como hace items.reduce más abajo), roles con varios ítems tipo
+    // 'render' de precio fraccionario (ej. Dibujante, con m² × USD/m² con centavos) pueden acumular
+    // hasta $1-2 de diferencia entre el total mostrado en vivo y el total guardado.
+    var rawTotal=0;
     role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       if(S[role.id].subs[it.id]){
-        var iusd;
+        var iusd,rawUsd;
         if((esCalc||esConfObra)&&it.tipo==='normal'){
-          iusd=Math.round(rolTotalCustom*(it.inc/100));
+          rawUsd=rolTotalCustom*(it.inc/100);
+          iusd=Math.round(rawUsd);
           items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'normal'});
         }else if(it.tipo==='render'){
           var qEl=document.getElementById('rqty-'+it.id),pEl=document.getElementById('rprc-'+it.id);
@@ -2395,12 +2415,15 @@ function motorGuardar(draft){
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
           if(it.id==='guia_aviso'){qty=m2;}
           if(it.esM2){qty=m2total;}
-          iusd=Math.round(qty*prc);
+          rawUsd=qty*prc;
+          iusd=Math.round(rawUsd);
           items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'render',qty:qty,unitPrice:prc});
         }else{
-          iusd=Math.round(vObraRole*it.pct);
+          rawUsd=vObraRole*it.pct;
+          iusd=Math.round(rawUsd);
           items.push({nm:it.nm,inc:it.inc,pct:it.pct,usd:iusd,tipo:'normal'});
         }
+        rawTotal+=rawUsd;
       }
     });});});
     if(!items.length)return;
@@ -2423,13 +2446,49 @@ function motorGuardar(draft){
       items[normalIdxs[normalIdxs.length-1]].usd=targetRol-sumOtros;
     }
     var rs=items.reduce(function(a,b){return a+b.usd;},0);
+    // Corrección adicional para ítems tipo 'render' (ej. Dibujante: precios por m²/unidad con
+    // centavos — o extras de otros roles como renders/DD.JJ.): la suma de montos YA redondeados
+    // ítem por ítem puede quedar $1-2 por debajo/encima de rawTotal (la suma SIN redondear, que es
+    // lo que usa recalc() para mostrar el total en vivo). Ajustamos el ÚLTIMO ítem 'render'
+    // seleccionado para que la suma de líneas cierre EXACTO contra rawTotal redondeado — así el
+    // total guardado/mostrado en el detalle y PDF coincide siempre con lo que se vio en vivo antes
+    // de guardar, y las líneas del detalle siguen sumando exacto contra el subtotal del rol.
+    var trueRs=Math.round(rawTotal);
+    if(rs!==trueRs){
+      var renderIdxs=[];
+      items.forEach(function(it,idx){if(it.tipo==='render')renderIdxs.push(idx);});
+      if(renderIdxs.length){
+        items[renderIdxs[renderIdxs.length-1]].usd+=(trueRs-rs);
+        rs=trueRs;
+      }
+    }
     // Descuento proyecto sobre Dibujante: mismo criterio que en recalc() — se aplica directo
     // sobre el bruto del rol, sin sumarlo al bucket totalDesc (Dir.Proyecto+Calculista), así no
-    // altera Gastos y gestiones ni la Planilla de Cuotas.
-    var rsNeto=esDibujante?Math.round(rs*(1-desc)):rs;
-    if(role.descuentable)totalDesc+=rsNeto;else totalNoDesc+=rsNeto;
-    if(esDibujante)dibujanteTotalNeto=rsNeto;
-    var detEntry={rol:role.nm,catdf:esCalc?null:role.catdf,descuentable:role.descuentable||(esDibujante&&desc>0),items:items,total:rsNeto,tipoCalculo:role.tipoCalculo};
+    // altera Gastos y gestiones ni la Planilla de Cuotas. IMPORTANTE: el descuento se aplica sobre
+    // rawTotal (el monto SIN redondear), igual que recalc() — NO sobre "rs" (que ya está redondeado
+    // a entero más arriba para que las líneas del detalle cierren). Redondear primero y aplicar el
+    // descuento después (doble redondeo) puede diferir en $1 del resultado de recalc().
+    var rsNeto=esDibujante?Math.round(rawTotal*(1-desc)):rs;
+    // rawRoleTotal: monto del rol SIN redondear (con descuento de Dibujante ya aplicado si corresponde),
+    // usado para totalDesc/totalNoDesc/dibujanteTotalNeto — igual que recalc(), que acumula estos
+    // buckets en punto flotante y solo redondea UNA VEZ al final (en s-tot / hon.usd). Si en cambio
+    // acumuláramos rsNeto (ya redondeado a entero por rol), el redondeo temprano de cada rol puede
+    // desviar el TOTAL FINAL en $1 respecto de lo que se vio en vivo antes de guardar — el mismo tipo
+    // de doble redondeo corregido más arriba, pero a nivel de la suma de todos los roles.
+    var rawRoleTotal=esDibujante?rawTotal*(1-desc):rawTotal;
+    if(role.descuentable)totalDesc+=rawRoleTotal;else totalNoDesc+=rawRoleTotal;
+    if(esDibujante)dibujanteTotalNeto=rawRoleTotal;
+    // descuentable aquí es el flag de AGRUPACIÓN contable (bucket Proy.+Calc.) que luego usa
+    // honCalcTotales() para separar descRoles/fixedRoles y reconstruir netoDC — debe ser
+    // exactamente el mismo criterio que role.descuentable usado arriba para totalDesc/totalNoDesc.
+    // Dibujante NUNCA integra ese bucket (su propio descuento ya está aplicado y neteado en rsNeto,
+    // y se suma aparte solo a cuotasBase) — marcarlo aquí como "descuentable" cuando desc>0 inflaría
+    // "TOTAL BRUTO/NETO PROYECTO Y CALCULISTA" en el detalle/PDF y generaría un "Ajuste IPC" espurio.
+    // descAplicada: SOLO para el label visual "Con descuento"/"Sin descuento" en el detalle/PDF —
+    // igual criterio que descAplicaBadge en recalc(). No confundir con "descuentable" (flag contable
+    // de arriba, que agrupa Proy.+Calc. y NUNCA debe incluir a Dibujante).
+    var descAplicada=role.descuentable||(esDibujante&&desc>0);
+    var detEntry={rol:role.nm,catdf:esCalc?null:role.catdf,descuentable:role.descuentable,descAplicada:descAplicada,items:items,total:rsNeto,tipoCalculo:role.tipoCalculo};
     if(esCalc){detEntry.usdm2=calcUsdM2;detEntry.m2calc=m2total;}
     if(esConfObra){var _coCfg=coTarifaCfg();detEntry.tramiteNm=_coCfg.tramiteNm;detEntry.honorarioMinimo=_coCfg.honorarioMinimo;detEntry.m2calc=m2total;}
     detalle.push(detEntry);
@@ -2439,8 +2498,13 @@ function motorGuardar(draft){
   var gastos=totalDesc*gast;
   var after=netoDC+totalNoDesc;
   var ipcAmt=after*ipc;
-  var comisionAmt=Math.round((after+gastos+ipcAmt)*(comisionPct/100));
-  var fin=after+gastos+ipcAmt+comisionAmt;
+  // comisionAmt SIN redondear para la suma de "fin" — igual que recalc(), que solo redondea al
+  // mostrar. Redondear la comisión ANTES de sumarla a "fin" (como se hacía antes) puede desviar el
+  // TOTAL final guardado en $1 respecto de lo que se vio en vivo, cuando el resto de los montos
+  // (gastos, IPC, roles sin descuento) ya arrastran una fracción de centavo.
+  var comisionAmtRaw=(after+gastos+ipcAmt)*(comisionPct/100);
+  var fin=after+gastos+ipcAmt+comisionAmtRaw;
+  var comisionAmt=Math.round(comisionAmtRaw);
   // Base de la Planilla de Cuotas: Dir.Proyecto + Calculista (netos) + Gastos y gestiones + Dibujante
   // (neto, con su propio descuento ya aplicado). Dibujante no entra en Gastos y gestiones.
   var cuotasBase=Math.round(netoDC+gastos+dibujanteTotalNeto);
@@ -2457,7 +2521,7 @@ function motorGuardar(draft){
     dirProyTotal:Math.round(dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:dirProyTotalUSD),
     cuotasBase:cuotasBase,
     descTrab,excl,nota,catSec,catMzo,catParc,catUF,catDom,
-    coTramite,coComplejidad,coUrgencia,dibComplejidad,dibUrgencia,dibNivel,
+    coTramite,coComplejidad,coUrgencia,dibComplejidad,dibUrgencia,dibNivel,dibOrigenArq,dibOrigenEstr,
     leyendasSel,
     empresa:JSON.parse(JSON.stringify(EMPRESA)),
     estado:draft?'Borrador':'Enviado',
@@ -2494,6 +2558,7 @@ function editarHon(id){
   // Restaurar selectores de Conforme a Obra – Clientes y Dibujante
   sv('mot-co-tramite',hon.coTramite||'estandar');sv('mot-co-complejidad',hon.coComplejidad||'estandar');sv('mot-co-urgencia',hon.coUrgencia||'normal');
   sv('mot-dib-complejidad',hon.dibComplejidad||'estandar');sv('mot-dib-urgencia',hon.dibUrgencia||'normal');sv('mot-dib-nivel',hon.dibNivel||'basica');
+  sv('mot-dib-origen-arq',hon.dibOrigenArq||'cad_actualizado');sv('mot-dib-origen-estr',hon.dibOrigenEstr||'cad_digital');
   if(typeof dibujanteAplicarCoeficientes==='function')dibujanteAplicarCoeficientes();
   onFormaPago();
   // Restaurar cliId
@@ -2610,9 +2675,10 @@ function openHonDetail(id){
   var N=function(n){return Math.round(n).toLocaleString();};
   var det='';
   (h.detalle||[]).forEach(function(rol){
+    var rolDescAplicada=rol.descAplicada!=null?rol.descAplicada:rol.descuentable;
     det+='<div style="margin-bottom:14px">'
-      +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:'+(rol.descuentable?'var(--bt)':'var(--golt)')+';text-transform:uppercase;letter-spacing:.04em;padding:5px 0 4px;border-bottom:1px solid var(--br);margin-bottom:5px">'
-      +'<span>'+rol.rol+'</span><span style="font-size:9px;opacity:.7;font-weight:400">'+(rol.descuentable?'Con descuento':'Sin descuento')+' \u00b7 '+(rol.tipoCalculo==='tarifa_conforme'?((rol.tramiteNm||'Tarifa por tr\u00e1mite')):rol.tipoCalculo==='render_dibujante'?'Render por \u00edtem':(rol.catdf!=null?('CATDF '+(rol.catdf*100).toFixed(1)+'%'):('USD '+rol.usdm2+'/m\u00b2')))+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:'+(rolDescAplicada?'var(--bt)':'var(--golt)')+';text-transform:uppercase;letter-spacing:.04em;padding:5px 0 4px;border-bottom:1px solid var(--br);margin-bottom:5px">'
+      +'<span>'+rol.rol+'</span><span style="font-size:9px;opacity:.7;font-weight:400">'+(rolDescAplicada?'Con descuento':'Sin descuento')+' \u00b7 '+(rol.tipoCalculo==='tarifa_conforme'?((rol.tramiteNm||'Tarifa por tr\u00e1mite')):rol.tipoCalculo==='render_dibujante'?'Render por \u00edtem':(rol.catdf!=null?('CATDF '+(rol.catdf*100).toFixed(1)+'%'):('USD '+rol.usdm2+'/m\u00b2')))+'</span></div>'
       +'<div style="font-size:10px;color:var(--tx3);margin-bottom:7px;font-style:italic">Subtotal del rol = USD '+N(rol.total)+'. Cada subtarea = USD '+N(rol.total)+' \u00d7 % del rol.</div>'
       +rol.items.map(function(it){
         var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
@@ -2930,11 +2996,12 @@ function generarPDF(id){
       pctTxt=(rol.catdf*100).toFixed(2)+'%';
       baseTxt='USD '+N(baseRol);
     }
-    var clrRol=rol.descuentable?'#1e3a5f':'#1a3a2a';
+    var rolDescAplicadaPDF=rol.descAplicada!=null?rol.descAplicada:rol.descuentable;
+    var clrRol=rolDescAplicadaPDF?'#1e3a5f':'#1a3a2a';
     d+='<div class="rol-block">';
     d+='<div class="rol-head" style="background:'+clrRol+'">';
     d+=rol.rol;
-    d+='<span class="desc-tag">'+pctTxt+' &nbsp;\u00b7\u00a0'+(rol.descuentable?'Con descuento':'Sin descuento')+'</span>';
+    d+='<span class="desc-tag">'+pctTxt+' &nbsp;\u00b7\u00a0'+(rolDescAplicadaPDF?'Con descuento':'Sin descuento')+'</span>';
     d+='</div>';
     d+='<div class="rol-fm">'+baseTxt+' \u00d7 '+pctTxt+' = USD '+N(rFm)+' del rol. Cada subtarea = USD '+N(rFm)+' \u00d7 % de incidencia.</div>';
     d+='<table class="rol-tbl"><thead><tr>';
