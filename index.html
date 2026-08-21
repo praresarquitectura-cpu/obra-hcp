@@ -2320,7 +2320,7 @@ function honSustituirVars(txt,h){
   var vars={
     cliente:(h&&h.cliente)||'',
     obra:(h&&(h.catDom||h.uso))||'',
-    superficie:((h&&h.m2)||0)+' m\u00b2',
+    superficie:((h&&((h.m2||0)+(h.m2dec||0)+(h.m2sind||0)))||0)+' m\u00b2',
     fecha:(h&&h.fecha)||new Date().toLocaleDateString('es-AR'),
     vigencia_dias:String(cfg.vigenciaDias!=null?cfg.vigenciaDias:30),
     anticipo:(h&&h.cuotas&&h.cuotas[0]?h.cuotas[0].pct+'%':(cfg.anticipoPct!=null?cfg.anticipoPct:40)+'%'),
@@ -2615,7 +2615,7 @@ function renderHon(data){
       +'<td style="cursor:pointer;max-width:170px;white-space:normal;font-size:11px" onclick="openHonDetail('+h.id+')">'+h.roles+'</td>'
       +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')">'+h.cliente+'</td>'
       +'<td style="cursor:pointer;max-width:140px;white-space:normal;font-size:11px" onclick="openHonDetail('+h.id+')">'+h.uso+'</td>'
-      +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')">'+h.m2+' m\u00b2</td>'
+      +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')">'+((h.m2||0)+(h.m2dec||0)+(h.m2sind||0))+' m\u00b2</td>'
       +'<td style="cursor:pointer;color:var(--bt);font-weight:700" onclick="openHonDetail('+h.id+')">USD '+h.usd.toLocaleString()+'</td>'
       +'<td style="cursor:pointer" onclick="openHonDetail('+h.id+')"><span class="bdg '+(ST[h.estado]||'b-dr')+'">'+h.estado+'</span></td>'
       +'<td><div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap">'
@@ -2737,7 +2737,7 @@ function openHonDetail(id){
     +'</div>'
     +'<div class="g3" style="margin-bottom:12px">'
     +'<div class="csm"><div class="sl">Tipo</div><div style="font-size:12px;margin-top:4px">'+(tl[h.tipo]||h.tipo)+'</div></div>'
-    +'<div class="csm"><div class="sl">Superficie</div><div style="font-size:18px;font-weight:700;color:var(--bt);margin-top:4px">'+h.m2+' m\u00b2</div></div>'
+    +'<div class="csm"><div class="sl">Superficie total</div><div style="font-size:18px;font-weight:700;color:var(--bt);margin-top:4px">'+((h.m2||0)+(h.m2dec||0)+(h.m2sind||0))+' m\u00b2</div></div>'
     +'<div class="csm"><div class="sl">Fecha \u00b7 TC</div><div style="font-size:12px;margin-top:4px">'+h.fecha+' \u00b7 $'+h.tc.toLocaleString('es-AR')+'</div></div>'
     +'</div>'
     +(h.descTrab?'<div class="csm" style="margin-bottom:12px"><div class="sl">Descripci\u00f3n del trabajo</div><div style="font-size:12px;color:var(--tx2);line-height:1.6;margin-top:4px">'+h.descTrab+'</div></div>':'')
@@ -2775,7 +2775,12 @@ function generarPDF(id){
   if(!EMPRESA.logo) EMPRESA.logo = localStorage.getItem('obraerp_logo')||'';
   if(!EMPRESA.qr)   EMPRESA.qr   = localStorage.getItem('obraerp_qr')||'';
   const h=HON_DATA.find(x=>x.id===id);if(!h)return;
-  const emp=Object.assign({},EMPRESA,h.empresa||{});
+  // Merge campo a campo: si el presupuesto se guardó ANTES de cargar los datos del profesional
+  // en Configuración, su snapshot (h.empresa) tiene esos campos vacíos — en ese caso usar los
+  // datos ACTUALES de EMPRESA en vez de sobrescribir con el vacío guardado. Si el snapshot sí
+  // tiene el campo cargado, se respeta (así un presupuesto ya emitido no cambia de membrete).
+  const emp={};
+  Object.keys(EMPRESA).forEach(function(k){emp[k]=(h.empresa&&h.empresa[k])?h.empresa[k]:EMPRESA[k];});
   // Restaurar logo/QR — el presupuesto guardado los tiene nulos para ahorrar espacio
   if(!emp.logo) emp.logo = EMPRESA.logo || localStorage.getItem('obraerp_logo') || '';
   if(!emp.qr)   emp.qr   = EMPRESA.qr   || localStorage.getItem('obraerp_qr')   || '';
@@ -2923,7 +2928,7 @@ function generarPDF(id){
   d+='</div>';
   d+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8pt;margin-top:8pt">';
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Tipo de encargo</div><div>'+( tipo[h.tipo]||h.tipo )+'</div></div>';
-  d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Superficie cubierta</div><div style="font-size:12pt;font-weight:700;color:'+C1+'">'+h.m2+' m\u00b2</div></div>';
+  d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Superficie total</div><div style="font-size:12pt;font-weight:700;color:'+C1+'">'+((h.m2||0)+(h.m2dec||0)+(h.m2sind||0))+' m\u00b2</div></div>';
   d+='<div><div style="font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:2pt">Estado</div><span class="badge '+( stClr[h.estado]||'badge-dr' )+'">'+h.estado+'</span></div>';
   d+='</div>';
   d+='</td></tr></table></div>';
@@ -3577,7 +3582,11 @@ function eliminarPago(honId,pagoId){
 function abrirFacturar(honId,pagoId){
   var hon=HON_DATA.find(function(x){return x.id===honId;});if(!hon)return;
   var pago=hon.pagos.find(function(p){return p.id===pagoId;});if(!pago)return;
-  var emp=Object.assign({},EMPRESA,hon.empresa||{});
+  // Mismo criterio que en generarPDF(): si el snapshot guardado (hon.empresa) tiene un campo
+  // vacío (presupuesto guardado antes de cargar los datos del profesional), usar el valor
+  // ACTUAL de EMPRESA en su lugar.
+  var emp={};
+  Object.keys(EMPRESA).forEach(function(k){emp[k]=(hon.empresa&&hon.empresa[k])?hon.empresa[k]:EMPRESA[k];});
   var cli=CLIENTES.find(function(c){return c.id==hon.cliId;});
 
   // Construir texto de factura listo para ARCA
