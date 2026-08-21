@@ -2214,7 +2214,8 @@ function recalc(){
   var dirOn=S['dir_proy']?.on;
   var formaPagoVal=document.getElementById('mot-forma-pago')?.value||'contado';
   var calcOn=S['calc']?.on;
-  var mostrarCuotas=(dirOn||calcOn)&&formaPagoVal!=='contado';
+  var dibOn=S['dibujante']?.on;
+  var mostrarCuotas=(dirOn||calcOn||dibOn)&&formaPagoVal!=='contado';
   var csec=document.getElementById('cuotas-section');if(csec)csec.style.display=mostrarCuotas?'':'none';
   if(mostrarCuotas)renderCuotas();
 }
