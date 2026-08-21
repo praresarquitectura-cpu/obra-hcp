@@ -613,7 +613,14 @@ input,select,textarea,button{font-family:var(--font)}
             </select>
           </div>
         </div>
-        <div style="font-size:10px;color:var(--tx3);margin-top:4px">Recalcula el precio unitario (USD) de cada ítem del rol Dibujante. Los ítems marcados por m² toman como cantidad la Sup. total del encargo.</div>
+        <div class="fg" style="margin-top:8px"><label class="fl">Origen de la documentación de base</label>
+          <select class="fis" id="mot-dib-origen" onchange="dibujanteAplicarCoeficientes()">
+            <option value="digital_editable" selected>Digital editable (DWG/RVT) ×1.00</option>
+            <option value="digital_no_editable">Digital no editable (PDF/imagen) ×1.15</option>
+            <option value="papel">Papel / sin documentación gráfica ×1.35</option>
+          </select>
+        </div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:4px">Recalcula el precio unitario (USD) de cada ítem del rol Dibujante. Los ítems marcados por m² toman como cantidad la Sup. total del encargo. El "Origen de la documentación" solo encarece Relevamiento, Planos de Arquitectura y Estructura Municipal y Replanteo — no afecta detalles, carpinterías, renders, correcciones, exportaciones, impresión, gestión de archivos ni reuniones.</div>
       </div>
 
       <div id="roles-list"></div>
@@ -1609,41 +1616,48 @@ var ROLES=[
    tipoCalculo:'render_dibujante',
    dsc:'Colaboración de dibujo técnico subcontratada por otro/a arquitecto/a, ingeniero/a, constructor/a o empresa. NO incluye firma profesional, responsabilidad profesional principal, dirección de obra, representación técnica, presentación ante organismos ni gestoría — estos servicios solo se suman si se contratan expresamente y por separado (ver roles correspondientes). Honorarios por ítem (m² / unidad / lámina / hora), según coeficientes de complejidad, urgencia y nivel de intervención. Sin descuento.',
    tareas:[
-    {id:'ta_dib_arq',nm:'A) Planos de Arquitectura',grupos:[{nm:null,items:[
-       {id:'dib_arq_impl',nm:'Implantación',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.4,unitPrice:1.4,dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_plantas',nm:'Plantas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:2.2,unitPrice:2.2,dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_cortes',nm:'Cortes',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.1,unitPrice:1.1,dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_fachadas',nm:'Fachadas/vistas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.1,unitPrice:1.1,dsc:'Por m² de superficie del encargo'}
+    {id:'ta_dib_arq',nm:'A) Planos de Arquitectura y Estructura Municipal',grupos:[{nm:null,items:[
+       {id:'dib_arq_relev',nm:'Relevamiento',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.0,unitPrice:1.0,origenAfecta:true,dsc:'Relevamiento de campo previo al dibujo, por m² de superficie del encargo'},
+       {id:'dib_arq_impl',nm:'Implantación',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.4,unitPrice:1.4,origenAfecta:true,dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_plantas',nm:'Plantas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:2.2,unitPrice:2.2,origenAfecta:true,dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_cortes',nm:'Cortes',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.1,unitPrice:1.1,origenAfecta:true,dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_fachadas',nm:'Fachadas/vistas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.1,unitPrice:1.1,origenAfecta:true,dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_planilla_loc',nm:'Planilla de locales (iluminación y ventilación)',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.8,unitPrice:0.8,origenAfecta:true,dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_balance_sup',nm:'Balance de superficies',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.6,unitPrice:0.6,origenAfecta:true,dsc:'Por m² de superficie del encargo'}
     ]}]},
-    {id:'ta_dib_det',nm:'B) Detalles Constructivos',grupos:[{nm:null,items:[
+    {id:'ta_dib_replanteo',nm:'B) Replanteo',grupos:[{nm:null,items:[
+       {id:'dib_repl_arq',nm:'Replanteo Arquitectura 1:50',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,origenAfecta:true,dsc:'Por m² de superficie del encargo'},
+       {id:'dib_repl_estr',nm:'Replanteo Estructural',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,origenAfecta:true,dsc:'Por m² de superficie del encargo'}
+    ]}]},
+    {id:'ta_dib_det',nm:'C) Detalles Constructivos',grupos:[{nm:null,items:[
        {id:'dib_det_generico',nm:'Detalle constructivo genérico',tipo:'render',inc:0,qty:1,baseUnitPrice:45,unitPrice:45,dsc:'Por detalle — escalera, encuentros, cubierta, etc.'},
        {id:'dib_det_planilla',nm:'Planilla de carpinterías / aberturas',tipo:'render',inc:0,qty:1,baseUnitPrice:60,unitPrice:60,dsc:'Por planilla completa'}
     ]}]},
-    {id:'ta_dib_carp',nm:'C) Carpinterías',grupos:[{nm:null,items:[
+    {id:'ta_dib_carp',nm:'D) Carpinterías',grupos:[{nm:null,items:[
        {id:'dib_carp_unidad',nm:'Carpintería — dibujo por unidad',tipo:'render',inc:0,qty:1,baseUnitPrice:18,unitPrice:18,dsc:'Puertas, ventanas u otras aberturas, por unidad'}
     ]}]},
-    {id:'ta_dib_inst',nm:'D) Planos de Instalaciones (colaboración de dibujo)',grupos:[{nm:null,items:[
+    {id:'ta_dib_inst',nm:'E) Planos de Instalaciones (colaboración de dibujo)',grupos:[{nm:null,items:[
        {id:'dib_inst_san',nm:'Colaboración dibujo — Sanitaria',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,dsc:'Por m² — solo dibujo, sin cálculo ni firma'},
        {id:'dib_inst_elec',nm:'Colaboración dibujo — Eléctrica',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,dsc:'Por m² — solo dibujo, sin cálculo ni firma'}
     ]}]},
-    {id:'ta_dib_3d',nm:'E) Documentación 3D / Renders básicos',grupos:[{nm:null,items:[
+    {id:'ta_dib_3d',nm:'F) Documentación 3D / Renders básicos',grupos:[{nm:null,items:[
        {id:'dib_3d_ext',nm:'Render exterior básico',tipo:'render',inc:0,qty:1,baseUnitPrice:90,unitPrice:90,dsc:'Modelado simple, sin postproducción avanzada'},
        {id:'dib_3d_int',nm:'Render interior básico',tipo:'render',inc:0,qty:1,baseUnitPrice:70,unitPrice:70,dsc:'Modelado simple, sin postproducción avanzada'}
     ]}]},
-    {id:'ta_dib_correc',nm:'F) Correcciones / Ajustes por Plano',grupos:[{nm:null,items:[
+    {id:'ta_dib_correc',nm:'G) Correcciones / Ajustes por Plano',grupos:[{nm:null,items:[
        {id:'dib_correc_ronda',nm:'Ronda de correcciones adicional',tipo:'render',inc:0,qty:1,baseUnitPrice:25,unitPrice:25,dsc:'Por plano, más allá de las rondas incluidas en el alcance'}
     ]}]},
-    {id:'ta_dib_archivos',nm:'G) Archivos Editables',grupos:[{nm:null,items:[
+    {id:'ta_dib_archivos',nm:'H) Archivos Editables',grupos:[{nm:null,items:[
        {id:'dib_arch_dwg',nm:'Exportación DWG editable',tipo:'render',inc:0,qty:1,baseUnitPrice:35,unitPrice:35,dsc:'Por archivo/plano'},
        {id:'dib_arch_rvt_ifc',nm:'Exportación RVT / IFC',tipo:'render',inc:0,qty:1,baseUnitPrice:55,unitPrice:55,dsc:'Por archivo/modelo, cuando corresponda'}
     ]}]},
-    {id:'ta_dib_impr',nm:'H) Impresión / Entrega Física',grupos:[{nm:null,items:[
+    {id:'ta_dib_impr',nm:'I) Impresión / Entrega Física',grupos:[{nm:null,items:[
        {id:'dib_impr_lamina',nm:'Impresión/plotter de lámina',tipo:'render',inc:0,qty:1,baseUnitPrice:12,unitPrice:12,dsc:'Por lámina impresa, papel simple'}
     ]}]},
-    {id:'ta_dib_gestarch',nm:'I) Gestión de Archivos y Versionado',grupos:[{nm:null,items:[
+    {id:'ta_dib_gestarch',nm:'J) Gestión de Archivos y Versionado',grupos:[{nm:null,items:[
        {id:'dib_gest_version',nm:'Gestión y versionado de archivos',tipo:'render',inc:0,qty:1,baseUnitPrice:40,unitPrice:40,dsc:'Por entrega/versión — organización, nomenclatura y respaldo'}
     ]}]},
-    {id:'ta_dib_reun',nm:'J) Reuniones Técnicas de Coordinación',grupos:[{nm:null,items:[
+    {id:'ta_dib_reun',nm:'K) Reuniones Técnicas de Coordinación',grupos:[{nm:null,items:[
        {id:'dib_reun_hora',nm:'Reunión técnica de coordinación',tipo:'render',inc:0,qty:1,baseUnitPrice:30,unitPrice:30,dsc:'Por hora de reunión, presencial o remota'}
     ]}]}
    ]}
@@ -1671,7 +1685,14 @@ var HON_CONFIG={
   dibujante:{
     complejidad:{bajo:0.85,estandar:1.00,medioalto:1.15,alto:1.30,muyalto:1.50},
     urgencia:{normal:0,urgente:0.20,muyurgente:0.30,inmediato:0.50},
-    nivel:{basica:1.00,intermedio:1.20,integral:1.45}
+    nivel:{basica:1.00,intermedio:1.20,integral:1.45},
+    /* Origen de la documentación de base: si el profesional/empresa que contrata NO provee
+       archivos digitales editables, el trabajo de reconstrucción gráfica es mayor. Este
+       coeficiente SOLO se aplica a los ítems marcados con origenAfecta:true (relevamiento,
+       planos base de arquitectura/estructura y replanteo) — no afecta detalles, carpinterías,
+       renders, correcciones, exportaciones, impresión, gestión de archivos ni reuniones,
+       que no dependen de si existe documentación digital previa. */
+    origen:{digital_editable:1.00,digital_no_editable:1.15,papel:1.35}
   },
   leyendas:{vigenciaDias:30,anticipoPct:40,correccionesIncluidas:2,plazoEntregaDias:15,organismoDefault:'Municipio de Ushuaia'}
 };
@@ -1742,6 +1763,7 @@ function buildHonCfgInputs(){
   Object.keys(HON_CONFIG.dibujante.complejidad).forEach(function(k){row('Complejidad · '+k,'dibujante.complejidad.'+k,HON_CONFIG.dibujante.complejidad[k],'0.01');});
   Object.keys(HON_CONFIG.dibujante.urgencia).forEach(function(k){row('Urgencia (recargo) · '+k,'dibujante.urgencia.'+k,HON_CONFIG.dibujante.urgencia[k],'0.01');});
   Object.keys(HON_CONFIG.dibujante.nivel).forEach(function(k){row('Nivel de intervención · '+k,'dibujante.nivel.'+k,HON_CONFIG.dibujante.nivel[k],'0.01');});
+  Object.keys(HON_CONFIG.dibujante.origen).forEach(function(k){row('Origen documentación · '+k,'dibujante.origen.'+k,HON_CONFIG.dibujante.origen[k],'0.01');});
   rows.push('<div style="font-size:10.5px;font-weight:700;color:var(--golt);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.06em">Dibujante · Precio base por ítem (USD, antes de coeficientes)</div>');
   var dibRole=ROLES.find(function(r){return r.id==='dibujante';});
   if(dibRole)dibRole.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
@@ -1849,11 +1871,13 @@ function dibujanteCoefs(){
   var cxK=document.getElementById('mot-dib-complejidad')?.value||'estandar';
   var urK=document.getElementById('mot-dib-urgencia')?.value||'normal';
   var nvK=document.getElementById('mot-dib-nivel')?.value||'basica';
+  var orK=document.getElementById('mot-dib-origen')?.value||'digital_editable';
   var cfg=HON_CONFIG.dibujante;
   return {
     coefC:cfg.complejidad[cxK]!=null?cfg.complejidad[cxK]:1,
     coefU:1+(cfg.urgencia[urK]||0),
-    coefN:cfg.nivel[nvK]!=null?cfg.nivel[nvK]:1
+    coefN:cfg.nivel[nvK]!=null?cfg.nivel[nvK]:1,
+    coefO:cfg.origen&&cfg.origen[orK]!=null?cfg.origen[orK]:1
   };
 }
 function dibujanteAplicarCoeficientes(){
@@ -1861,7 +1885,8 @@ function dibujanteAplicarCoeficientes(){
   var c=dibujanteCoefs();
   role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
     if(it.tipo==='render'&&typeof it.baseUnitPrice==='number'){
-      it.unitPrice=Math.round(it.baseUnitPrice*c.coefC*c.coefU*c.coefN*100)/100;
+      var co=it.origenAfecta?c.coefO:1;
+      it.unitPrice=Math.round(it.baseUnitPrice*c.coefC*c.coefU*c.coefN*co*100)/100;
       var pEl=document.getElementById('rprc-'+it.id);if(pEl)pEl.value=it.unitPrice;
     }
   });});});
@@ -1886,7 +1911,7 @@ function makeRenderRow(it,on,roleId,tareaId){
   html+='<input type="checkbox" class="st-chk" id="it-'+it.id+'"'+(on?' checked':'')+' onchange="onItem(\''+roleId+'\',\''+tareaId+'\',\''+it.id+'\',this.checked)">';
   html+='<div>';
   html+='<div class="st-nm">'+it.nm+' <span style="background:rgba(212,168,67,.15);color:var(--golt);font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px">MERCADO</span></div>';
-  html+='<div class="st-dsc">'+it.dsc+'</div></div>';
+  html+='<div class="st-dsc">'+it.dsc+' <span id="brk-'+it.id+'" style="color:var(--tx3)"></span></div></div>';
   html+='<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">';
   html+='<input id="rqty-'+it.id+'" type="number" min="1" value="'+qty+'"'+dis+' class="r-inp" style="width:40px" oninput="updateRenderQty(\''+roleId+'\',\''+it.id+'\',this.value)">';
   html+='<span style="font-size:9px;color:var(--tx3)">u \u00d7 USD</span>';
@@ -2070,12 +2095,12 @@ function recalc(){
         }else{usd=vObraRole*it.pct;}
       }
       rs+=usd;
-      var ue=document.getElementById('usd-'+it.id),ae=document.getElementById('ars-'+it.id);
+      var ue=document.getElementById('usd-'+it.id),ae=document.getElementById('ars-'+it.id),bk=document.getElementById('brk-'+it.id);
       if(ue){
-        if(on&&it.tipo==='render'){ue.textContent='USD '+Math.round(usd).toLocaleString()+' ('+it.qty+'u × $'+it.unitPrice+')';}
-        else{ue.textContent=on?'USD '+Math.round(usd).toLocaleString():'—';}
+        ue.textContent=on?'USD '+Math.round(usd).toLocaleString():'—';
         ue.style.color=on?'var(--bt)':'var(--tx3)';
       }
+      if(bk)bk.textContent=(on&&it.tipo==='render')?('· '+it.qty+'u × USD '+it.unitPrice):'';
       if(ae)ae.textContent=on?'$'+Math.round(usd*tc).toLocaleString('es-AR'):'—';
     });});});
 
