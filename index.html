@@ -1625,17 +1625,17 @@ var ROLES=[
    dsc:'Colaboración de dibujo técnico subcontratada por otro/a arquitecto/a, ingeniero/a, constructor/a o empresa. NO incluye firma profesional, responsabilidad profesional principal, dirección de obra, representación técnica, presentación ante organismos ni gestoría — estos servicios solo se suman si se contratan expresamente y por separado (ver roles correspondientes). Honorarios por ítem (m² / unidad / lámina / hora), según coeficientes de complejidad, urgencia y nivel de intervención. Sin descuento.',
    tareas:[
     {id:'ta_dib_arq',nm:'A) Planos de Arquitectura y Estructura Municipal',grupos:[{nm:null,items:[
-       {id:'dib_arq_relev',nm:'Relevamiento',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.0,unitPrice:1.0,origenTipo:'arq',dsc:'Relevamiento de campo previo al dibujo, por m² de superficie del encargo'},
-       {id:'dib_arq_impl',nm:'Implantación',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.4,unitPrice:1.4,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_plantas',nm:'Plantas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:2.2,unitPrice:2.2,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_cortes',nm:'Cortes',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.1,unitPrice:1.1,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_fachadas',nm:'Fachadas/vistas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.1,unitPrice:1.1,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_planilla_loc',nm:'Planilla de locales (iluminación y ventilación)',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.8,unitPrice:0.8,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_balance_sup',nm:'Balance de superficies',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.6,unitPrice:0.6,origenTipo:'arq',dsc:'Por m² de superficie del encargo'}
+       {id:'dib_arq_relev',nm:'Relevamiento',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.40,unitPrice:0.40,origenTipo:'arq',dsc:'Relevamiento de campo previo al dibujo, por m² de superficie del encargo'},
+       {id:'dib_arq_impl',nm:'Implantación',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.56,unitPrice:0.56,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_plantas',nm:'Plantas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.88,unitPrice:0.88,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_cortes',nm:'Cortes',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.44,unitPrice:0.44,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_fachadas',nm:'Fachadas/vistas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.44,unitPrice:0.44,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_planilla_loc',nm:'Planilla de locales (iluminación y ventilación)',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.32,unitPrice:0.32,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_balance_sup',nm:'Balance de superficies',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.24,unitPrice:0.24,origenTipo:'arq',dsc:'Por m² de superficie del encargo'}
     ]}]},
     {id:'ta_dib_replanteo',nm:'B) Replanteo',grupos:[{nm:null,items:[
-       {id:'dib_repl_arq',nm:'Replanteo Arquitectura 1:50',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_repl_estr',nm:'Replanteo Estructural',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,origenTipo:'estr',dsc:'Por m² de superficie del encargo'}
+       {id:'dib_repl_arq',nm:'Replanteo Arquitectura 1:50',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.36,unitPrice:0.36,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
+       {id:'dib_repl_estr',nm:'Replanteo Estructural',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.36,unitPrice:0.36,origenTipo:'estr',dsc:'Por m² de superficie del encargo'}
     ]}]},
     {id:'ta_dib_det',nm:'C) Detalles Constructivos',grupos:[{nm:null,items:[
        {id:'dib_det_generico',nm:'Detalle constructivo genérico',tipo:'render',inc:0,qty:1,baseUnitPrice:45,unitPrice:45,dsc:'Por detalle — escalera, encuentros, cubierta, etc.'},
@@ -1711,7 +1711,7 @@ var HON_CONFIG={
        ítems por m² (esM2:true). Tramos acumulativos por m² TOTAL del encargo — editable
        desde Configuración (agregar/quitar tramos requiere tocar el código; los coeficientes
        de cada tramo sí son editables ahí). */
-    escala:[{hasta:100,coef:1.00},{hasta:300,coef:0.92},{hasta:600,coef:0.85},{hasta:1000,coef:0.78},{hasta:2000,coef:0.70},{hasta:999999,coef:0.60}]
+    escala:[{hasta:100,coef:1.00},{hasta:300,coef:0.85},{hasta:600,coef:0.70},{hasta:1000,coef:0.55},{hasta:2000,coef:0.42},{hasta:999999,coef:0.35}]
   },
   leyendas:{vigenciaDias:30,anticipoPct:40,correccionesIncluidas:2,plazoEntregaDias:15,organismoDefault:'Municipio de Ushuaia'}
 };
@@ -2114,7 +2114,8 @@ function recalc(){
     var baseLbl = esCalc ? 'Sup. TOTAL' : esConfObra ? 'Trámite × sup.' : esDibujante ? 'Ítems por unidad/m²' : role.id==='inf' ? 'Sup. existente sin declarar' : 'Sup. NUEVA';
     var baseValTxt = esCalc ? (m2total+' m²') : esConfObra ? (coTarifaCfg().tramiteNm+' · '+m2total+' m²') : esDibujante ? '—' : ('USD '+Math.round(vObraRole).toLocaleString());
     var pctTxt = esCalc ? ('USD '+calcUsdM2+'/m²') : esConfObra ? ('piso USD '+coTarifaCfg().honorarioMinimo) : esDibujante ? 'u × USD' : ((role.catdf*100).toFixed(2)+'%');
-    if(fb)fb.innerHTML='<b>Fórmula:</b> '+baseLbl+' '+baseValTxt+' × <b>'+pctTxt+'</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' × % del rol.'+(role.descuentable?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>');
+    var descAplicaBadge = role.descuentable || (esDibujante&&desc>0);
+    if(fb)fb.innerHTML='<b>Fórmula:</b> '+baseLbl+' '+baseValTxt+' × <b>'+pctTxt+'</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' × % del rol.'+(descAplicaBadge?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>');
     var rs=0;
     role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       var on=st.subs[it.id];
@@ -2148,13 +2149,18 @@ function recalc(){
       if(ae)ae.textContent=on?'$'+Math.round(usd*tc).toLocaleString('es-AR'):'—';
     });});});
 
+    /* Descuento proyecto sobre Dibujante: se aplica el mismo % Descuento proyecto (mot-desc-pct)
+       directamente sobre el bruto del rol, SIN sumarlo al bucket totalDesc (Dir.Proyecto+Calculista) —
+       así no altera Gastos y gestiones ni la Planilla de Cuotas, que siguen siendo exclusivamente
+       de Dir.Proyecto+Calculista, sin cambios. */
+    var rsNeto = esDibujante ? rs*(1-desc) : rs;
     var re=document.getElementById('rusd-'+role.id);
-    if(re)re.textContent=rs>0?'USD '+Math.round(rs).toLocaleString():'USD 0';
+    if(re)re.textContent=rsNeto>0?'USD '+Math.round(rsNeto).toLocaleString():'USD 0';
     var rcSub=document.getElementById('rc-'+role.id);
     if(rcSub){var catTxt=esCalc?('USD '+calcUsdM2+'/m²'):esConfObra?'Tarifa por trámite × sup.':esDibujante?'Render por ítem (u/m²)':((role.catdf*100).toFixed(1)+'% s/obra');var sub=document.getElementById('rbody-'+role.id)?.previousElementSibling?.querySelector('.rc-sub');if(sub)sub.textContent=catTxt;}
-    if(rs>0){
-      if(role.descuentable)totalDesc+=rs;else totalNoDesc+=rs;
-      sumRows.push({nm:role.nm,usd:rs,descuentable:role.descuentable});
+    if(rsNeto>0){
+      if(role.descuentable)totalDesc+=rsNeto;else totalNoDesc+=rsNeto;
+      sumRows.push({nm:role.nm,usd:rsNeto,descuentable:role.descuentable||descAplicaBadge});
     }
     if(role.id==='dir_proy')dirProyTotalUSD=rs;
     if(role.id==='calc')calcTotalUSD=rs;
@@ -2413,8 +2419,12 @@ function motorGuardar(draft){
       items[normalIdxs[normalIdxs.length-1]].usd=targetRol-sumOtros;
     }
     var rs=items.reduce(function(a,b){return a+b.usd;},0);
-    if(role.descuentable)totalDesc+=rs;else totalNoDesc+=rs;
-    var detEntry={rol:role.nm,catdf:esCalc?null:role.catdf,descuentable:role.descuentable,items:items,total:rs,tipoCalculo:role.tipoCalculo};
+    // Descuento proyecto sobre Dibujante: mismo criterio que en recalc() — se aplica directo
+    // sobre el bruto del rol, sin sumarlo al bucket totalDesc (Dir.Proyecto+Calculista), así no
+    // altera Gastos y gestiones ni la Planilla de Cuotas.
+    var rsNeto=esDibujante?Math.round(rs*(1-desc)):rs;
+    if(role.descuentable)totalDesc+=rsNeto;else totalNoDesc+=rsNeto;
+    var detEntry={rol:role.nm,catdf:esCalc?null:role.catdf,descuentable:role.descuentable||(esDibujante&&desc>0),items:items,total:rsNeto,tipoCalculo:role.tipoCalculo};
     if(esCalc){detEntry.usdm2=calcUsdM2;detEntry.m2calc=m2total;}
     if(esConfObra){var _coCfg=coTarifaCfg();detEntry.tramiteNm=_coCfg.tramiteNm;detEntry.honorarioMinimo=_coCfg.honorarioMinimo;detEntry.m2calc=m2total;}
     detalle.push(detEntry);
