@@ -551,7 +551,79 @@ input,select,textarea,button{font-family:var(--font)}
         <div id="catdf-inputs"></div>
       </div>
 
+      <!-- Parámetros específicos de "Conforme a Obra – Clientes" (tipoCalculo:'tarifa_conforme') -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="fsc" style="color:#22c55e">Conforme a Obra – Clientes: parámetros de tarifa</div>
+        <div class="g3">
+          <div class="fg"><label class="fl">Tipo de trámite</label>
+            <select class="fis" id="mot-co-tramite" onchange="recalc()">
+              <option value="estandar">Conforme a Obra estándar</option>
+              <option value="ampliacion">Regularización de ampliación</option>
+              <option value="empadronamiento">Empadronamiento</option>
+              <option value="refaccion">Empadronamiento de refacciones</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Complejidad</label>
+            <select class="fis" id="mot-co-complejidad" onchange="recalc()">
+              <option value="bajo">Baja ×0.85</option>
+              <option value="estandar" selected>Estándar ×1.00</option>
+              <option value="medioalto">Medio-alta ×1.15</option>
+              <option value="alto">Alta ×1.30</option>
+              <option value="muyalto">Muy alta ×1.50</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Urgencia</label>
+            <select class="fis" id="mot-co-urgencia" onchange="recalc()">
+              <option value="normal">Normal +0%</option>
+              <option value="urgente">Urgente +20%</option>
+              <option value="muyurgente">Muy urgente +30%</option>
+              <option value="inmediato">Inmediato +50%</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:4px">Superficie base: Sup. total (nueva + declarada + sin declarar). Gestoría es opcional — activala tildando la tarea "Gestoría (opcional)" dentro del cuadro del rol; se suma como 20% adicional sobre la tarifa base, sin reemplazarla.</div>
+      </div>
+
+      <!-- Parámetros específicos de "Dibujante" (tipoCalculo:'render_dibujante') -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="fsc" style="color:#38bdf8">Dibujante: coeficientes de precio por ítem</div>
+        <div class="g3">
+          <div class="fg"><label class="fl">Complejidad</label>
+            <select class="fis" id="mot-dib-complejidad" onchange="dibujanteAplicarCoeficientes()">
+              <option value="bajo">Baja ×0.85</option>
+              <option value="estandar" selected>Estándar ×1.00</option>
+              <option value="medioalto">Medio-alta ×1.15</option>
+              <option value="alto">Alta ×1.30</option>
+              <option value="muyalto">Muy alta ×1.50</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Urgencia</label>
+            <select class="fis" id="mot-dib-urgencia" onchange="dibujanteAplicarCoeficientes()">
+              <option value="normal">Normal +0%</option>
+              <option value="urgente">Urgente +20%</option>
+              <option value="muyurgente">Muy urgente +30%</option>
+              <option value="inmediato">Inmediato +50%</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Nivel de intervención</label>
+            <select class="fis" id="mot-dib-nivel" onchange="dibujanteAplicarCoeficientes()">
+              <option value="basica" selected>Asistencia básica ×1.00</option>
+              <option value="intermedio">Desarrollo intermedio ×1.20</option>
+              <option value="integral">Desarrollo integral de documentación ×1.45</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:4px">Recalcula el precio unitario (USD) de cada ítem del rol Dibujante. Los ítems marcados por m² toman como cantidad la Sup. total del encargo.</div>
+      </div>
+
       <div id="roles-list"></div>
+
+      <!-- Leyendas (cláusulas legales) opcionales — infraestructura aditiva, no reemplaza la NOTA LEGAL fija del PDF -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="fsc">Leyendas / cláusulas legales a incluir en el PDF</div>
+        <div style="font-size:10px;color:var(--tx3);margin-bottom:8px">Textos de referencia editables (ver Configuración). Se marcan automáticamente algunas según los roles seleccionados; podés tildar/destildar libremente.</div>
+        <div id="leyendas-list"></div>
+      </div>
 
       <div class="cuotas-card" id="cuotas-section" style="display:none">
         <div class="fsc" style="color:var(--bt)">Planilla de Cuotas — Dirección de Proyecto + Calculista</div>
@@ -942,6 +1014,17 @@ input,select,textarea,button{font-family:var(--font)}
         <li>Funciona offline automáticamente (los datos siguen en tu dispositivo)</li>
       </ol>
     </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="fsc" style="margin-bottom:0">Honorarios — Conforme a Obra y Dibujante</div>
+      <button class="btn btn-sm" onclick="honCfgRestablecer()">↺ Restablecer</button>
+    </div>
+    <div style="font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--golt);text-transform:uppercase;margin-bottom:6px">Valores iniciales – Agosto 2026</div>
+    <div style="font-size:10.5px;color:var(--tx3);margin-bottom:10px;line-height:1.6">Tarifas, honorarios mínimos y coeficientes de referencia para los cuadros "Conforme a Obra – Clientes" y "Dibujante" del Motor de Honorarios. Son valores sugeridos — revisalos y ajustalos según la política del estudio. Se guardan en la nube y en este dispositivo.</div>
+    <div id="honcfg-inputs"></div>
+    <button class="btn btn-r" style="margin-top:10px" onclick="honCfgGuardar()">Guardar valores iniciales</button>
   </div>
 </section>
 </main></div>
@@ -1430,8 +1513,251 @@ var ROLES=[
      {id:'iddj',nm:'Declaración Jurada (DD.JJ.)',tipo:'normal',inc:13,dsc:'Ante Colegio o Municipio'},
      {id:'ddj_mojones_inf',nm:'Declaración Jurada de Mojones',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'DD.JJ. Deslinde y Amojonamiento'},
      {id:'ifoto',nm:'Registro Fotográfico Documentado',tipo:'normal',inc:12,dsc:'Planilla fotográfica numerada'},
-   ]}]}]}
+   ]}]}]},
+  {id:'conf_obra_cli',nm:'Conforme a Obra – Clientes',clr:'#22c55e',descuentable:false,
+   dsc:'Encargo directo del propietario/comitente: relevamiento, documentación, análisis y responsabilidad profesional. Honorario por tarifa de referencia según tipo de trámite × superficie × complejidad × urgencia, con piso mínimo. Sin descuento.',
+   tipoCalculo:'tarifa_conforme',
+   tareas:[
+    {id:'ta_co_relev',nm:'Relevamiento',grupos:[
+     {nm:'Antecedentes',items:[
+       {id:'co_ant_prelim',nm:'Revisión preliminar de antecedentes',tipo:'normal',inc:2,dsc:''},
+       {id:'co_ant_planos',nm:'Revisión de planos existentes',tipo:'normal',inc:1,dsc:''},
+       {id:'co_ant_verif',nm:'Verificación de información suministrada',tipo:'normal',inc:1,dsc:''},
+       {id:'co_ant_comp',nm:'Comparación inicial de documentación',tipo:'normal',inc:1,dsc:''},
+       {id:'co_ant_sup',nm:'Verificación de superficies antecedentes',tipo:'normal',inc:1,dsc:''}
+     ]},
+     {nm:'Relevamiento de Campo',items:[
+       {id:'co_cam_visita',nm:'Visita inicial',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_medext',nm:'Medición exterior',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_medint',nm:'Medición interior',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_esp',nm:'Espesores de muros',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_alt',nm:'Alturas',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_niv',nm:'Niveles',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_abert',nm:'Aberturas',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_cub',nm:'Cubiertas',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_esc',nm:'Escaleras',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_estr',nm:'Elementos estructurales visibles',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_inst',nm:'Instalaciones visibles',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_aux',nm:'Construcciones auxiliares',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_foto',nm:'Relevamiento fotográfico',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_croq',nm:'Croquis de campo',tipo:'normal',inc:1,dsc:''},
+       {id:'co_cam_sup',nm:'Verificación de superficies',tipo:'normal',inc:0,dsc:''}
+     ]},
+    ]},
+    {id:'ta_co_doc',nm:'Documentación',grupos:[{nm:null,items:[
+       {id:'co_doc_digit',nm:'Digitalización de croquis',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_recon',nm:'Reconstrucción gráfica',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_impl',nm:'Implantación',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_pb',nm:'Planta baja',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_ps',nm:'Plantas superiores',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_cub',nm:'Planta de cubierta',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_cortes',nm:'Cortes',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_fach',nm:'Fachadas/vistas',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_cotas',nm:'Cotas',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_niv',nm:'Niveles',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_sup',nm:'Superficies',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_poli',nm:'Polígonos de superficies',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_planillas',nm:'Planillas',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_ref',nm:'Referencias',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_carat',nm:'Carátula',tipo:'normal',inc:2,dsc:''},
+       {id:'co_doc_armado',nm:'Armado de lámina',tipo:'normal',inc:1,dsc:''},
+       {id:'co_doc_plano_co',nm:'Plano Conforme a Obra',tipo:'normal',inc:1,dsc:''},
+       {id:'co_doc_plano_emp',nm:'Plano de Empadronamiento',tipo:'normal',inc:1,dsc:''},
+       {id:'co_doc_pdf',nm:'Preparación PDF',tipo:'normal',inc:1,dsc:''},
+       {id:'co_doc_edit',nm:'Preparación de archivo editable cuando corresponda',tipo:'normal',inc:1,dsc:''}
+    ]}]},
+    {id:'ta_co_analisis',nm:'Análisis Técnico',grupos:[{nm:null,items:[
+       {id:'co_an_comp',nm:'Comparación plano aprobado / estado actual',tipo:'normal',inc:2,dsc:''},
+       {id:'co_an_compsup',nm:'Comparación de superficies',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_ampl',nm:'Identificación de ampliaciones',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_mod',nm:'Identificación de modificaciones',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_dem',nm:'Identificación de demoliciones',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_distr',nm:'Cambios de distribución',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_anteced',nm:'Análisis de antecedentes',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_revdoc',nm:'Revisión de documentación disponible',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_dif_alt',nm:'Diferencias de alturas',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_dif_niv',nm:'Diferencias de niveles',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_obs',nm:'Observaciones técnicas',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_norm',nm:'Análisis normativo correspondiente al alcance',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_factib',nm:'Evaluación preliminar de factibilidad documental',tipo:'normal',inc:1,dsc:''},
+       {id:'co_an_regular',nm:'Identificación de situaciones que puedan requerir regularización adicional',tipo:'normal',inc:1,dsc:''}
+    ]}]},
+    {id:'ta_co_resp',nm:'Responsabilidad Profesional',grupos:[{nm:null,items:[
+       {id:'co_rp_rev',nm:'Revisión profesional de documentación',tipo:'normal',inc:5,dsc:''},
+       {id:'co_rp_cons',nm:'Control de consistencia',tipo:'normal',inc:5,dsc:''},
+       {id:'co_rp_verif',nm:'Verificación final',tipo:'normal',inc:4,dsc:''},
+       {id:'co_rp_firma',nm:'Firma profesional cuando corresponda',tipo:'normal',inc:4,dsc:''},
+       {id:'co_rp_interv',nm:'Intervención como profesional responsable',tipo:'normal',inc:4,dsc:''},
+       {id:'co_rp_prep',nm:'Preparación final para presentación',tipo:'normal',inc:4,dsc:''},
+       {id:'co_rp_resp',nm:'Responsabilidad profesional dentro del alcance contratado',tipo:'normal',inc:4,dsc:''}
+    ]}]},
+    {id:'ta_co_gest',nm:'Gestoría (opcional)',grupos:[{nm:null,items:[
+       {id:'co_ge_prep',nm:'Preparación de presentación',tipo:'normal',inc:2,dsc:''},
+       {id:'co_ge_inicio',nm:'Inicio de expediente',tipo:'normal',inc:2,dsc:''},
+       {id:'co_ge_present',nm:'Presentación ante organismo',tipo:'normal',inc:2,dsc:''},
+       {id:'co_ge_segu',nm:'Seguimiento',tipo:'normal',inc:2,dsc:''},
+       {id:'co_ge_consult',nm:'Consultas',tipo:'normal',inc:2,dsc:''},
+       {id:'co_ge_obs',nm:'Atención de observaciones',tipo:'normal',inc:2,dsc:''},
+       {id:'co_ge_correc',nm:'Preparación de correcciones',tipo:'normal',inc:2,dsc:''},
+       {id:'co_ge_nueva',nm:'Nueva presentación',tipo:'normal',inc:2,dsc:''},
+       {id:'co_ge_coord',nm:'Coordinación con organismo',tipo:'normal',inc:2,dsc:''},
+       {id:'co_ge_hasta',nm:'Seguimiento hasta instancia contratada',tipo:'normal',inc:1,dsc:''},
+       {id:'co_ge_cierre',nm:'Cierre administrativo cuando corresponda',tipo:'normal',inc:1,dsc:''}
+    ]}]},
+   ]},
+  {id:'dibujante',nm:'Dibujante',clr:'#38bdf8',descuentable:false,
+   tipoCalculo:'render_dibujante',
+   dsc:'Colaboración de dibujo técnico subcontratada por otro/a arquitecto/a, ingeniero/a, constructor/a o empresa. NO incluye firma profesional, responsabilidad profesional principal, dirección de obra, representación técnica, presentación ante organismos ni gestoría — estos servicios solo se suman si se contratan expresamente y por separado (ver roles correspondientes). Honorarios por ítem (m² / unidad / lámina / hora), según coeficientes de complejidad, urgencia y nivel de intervención. Sin descuento.',
+   tareas:[
+    {id:'ta_dib_arq',nm:'A) Planos de Arquitectura',grupos:[{nm:null,items:[
+       {id:'dib_arq_impl',nm:'Implantación',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.4,unitPrice:1.4,dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_plantas',nm:'Plantas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:2.2,unitPrice:2.2,dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_cortes',nm:'Cortes',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.1,unitPrice:1.1,dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_fachadas',nm:'Fachadas/vistas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:1.1,unitPrice:1.1,dsc:'Por m² de superficie del encargo'}
+    ]}]},
+    {id:'ta_dib_det',nm:'B) Detalles Constructivos',grupos:[{nm:null,items:[
+       {id:'dib_det_generico',nm:'Detalle constructivo genérico',tipo:'render',inc:0,qty:1,baseUnitPrice:45,unitPrice:45,dsc:'Por detalle — escalera, encuentros, cubierta, etc.'},
+       {id:'dib_det_planilla',nm:'Planilla de carpinterías / aberturas',tipo:'render',inc:0,qty:1,baseUnitPrice:60,unitPrice:60,dsc:'Por planilla completa'}
+    ]}]},
+    {id:'ta_dib_carp',nm:'C) Carpinterías',grupos:[{nm:null,items:[
+       {id:'dib_carp_unidad',nm:'Carpintería — dibujo por unidad',tipo:'render',inc:0,qty:1,baseUnitPrice:18,unitPrice:18,dsc:'Puertas, ventanas u otras aberturas, por unidad'}
+    ]}]},
+    {id:'ta_dib_inst',nm:'D) Planos de Instalaciones (colaboración de dibujo)',grupos:[{nm:null,items:[
+       {id:'dib_inst_san',nm:'Colaboración dibujo — Sanitaria',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,dsc:'Por m² — solo dibujo, sin cálculo ni firma'},
+       {id:'dib_inst_elec',nm:'Colaboración dibujo — Eléctrica',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,dsc:'Por m² — solo dibujo, sin cálculo ni firma'}
+    ]}]},
+    {id:'ta_dib_3d',nm:'E) Documentación 3D / Renders básicos',grupos:[{nm:null,items:[
+       {id:'dib_3d_ext',nm:'Render exterior básico',tipo:'render',inc:0,qty:1,baseUnitPrice:90,unitPrice:90,dsc:'Modelado simple, sin postproducción avanzada'},
+       {id:'dib_3d_int',nm:'Render interior básico',tipo:'render',inc:0,qty:1,baseUnitPrice:70,unitPrice:70,dsc:'Modelado simple, sin postproducción avanzada'}
+    ]}]},
+    {id:'ta_dib_correc',nm:'F) Correcciones / Ajustes por Plano',grupos:[{nm:null,items:[
+       {id:'dib_correc_ronda',nm:'Ronda de correcciones adicional',tipo:'render',inc:0,qty:1,baseUnitPrice:25,unitPrice:25,dsc:'Por plano, más allá de las rondas incluidas en el alcance'}
+    ]}]},
+    {id:'ta_dib_archivos',nm:'G) Archivos Editables',grupos:[{nm:null,items:[
+       {id:'dib_arch_dwg',nm:'Exportación DWG editable',tipo:'render',inc:0,qty:1,baseUnitPrice:35,unitPrice:35,dsc:'Por archivo/plano'},
+       {id:'dib_arch_rvt_ifc',nm:'Exportación RVT / IFC',tipo:'render',inc:0,qty:1,baseUnitPrice:55,unitPrice:55,dsc:'Por archivo/modelo, cuando corresponda'}
+    ]}]},
+    {id:'ta_dib_impr',nm:'H) Impresión / Entrega Física',grupos:[{nm:null,items:[
+       {id:'dib_impr_lamina',nm:'Impresión/plotter de lámina',tipo:'render',inc:0,qty:1,baseUnitPrice:12,unitPrice:12,dsc:'Por lámina impresa, papel simple'}
+    ]}]},
+    {id:'ta_dib_gestarch',nm:'I) Gestión de Archivos y Versionado',grupos:[{nm:null,items:[
+       {id:'dib_gest_version',nm:'Gestión y versionado de archivos',tipo:'render',inc:0,qty:1,baseUnitPrice:40,unitPrice:40,dsc:'Por entrega/versión — organización, nomenclatura y respaldo'}
+    ]}]},
+    {id:'ta_dib_reun',nm:'J) Reuniones Técnicas de Coordinación',grupos:[{nm:null,items:[
+       {id:'dib_reun_hora',nm:'Reunión técnica de coordinación',tipo:'render',inc:0,qty:1,baseUnitPrice:30,unitPrice:30,dsc:'Por hora de reunión, presencial o remota'}
+    ]}]}
+   ]}
 ];
+
+/* ── HON_CONFIG ───────────────────────────────────────────────────────────
+   VALORES INICIALES – AGOSTO 2026
+   Valores editables (USD) para los roles "Conforme a Obra – Clientes" y
+   "Dibujante". Ninguno de estos valores está hardcodeado en las fórmulas:
+   se leen siempre desde este objeto (persistido en localStorage + Firestore
+   users/{uid}/config/honorarios — ver honCfgGuardar()/honCfgCargar()).
+   AVISO: estos son valores de referencia razonables sugeridos — el estudio
+   debe revisarlos y ajustarlos desde Configuración antes de facturar. ──── */
+var HON_CONFIG={
+  conformeObra:{
+    tramites:{
+      estandar:{nm:'Conforme a Obra estándar',tarifaBase:6.5,honorarioMinimo:350},
+      ampliacion:{nm:'Regularización de ampliación',tarifaBase:8.0,honorarioMinimo:450},
+      empadronamiento:{nm:'Empadronamiento',tarifaBase:5.5,honorarioMinimo:300},
+      refaccion:{nm:'Empadronamiento de refacciones',tarifaBase:7.0,honorarioMinimo:380}
+    },
+    complejidad:{bajo:0.85,estandar:1.00,medioalto:1.15,alto:1.30,muyalto:1.50},
+    urgencia:{normal:0,urgente:0.20,muyurgente:0.30,inmediato:0.50}
+  },
+  dibujante:{
+    complejidad:{bajo:0.85,estandar:1.00,medioalto:1.15,alto:1.30,muyalto:1.50},
+    urgencia:{normal:0,urgente:0.20,muyurgente:0.30,inmediato:0.50},
+    nivel:{basica:1.00,intermedio:1.20,integral:1.45}
+  },
+  leyendas:{vigenciaDias:30,anticipoPct:40,correccionesIncluidas:2,plazoEntregaDias:15,organismoDefault:'Municipio de Ushuaia'}
+};
+var HON_CONFIG_DEFAULT=JSON.parse(JSON.stringify(HON_CONFIG));
+function honCfgGuardar(){
+  localStorage.setItem('obraerp_hon_config',JSON.stringify(HON_CONFIG));
+  if(typeof _db!=='undefined'&&_db&&typeof _uid!=='undefined'&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('honorarios')
+      .set(HON_CONFIG).then(function(){toast('✓ Valores iniciales de Honorarios guardados en la nube');})
+      .catch(function(e){toast('✓ Guardado local ('+e.message+')');});
+  }else{toast('✓ Valores iniciales de Honorarios guardados');}
+  if(typeof recalc==='function')recalc();
+}
+function honCfgAplicar(d){
+  if(!d)return;
+  if(d.conformeObra)HON_CONFIG.conformeObra=d.conformeObra;
+  if(d.dibujante)HON_CONFIG.dibujante=d.dibujante;
+  if(d.leyendas)HON_CONFIG.leyendas=Object.assign({},HON_CONFIG.leyendas,d.leyendas);
+  if(typeof dibujanteAplicarCoeficientes==='function')dibujanteAplicarCoeficientes();
+  if(typeof buildHonCfgInputs==='function')buildHonCfgInputs();
+}
+function honCfgCargar(){
+  if(typeof _db!=='undefined'&&_db&&typeof _uid!=='undefined'&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('honorarios')
+      .get().then(function(doc){
+        if(doc.exists){honCfgAplicar(doc.data());}
+        else{var loc=localStorage.getItem('obraerp_hon_config');if(loc)honCfgAplicar(JSON.parse(loc));}
+      }).catch(function(){
+        var loc=localStorage.getItem('obraerp_hon_config');if(loc)honCfgAplicar(JSON.parse(loc));
+      });
+  }else{
+    var loc=localStorage.getItem('obraerp_hon_config');if(loc)honCfgAplicar(JSON.parse(loc));
+  }
+}
+function honCfgRestablecer(){
+  HON_CONFIG=JSON.parse(JSON.stringify(HON_CONFIG_DEFAULT));
+  honCfgAplicar(HON_CONFIG);
+  if(typeof buildHonCfgInputs==='function')buildHonCfgInputs();
+  if(typeof recalc==='function')recalc();
+  toast('Valores iniciales de Honorarios restablecidos (Agosto 2026)');
+}
+/* Setter genérico por ruta de puntos, ej. honCfgSet('conformeObra.tramites.estandar.tarifaBase',6.5) */
+function honCfgSet(path,val){
+  var parts=path.split('.'),o=HON_CONFIG;
+  for(var i=0;i<parts.length-1;i++){o=o[parts[i]];if(!o)return;}
+  o[parts[parts.length-1]]=parseFloat(val)||0;
+  if(typeof dibujanteAplicarCoeficientes==='function')dibujanteAplicarCoeficientes();
+  if(typeof recalc==='function')recalc();
+}
+function buildHonCfgInputs(){
+  var cont=document.getElementById('honcfg-inputs');if(!cont)return;
+  var rows=[];
+  var row=function(lbl,path,val,step){
+    rows.push('<div style="display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
+      +'<div style="font-size:11.5px;color:var(--tx2)">'+lbl+'</div>'
+      +'<div class="pw"><input class="pi" type="number" step="'+(step||'0.01')+'" value="'+val+'" oninput="honCfgSet(\''+path+'\',this.value)"><span class="pu"></span></div></div>');
+  };
+  rows.push('<div style="font-size:10.5px;font-weight:700;color:#22c55e;margin:10px 0 4px;text-transform:uppercase;letter-spacing:.06em">Conforme a Obra – Clientes · Tarifas base (USD/m²) y honorario mínimo (USD)</div>');
+  Object.keys(HON_CONFIG.conformeObra.tramites).forEach(function(k){
+    var t=HON_CONFIG.conformeObra.tramites[k];
+    row(t.nm+' — tarifa base USD/m²','conformeObra.tramites.'+k+'.tarifaBase',t.tarifaBase,'0.1');
+    row(t.nm+' — honorario mínimo USD','conformeObra.tramites.'+k+'.honorarioMinimo',t.honorarioMinimo,'10');
+  });
+  rows.push('<div style="font-size:10.5px;font-weight:700;color:#22c55e;margin:10px 0 4px;text-transform:uppercase;letter-spacing:.06em">Conforme a Obra – Clientes · Coeficientes</div>');
+  Object.keys(HON_CONFIG.conformeObra.complejidad).forEach(function(k){row('Complejidad · '+k,'conformeObra.complejidad.'+k,HON_CONFIG.conformeObra.complejidad[k],'0.01');});
+  Object.keys(HON_CONFIG.conformeObra.urgencia).forEach(function(k){row('Urgencia (recargo) · '+k,'conformeObra.urgencia.'+k,HON_CONFIG.conformeObra.urgencia[k],'0.01');});
+  rows.push('<div style="font-size:10.5px;font-weight:700;color:#38bdf8;margin:10px 0 4px;text-transform:uppercase;letter-spacing:.06em">Dibujante · Coeficientes</div>');
+  Object.keys(HON_CONFIG.dibujante.complejidad).forEach(function(k){row('Complejidad · '+k,'dibujante.complejidad.'+k,HON_CONFIG.dibujante.complejidad[k],'0.01');});
+  Object.keys(HON_CONFIG.dibujante.urgencia).forEach(function(k){row('Urgencia (recargo) · '+k,'dibujante.urgencia.'+k,HON_CONFIG.dibujante.urgencia[k],'0.01');});
+  Object.keys(HON_CONFIG.dibujante.nivel).forEach(function(k){row('Nivel de intervención · '+k,'dibujante.nivel.'+k,HON_CONFIG.dibujante.nivel[k],'0.01');});
+  rows.push('<div style="font-size:10.5px;font-weight:700;color:var(--golt);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.06em">Dibujante · Precio base por ítem (USD, antes de coeficientes)</div>');
+  var dibRole=ROLES.find(function(r){return r.id==='dibujante';});
+  if(dibRole)dibRole.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
+    rows.push('<div style="display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
+      +'<div style="font-size:11.5px;color:var(--tx2)">'+it.nm+(it.esM2?' <span style="font-size:9px;color:var(--tx3)">(USD/m²)</span>':' <span style="font-size:9px;color:var(--tx3)">(USD/u)</span>')+'</div>'
+      +'<div class="pw"><input class="pi" type="number" step="0.1" value="'+it.baseUnitPrice+'" oninput="dibujanteSetBasePrice(\''+it.id+'\',this.value)"><span class="pu"></span></div></div>');
+  });});});
+  cont.innerHTML=rows.join('');
+}
+function dibujanteSetBasePrice(itemId,val){
+  var role=ROLES.find(function(r){return r.id==='dibujante';});if(!role)return;
+  role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
+    if(it.id===itemId)it.baseUnitPrice=parseFloat(val)||0;
+  });});});
+  dibujanteAplicarCoeficientes();
+}
 
 /* Inicializar pct para items normales */
 var CATDF_DEFAULT={};
@@ -1457,7 +1783,7 @@ function aplicarPreset(tipo){
 }
 function resetCatdf(){
   ROLES.forEach(function(r){
-    if(r.id==='calc')return;
+    if(r.id==='calc'||r.id==='conf_obra_cli'||r.id==='dibujante')return;
     r.catdf=CATDF_DEFAULT[r.id];
     r.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       if(it.tipo==='normal')it.pct=r.catdf*(it.inc/100);
@@ -1468,7 +1794,7 @@ function resetCatdf(){
 }
 function buildCatdfInputs(){
   var cont=document.getElementById('catdf-inputs');if(!cont)return;
-  cont.innerHTML=ROLES.filter(function(r){return r.id!=='calc';}).map(function(r){
+  cont.innerHTML=ROLES.filter(function(r){return r.id!=='calc'&&r.id!=='conf_obra_cli'&&r.id!=='dibujante';}).map(function(r){
     return '<div style="display:grid;grid-template-columns:1fr 120px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
       +'<div><div style="font-size:12px;font-weight:600;color:var(--tx)">'+r.nm+'</div>'
       +'<div style="font-size:10px;color:var(--tx3);margin-top:2px">'+(r.descuentable?'Con descuento':'Sin descuento')+' \u00b7 def. '+(CATDF_DEFAULT[r.id]*100).toFixed(1)+'%</div></div>'
@@ -1492,6 +1818,53 @@ function updateRenderQty(rid,iid,val){
 }
 function updateRenderPrice(rid,iid,val){
   ROLES.forEach(function(r){if(r.id!==rid)return;r.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){if(it.id===iid){var p=parseFloat(String(val).replace(',','.'));it.unitPrice=isNaN(p)?0:p;}});});});});
+  recalc();
+}
+
+/* ── CONFORME A OBRA – CLIENTES: helpers de tarifa ──────────────────────
+   rolTotal = tarifaBase(tipo de trámite) × coefComplejidad × coefUrgencia ×
+   superficie, con piso en honorarioMinimo. Reutilizado por recalc() y
+   motorGuardar() — nunca hardcodeado, siempre lee de HON_CONFIG.conformeObra. */
+function coTarifaCfg(){
+  var trK=document.getElementById('mot-co-tramite')?.value||'estandar';
+  var cxK=document.getElementById('mot-co-complejidad')?.value||'estandar';
+  var urK=document.getElementById('mot-co-urgencia')?.value||'normal';
+  var cfg=HON_CONFIG.conformeObra;
+  var tr=cfg.tramites[trK]||cfg.tramites.estandar;
+  var coefC=cfg.complejidad[cxK]!=null?cfg.complejidad[cxK]:1;
+  var coefU=1+(cfg.urgencia[urK]||0);
+  return {tarifaBase:tr.tarifaBase,honorarioMinimo:tr.honorarioMinimo,tramiteNm:tr.nm,coefC:coefC,coefU:coefU};
+}
+function coRolTotal(m2sup){
+  var c=coTarifaCfg();
+  var base=c.tarifaBase*c.coefC*c.coefU*(m2sup||0);
+  return Math.max(c.honorarioMinimo,base);
+}
+
+/* ── DIBUJANTE: coeficientes de complejidad/urgencia/nivel ──────────────
+   Recalcula unitPrice = baseUnitPrice × coefComplejidad × coefUrgencia ×
+   coefNivel para todos los ítems del rol Dibujante y sincroniza los
+   inputs rprc-<id> visibles en el DOM (mismo patrón que updateRenderPrice). */
+function dibujanteCoefs(){
+  var cxK=document.getElementById('mot-dib-complejidad')?.value||'estandar';
+  var urK=document.getElementById('mot-dib-urgencia')?.value||'normal';
+  var nvK=document.getElementById('mot-dib-nivel')?.value||'basica';
+  var cfg=HON_CONFIG.dibujante;
+  return {
+    coefC:cfg.complejidad[cxK]!=null?cfg.complejidad[cxK]:1,
+    coefU:1+(cfg.urgencia[urK]||0),
+    coefN:cfg.nivel[nvK]!=null?cfg.nivel[nvK]:1
+  };
+}
+function dibujanteAplicarCoeficientes(){
+  var role=ROLES.find(function(r){return r.id==='dibujante';});if(!role)return;
+  var c=dibujanteCoefs();
+  role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
+    if(it.tipo==='render'&&typeof it.baseUnitPrice==='number'){
+      it.unitPrice=Math.round(it.baseUnitPrice*c.coefC*c.coefU*c.coefN*100)/100;
+      var pEl=document.getElementById('rprc-'+it.id);if(pEl)pEl.value=it.unitPrice;
+    }
+  });});});
   recalc();
 }
 
@@ -1574,7 +1947,7 @@ function buildRoles(){
       +'<div style="flex:1;min-width:0"><div class="rc-nm">'+role.nm+dtag+'</div><div class="rc-dsc">'+role.dsc+'</div></div>'
       +'<div class="rc-rh"><div style="text-align:right">'
       +'<div class="rc-usd" id="rusd-'+role.id+'" style="color:'+role.clr+'">USD 0</div>'
-      +'<div class="rc-sub">'+(role.id==='calc'?('USD '+getN('mot-calc-usdm2',9)+'/m\u00b2'):('CATDF '+(role.catdf*100).toFixed(1)+'% s/obra'))+'</div>'
+      +'<div class="rc-sub">'+(role.id==='calc'?('USD '+getN('mot-calc-usdm2',9)+'/m\u00b2'):role.id==='conf_obra_cli'?'Tarifa por tr\u00e1mite \u00d7 sup.':role.id==='dibujante'?'Render por \u00edtem (u/m\u00b2)':('CATDF '+(role.catdf*100).toFixed(1)+'% s/obra'))+'</div>'
       +'</div><svg class="rc-arr" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" id="rarr-'+role.id+'"><path d="M6 9l6 6 6-6"/></svg></div>'
       +'</div>'
       +'<div class="rc-body'+(st.open?' open':'')+'" id="rbody-'+role.id+'">'
@@ -1662,30 +2035,35 @@ function recalc(){
   ROLES.forEach(function(role){
     var st=S[role.id];if(!st)return;
     var esCalc=role.id==='calc';
+    var esConfObra=role.id==='conf_obra_cli';
+    var esDibujante=role.id==='dibujante';
     var vObraRole = esCalc ? vObraCalc
                    : role.id==='inf'  ? vObraInf
                    : vObraNueva;
-    var rolTotal = esCalc ? (m2total*calcUsdM2) : (role.catdf*vObraRole);
+    var rolTotal = esCalc ? (m2total*calcUsdM2) : esConfObra ? coRolTotal(m2total) : esDibujante ? 0 : (role.catdf*vObraRole);
     var fb=document.getElementById('fbar-'+role.id);
-    var baseLbl = esCalc ? 'Sup. TOTAL' : role.id==='inf' ? 'Sup. existente sin declarar' : 'Sup. NUEVA';
-    var baseValTxt = esCalc ? (m2total+' m²') : ('USD '+Math.round(vObraRole).toLocaleString());
-    var pctTxt = esCalc ? ('USD '+calcUsdM2+'/m²') : ((role.catdf*100).toFixed(2)+'%');
+    var baseLbl = esCalc ? 'Sup. TOTAL' : esConfObra ? 'Trámite × sup.' : esDibujante ? 'Ítems por unidad/m²' : role.id==='inf' ? 'Sup. existente sin declarar' : 'Sup. NUEVA';
+    var baseValTxt = esCalc ? (m2total+' m²') : esConfObra ? (coTarifaCfg().tramiteNm+' · '+m2total+' m²') : esDibujante ? '—' : ('USD '+Math.round(vObraRole).toLocaleString());
+    var pctTxt = esCalc ? ('USD '+calcUsdM2+'/m²') : esConfObra ? ('piso USD '+coTarifaCfg().honorarioMinimo) : esDibujante ? 'u × USD' : ((role.catdf*100).toFixed(2)+'%');
     if(fb)fb.innerHTML='<b>Fórmula:</b> '+baseLbl+' '+baseValTxt+' × <b>'+pctTxt+'</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' × % del rol.'+(role.descuentable?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>');
     var rs=0;
     role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       var on=st.subs[it.id];
       var usd=0;
       if(on){
-        if(esCalc&&it.tipo==='normal'){
+        if((esCalc||esConfObra)&&it.tipo==='normal'){
           // Calculista: USD/m² editable × superficie total, repartido por % de incidencia de la subtarea
+          // Conforme a Obra – Clientes: tarifa por trámite × sup. total, repartida por % de incidencia (misma lógica)
           usd=rolTotal*(it.inc/100);
         } else if(it.tipo==='render'){
           // Lee del DOM para siempre usar el valor actual del input
           var qEl=document.getElementById('rqty-'+it.id),pEl=document.getElementById('rprc-'+it.id);
           var qty=qEl?Math.max(1,parseInt(qEl.value)||it.qty||1):(it.qty||1);
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
-          // Guía de Aviso: la cantidad es siempre el m² nuevo del encargo
+          // Guía de Aviso: la cantidad es siempre el m² nuevo del encargo (comportamiento original, sin cambios)
           if(it.id==='guia_aviso'){qty=m2;var qEl2=document.getElementById('rqty-'+it.id);if(qEl2)qEl2.value=m2;}
+          // Ítems Dibujante marcados esM2: la cantidad es siempre la superficie total del encargo
+          if(it.esM2){qty=m2total;var qEl3=document.getElementById('rqty-'+it.id);if(qEl3)qEl3.value=m2total;}
           usd=qty*prc;
           // Actualizar objeto
           it.qty=qty;it.unitPrice=prc;
@@ -1704,7 +2082,7 @@ function recalc(){
     var re=document.getElementById('rusd-'+role.id);
     if(re)re.textContent=rs>0?'USD '+Math.round(rs).toLocaleString():'USD 0';
     var rcSub=document.getElementById('rc-'+role.id);
-    if(rcSub){var catTxt=esCalc?('USD '+calcUsdM2+'/m²'):((role.catdf*100).toFixed(1)+'% s/obra');var sub=document.getElementById('rbody-'+role.id)?.previousElementSibling?.querySelector('.rc-sub');if(sub)sub.textContent=catTxt;}
+    if(rcSub){var catTxt=esCalc?('USD '+calcUsdM2+'/m²'):esConfObra?'Tarifa por trámite × sup.':esDibujante?'Render por ítem (u/m²)':((role.catdf*100).toFixed(1)+'% s/obra');var sub=document.getElementById('rbody-'+role.id)?.previousElementSibling?.querySelector('.rc-sub');if(sub)sub.textContent=catTxt;}
     if(rs>0){
       if(role.descuentable)totalDesc+=rs;else totalNoDesc+=rs;
       sumRows.push({nm:role.nm,usd:rs,descuentable:role.descuentable});
@@ -1797,12 +2175,98 @@ function addCuota(){cuotas.push({id:Date.now(),nm:'Nueva cuota',pct:0});renderCu
 function delCuota(id){if(cuotas.length<=1){toast('Debe haber al menos una cuota',false);return;}cuotas=cuotas.filter(function(c){return c.id!==id;});renderCuotas();}
 
 /* ── MOTOR CONTROL ────────────────────────────────────────────────────── */
-function motorInit(){initS();populateCliSel();buildCatdfInputs();buildRoles();fetchDolar();}
+/* \u2500\u2500 LEYENDAS (cl\u00e1usulas legales) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+   Infraestructura ADITIVA para el Motor de Honorarios: no reemplaza ni toca
+   la NOTA LEGAL fija que ya imprime generarPDF(). AVISO IMPORTANTE: los
+   textos de LEYENDAS_HON de abajo son modelos profesionales razonables de
+   referencia (placeholder) para un estudio de arquitectura en Argentina \u2014
+   el estudio debe revisarlos/editarlos antes de emitir presupuestos, ya que
+   no reproducen textualmente ninguna cl\u00e1usula original del estudio. Son
+   100% editables desde la UI de selecci\u00f3n (checkboxes) en el Motor. */
+var LEYENDAS_HON=[
+  {id:'vigencia',nm:'Vigencia del presupuesto',
+   texto:'Este presupuesto tiene una vigencia de {{vigencia_dias}} d\u00edas corridos a partir de su fecha de emisi\u00f3n ({{fecha}}). Transcurrido ese plazo, los valores deber\u00e1n ser revisados y podr\u00e1n sufrir modificaciones.',
+   autoSuggestWhen:function(){return true;}},
+  {id:'anticipo',nm:'Anticipo requerido',
+   texto:'Para el inicio de las tareas se requiere un anticipo del {{anticipo}} del monto total de honorarios, seg\u00fan el detalle de la Planilla de Cuotas cuando corresponda.',
+   autoSuggestWhen:function(){return true;}},
+  {id:'no_direccion',nm:'Alcance no incluye Direcci\u00f3n de Obra',
+   texto:'El presente presupuesto no incluye tareas de Direcci\u00f3n de Obra, salvo que dicho rol se encuentre expresamente contratado y detallado en este documento.',
+   autoSuggestWhen:function(){return !(S['dir_obra']&&S['dir_obra'].on);}},
+  {id:'aprobacion_entregables',nm:'Entregables sujetos a aprobaci\u00f3n previa',
+   texto:'Todos los entregables (planos, informes, documentaci\u00f3n t\u00e9cnica) quedan sujetos a la aprobaci\u00f3n previa del comitente antes de su presentaci\u00f3n ante organismos p\u00fablicos o terceros.',
+   autoSuggestWhen:function(){return true;}},
+  {id:'correcciones',nm:'Correcciones incluidas vs. adicionales',
+   texto:'Se incluyen hasta {{correcciones_incluidas}} rondas de correcciones por entregable dentro del alcance contratado. Correcciones adicionales, cambios de alcance o rehacer tareas ya aprobadas se cotizan por separado.',
+   autoSuggestWhen:function(){return true;}},
+  {id:'dibujante_sin_firma',nm:'Dibujante \u2014 sin firma ni responsabilidad principal',
+   texto:'El rol Dibujante comprende exclusivamente tareas de dibujo t\u00e9cnico y colaboraci\u00f3n. No incluye firma profesional, responsabilidad profesional principal, direcci\u00f3n de obra, representaci\u00f3n t\u00e9cnica, presentaci\u00f3n ante organismos ni gestor\u00eda \u2014 dichos servicios solo se suman si se contratan expresamente y por separado.',
+   autoSuggestWhen:function(){return !!(S['dibujante']&&S['dibujante'].on);}},
+  {id:'gestoria_opcional',nm:'Gestor\u00eda opcional y adicional (Conforme a Obra)',
+   texto:'La Gestor\u00eda (inicio de expediente, presentaciones y seguimiento ante {{organismo}}) es un servicio opcional y adicional al alcance base de Conforme a Obra, facturado seg\u00fan su incidencia detallada en este presupuesto.',
+   autoSuggestWhen:function(){return !!(S['conf_obra_cli']&&S['conf_obra_cli'].on&&S['conf_obra_cli'].tasks&&S['conf_obra_cli'].tasks['ta_co_gest']);}},
+  {id:'ajuste_tc',nm:'Ajuste por tipo de cambio',
+   texto:'Los valores se expresan en {{moneda}} y se facturan al tipo de cambio BNA oficial vendedor vigente al momento del pago. Si al momento del pago el valor registra una variaci\u00f3n relevante, el importe podr\u00e1 ajustarse tomando la cotizaci\u00f3n vigente.',
+   autoSuggestWhen:function(){return true;}},
+  {id:'propiedad_intelectual',nm:'Propiedad intelectual de la documentaci\u00f3n',
+   texto:'La documentaci\u00f3n t\u00e9cnica producida (planos, modelos, informes) es propiedad intelectual del profesional interviniente hasta la cancelaci\u00f3n total de los honorarios pactados en el presupuesto {{numero_presupuesto}}.',
+   autoSuggestWhen:function(){return true;}},
+  {id:'honorario_minimo',nm:'Honorario m\u00ednimo \u2014 Conforme a Obra',
+   texto:'Para tr\u00e1mites de Conforme a Obra se aplica un honorario profesional m\u00ednimo, independientemente de la superficie del encargo, seg\u00fan la tarifa vigente publicada por el estudio.',
+   autoSuggestWhen:function(){return !!(S['conf_obra_cli']&&S['conf_obra_cli'].on);}},
+  {id:'plazo_entrega',nm:'Plazo estimado de entrega',
+   texto:'El plazo estimado de entrega es de {{plazo}}, contado a partir de la aprobaci\u00f3n del anticipo y la recepci\u00f3n de toda la informaci\u00f3n necesaria por parte del comitente.',
+   autoSuggestWhen:function(){return true;}},
+  {id:'presentacion_organismo',nm:'Presentaci\u00f3n ante organismos \u2014 solo si est\u00e1 incluida',
+   texto:'Toda presentaci\u00f3n ante {{organismo}} u otro organismo p\u00fablico se realiza \u00fanicamente si el servicio de Gestor\u00eda/Representaci\u00f3n T\u00e9cnica se encuentra expresamente incluido en este presupuesto.',
+   autoSuggestWhen:function(){return !!(S['dibujante']&&S['dibujante'].on);}},
+  {id:'superficie_declarada',nm:'Superficie seg\u00fan datos suministrados por el comitente',
+   texto:'La superficie de {{superficie}} utilizada como base de c\u00e1lculo de honorarios corresponde a los datos suministrados por el comitente y/o relevados en obra ({{obra}}); cualquier diferencia detectada podr\u00e1 dar lugar a un ajuste de honorarios.',
+   autoSuggestWhen:function(){return true;}}
+];
+function honSustituirVars(txt,h){
+  var cfg=HON_CONFIG.leyendas||{};
+  var vars={
+    cliente:(h&&h.cliente)||'',
+    obra:(h&&(h.catDom||h.uso))||'',
+    superficie:((h&&h.m2)||0)+' m\u00b2',
+    fecha:(h&&h.fecha)||new Date().toLocaleDateString('es-AR'),
+    vigencia_dias:String(cfg.vigenciaDias!=null?cfg.vigenciaDias:30),
+    anticipo:(h&&h.cuotas&&h.cuotas[0]?h.cuotas[0].pct+'%':(cfg.anticipoPct!=null?cfg.anticipoPct:40)+'%'),
+    correcciones_incluidas:String(cfg.correccionesIncluidas!=null?cfg.correccionesIncluidas:2),
+    plazo:(cfg.plazoEntregaDias!=null?cfg.plazoEntregaDias:15)+' d\u00edas h\u00e1biles',
+    organismo:cfg.organismoDefault||'el organismo correspondiente',
+    numero_presupuesto:(h&&h.code)||'',
+    moneda:'USD'
+  };
+  return String(txt||'').replace(/\{\{(\w+)\}\}/g,function(m,k){return vars[k]!=null?vars[k]:m;});
+}
+var LEYENDAS_SEL={};
+function buildLeyendasUI(){
+  var cont=document.getElementById('leyendas-list');if(!cont)return;
+  cont.innerHTML=LEYENDAS_HON.map(function(l){
+    if(!(l.id in LEYENDAS_SEL))LEYENDAS_SEL[l.id]=!!l.autoSuggestWhen();
+    return '<label style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer">'
+      +'<input type="checkbox" style="margin-top:3px" id="ley-'+l.id+'"'+(LEYENDAS_SEL[l.id]?' checked':'')+' onchange="toggleLeyenda(\''+l.id+'\',this.checked)">'
+      +'<span><div style="font-size:11.5px;font-weight:600;color:var(--tx)">'+l.nm+'</div>'
+      +'<div style="font-size:10px;color:var(--tx3);margin-top:2px;line-height:1.5">'+honSustituirVars(l.texto,null)+'</div></span>'
+      +'</label>';
+  }).join('');
+}
+function toggleLeyenda(id,checked){LEYENDAS_SEL[id]=checked;}
+function leyendasObtenerSeleccion(){return LEYENDAS_HON.filter(function(l){return !!LEYENDAS_SEL[l.id];}).map(function(l){return l.id;});}
+function leyendasRestaurarSeleccion(ids){
+  LEYENDAS_SEL={};
+  LEYENDAS_HON.forEach(function(l){LEYENDAS_SEL[l.id]=(ids||[]).indexOf(l.id)!==-1;});
+}
+
+function motorInit(){initS();populateCliSel();buildCatdfInputs();buildRoles();buildLeyendasUI();buildHonCfgInputs();honCfgCargar();fetchDolar();}
 function motorLimpiar(){
   ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{}};});
   cuotas=[{id:1,nm:'Anticipo',pct:40},{id:2,nm:'Aprobaci\u00f3n anteproyecto',pct:20},{id:3,nm:'Plano municipal',pct:20},{id:4,nm:'Estructura',pct:10},{id:5,nm:'Doc. ejecutiva',pct:10}];
+  LEYENDAS_SEL={};
   editandoId=null;
-  buildRoles();toast('Motor limpiado');
+  buildRoles();buildLeyendasUI();toast('Motor limpiado');
 }
 function motorGuardar(draft){
   var activeRoles=ROLES.filter(function(r){return S[r.id]?.on;}).map(function(r){return r.nm;});
@@ -1812,6 +2276,10 @@ function motorGuardar(draft){
   var calcUsdM2=getN('mot-calc-usdm2',9);
   var tc=getN('mot-tc',TC),desc=getN('mot-desc-pct',0)/100,gast=getN('mot-gast-pct',5)/100,ipc=getN('mot-ipc',0)/100;
   var uso=gs('mot-uso'),descTrab=gs('mot-desc-trab'),excl=gs('mot-excl'),nota=gs('mot-nota');
+  // Selectores propios de Conforme a Obra – Clientes y Dibujante (se guardan para que editarHon() los restaure)
+  var coTramite=gs('mot-co-tramite')||'estandar',coComplejidad=gs('mot-co-complejidad')||'estandar',coUrgencia=gs('mot-co-urgencia')||'normal';
+  var dibComplejidad=gs('mot-dib-complejidad')||'estandar',dibUrgencia=gs('mot-dib-urgencia')||'normal',dibNivel=gs('mot-dib-nivel')||'basica';
+  var leyendasSel=(typeof leyendasObtenerSeleccion==='function')?leyendasObtenerSeleccion():[];
   var catSec=gs('mot-sec'),catMzo=gs('mot-mzo'),catParc=gs('mot-parc'),catUF=gs('mot-uf'),catDom=gs('mot-dom');
   var tipo=gs('mot-tipo')||'nueva';
   var formaPago=gs('mot-forma-pago')||'contado';
@@ -1829,22 +2297,25 @@ function motorGuardar(draft){
   ROLES.forEach(function(role){
     if(!S[role.id]?.on)return;
     var esCalc=role.id==='calc';
+    var esConfObra=role.id==='conf_obra_cli';
+    var esDibujante=role.id==='dibujante';
     var vObraRole = esCalc ? vObraCalc
                    : role.id==='inf'  ? vObraInf
                    : vObraNueva;
-    var rolTotalCalc=esCalc?(m2total*calcUsdM2):0;
+    var rolTotalCustom=esCalc?(m2total*calcUsdM2):esConfObra?coRolTotal(m2total):0;
     var items=[];
     role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       if(S[role.id].subs[it.id]){
         var iusd;
-        if(esCalc&&it.tipo==='normal'){
-          iusd=Math.round(rolTotalCalc*(it.inc/100));
+        if((esCalc||esConfObra)&&it.tipo==='normal'){
+          iusd=Math.round(rolTotalCustom*(it.inc/100));
           items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'normal'});
         }else if(it.tipo==='render'){
           var qEl=document.getElementById('rqty-'+it.id),pEl=document.getElementById('rprc-'+it.id);
           var qty=qEl?Math.max(1,parseInt(qEl.value)||it.qty||1):(it.qty||1);
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
           if(it.id==='guia_aviso'){qty=m2;}
+          if(it.esM2){qty=m2total;}
           iusd=Math.round(qty*prc);
           items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'render',qty:qty,unitPrice:prc});
         }else{
@@ -1857,22 +2328,26 @@ function motorGuardar(draft){
     // Corrección de residuo: la suma de subtareas 'normal' (redondeadas una a una) puede quedar
     // $1-2 por debajo/encima del total exacto del rol (ej. 41/12/6/23/12/6% de 4320 suma 4319 y
     // no 4320). Ajustamos la ÚLTIMA subtarea 'normal' del rol para que la suma cierre EXACTO
-    // contra el total del rol — mismo criterio que ya se usa en la Planilla de Cuotas.
+    // contra el total del rol — mismo criterio que ya se usa en la Planilla de Cuotas. Este mismo
+    // criterio (última subtarea seleccionada absorbe el residuo) es matemáticamente válido para
+    // cualquier suma de inc seleccionada — no solo 100% — por eso también sirve para Conforme a
+    // Obra – Clientes cuando se suma Gestoría (100% base + 20% adicional = incSum hasta 120%).
     var normalIdxs=[],incSum=0;
     items.forEach(function(it,idx){if(it.tipo==='normal'){normalIdxs.push(idx);incSum+=(it.inc||0);}});
     if(normalIdxs.length){
       // El target del residuo tiene que ser el total de SOLO las subtareas seleccionadas
       // (incSum% de incidencia), no el 100% del rol — si no, cuando el usuario tilda apenas
       // alguna(s) subtarea(s), la última absorbe el valor de las que no seleccionó (sobrefacturación).
-      var targetRol=esCalc?Math.round(rolTotalCalc*(incSum/100)):Math.round(role.catdf*vObraRole*(incSum/100));
+      var targetRol=(esCalc||esConfObra)?Math.round(rolTotalCustom*(incSum/100)):Math.round(role.catdf*vObraRole*(incSum/100));
       var sumOtros=0;
       for(var k=0;k<normalIdxs.length-1;k++)sumOtros+=items[normalIdxs[k]].usd;
       items[normalIdxs[normalIdxs.length-1]].usd=targetRol-sumOtros;
     }
     var rs=items.reduce(function(a,b){return a+b.usd;},0);
     if(role.descuentable)totalDesc+=rs;else totalNoDesc+=rs;
-    var detEntry={rol:role.nm,catdf:esCalc?null:role.catdf,descuentable:role.descuentable,items:items,total:rs};
+    var detEntry={rol:role.nm,catdf:esCalc?null:role.catdf,descuentable:role.descuentable,items:items,total:rs,tipoCalculo:role.tipoCalculo};
     if(esCalc){detEntry.usdm2=calcUsdM2;detEntry.m2calc=m2total;}
+    if(esConfObra){var _coCfg=coTarifaCfg();detEntry.tramiteNm=_coCfg.tramiteNm;detEntry.honorarioMinimo=_coCfg.honorarioMinimo;detEntry.m2calc=m2total;}
     detalle.push(detEntry);
   });
   // Descuento y Gastos y gestiones: SOLO sobre el bruto de Dir. Proyecto + Calculista (totalDesc).
@@ -1896,6 +2371,8 @@ function motorGuardar(draft){
     dirProyTotal:Math.round(dirProyTotalAfterDisc>0?dirProyTotalAfterDisc:dirProyTotalUSD),
     cuotasBase:cuotasBase,
     descTrab,excl,nota,catSec,catMzo,catParc,catUF,catDom,
+    coTramite,coComplejidad,coUrgencia,dibComplejidad,dibUrgencia,dibNivel,
+    leyendasSel,
     empresa:JSON.parse(JSON.stringify(EMPRESA)),
     estado:draft?'Borrador':'Enviado',
     pagos:[],
@@ -1928,6 +2405,10 @@ function editarHon(id){
   sv('mot-parc',hon.catParc);sv('mot-uf',hon.catUF);sv('mot-dom',hon.catDom);
   sv('mot-desc-trab',hon.descTrab);sv('mot-excl',hon.excl);sv('mot-nota',hon.nota);
   sv('mot-forma-pago',hon.formaPago||'contado');sv('mot-comision',hon.comisionPct||6.49);
+  // Restaurar selectores de Conforme a Obra – Clientes y Dibujante
+  sv('mot-co-tramite',hon.coTramite||'estandar');sv('mot-co-complejidad',hon.coComplejidad||'estandar');sv('mot-co-urgencia',hon.coUrgencia||'normal');
+  sv('mot-dib-complejidad',hon.dibComplejidad||'estandar');sv('mot-dib-urgencia',hon.dibUrgencia||'normal');sv('mot-dib-nivel',hon.dibNivel||'basica');
+  if(typeof dibujanteAplicarCoeficientes==='function')dibujanteAplicarCoeficientes();
   onFormaPago();
   // Restaurar cliId
   var cliEl=document.getElementById('mot-cli');if(cliEl&&hon.cliId){cliEl.value=hon.cliId;}
@@ -1962,9 +2443,11 @@ function editarHon(id){
     console.error('Error restaurando detalle del presupuesto:',errRestore);
     toast('\u26a0 Algunos datos no se pudieron restaurar — revisá los roles y subtareas',false);
   }
+  // Restaurar leyendas seleccionadas
+  if(typeof leyendasRestaurarSeleccion==='function')leyendasRestaurarSeleccion(hon.leyendasSel||[]);
   closeM('mod-hon');
   goTo('motor');
-  setTimeout(function(){buildRoles();toast('Editando '+hon.code+' \u2014 guard\u00e1 los cambios');},100);
+  setTimeout(function(){buildRoles();if(typeof buildLeyendasUI==='function')buildLeyendasUI();toast('Editando '+hon.code+' \u2014 guard\u00e1 los cambios');},100);
 }
 
 /* ── HON LIST ─────────────────────────────────────────────────────────── */
@@ -2043,7 +2526,7 @@ function openHonDetail(id){
   (h.detalle||[]).forEach(function(rol){
     det+='<div style="margin-bottom:14px">'
       +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:'+(rol.descuentable?'var(--bt)':'var(--golt)')+';text-transform:uppercase;letter-spacing:.04em;padding:5px 0 4px;border-bottom:1px solid var(--br);margin-bottom:5px">'
-      +'<span>'+rol.rol+'</span><span style="font-size:9px;opacity:.7;font-weight:400">'+(rol.descuentable?'Con descuento':'Sin descuento')+' \u00b7 '+(rol.catdf!=null?('CATDF '+(rol.catdf*100).toFixed(1)+'%'):('USD '+rol.usdm2+'/m\u00b2'))+'</span></div>'
+      +'<span>'+rol.rol+'</span><span style="font-size:9px;opacity:.7;font-weight:400">'+(rol.descuentable?'Con descuento':'Sin descuento')+' \u00b7 '+(rol.tipoCalculo==='tarifa_conforme'?((rol.tramiteNm||'Tarifa por tr\u00e1mite')):rol.tipoCalculo==='render_dibujante'?'Render por \u00edtem':(rol.catdf!=null?('CATDF '+(rol.catdf*100).toFixed(1)+'%'):('USD '+rol.usdm2+'/m\u00b2')))+'</span></div>'
       +'<div style="font-size:10px;color:var(--tx3);margin-bottom:7px;font-style:italic">Subtotal del rol = USD '+N(rol.total)+'. Cada subtarea = USD '+N(rol.total)+' \u00d7 % del rol.</div>'
       +rol.items.map(function(it){
         var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
@@ -2338,12 +2821,29 @@ function generarPDF(id){
     +'</div>';
   var tots=honCalcTotales(h);
   (h.detalle||[]).forEach(function(rol){
-    var esCalcRol=(rol.catdf==null);
+    var esConfRol=(rol.tipoCalculo==='tarifa_conforme');
+    var esDibRol=(rol.tipoCalculo==='render_dibujante');
+    var esCalcRol=(rol.catdf==null)&&!esConfRol&&!esDibRol;
     var esInfRol=(rol.rol==='Informante T\u00e9cnico');
     var baseRol=esInfRol?((h.m2sind||0)*h.cu*h.cat):(h.m2*h.cu*h.cat);
-    var rFm=esCalcRol?Math.round((rol.m2calc||0)*(rol.usdm2||0)):Math.round(baseRol*rol.catdf);
-    var pctTxt=esCalcRol?('USD '+rol.usdm2+'/m\u00b2'):((rol.catdf*100).toFixed(2)+'%');
-    var baseTxt=esCalcRol?((rol.m2calc||0)+' m\u00b2'):('USD '+N(baseRol));
+    var rFm,pctTxt,baseTxt;
+    if(esConfRol){
+      rFm=Math.round(rol.total);
+      pctTxt=(rol.tramiteNm||'Tarifa por tr\u00e1mite')+(rol.honorarioMinimo?(' \u00b7 piso USD '+N(rol.honorarioMinimo)):'');
+      baseTxt=(rol.m2calc||0)+' m\u00b2';
+    }else if(esDibRol){
+      rFm=Math.round(rol.total);
+      pctTxt='Render por \u00edtem (u \u00d7 USD)';
+      baseTxt='\u00cdtems seleccionados';
+    }else if(esCalcRol){
+      rFm=Math.round((rol.m2calc||0)*(rol.usdm2||0));
+      pctTxt='USD '+rol.usdm2+'/m\u00b2';
+      baseTxt=(rol.m2calc||0)+' m\u00b2';
+    }else{
+      rFm=Math.round(baseRol*rol.catdf);
+      pctTxt=(rol.catdf*100).toFixed(2)+'%';
+      baseTxt='USD '+N(baseRol);
+    }
     var clrRol=rol.descuentable?'#1e3a5f':'#1a3a2a';
     d+='<div class="rol-block">';
     d+='<div class="rol-head" style="background:'+clrRol+'">';
@@ -2410,6 +2910,22 @@ function generarPDF(id){
       d+='<div class="nota">'+h.nota+'</div>';
     }
     d+='</td></tr></table></div>';
+  }
+
+  /* LEYENDAS (cl\u00e1usulas legales) \u2014 secci\u00f3n ADITIVA agregada DESPU\u00c9S de la Secci\u00f3n F.
+     No reemplaza ni modifica la NOTA LEGAL fija que sigue a continuaci\u00f3n. */
+  if(h.leyendasSel&&h.leyendasSel.length&&typeof LEYENDAS_HON!=='undefined'){
+    var leySeleccionadas=LEYENDAS_HON.filter(function(l){return h.leyendasSel.indexOf(l.id)!==-1;});
+    if(leySeleccionadas.length){
+      d+='<div class="sec"><div class="sec-head">G.&nbsp; Leyendas y Condiciones Particulares</div>';
+      d+='<table class="sec-tbl"><tr>';
+      d+='<td class="sec-desc">Cl\u00e1usulas seleccionadas para este presupuesto.</td>';
+      d+='<td class="sec-cont">';
+      leySeleccionadas.forEach(function(l){
+        d+='<div class="nota" style="margin-bottom:7pt"><b>'+l.nm+'.</b> '+honSustituirVars(l.texto,h)+'</div>';
+      });
+      d+='</td></tr></table></div>';
+    }
   }
 
   /* NOTA LEGAL */
@@ -3039,6 +3555,7 @@ setTimeout(function(){
   // (diferido a setTimeout para ejecutar después de que PR_DATA/CP_CATALOGO ya estén
   // definidos más abajo en el script — si no, la asignación literal los pisaría).
   if(typeof prCargar==='function')prCargar();
+  if(typeof honCfgCargar==='function')honCfgCargar();
   if(typeof cpCargarCatalogoUser==='function')cpCargarCatalogoUser();
 },0);
 // Verificar trial local
@@ -3374,6 +3891,7 @@ async function fbLoadAll(){
     scCargar();
     // Load listado de precios (custom/editado) y catálogo de rubros/ítems guardados por el usuario
     if(typeof prCargar==='function')prCargar();
+  if(typeof honCfgCargar==='function')honCfgCargar();
     if(typeof cpCargarCatalogoUser==='function')cpCargarCatalogoUser();
     guardarTodo(); // save to localStorage as cache
     renderHon(HON_DATA);
