@@ -641,7 +641,7 @@ input,select,textarea,button{font-family:var(--font)}
       </div>
 
       <div class="cuotas-card" id="cuotas-section" style="display:none">
-        <div class="fsc" style="color:var(--bt)">Planilla de Cuotas — Dirección de Proyecto + Calculista</div>
+        <div class="fsc" style="color:var(--bt)">Planilla de Cuotas — Dirección de Proyecto + Calculista + Dibujante</div>
         <div class="cuotas-info" id="cuotas-info">Base: USD 0</div>
         <div style="display:grid;grid-template-columns:1fr 58px 88px 30px;gap:8px;padding:0 0 6px;border-bottom:1px solid var(--br);margin-bottom:4px">
           <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)">Concepto</div>
@@ -2073,7 +2073,7 @@ function selTarea(rid,tid,v){
 }
 
 /* ── RECALC ───────────────────────────────────────────────────────────── */
-var dirProyTotalUSD=0,dirProyTotalAfterDisc=0,calcTotalUSD=0,calcTotalAfterDisc=0,cuotasBaseGlobal=0;
+var dirProyTotalUSD=0,dirProyTotalAfterDisc=0,calcTotalUSD=0,calcTotalAfterDisc=0,cuotasBaseGlobal=0,dibujanteTotalNetoGlobal=0;
 var CPT_TAB=[[100,46000],[200,69000],[300,92000],[400,115000],[500,138000],[600,161000],[700,184000],[800,207000],[1000,253000],[Infinity,322000]];
 function cptVal(m2){for(var i=0;i<CPT_TAB.length;i++)if(m2<=CPT_TAB[i][0])return CPT_TAB[i][1];return 322000;}
 function getN(id,def){var el=document.getElementById(id);if(!el)return def;var v=parseFloat(el.value);return isNaN(v)?def:v;}
@@ -2164,6 +2164,7 @@ function recalc(){
     }
     if(role.id==='dir_proy')dirProyTotalUSD=rs;
     if(role.id==='calc')calcTotalUSD=rs;
+    if(esDibujante)dibujanteTotalNetoGlobal=rsNeto;
   });
 
   // Descuento y Gastos y gestiones se calculan SOLO sobre el bruto de Dir. Proyecto + Calculista (totalDesc).
@@ -2179,8 +2180,10 @@ function recalc(){
   var fin=afterDesc+gastos+ipcAmt+comisionAmt;
   dirProyTotalAfterDisc=Math.round(dirProyTotalUSD*(1-desc));
   calcTotalAfterDisc=Math.round(calcTotalUSD*(1-desc)); // Calculista también aplica descuento
-  // Base de la Planilla de Cuotas (forma de pago): Dir.Proyecto + Calculista (netos) + Gastos y gestiones.
-  cuotasBaseGlobal=Math.round(netoDC+gastos);
+  // Base de la Planilla de Cuotas (forma de pago): Dir.Proyecto + Calculista (netos) + Gastos y gestiones
+  // + Dibujante (neto, ya con su propio % Descuento proyecto aplicado más arriba). Dibujante NO entra
+  // en Gastos y gestiones (eso sigue siendo exclusivo de Dir.Proyecto+Calculista) — solo en la cuota.
+  cuotasBaseGlobal=Math.round(netoDC+gastos+dibujanteTotalNetoGlobal);
 
   // Summary
   var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
@@ -2222,7 +2225,7 @@ var cuotas=[{id:1,nm:'Anticipo',pct:40},{id:2,nm:'Aprobaci\u00f3n de anteproyect
 function renderCuotas(){
   var base=cuotasBaseGlobal;
   var ci=document.getElementById('cuotas-info');
-  if(ci)ci.innerHTML='Base: <b>USD '+Math.round(base).toLocaleString()+'</b> = Dir. de Proyecto + Calculista (netos, con descuento si aplica) + Gastos y gestiones. Modific\u00e1 nombre, % y cuotas.';
+  if(ci)ci.innerHTML='Base: <b>USD '+Math.round(base).toLocaleString()+'</b> = Dir. de Proyecto + Calculista (netos, con descuento si aplica) + Gastos y gestiones + Dibujante (neto, con su propio descuento si aplica). Modific\u00e1 nombre, % y cuotas.';
   var tbody=document.getElementById('cuotas-rows');if(!tbody)return;
   tbody.innerHTML=cuotas.map(function(c,i){
     return '<div class="cq-row">'
@@ -2367,7 +2370,7 @@ function motorGuardar(draft){
   var vObraInf=m2sind*cu*cat;     // base Informe Técnico (empadronamiento)
   var vObraCalc=m2total*cu*cat;   // solo informativo (Calculista cotiza USD/m², no % s/valor de obra)
   var vObra=vObraNueva;           // alias para compatibilidad
-  var totalDesc=0,totalNoDesc=0;
+  var totalDesc=0,totalNoDesc=0,dibujanteTotalNeto=0;
   var detalle=[];
   ROLES.forEach(function(role){
     if(!S[role.id]?.on)return;
@@ -2424,6 +2427,7 @@ function motorGuardar(draft){
     // altera Gastos y gestiones ni la Planilla de Cuotas.
     var rsNeto=esDibujante?Math.round(rs*(1-desc)):rs;
     if(role.descuentable)totalDesc+=rsNeto;else totalNoDesc+=rsNeto;
+    if(esDibujante)dibujanteTotalNeto=rsNeto;
     var detEntry={rol:role.nm,catdf:esCalc?null:role.catdf,descuentable:role.descuentable||(esDibujante&&desc>0),items:items,total:rsNeto,tipoCalculo:role.tipoCalculo};
     if(esCalc){detEntry.usdm2=calcUsdM2;detEntry.m2calc=m2total;}
     if(esConfObra){var _coCfg=coTarifaCfg();detEntry.tramiteNm=_coCfg.tramiteNm;detEntry.honorarioMinimo=_coCfg.honorarioMinimo;detEntry.m2calc=m2total;}
@@ -2436,7 +2440,9 @@ function motorGuardar(draft){
   var ipcAmt=after*ipc;
   var comisionAmt=Math.round((after+gastos+ipcAmt)*(comisionPct/100));
   var fin=after+gastos+ipcAmt+comisionAmt;
-  var cuotasBase=Math.round(netoDC+gastos);
+  // Base de la Planilla de Cuotas: Dir.Proyecto + Calculista (netos) + Gastos y gestiones + Dibujante
+  // (neto, con su propio descuento ya aplicado). Dibujante no entra en Gastos y gestiones.
+  var cuotasBase=Math.round(netoDC+gastos+dibujanteTotalNeto);
   var hon={
     id:editandoId||Date.now(),
     code:editandoId?HON_DATA.find(function(h){return h.id===editandoId;})?.code||('HON-'+String(HON_DATA.length+1).padStart(4,'0')):'HON-'+String(HON_DATA.length+1).padStart(4,'0'),
@@ -2631,7 +2637,7 @@ function openHonDetail(id){
   if(h.cuotas&&h.cuotas.length&&tots.cuotasBase>0&&h.formaPago!=='contado'){
     var _acDet=0;
     cuotasHtml='<div style="margin-top:14px;background:rgba(96,165,250,.05);border:1px solid rgba(96,165,250,.2);border-radius:8px;padding:14px">'
-      +'<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bt);margin-bottom:8px">Planilla de Cuotas \u2014 Dir. Proyecto + Calculista \u2014 Base USD '+N(tots.cuotasBase)+'</div>'
+      +'<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bt);margin-bottom:8px">Planilla de Cuotas \u2014 Dir. Proyecto + Calculista + Dibujante \u2014 Base USD '+N(tots.cuotasBase)+'</div>'
       +h.cuotas.map(function(c,i){
         var _m=(i===h.cuotas.length-1)?Math.round(tots.cuotasBase-_acDet):Math.round(tots.cuotasBase*(c.pct/100));
         _acDet+=_m;
@@ -2958,9 +2964,9 @@ function generarPDF(id){
 
   /* SECTION E — PLANILLA DE CUOTAS */
   if(h.cuotas&&h.cuotas.length&&tots.cuotasBase>0&&h.formaPago!=='contado'){
-    d+='<div class="sec"><div class="sec-head">E.&nbsp; Planilla de Cuotas \u2014 Direcci\u00f3n de Proyecto + Calculista</div>';
+    d+='<div class="sec"><div class="sec-head">E.&nbsp; Planilla de Cuotas \u2014 Direcci\u00f3n de Proyecto + Calculista + Dibujante</div>';
     d+='<table class="sec-tbl"><tr>';
-    d+='<td class="sec-desc">Esquema de pagos sobre los honorarios de Direcci\u00f3n de Proyecto + Calculista (netos) m\u00e1s Gastos y gestiones. Base: <b>USD '+N(tots.cuotasBase)+'</b>.</td>';
+    d+='<td class="sec-desc">Esquema de pagos sobre los honorarios de Direcci\u00f3n de Proyecto + Calculista (netos) m\u00e1s Gastos y gestiones, m\u00e1s Dibujante (neto). Base: <b>USD '+N(tots.cuotasBase)+'</b>.</td>';
     d+='<td class="sec-cont">';
     d+='<table class="cq-tbl"><thead><tr><th>#</th><th>Concepto</th><th class="r">%</th><th class="r">USD</th></tr></thead><tbody>';
     var _acPDF=0;
