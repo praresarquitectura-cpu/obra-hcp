@@ -20,7 +20,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#09090b;--bg2:#111115;--bg3:#17171c;--bg4:#1e1e25;--bg5:#252530;--br:#28282f;--br2:#383848;--br3:#484860;--tx:#e6e4dd;--tx2:#9896a0;--tx3:#555465;--red:#9e2438;--red2:#c42d46;--gt:#4ade80;--bt:#60a5fa;--golt:#d4a843;--pt:#c084fc;--tt:#2dd4bf;--ot:#fb923c;--rt:#f87171;--font:'Montserrat',sans-serif}
+:root{--bg:#09090b;--bg2:#111115;--bg3:#17171c;--bg4:#1e1e25;--bg5:#252530;--br:#28282f;--br2:#383848;--br3:#484860;--tx:#e6e4dd;--tx2:#9896a0;--tx3:#8b8a9c;--red:#9e2438;--red2:#c42d46;--gt:#2fd6a0;--bt:#60a5fa;--golt:#d4a843;--pt:#c084fc;--tt:#2dd4bf;--ot:#fb923c;--rt:#ff9248;--font:'Montserrat',sans-serif}
+/* Paleta ajustada para daltonismo rojo-verde (protanopia/deuteranopia), agosto 2026:
+   --tx3 aclarado de #555465 a #8b8a9c (contraste ~2.6:1 → ~5.9:1 sobre fondo, supera WCAG AA)
+   para que las etiquetas y textos secundarios se lean con claridad.
+   --gt (positivo/aprobado/OK) llevado de verde puro #4ade80 a un verde azulado #2fd6a0, y
+   --rt (negativo/rechazado/alerta) llevado de rojo-salmón #f87171 a un naranja #ff9248 — este
+   par verde-azulado/naranja se distingue con claridad incluso sin percepción rojo-verde,
+   a diferencia del par verde/rojo original. Todo lo demás de la paleta queda igual. */
 html{font-size:13px}body{font-family:var(--font);background:var(--bg);color:var(--tx);display:flex;flex-direction:column;height:100vh;overflow:hidden}
 input,select,textarea,button{font-family:var(--font)}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--br2);border-radius:3px}
