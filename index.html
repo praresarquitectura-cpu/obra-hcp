@@ -2804,12 +2804,13 @@ function generarPDF(id){
   if(!EMPRESA.logo) EMPRESA.logo = localStorage.getItem('obraerp_logo')||'';
   if(!EMPRESA.qr)   EMPRESA.qr   = localStorage.getItem('obraerp_qr')||'';
   const h=HON_DATA.find(x=>x.id===id);if(!h)return;
-  // Merge campo a campo: si el presupuesto se guardó ANTES de cargar los datos del profesional
-  // en Configuración, su snapshot (h.empresa) tiene esos campos vacíos — en ese caso usar los
-  // datos ACTUALES de EMPRESA en vez de sobrescribir con el vacío guardado. Si el snapshot sí
-  // tiene el campo cargado, se respeta (así un presupuesto ya emitido no cambia de membrete).
+  // Merge campo a campo (corregido 23-ago-2026 a pedido de Diego): el membrete del PDF SIEMPRE usa
+  // los datos ACTUALES de Configuración (EMPRESA), aunque el presupuesto ya esté guardado/emitido —
+  // así, si edita el nombre del estudio, sus datos profesionales, etc. en Configuración, TODOS los
+  // PDF (nuevos y previos) reflejan el cambio al instante. El snapshot guardado (h.empresa) sólo se
+  // usa como resguardo para un campo que estuviera vacío en Configuración (ej. logo/QR, ver abajo).
   const emp={};
-  Object.keys(EMPRESA).forEach(function(k){emp[k]=(h.empresa&&h.empresa[k])?h.empresa[k]:EMPRESA[k];});
+  Object.keys(EMPRESA).forEach(function(k){emp[k]=EMPRESA[k]||(h.empresa&&h.empresa[k])||'';});
   // Restaurar logo/QR — el presupuesto guardado los tiene nulos para ahorrar espacio
   if(!emp.logo) emp.logo = EMPRESA.logo || localStorage.getItem('obraerp_logo') || '';
   if(!emp.qr)   emp.qr   = EMPRESA.qr   || localStorage.getItem('obraerp_qr')   || '';
@@ -3617,11 +3618,11 @@ function eliminarPago(honId,pagoId){
 function abrirFacturar(honId,pagoId){
   var hon=HON_DATA.find(function(x){return x.id===honId;});if(!hon)return;
   var pago=hon.pagos.find(function(p){return p.id===pagoId;});if(!pago)return;
-  // Mismo criterio que en generarPDF(): si el snapshot guardado (hon.empresa) tiene un campo
-  // vacío (presupuesto guardado antes de cargar los datos del profesional), usar el valor
-  // ACTUAL de EMPRESA en su lugar.
+  // Mismo criterio que en generarPDF() (corregido 23-ago-2026): siempre usar el valor ACTUAL de
+  // EMPRESA (Configuración); el snapshot guardado (hon.empresa) es solo resguardo para un campo
+  // que esté vacío en Configuración.
   var emp={};
-  Object.keys(EMPRESA).forEach(function(k){emp[k]=(hon.empresa&&hon.empresa[k])?hon.empresa[k]:EMPRESA[k];});
+  Object.keys(EMPRESA).forEach(function(k){emp[k]=EMPRESA[k]||(hon.empresa&&hon.empresa[k])||'';});
   var cli=CLIENTES.find(function(c){return c.id==hon.cliId;});
 
   // Construir texto de factura listo para ARCA
