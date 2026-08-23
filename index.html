@@ -9147,6 +9147,24 @@ function cpPDFCss(){
   +'.pdf-header-row .txt{font-size:8.5pt;color:#334155;line-height:1.35;white-space:pre-wrap;padding-top:2px}'
   +'.pdf-footer-row .inner{padding-top:6px;border-top:1px solid #cbd5e1;margin-top:10px;font-size:7.5pt;color:#64748b;white-space:pre-wrap;text-align:center}'
   +'.cp-teoria{color:#4338ca;font-style:italic}'
+  // Rediseño visual del A.P.U. (20-ago-2026 a pedido de Diego, referencia: plantilla "Análisis de
+  // precio unitario" que mostró por captura) — SOLO estética/maquetación, reutiliza 100% los mismos
+  // valores de cpCalcPreciso ya calculados; no agrega ningún dato que la app no tenga.
+  +'.apu-head{margin:10px 0 4px}.apu-title{font-size:12.5pt;font-weight:800;color:#1e293b}.apu-sub{font-size:9pt;color:#555;margin-top:1px}'
+  +'.apu-badges{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px;page-break-inside:avoid}'
+  +'.apu-badge{flex:1 1 0;min-width:82px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:7px 4px;text-align:center}'
+  +'.apu-badge .ic{font-size:13pt;display:block;line-height:1}'
+  +'.apu-badge .lbl{font-size:6.6pt;color:#64748b;text-transform:uppercase;font-weight:700;display:block;margin-top:3px}'
+  +'.apu-badge .val{font-size:8.8pt;color:#111;font-weight:800;display:block;margin-top:1px}'
+  +'.apu-secnum{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#1e293b;color:#fff;font-size:7.5pt;font-weight:800;margin-right:6px;vertical-align:middle}'
+  +'.apu-strip{display:flex;gap:6px;margin:10px 0;page-break-inside:avoid}'
+  +'.apu-strip .it{flex:1 1 0;background:#f1f5f9;border-radius:6px;padding:7px 4px;text-align:center}'
+  +'.apu-strip .it .ic{font-size:12pt;display:block;line-height:1}'
+  +'.apu-strip .it .lbl{font-size:6.6pt;color:#64748b;text-transform:uppercase;font-weight:700;display:block;margin-top:3px}'
+  +'.apu-strip .it .val{font-size:9pt;font-weight:800;color:#111;display:block;margin-top:1px}'
+  +'.apu-totalbar{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;border-radius:8px;padding:11px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0;page-break-inside:avoid}'
+  +'.apu-totalbar .lbl{font-size:9pt;font-weight:700;letter-spacing:.2px}'
+  +'.apu-totalbar .val{font-size:14.5pt;font-weight:800;white-space:nowrap}'
   +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
 }
 // Logo/escudo institucional (ej. Municipalidad de Ushuaia) + texto libre de encabezado — Diego los
@@ -9186,7 +9204,22 @@ function cpAPUEmbedCss(){
   +'.cp-apu-embed td{padding:4px 6px;border:1px solid #e2e8f0}'
   +'.cp-apu-embed .r{text-align:right}.cp-apu-embed .mat{color:#166534}.cp-apu-embed .mo{color:#92400e}'
   +'.cp-apu-embed .tot{font-weight:700;background:#eff6ff}.cp-apu-embed .grand{font-weight:800;background:#dbeafe}'
-  +'.cp-apu-embed .cp-teoria{color:#4338ca;font-style:italic}';
+  +'.cp-apu-embed .cp-teoria{color:#4338ca;font-style:italic}'
+  +'.cp-apu-embed .apu-head{margin:10px 0 4px}.cp-apu-embed .apu-title{font-size:12.5pt;font-weight:800;color:#1e293b}.cp-apu-embed .apu-sub{font-size:9pt;color:#555;margin-top:1px}'
+  +'.cp-apu-embed .apu-badges{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px}'
+  +'.cp-apu-embed .apu-badge{flex:1 1 0;min-width:82px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:7px 4px;text-align:center}'
+  +'.cp-apu-embed .apu-badge .ic{font-size:13pt;display:block;line-height:1}'
+  +'.cp-apu-embed .apu-badge .lbl{font-size:6.6pt;color:#64748b;text-transform:uppercase;font-weight:700;display:block;margin-top:3px}'
+  +'.cp-apu-embed .apu-badge .val{font-size:8.8pt;color:#111;font-weight:800;display:block;margin-top:1px}'
+  +'.cp-apu-embed .apu-secnum{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#1e293b;color:#fff;font-size:7.5pt;font-weight:800;margin-right:6px;vertical-align:middle}'
+  +'.cp-apu-embed .apu-strip{display:flex;gap:6px;margin:10px 0}'
+  +'.cp-apu-embed .apu-strip .it{flex:1 1 0;background:#f1f5f9;border-radius:6px;padding:7px 4px;text-align:center}'
+  +'.cp-apu-embed .apu-strip .it .ic{font-size:12pt;display:block;line-height:1}'
+  +'.cp-apu-embed .apu-strip .it .lbl{font-size:6.6pt;color:#64748b;text-transform:uppercase;font-weight:700;display:block;margin-top:3px}'
+  +'.cp-apu-embed .apu-strip .it .val{font-size:9pt;font-weight:800;color:#111;display:block;margin-top:1px}'
+  +'.cp-apu-embed .apu-totalbar{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;border-radius:8px;padding:11px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0}'
+  +'.cp-apu-embed .apu-totalbar .lbl{font-size:9pt;font-weight:700;letter-spacing:.2px}'
+  +'.cp-apu-embed .apu-totalbar .val{font-size:14.5pt;font-weight:800;white-space:nowrap}';
 }
 var CP_APU_CSS_INJECTED=false;
 function cpToggleAPU(iid){
@@ -9227,9 +9260,29 @@ function cpAPUItemHtml(it){
   var factorAjuste=(typeof cpFactorAjusteTotal==='function')?cpFactorAjusteTotal():1;
   var mats=(it.mats||[]).filter(function(m){return !m.esEquipo;});
   var equipos=(it.mats||[]).filter(function(m){return m.esEquipo;});
+  var roles=[{rol:'ofEsp',n:1,lbl:'Oficial Especializado'},{rol:'of',n:2,lbl:'Oficial'},{rol:'mo',n:3,lbl:'Medio Oficial'},{rol:'ay',n:4,lbl:'Ayudante'}];
   var h='';
-  h+='<h3>'+it.nom+' — Análisis de Precio Unitario (por 1 '+it.un+')</h3>';
-  h+='<div style="font-size:8pt;font-weight:700;margin:6px 0 2px">1. MATERIALES</div>';
+  // Encabezado con tarjeta de título + fila de "badges" con datos REALES del ítem (nada inventado):
+  // Unidad (it.un), Cuadrilla (roles de MO con horas cargadas>0), Jornada (convención de 8 hs/día,
+  // igual a la que ya usa la Calculadora de Rendimiento por Cuadrilla del sistema, ver línea ~6848),
+  // Rendimiento (unidades del ítem que rinde 1 jornada según las horas de MO cargadas) y Consumo M.O.
+  // (horas totales de mano de obra por unidad). Se dejan afuera "Sistema" y "Supuestos" porque el
+  // modelo de datos no tiene esos campos por ítem — no se fabrican valores.
+  var JORNADA_HS=8;
+  var horasTotales=(it.mo||[]).reduce(function(s,m){return s+(m.hh||m.hs||0);},0);
+  var cuadrillaLbls=(it.mo||[]).filter(function(m){return (m.hh||m.hs||0)>0;}).map(function(m){var r=roles.find(function(rr){return rr.rol===m.rol;});return r?r.lbl:m.rol;});
+  var cuadrillaTxt=cuadrillaLbls.length?cuadrillaLbls.join(' + '):'—';
+  var rendimientoTxt=horasTotales>0?(Math.round((JORNADA_HS/horasTotales)*100)/100).toLocaleString('es-AR',{maximumFractionDigits:2})+' '+it.un+'/jornada':'—';
+  var consumoTxt=horasTotales>0?horasTotales.toLocaleString('es-AR',{maximumFractionDigits:2})+' hs/'+it.un:'—';
+  h+='<div class="apu-head"><div class="apu-title">Análisis de Precio Unitario</div><div class="apu-sub">'+it.nom+' — cálculo por 1 '+it.un+'</div></div>';
+  h+='<div class="apu-badges">'
+   +'<div class="apu-badge"><span class="ic">📏</span><span class="lbl">Unidad</span><span class="val">'+it.un+'</span></div>'
+   +'<div class="apu-badge"><span class="ic">👷</span><span class="lbl">Cuadrilla</span><span class="val">'+cuadrillaTxt+'</span></div>'
+   +'<div class="apu-badge" title="Convención de jornada laboral usada por el sistema"><span class="ic">🕐</span><span class="lbl">Jornada</span><span class="val">'+JORNADA_HS+' hs</span></div>'
+   +'<div class="apu-badge"><span class="ic">⚡</span><span class="lbl">Rendimiento</span><span class="val">'+rendimientoTxt+'</span></div>'
+   +'<div class="apu-badge"><span class="ic">🔧</span><span class="lbl">Consumo M.O.</span><span class="val">'+consumoTxt+'</span></div>'
+   +'</div>';
+  h+='<div style="font-size:8pt;font-weight:700;margin:6px 0 2px"><span class="apu-secnum">1</span>MATERIALES</div>';
   h+='<table><thead><tr><th>Cód.</th><th>Descripción</th><th>Unidad</th><th class="r">Cantidad</th><th class="r">Precio Unitario</th><th class="r">Precio Total</th></tr></thead><tbody>';
   mats.forEach(function(m){
     var cant=Math.round((m.rend||0)*1000)/1000;
@@ -9241,7 +9294,7 @@ function cpAPUItemHtml(it){
   h+='<tr><td colspan="5"><i>Varios (0,01% de Suma Precio)</i></td><td class="r">$'+cpFmtAR(calc.varios)+'</td></tr>';
   h+='<tr class="tot"><td colspan="5"><b>(1) COSTO UNITARIO MATERIALES ($/unidad):</b></td><td class="r"><b>$'+cpFmtAR(calc.costoMat)+'</b></td></tr>';
   h+='</tbody></table>';
-  h+='<div style="font-size:8pt;font-weight:700;margin:6px 0 2px">2. EQUIPOS</div>';
+  h+='<div style="font-size:8pt;font-weight:700;margin:6px 0 2px"><span class="apu-secnum">2</span>EQUIPOS</div>';
   h+='<table><thead><tr><th>Cód.</th><th>Descripción</th><th>Unidad</th><th class="r">Cantidad</th><th class="r">Precio Unitario</th><th class="r">Precio Total</th></tr></thead><tbody>';
   equipos.forEach(function(m){
     var cant=Math.round((m.rend||0)*1000)/1000;
@@ -9253,8 +9306,7 @@ function cpAPUItemHtml(it){
   h+='<tr><td colspan="5"><i>Herramientas menores (0,02% de Mano de Obra)</i></td><td class="r">$'+cpFmtAR(calc.herram)+'</td></tr>';
   h+='<tr class="tot"><td colspan="5"><b>(2) COSTO UNITARIO EQUIPOS ($/unidad):</b></td><td class="r"><b>$'+cpFmtAR(calc.costoEquipo)+'</b></td></tr>';
   h+='</tbody></table>';
-  h+='<div style="font-size:8pt;font-weight:700;margin:6px 0 2px">3. MANO DE OBRA</div>';
-  var roles=[{rol:'ofEsp',n:1,lbl:'Oficial Especializado'},{rol:'of',n:2,lbl:'Oficial'},{rol:'mo',n:3,lbl:'Medio Oficial'},{rol:'ay',n:4,lbl:'Ayudante'}];
+  h+='<div style="font-size:8pt;font-weight:700;margin:6px 0 2px"><span class="apu-secnum">3</span>MANO DE OBRA</div>';
   h+='<table><thead><tr><th>#</th><th>Descripción</th><th>Unidad</th><th class="r">Cantidad hs.</th><th class="r">Monto hora</th><th class="r">Precio Total</th></tr></thead><tbody>';
   roles.forEach(function(r){
     var m=(it.mo||[]).find(function(x){return x.rol===r.rol;});
@@ -9267,6 +9319,11 @@ function cpAPUItemHtml(it){
   h+='<tr><td colspan="5">Vigilancia p%: Porcentaje de suma MO</td><td class="r">$0,00</td></tr>';
   h+='<tr class="tot"><td colspan="5"><b>(3) COSTO UNIT. MANO DE OBRA ($/unidad):</b></td><td class="r"><b>$'+cpFmtAR(calc.costoMO)+'</b></td></tr>';
   h+='</tbody></table>';
+  h+='<div class="apu-strip">'
+   +'<div class="it"><span class="ic">🧱</span><span class="lbl">Materiales</span><span class="val">$'+cpFmtAR(calc.costoMat)+'/'+it.un+'</span></div>'
+   +'<div class="it"><span class="ic">🚜</span><span class="lbl">Equipos</span><span class="val">$'+cpFmtAR(calc.costoEquipo)+'/'+it.un+'</span></div>'
+   +'<div class="it"><span class="ic">👷</span><span class="lbl">Mano de obra</span><span class="val">$'+cpFmtAR(calc.costoMO)+'/'+it.un+'</span></div>'
+   +'</div>';
   h+='<table><tr class="grand"><td><b>4. COSTO UNITARIO TOTAL (C.U.T.)</b></td><td class="r"><b>$'+cpFmtAR(calc.CUT)+'</b></td></tr></table>';
   var pctMat=calc.CUT?(calc.costoMat/calc.CUT*100):0,pctEq=calc.CUT?(calc.costoEquipo/calc.CUT*100):0,pctMO=calc.CUT?(calc.costoMO/calc.CUT*100):0;
   h+='<div style="font-size:8pt;margin:2px 0 8px"><b>Composición del C.U.T.:</b> Materiales: '+pctMat.toFixed(2)+'%&nbsp;&nbsp;Equipos: '+pctEq.toFixed(2)+'%&nbsp;&nbsp;Mano de Obra: '+pctMO.toFixed(2)+'%</div>';
@@ -9279,8 +9336,8 @@ function cpAPUItemHtml(it){
   h+='<tr class="tot"><td><b>Subtotal 2:</b></td><td class="r"><b>$'+cpFmtAR(calc.sub2)+'</b></td></tr>';
   h+='<tr><td>5.4 Impuestos/I.V.A.: 4% del Subtotal 2</td><td class="r">$'+cpFmtAR(calc.g54)+'</td></tr>';
   h+='</tbody></table>';
-  h+='<table><tr class="tot"><td><b>PRECIO UNITARIO ($/un) =</b></td><td class="r"><b>$'+cpFmtAR(calc.pu_calc)+'</b></td></tr>';
-  h+='<tr class="grand"><td><b>PRECIO UNITARIO ADOPTADO ($/un) =</b></td><td class="r"><b>$'+cpFmtAR(calc.pu_adopt)+'</b></td></tr></table>';
+  h+='<table><tr class="tot"><td><b>PRECIO UNITARIO ($/un) =</b></td><td class="r"><b>$'+cpFmtAR(calc.pu_calc)+'</b></td></tr></table>';
+  h+='<div class="apu-totalbar"><span class="lbl">PRECIO UNITARIO ADOPTADO (por 1 '+it.un+')</span><span class="val">$'+cpFmtAR(calc.pu_adopt)+'</span></div>';
   if(qtyReal!==1){
     h+='<div style="font-size:8pt;margin-top:8px;padding:6px 8px;background:#eff6ff;border-radius:4px">Cantidad total del ítem en este Cómputo: <b>'+qtyReal.toLocaleString('es-AR',{maximumFractionDigits:2})+' '+it.un+'</b> → Monto total: <b>$'+cpFmtAR(calcReal.pu_adopt)+'</b></div>';
   }
