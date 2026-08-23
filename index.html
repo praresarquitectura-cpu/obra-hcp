@@ -2173,6 +2173,17 @@ function recalc(){
        así no altera Gastos y gestiones ni la Planilla de Cuotas, que siguen siendo exclusivamente
        de Dir.Proyecto+Calculista, sin cambios. */
     var rsNeto = esDibujante ? rs*(1-desc) : rs;
+    // Desglose visual "monto real (bruto) / descuento / neto" — a pedido de Diego (20-ago-2026), para
+    // que el descuento del proyecto quede visible en CADA rol al que se le aplica, no solo en el
+    // resumen agregado de abajo. Es puramente informativo: NO toca rs/rsNeto/totalDesc, que siguen
+    // siendo la base real de Gastos y gestiones / Planilla de Cuotas, sin cambios.
+    var rsBrutoR=Math.round(rs),rsNetoR,rsDescAmtR;
+    if(esDibujante){rsNetoR=Math.round(rsNeto);rsDescAmtR=rsBrutoR-rsNetoR;}
+    else if(descAplicaBadge&&desc>0){rsDescAmtR=Math.round(rs*desc);rsNetoR=rsBrutoR-rsDescAmtR;}
+    else{rsDescAmtR=0;rsNetoR=rsBrutoR;}
+    if(fb&&rsDescAmtR>0){
+      fb.innerHTML+='<div style="margin-top:6px;font-size:11px;color:var(--tx2)">Monto real (bruto): <b>USD '+rsBrutoR.toLocaleString()+'</b> &nbsp;·&nbsp; Descuento ('+(desc*100).toFixed(0)+'%): <b style="color:var(--rt)">− USD '+rsDescAmtR.toLocaleString()+'</b> &nbsp;·&nbsp; Neto: <b style="color:var(--bt)">USD '+rsNetoR.toLocaleString()+'</b></div>';
+    }
     var re=document.getElementById('rusd-'+role.id);
     if(re)re.textContent=rsNeto>0?'USD '+Math.round(rsNeto).toLocaleString():'USD 0';
     var rcSub=document.getElementById('rc-'+role.id);
@@ -2495,7 +2506,14 @@ function motorGuardar(draft){
     // igual criterio que descAplicaBadge en recalc(). No confundir con "descuentable" (flag contable
     // de arriba, que agrupa Proy.+Calc. y NUNCA debe incluir a Dibujante).
     var descAplicada=role.descuentable||(esDibujante&&desc>0);
-    var detEntry={rol:role.nm,catdf:esCalc?null:role.catdf,descuentable:role.descuentable,descAplicada:descAplicada,items:items,total:rsNeto,tipoCalculo:role.tipoCalculo};
+    // Desglose "monto real (bruto) / descuento / neto" persistido por rol — mismo criterio que en
+    // recalc() (ver comentario ahí): puramente informativo para el detalle/PDF, no reemplaza "total"
+    // (que sigue siendo la base real usada por totalDesc/totalNoDesc/cuotasBase, sin cambios). Para
+    // Dibujante coincide exacto con rs-rsNeto (ya calculado); para Dir.Proyecto/Calculista es la
+    // porción proporcional del descuento global que le corresponde a ESE rol (matemáticamente
+    // consistente: la suma de estas porciones es igual al descuento total sobre totalDesc).
+    var descAmtRol=descAplicada&&desc>0?(esDibujante?(rs-rsNeto):Math.round(rs*desc)):0;
+    var detEntry={rol:role.nm,catdf:esCalc?null:role.catdf,descuentable:role.descuentable,descAplicada:descAplicada,items:items,total:rsNeto,tipoCalculo:role.tipoCalculo,bruto:rs,descAmtRol:descAmtRol,netoRolDisp:rs-descAmtRol};
     if(esCalc){detEntry.usdm2=calcUsdM2;detEntry.m2calc=m2total;}
     if(esConfObra){var _coCfg=coTarifaCfg();detEntry.tramiteNm=_coCfg.tramiteNm;detEntry.honorarioMinimo=_coCfg.honorarioMinimo;detEntry.m2calc=m2total;}
     detalle.push(detEntry);
@@ -2695,7 +2713,11 @@ function openHonDetail(id){
           +incCol
           +'<span style="text-align:right;color:var(--bt);font-weight:700">USD '+N(it.usd)+'</span></div>';
       }).join('')
-      +'<div style="text-align:right;font-size:12px;color:var(--tx2);padding:5px 0 0">Subtotal '+rol.rol+': <b style="color:var(--bt)">USD '+N(rol.total)+'</b></div>'
+      +(rol.descAmtRol>0?
+        ('<div style="text-align:right;font-size:11px;color:var(--tx3);padding:5px 0 0">Monto real (bruto) '+rol.rol+': USD '+N(rol.bruto)+'</div>'
+        +'<div style="text-align:right;font-size:11px;color:var(--rt)">Descuento ('+(h.descPct||0)+'%): − USD '+N(rol.descAmtRol)+'</div>'
+        +'<div style="text-align:right;font-size:12px;color:var(--tx2);padding:2px 0 0">Subtotal '+rol.rol+' (neto): <b style="color:var(--bt)">USD '+N(rol.netoRolDisp)+'</b></div>')
+        :('<div style="text-align:right;font-size:12px;color:var(--tx2);padding:5px 0 0">Subtotal '+rol.rol+': <b style="color:var(--bt)">USD '+N(rol.total)+'</b></div>'))
       +'</div>';
   });
   var catHtml='';
@@ -3022,7 +3044,13 @@ function generarPDF(id){
       d+='<tr><td>'+it.nm+'</td><td class="c">'+it.inc+'%</td><td class="r">USD '+N(it.usd)+'</td></tr>';
     });
     d+='</tbody></table>';
-    d+='<div class="rol-sub">Subtotal '+rol.rol+': &nbsp;<b>USD '+N(rol.total)+'</b></div>';
+    if(rol.descAmtRol>0){
+      d+='<div class="rol-sub"><div style="color:#666">Monto real (bruto) '+rol.rol+': USD '+N(rol.bruto)+'</div>'
+        +'<div style="color:#b91c1c">Descuento ('+(h.descPct||0)+'%): − USD '+N(rol.descAmtRol)+'</div>'
+        +'<div>Subtotal '+rol.rol+' (neto): <b>USD '+N(rol.netoRolDisp)+'</b></div></div>';
+    }else{
+      d+='<div class="rol-sub">Subtotal '+rol.rol+': &nbsp;<b>USD '+N(rol.total)+'</b></div>';
+    }
     d+='</div>';
   });
   d+='</td></tr></table>';
