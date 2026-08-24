@@ -127,10 +127,11 @@ input,select,textarea,button{font-family:var(--font)}
 .ta-nm{font-size:12px;font-weight:700;color:var(--tx2)}
 .stg{margin-left:22px;margin-bottom:6px}
 .stg-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);padding:5px 0 4px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:3px}
-.str{display:grid;grid-template-columns:18px 1fr 56px 76px 76px;gap:8px;align-items:start;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03)}
-.str:last-child{border-bottom:none}.str:hover{background:rgba(255,255,255,.015);border-radius:4px}
-.str-render{display:grid;grid-template-columns:18px 1fr 190px 76px 76px;gap:8px;align-items:start;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03)}
-.str-render:hover{background:rgba(255,255,255,.015);border-radius:4px}
+.str{display:grid;grid-template-columns:18px 1fr 56px 76px 76px;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--br)}
+.str:last-child{border-bottom:none}.str:hover{background:rgba(255,255,255,.03);border-radius:4px}
+.str-render{display:grid;grid-template-columns:18px 1fr 190px 76px 76px;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--br)}
+.str-render:last-child{border-bottom:none}
+.str-render:hover{background:rgba(255,255,255,.03);border-radius:4px}
 .st-chk{width:14px;height:14px;accent-color:var(--red2);cursor:pointer;margin-top:2px;flex-shrink:0}
 .st-nm{font-size:12px;font-weight:500;color:var(--tx);line-height:1.3}
 .st-dsc{font-size:10px;color:var(--tx3);margin-top:2px;line-height:1.3}
@@ -140,9 +141,17 @@ input,select,textarea,button{font-family:var(--font)}
 .str-hd{display:grid;grid-template-columns:18px 1fr 56px 76px 76px;gap:8px;padding:3px 0 6px;border-bottom:1px solid var(--br);margin-bottom:2px}
 .str-th{font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)}
 .str-th.r{text-align:right}.str-th.c{text-align:center}
-.r-inp{background:var(--bg3);border:1px solid var(--br);border-radius:4px;color:var(--golt);font-family:var(--font);font-size:12px;font-weight:700;text-align:center;outline:none;padding:3px 5px}
-.r-inp:focus{border-color:var(--golt)}.r-inp-p{background:var(--bg3);border:1px solid var(--br);border-radius:4px;color:var(--bt);font-family:var(--font);font-size:12px;font-weight:700;text-align:right;outline:none;padding:3px 5px}
-.r-inp-p:focus{border-color:var(--bt)}
+/* Inputs de cantidad/precio (ítems tipo "render") — bordes/labels reforzados (20-ago-2026) para que
+   dejen de leerse como "cuadritos" sueltos: cada uno lleva su mini-etiqueta arriba (.r-inp-lbl) y un
+   borde más visible (var(--br3), el más claro de la escala) en vez del borde tenue original. */
+.r-inp-wrap{display:flex;flex-direction:column;gap:2px}
+.r-inp-lbl{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3)}
+.r-inp{background:var(--bg3);border:1.5px solid var(--br3);border-radius:5px;color:var(--golt);font-family:var(--font);font-size:13px;font-weight:700;text-align:center;outline:none;padding:5px 6px}
+.r-inp:hover{border-color:var(--golt)}
+.r-inp:focus{border-color:var(--golt);box-shadow:0 0 0 2px rgba(212,168,67,.2)}
+.r-inp-p{background:var(--bg3);border:1.5px solid var(--br3);border-radius:5px;color:var(--bt);font-family:var(--font);font-size:13px;font-weight:700;text-align:right;outline:none;padding:5px 6px}
+.r-inp-p:hover{border-color:var(--bt)}
+.r-inp-p:focus{border-color:var(--bt);box-shadow:0 0 0 2px rgba(96,165,250,.2)}
 .cuotas-card{background:var(--bg2);border:1px solid rgba(96,165,250,.3);border-radius:10px;padding:18px;margin-top:14px}
 .cuotas-info{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.2);border-radius:6px;padding:10px 13px;margin-bottom:14px;font-size:11.5px;color:var(--bt);line-height:1.6}
 .cq-row{display:grid;grid-template-columns:1fr 58px 88px 30px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
@@ -381,8 +390,8 @@ input,select,textarea,button{font-family:var(--font)}
         <input type="file" accept=".json" onchange="importarDesdeBoton(this)" style="display:none">
       </label>
     </div></div>
-    <div class="csm"><div class="sl" style="margin-bottom:8px">CATDF · Mayo 2026</div>
-      <div style="font-size:11px;color:var(--tx2);line-height:1.9">Dir. Proyecto: <b style="color:var(--bt)">4.5%</b><br>Dir. de Obra: <b style="color:var(--bt)">5%</b><br>Admin. de Obra: <b style="color:var(--pt)">3%</b><br>Constructor/Repr. Técnico: <b style="color:var(--tt)">4.5%</b><br>Inf. Técnico: <b style="color:var(--ot)">6%</b><br>CPT ≤100m²: <b style="color:var(--golt)">$46.000</b></div>
+    <div class="csm"><div class="sl" style="margin-bottom:8px">CATDF · Escala vigente (ene. 2026)</div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.9">Dir. Proyecto: <b style="color:var(--bt)">4.5%</b><br>Dir. de Obra: <b style="color:var(--bt)">7%</b><br>Admin. de Obra: <b style="color:var(--pt)">3%</b><br>Constructor/Repr. Técnico: <b style="color:var(--tt)">4.5%</b><br>Inf. Técnico: <b style="color:var(--ot)">6%</b><br>CPT ≤100m²: <b style="color:var(--golt)">$46.000</b><br><span style="font-size:9.5px;color:var(--tx3)">Todos los % son editables por presupuesto en el Motor de Honorarios.</span></div>
     </div>
   </div>
 </section>
@@ -1500,8 +1509,12 @@ var ROLES=[
      {id:'calc_plan',nm:'Plano de Estructura Municipal',tipo:'normal',inc:35,dsc:'Plano estructural + planillas de armadura para aprobación municipal — firma del Calculista'},
      {id:'calc_verif',nm:'Informe de Verificación Estructural',tipo:'normal',inc:25,dsc:'Informe técnico de verificación para obras existentes declaradas y sin declarar'},
    ]}]}]},
-  {id:'dir_obra',nm:'Dirección de Obra',clr:'#4ade80',catdf:0.05,descuentable:false,
-   dsc:'Control técnico durante la ejecución. CATDF: 5%. Sin descuento.',
+  {id:'dir_obra',nm:'Dirección de Obra',clr:'#4ade80',catdf:0.07,descuentable:false,
+   // Actualizado 24-ago-2026 a pedido de Diego, según la escala de Honorarios Sugeridos CATDF vigente
+   // (enero 2026, catdf.org.ar/docs/honorariosEnero2026.pdf): "Corresponde un 7% para las Dir. Téc.
+   // de obras de estructura" — antes la app usaba 5%. Sigue siendo 100% editable desde el Motor
+   // (input % CATDF de este rol) o desde Configuración si Diego quiere cobrar menos en un caso puntual.
+   dsc:'Control técnico durante la ejecución. CATDF vigente: 7% (obras con estructura). Sin descuento.',
    tareas:[{id:'ta_do',nm:'Dirección de Obra',grupos:[{nm:null,items:[
      {id:'dir_tec',nm:'Dirección Técnica de Obra',tipo:'normal',inc:70,dsc:'Control técnico y representación ante organismos'},
      {id:'dir_vis',nm:'Visitas de Inspección Adicionales',tipo:'normal',inc:20,dsc:'Visitas extraordinarias por avance o consultas'},
@@ -1688,11 +1701,19 @@ var ROLES=[
    debe revisarlos y ajustarlos desde Configuración antes de facturar. ──── */
 var HON_CONFIG={
   conformeObra:{
+    // Recalibrado 24-ago-2026 a pedido de Diego, según la escala CATDF vigente (enero 2026): "Conforme
+    // a obra: 0,80%-1,00%" del valor de obra. Usando el valor de obra USD/m² por defecto de la app
+    // (mot-cu = USD 1.200/m²), el piso del 0,8% equivale a USD 9,6/m² — se tomó ese piso (no el 1%)
+    // para dejar margen y no quedar caro de entrada. Los otros 3 trámites se reescalaron manteniendo
+    // la MISMA proporción relativa que ya tenían contra "estándar" (ampliación seguía siendo ~23% más
+    // cara, empadronamiento ~85%, refacción ~108%) — no se inventó una relación nueva entre trámites,
+    // solo se corrigió el ancla base. honorarioMinimo escalado con el mismo factor (~1,477×). Todo
+    // esto sigue siendo 100% editable desde Configuración (tarifa base USD/m² y honorario mínimo).
     tramites:{
-      estandar:{nm:'Conforme a Obra estándar',tarifaBase:6.5,honorarioMinimo:350},
-      ampliacion:{nm:'Regularización de ampliación',tarifaBase:8.0,honorarioMinimo:450},
-      empadronamiento:{nm:'Empadronamiento',tarifaBase:5.5,honorarioMinimo:300},
-      refaccion:{nm:'Empadronamiento de refacciones',tarifaBase:7.0,honorarioMinimo:380}
+      estandar:{nm:'Conforme a Obra estándar',tarifaBase:9.6,honorarioMinimo:520},
+      ampliacion:{nm:'Regularización de ampliación',tarifaBase:11.8,honorarioMinimo:670},
+      empadronamiento:{nm:'Empadronamiento',tarifaBase:8.1,honorarioMinimo:445},
+      refaccion:{nm:'Empadronamiento de refacciones',tarifaBase:10.3,honorarioMinimo:560}
     },
     complejidad:{bajo:0.85,estandar:1.00,medioalto:1.15,alto:1.30,muyalto:1.50},
     urgencia:{normal:0,urgente:0.20,muyurgente:0.30,inmediato:0.50}
@@ -1822,7 +1843,7 @@ ROLES.forEach(function(r){
   });});});
 });
 
-var PRESETS={catdf:{dir_proy:0.045,dir_obra:0.05,admin_obra:0.03,const_rt:0.045,inf:0.06},cpt:{dir_proy:0.04,dir_obra:0.04,admin_obra:0.025,const_rt:0.04,inf:0.05}};
+var PRESETS={catdf:{dir_proy:0.045,dir_obra:0.07,admin_obra:0.03,const_rt:0.045,inf:0.06},cpt:{dir_proy:0.04,dir_obra:0.04,admin_obra:0.025,const_rt:0.04,inf:0.05}};
 function aplicarPreset(tipo){
   var p=PRESETS[tipo];if(!p)return;
   ROLES.forEach(function(r){
@@ -1962,10 +1983,13 @@ function makeRenderRow(it,on,roleId,tareaId){
   html+='<div>';
   html+='<div class="st-nm">'+it.nm+' <span style="background:rgba(212,168,67,.15);color:var(--golt);font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px">MERCADO</span></div>';
   html+='<div class="st-dsc">'+it.dsc+' <span id="brk-'+it.id+'" style="color:var(--tx3)"></span></div></div>';
-  html+='<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">';
-  html+='<input id="rqty-'+it.id+'" type="number" min="1" value="'+qty+'"'+dis+' class="r-inp" style="width:40px" oninput="updateRenderQty(\''+roleId+'\',\''+it.id+'\',this.value)">';
-  html+='<span style="font-size:9px;color:var(--tx3)">u \u00d7 USD</span>';
-  html+='<input id="rprc-'+it.id+'" type="number" value="'+price+'"'+dis+' class="r-inp-p" style="width:52px" oninput="updateRenderPrice(\''+roleId+'\',\''+it.id+'\',this.value)">';
+  // Inputs con mini-etiqueta arriba de cada casillero \u2014 a pedido de Diego (20-ago-2026): antes eran
+  // "cuadritos" sueltos sin indicar qu\u00e9 representaba cada uno, ilegibles cuando hay muchas filas
+  // apiladas. Ahora cada input lleva su r\u00f3tulo (CANT. / USD/u) y usa .r-inp-wrap para alinear todo.
+  html+='<div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap">';
+  html+='<div class="r-inp-wrap"><label class="r-inp-lbl">Cant.</label><input id="rqty-'+it.id+'" type="number" min="1" value="'+qty+'"'+dis+' class="r-inp" style="width:46px" oninput="updateRenderQty(\''+roleId+'\',\''+it.id+'\',this.value)"></div>';
+  html+='<span style="font-size:12px;color:var(--tx3);padding-bottom:7px">\u00d7</span>';
+  html+='<div class="r-inp-wrap"><label class="r-inp-lbl">USD/u</label><input id="rprc-'+it.id+'" type="number" value="'+price+'"'+dis+' class="r-inp-p" style="width:60px" oninput="updateRenderPrice(\''+roleId+'\',\''+it.id+'\',this.value)"></div>';
   html+='</div>';
   html+='<div class="st-usd" id="usd-'+it.id+'" style="color:'+(on?'var(--bt)':'var(--tx3)')+'">'+( on?'USD '+Math.round(qty*price).toLocaleString():'—' )+'</div>';
   html+='<div class="st-ars" id="ars-'+it.id+'" style="text-align:right;font-size:11px;color:var(--tx3)">—</div>';
@@ -2136,6 +2160,14 @@ function recalc(){
     }
     if(fb)fb.innerHTML='<b>Fórmula:</b> '+baseLbl+' '+baseValTxt+' × <b>'+pctTxt+'</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' × % del rol.'+(descAplicaBadge?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>');
     var rs=0;
+    // renderItems: se guardan acá para poder calcular la INCIDENCIA REAL de cada ítem 'render' recién
+    // cuando se conoce el total del rol (rs) — no se puede calcular dentro del mismo forEach porque rs
+    // todavía se está acumulando. A pedido de Diego (20-ago-2026): el % que se muestra para estos
+    // ítems (Dibujante, Renders de mercado, etc.) debe ser el % REAL de incidencia sobre el total del
+    // rol (usd del ítem ÷ total del rol × 100), no el campo estático "inc" (que para estos ítems
+    // siempre vale 0, porque su monto sale de cantidad×precio y no de un % fijo — mostrar "0%" es
+    // el bug que reportó).
+    var renderItems=[];
     role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       var on=st.subs[it.id];
       var usd=0;
@@ -2164,9 +2196,14 @@ function recalc(){
         ue.textContent=on?'USD '+Math.round(usd).toLocaleString():'—';
         ue.style.color=on?'var(--bt)':'var(--tx3)';
       }
-      if(bk)bk.textContent=(on&&it.tipo==='render')?('· '+it.qty+'u × USD '+it.unitPrice):'';
+      if(it.tipo==='render')renderItems.push({on:on,it:it,usd:usd,bk:bk});
       if(ae)ae.textContent=on?'$'+Math.round(usd*tc).toLocaleString('es-AR'):'—';
     });});});
+    renderItems.forEach(function(ri){
+      if(!ri.bk)return;
+      var pct=(ri.on&&rs>0)?(ri.usd/rs*100):0;
+      ri.bk.textContent=ri.on?('· '+ri.it.qty+'u × USD '+ri.it.unitPrice+' · '+pct.toLocaleString('es-AR',{maximumFractionDigits:1})+'% del rol'):'';
+    });
 
     /* Descuento proyecto sobre Dibujante: se aplica el mismo % Descuento proyecto (mot-desc-pct)
        directamente sobre el bruto del rol, SIN sumarlo al bucket totalDesc (Dir.Proyecto+Calculista) —
@@ -2183,6 +2220,14 @@ function recalc(){
     else{rsDescAmtR=0;rsNetoR=rsBrutoR;}
     if(fb&&rsDescAmtR>0){
       fb.innerHTML+='<div style="margin-top:6px;font-size:11px;color:var(--tx2)">Monto real (bruto): <b>USD '+rsBrutoR.toLocaleString()+'</b> &nbsp;·&nbsp; Descuento ('+(desc*100).toFixed(0)+'%): <b style="color:var(--rt)">− USD '+rsDescAmtR.toLocaleString()+'</b> &nbsp;·&nbsp; Neto: <b style="color:var(--bt)">USD '+rsNetoR.toLocaleString()+'</b></div>';
+    }
+    // Traducción a USD/m² — a pedido de Diego (24-ago-2026): que CUALQUIER presupuesto se pueda leer
+    // como "sale de tanto por m²", sin importar si el rol se calcula por % CATDF, USD/m² directo,
+    // tarifa fija por trámite o render por ítem — todos se traducen a la misma unidad intuitiva
+    // (honorarios del rol ÷ superficie TOTAL del encargo) para que el cliente pueda verificarlo él
+    // mismo con una cuenta simple, sin objeciones.
+    if(fb&&m2total>0&&rsBrutoR>0){
+      fb.innerHTML+='<div style="margin-top:3px;font-size:10.5px;color:var(--tx3)">≈ equivalente a <b style="color:var(--tx2)">USD '+(rsBrutoR/m2total).toLocaleString('es-AR',{maximumFractionDigits:2})+'/m²</b> de superficie total del encargo ('+m2total+' m²)</div>';
     }
     var re=document.getElementById('rusd-'+role.id);
     if(re)re.textContent=rsNeto>0?'USD '+Math.round(rsNeto).toLocaleString():'USD 0';
@@ -2480,6 +2525,13 @@ function motorGuardar(draft){
         rs=trueRs;
       }
     }
+    // Incidencia REAL de los ítems 'render' (Dibujante, Renders de mercado, etc.) — a pedido de Diego
+    // (20-ago-2026): estos ítems no usan un % fijo (su monto sale de cantidad×precio), así que "inc"
+    // queda hardcodeado en 0 en la definición del ítem — mostrarlo tal cual en el detalle/PDF es el
+    // bug de "0%" que reportó. Acá se recalcula "inc" con el % REAL que representa cada ítem sobre el
+    // total del rol (usd del ítem ÷ rs × 100), una sola vez que "rs" ya está firme — así el detalle
+    // guardado y el PDF (que reutilizan it.inc) quedan automáticamente correctos sin lógica aparte.
+    if(rs>0)items.forEach(function(it){if(it.tipo==='render')it.inc=Math.round((it.usd/rs)*1000)/10;});
     // Descuento proyecto sobre Dibujante: mismo criterio que en recalc() — se aplica directo
     // sobre el bruto del rol, sin sumarlo al bucket totalDesc (Dir.Proyecto+Calculista), así no
     // altera Gastos y gestiones ni la Planilla de Cuotas. IMPORTANTE: el descuento se aplica sobre
@@ -2698,15 +2750,18 @@ function openHonDetail(id){
   var h=HON_DATA.find(function(x){return x.id==id;});if(!h)return;
   var tl={nueva:'Obra nueva',amp:'Ampliaci\u00f3n',ref:'Refacci\u00f3n',mod:'Modificaci\u00f3n',conf:'Conforme a obra',emp:'Empadronamiento',empref:'Empadron. refacciones',calc:'C\u00e1lculo estructura',inf:'Informe t\u00e9cnico',imp:'Impacto ambiental',antep_bas:'Anteproyecto b\u00e1sico',antep_com:'Anteproyecto comercial'};
   var N=function(n){return Math.round(n).toLocaleString();};
+  var m2totalDet=(h.m2||0)+(h.m2dec||0)+(h.m2sind||0);
   var det='';
   (h.detalle||[]).forEach(function(rol){
     var rolDescAplicada=rol.descAplicada!=null?rol.descAplicada:rol.descuentable;
+    var rolBrutoDet=rol.bruto!=null?rol.bruto:rol.total;
+    var m2eqTxt=(m2totalDet>0&&rolBrutoDet>0)?(' &nbsp;\u00b7&nbsp; \u2248 USD '+(rolBrutoDet/m2totalDet).toLocaleString('es-AR',{maximumFractionDigits:2})+'/m\u00b2'):'';
     det+='<div style="margin-bottom:14px">'
       +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:'+(rolDescAplicada?'var(--bt)':'var(--golt)')+';text-transform:uppercase;letter-spacing:.04em;padding:5px 0 4px;border-bottom:1px solid var(--br);margin-bottom:5px">'
       +'<span>'+rol.rol+'</span><span style="font-size:9px;opacity:.7;font-weight:400">'+(rolDescAplicada?'Con descuento':'Sin descuento')+' \u00b7 '+(rol.tipoCalculo==='tarifa_conforme'?((rol.tramiteNm||'Tarifa por tr\u00e1mite')):rol.tipoCalculo==='render_dibujante'?'Render por \u00edtem':(rol.catdf!=null?('CATDF '+(rol.catdf*100).toFixed(1)+'%'):('USD '+rol.usdm2+'/m\u00b2')))+'</span></div>'
-      +'<div style="font-size:10px;color:var(--tx3);margin-bottom:7px;font-style:italic">Subtotal del rol = USD '+N(rol.total)+'. Cada subtarea = USD '+N(rol.total)+' \u00d7 % del rol.</div>'
+      +'<div style="font-size:10px;color:var(--tx3);margin-bottom:7px;font-style:italic">Subtotal del rol = USD '+N(rol.total)+'. Cada subtarea = USD '+N(rol.total)+' \u00d7 % del rol.'+m2eqTxt+'</div>'
       +rol.items.map(function(it){
-        var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
+        var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span><br><span style="color:var(--tx3);font-size:9px">'+it.inc+'% del rol</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
         var nmCol=it.tipo==='render'?it.nm+' <span style="background:rgba(212,168,67,.15);color:var(--golt);font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px">MERCADO</span>':it.nm;
         return '<div style="display:grid;grid-template-columns:1fr 80px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px">'
           +'<span style="color:var(--tx)">'+nmCol+'</span>'
@@ -3007,6 +3062,7 @@ function generarPDF(id){
     +'Honorarios = % CATDF \u00d7 valor de obra \u00d7 % incidencia de cada subtarea.'
     +'</div>';
   var tots=honCalcTotales(h);
+  var m2totalPDF=(h.m2||0)+(h.m2dec||0)+(h.m2sind||0);
   (h.detalle||[]).forEach(function(rol){
     var esConfRol=(rol.tipoCalculo==='tarifa_conforme');
     var esDibRol=(rol.tipoCalculo==='render_dibujante');
@@ -3039,6 +3095,13 @@ function generarPDF(id){
     d+='<span class="desc-tag">'+pctTxt+' &nbsp;\u00b7\u00a0'+(rolDescAplicadaPDF?'Con descuento':'Sin descuento')+'</span>';
     d+='</div>';
     d+='<div class="rol-fm">'+baseTxt+' \u00d7 '+pctTxt+' = USD '+N(rFm)+' del rol. Cada subtarea = USD '+N(rFm)+' \u00d7 % de incidencia.</div>';
+    // Traducci\u00f3n a USD/m\u00b2 \u2014 a pedido de Diego (24-ago-2026): que cualquiera que lea el presupuesto
+    // pueda verificar el monto con una cuenta simple (honorarios del rol \u00f7 superficie total del
+    // encargo), sin importar si el rol se calcul\u00f3 por % CATDF, USD/m\u00b2, tarifa fija o render por \u00edtem.
+    var rolBrutoPDF=rol.bruto!=null?rol.bruto:rol.total;
+    if(m2totalPDF>0&&rolBrutoPDF>0){
+      d+='<div class="rol-fm" style="color:#666;font-style:italic;border-top:none;padding-top:0">\u2248 equivalente a USD '+(rolBrutoPDF/m2totalPDF).toLocaleString('es-AR',{maximumFractionDigits:2})+'/m\u00b2 de superficie total del encargo ('+m2totalPDF+' m\u00b2)</div>';
+    }
     d+='<table class="rol-tbl"><thead><tr>';
     d+='<th>Subtarea</th><th class="c">% del rol</th><th class="r">USD</th></tr></thead><tbody>';
     rol.items.forEach(function(it){
