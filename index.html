@@ -129,7 +129,7 @@ input,select,textarea,button{font-family:var(--font)}
 .stg-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);padding:5px 0 4px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:3px}
 .str{display:grid;grid-template-columns:18px 1fr 56px 76px 76px;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--br)}
 .str:last-child{border-bottom:none}.str:hover{background:rgba(255,255,255,.03);border-radius:4px}
-.str-render{display:grid;grid-template-columns:18px 1fr 190px 76px 76px;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--br)}
+.str-render{display:grid;grid-template-columns:18px 1fr 215px 76px 76px;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--br)}
 .str-render:last-child{border-bottom:none}
 .str-render:hover{background:rgba(255,255,255,.03);border-radius:4px}
 .st-chk{width:14px;height:14px;accent-color:var(--red2);cursor:pointer;margin-top:2px;flex-shrink:0}
@@ -152,6 +152,11 @@ input,select,textarea,button{font-family:var(--font)}
 .r-inp-p{background:var(--bg3);border:1.5px solid var(--br3);border-radius:5px;color:var(--bt);font-family:var(--font);font-size:13px;font-weight:700;text-align:right;outline:none;padding:5px 6px}
 .r-inp-p:hover{border-color:var(--bt)}
 .r-inp-p:focus{border-color:var(--bt);box-shadow:0 0 0 2px rgba(96,165,250,.2)}
+/* Cantidad NO editable (superficie automática) — mismo tamaño de letra/borde que los inputs para que
+   la fila se lea pareja, pero sin aspecto de campo editable (fondo plano, sin foco/hover). min-width
+   reservado para 5 cifras + separador de miles + coma decimal + " m²" (ej. "38.003,47 m²") — a pedido
+   de Diego (24-ago-2026): superficies de obras grandes rondan los miles de m², no solo 2-3 cifras. */
+.r-inp-fixed{background:var(--bg4);border:1.5px solid var(--br2);border-radius:5px;color:var(--tx2);font-family:var(--font);font-size:12px;font-weight:700;text-align:center;padding:5px 8px;white-space:nowrap;min-width:98px;box-sizing:border-box}
 .cuotas-card{background:var(--bg2);border:1px solid rgba(96,165,250,.3);border-radius:10px;padding:18px;margin-top:14px}
 .cuotas-info{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.2);border-radius:6px;padding:10px 13px;margin-bottom:14px;font-size:11.5px;color:var(--bt);line-height:1.6}
 .cq-row{display:grid;grid-template-columns:1fr 58px 88px 30px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
@@ -207,7 +212,7 @@ input,select,textarea,button{font-family:var(--font)}
   .cuotas-card{padding:14px 12px}
   .rc-nm{font-size:12px}.rc-dsc{font-size:9px}
   .str{grid-template-columns:16px 1fr 46px 76px!important;gap:5px}
-  .str-render{grid-template-columns:16px 1fr 160px 76px!important;gap:5px}
+  .str-render{grid-template-columns:16px 1fr 190px 76px!important;gap:5px}
   .card{padding:14px}
   #nav{padding:0 10px}
   .logo{font-size:13px;margin-right:0}
@@ -1978,6 +1983,13 @@ function initS(){
 function makeRenderRow(it,on,roleId,tareaId){
   var qty=it.qty||1; var price=it.unitPrice||0;
   var dis=on?'':' disabled';
+  // FIX 24-ago-2026: los ítems con cantidad FORZADA (esM2 → siempre la superficie total del encargo;
+  // guia_aviso → siempre la superficie nueva) mostraban esa cantidad en un input angosto (46px) — pero
+  // la cantidad real es un decimal largo (ej. 3803.47), que no entra ahí y se veía cortado/ilegible
+  // ("cuadritos" que reportó Diego). Además ese input nunca se respeta: recalc() lo pisa siempre con
+  // la superficie real, así que mostrarlo como editable era engañoso. Ahora, para estos ítems, se
+  // muestra un texto fijo bien formateado en vez de un input — más legible y más honesto.
+  var qtyForzada=!!it.esM2||it.id==='guia_aviso';
   var html='<div class="str-render">';
   html+='<input type="checkbox" class="st-chk" id="it-'+it.id+'"'+(on?' checked':'')+' onchange="onItem(\''+roleId+'\',\''+tareaId+'\',\''+it.id+'\',this.checked)">';
   html+='<div>';
@@ -1987,7 +1999,11 @@ function makeRenderRow(it,on,roleId,tareaId){
   // "cuadritos" sueltos sin indicar qu\u00e9 representaba cada uno, ilegibles cuando hay muchas filas
   // apiladas. Ahora cada input lleva su r\u00f3tulo (CANT. / USD/u) y usa .r-inp-wrap para alinear todo.
   html+='<div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap">';
-  html+='<div class="r-inp-wrap"><label class="r-inp-lbl">Cant.</label><input id="rqty-'+it.id+'" type="number" min="1" value="'+qty+'"'+dis+' class="r-inp" style="width:46px" oninput="updateRenderQty(\''+roleId+'\',\''+it.id+'\',this.value)"></div>';
+  if(qtyForzada){
+    html+='<div class="r-inp-wrap"><label class="r-inp-lbl">Superficie</label><div class="r-inp-fixed" id="rqty-'+it.id+'-fixed" title="Se calcula autom\u00e1ticamente seg\u00fan la superficie del encargo \u2014 no se edita a mano">'+qty.toLocaleString('es-AR',{maximumFractionDigits:2})+' m\u00b2</div></div>';
+  }else{
+    html+='<div class="r-inp-wrap"><label class="r-inp-lbl">Cant.</label><input id="rqty-'+it.id+'" type="number" min="1" value="'+qty+'"'+dis+' class="r-inp" style="width:46px" oninput="updateRenderQty(\''+roleId+'\',\''+it.id+'\',this.value)"></div>';
+  }
   html+='<span style="font-size:12px;color:var(--tx3);padding-bottom:7px">\u00d7</span>';
   html+='<div class="r-inp-wrap"><label class="r-inp-lbl">USD/u</label><input id="rprc-'+it.id+'" type="number" value="'+price+'"'+dis+' class="r-inp-p" style="width:60px" oninput="updateRenderPrice(\''+roleId+'\',\''+it.id+'\',this.value)"></div>';
   html+='</div>';
@@ -2158,7 +2174,13 @@ function recalc(){
       dtagEl.style.background=descAplicaBadge?'rgba(248,113,113,.12)':'rgba(212,168,67,.1)';
       dtagEl.style.color=descAplicaBadge?'var(--rt)':'var(--golt)';
     }
-    if(fb)fb.innerHTML='<b>Fórmula:</b> '+baseLbl+' '+baseValTxt+' × <b>'+pctTxt+'</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' × % del rol.'+(descAplicaBadge?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>');
+    // Dibujante: NO se conoce el monto real del rol acá todavía (recién se sabe al terminar de sumar
+    // los ítems, más abajo) — mostrar "= USD 0" era el bug que reportó Diego (24-ago-2026): el texto
+    // decía "cada subtarea = USD X × %" con un X que no era la base real usada para calcular esos %.
+    // Para Dibujante, la frase completa (con el monto real) se arma DESPUÉS del forEach de ítems.
+    if(fb)fb.innerHTML=esDibujante
+      ? ('<b>Fórmula:</b> cada subtarea se cotiza por su propio precio de mercado (USD/m² o USD/unidad, editable) — no por un % fijo del rol.'+(descAplicaBadge?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>'))
+      : ('<b>Fórmula:</b> '+baseLbl+' '+baseValTxt+' × <b>'+pctTxt+'</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' × % de incidencia.'+(descAplicaBadge?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>'));
     var rs=0;
     // renderItems: se guardan acá para poder calcular la INCIDENCIA REAL de cada ítem 'render' recién
     // cuando se conoce el total del rol (rs) — no se puede calcular dentro del mismo forEach porque rs
@@ -2182,9 +2204,9 @@ function recalc(){
           var qty=qEl?Math.max(1,parseInt(qEl.value)||it.qty||1):(it.qty||1);
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
           // Guía de Aviso: la cantidad es siempre el m² nuevo del encargo (comportamiento original, sin cambios)
-          if(it.id==='guia_aviso'){qty=m2;var qEl2=document.getElementById('rqty-'+it.id);if(qEl2)qEl2.value=m2;}
+          if(it.id==='guia_aviso'){qty=m2;var qEl2=document.getElementById('rqty-'+it.id);if(qEl2)qEl2.value=m2;var qFix2=document.getElementById('rqty-'+it.id+'-fixed');if(qFix2)qFix2.textContent=m2.toLocaleString('es-AR',{maximumFractionDigits:2})+' m²';}
           // Ítems Dibujante marcados esM2: la cantidad es siempre la superficie total del encargo
-          if(it.esM2){qty=m2total;var qEl3=document.getElementById('rqty-'+it.id);if(qEl3)qEl3.value=m2total;}
+          if(it.esM2){qty=m2total;var qEl3=document.getElementById('rqty-'+it.id);if(qEl3)qEl3.value=m2total;var qFix3=document.getElementById('rqty-'+it.id+'-fixed');if(qFix3)qFix3.textContent=m2total.toLocaleString('es-AR',{maximumFractionDigits:2})+' m²';}
           usd=qty*prc;
           // Actualizar objeto
           it.qty=qty;it.unitPrice=prc;
@@ -2202,7 +2224,7 @@ function recalc(){
     renderItems.forEach(function(ri){
       if(!ri.bk)return;
       var pct=(ri.on&&rs>0)?(ri.usd/rs*100):0;
-      ri.bk.textContent=ri.on?('· '+ri.it.qty+'u × USD '+ri.it.unitPrice+' · '+pct.toLocaleString('es-AR',{maximumFractionDigits:1})+'% del rol'):'';
+      ri.bk.textContent=ri.on?('· '+ri.it.qty+'u × USD '+ri.it.unitPrice+' · '+pct.toLocaleString('es-AR',{maximumFractionDigits:1})+'% de incidencia'):'';
     });
 
     /* Descuento proyecto sobre Dibujante: se aplica el mismo % Descuento proyecto (mot-desc-pct)
@@ -2218,6 +2240,13 @@ function recalc(){
     if(esDibujante){rsNetoR=Math.round(rsNeto);rsDescAmtR=rsBrutoR-rsNetoR;}
     else if(descAplicaBadge&&desc>0){rsDescAmtR=Math.round(rs*desc);rsNetoR=rsBrutoR-rsDescAmtR;}
     else{rsDescAmtR=0;rsNetoR=rsBrutoR;}
+    // Acá SÍ ya se conoce el monto real (bruto) de Dibujante — se completa la frase que quedó
+    // pendiente en el bloque de arriba, dejando explícito que el % de cada subtarea es SIEMPRE
+    // sobre este monto (bruto, ANTES de descuento) — es la misma base que usan los ítems de la tabla
+    // de abajo, así el % nunca queda "flotando" sin decir de qué monto sale.
+    if(fb&&esDibujante&&rsBrutoR>0){
+      fb.innerHTML+='<div style="margin-top:6px;font-size:11px;color:var(--tx2)">Monto real (bruto) del rol: <b style="color:var(--bt)">USD '+rsBrutoR.toLocaleString()+'</b>. Cada subtarea = USD '+rsBrutoR.toLocaleString()+' × % de incidencia (% calculado sobre este monto real).</div>';
+    }
     if(fb&&rsDescAmtR>0){
       fb.innerHTML+='<div style="margin-top:6px;font-size:11px;color:var(--tx2)">Monto real (bruto): <b>USD '+rsBrutoR.toLocaleString()+'</b> &nbsp;·&nbsp; Descuento ('+(desc*100).toFixed(0)+'%): <b style="color:var(--rt)">− USD '+rsDescAmtR.toLocaleString()+'</b> &nbsp;·&nbsp; Neto: <b style="color:var(--bt)">USD '+rsNetoR.toLocaleString()+'</b></div>';
     }
@@ -2759,9 +2788,16 @@ function openHonDetail(id){
     det+='<div style="margin-bottom:14px">'
       +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:'+(rolDescAplicada?'var(--bt)':'var(--golt)')+';text-transform:uppercase;letter-spacing:.04em;padding:5px 0 4px;border-bottom:1px solid var(--br);margin-bottom:5px">'
       +'<span>'+rol.rol+'</span><span style="font-size:9px;opacity:.7;font-weight:400">'+(rolDescAplicada?'Con descuento':'Sin descuento')+' \u00b7 '+(rol.tipoCalculo==='tarifa_conforme'?((rol.tramiteNm||'Tarifa por tr\u00e1mite')):rol.tipoCalculo==='render_dibujante'?'Render por \u00edtem':(rol.catdf!=null?('CATDF '+(rol.catdf*100).toFixed(1)+'%'):('USD '+rol.usdm2+'/m\u00b2')))+'</span></div>'
-      +'<div style="font-size:10px;color:var(--tx3);margin-bottom:7px;font-style:italic">Subtotal del rol = USD '+N(rol.total)+'. Cada subtarea = USD '+N(rol.total)+' \u00d7 % del rol.'+m2eqTxt+'</div>'
+      // FIX 24-ago-2026: ac\u00e1 se usaba rol.total (el NETO, ya con el descuento propio de Dibujante
+      // restado si corresponde) como base de la frase \u2014 pero el % de cada subtarea (it.inc) se
+      // calcula sobre el monto REAL/bruto (antes de descuento), igual que la suma de la tabla de
+      // abajo. Usar rol.total ah\u00ed hac\u00eda que la frase no cerrara con los n\u00fameros reales de la tabla.
+      // Ahora usa rolBrutoDet (bruto), que para roles sin descuento propio es exactamente igual a
+      // rol.total (sin cambio visible), y solo difiere para Dibujante (donde s\u00ed corresponde mostrar
+      // el bruto, con el descuento aparte m\u00e1s abajo).
+      +'<div style="font-size:10px;color:var(--tx3);margin-bottom:7px;font-style:italic">Monto real (bruto) del rol = USD '+N(rolBrutoDet)+'. Cada subtarea = USD '+N(rolBrutoDet)+' \u00d7 % de incidencia (sobre este monto real).'+m2eqTxt+'</div>'
       +rol.items.map(function(it){
-        var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span><br><span style="color:var(--tx3);font-size:9px">'+it.inc+'% del rol</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
+        var incCol=it.tipo==='render'?('<span style="color:var(--golt);font-size:10px">'+it.qty+'u \u00d7 $'+it.unitPrice+'</span><br><span style="color:var(--tx3);font-size:9px">'+it.inc+'% de incidencia</span>'):'<span style="color:var(--golt);font-weight:600">'+it.inc+'%</span>';
         var nmCol=it.tipo==='render'?it.nm+' <span style="background:rgba(212,168,67,.15);color:var(--golt);font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px">MERCADO</span>':it.nm;
         return '<div style="display:grid;grid-template-columns:1fr 80px 90px;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px">'
           +'<span style="color:var(--tx)">'+nmCol+'</span>'
@@ -3075,7 +3111,13 @@ function generarPDF(id){
       pctTxt=(rol.tramiteNm||'Tarifa por tr\u00e1mite')+(rol.honorarioMinimo?(' \u00b7 piso USD '+N(rol.honorarioMinimo)):'');
       baseTxt=(rol.m2calc||0)+' m\u00b2';
     }else if(esDibRol){
-      rFm=Math.round(rol.total);
+      // FIX 24-ago-2026: ac\u00e1 usaba rol.total (el NETO, ya con el descuento propio de Dibujante
+      // restado) como si fuera la base del % de cada subtarea \u2014 pero el % de cada \u00edtem (it.inc) se
+      // calcula sobre el monto REAL/bruto (antes de descuento, ver motorGuardar()), igual que la
+      // tabla de subtareas de abajo. Con rol.total la frase quedaba matem\u00e1ticamente falsa: dec\u00eda
+      // "cada subtarea = USD 3.670 \u00d7 %" cuando en realidad las subtareas suman USD 5.243 (el bruto),
+      // no 3.670. Ahora rFm usa rol.bruto para que la frase sea consistente con la tabla de abajo.
+      rFm=Math.round(rol.bruto!=null?rol.bruto:rol.total);
       pctTxt='Render por \u00edtem (u \u00d7 USD)';
       baseTxt='\u00cdtems seleccionados';
     }else if(esCalcRol){
@@ -3094,7 +3136,7 @@ function generarPDF(id){
     d+=rol.rol;
     d+='<span class="desc-tag">'+pctTxt+' &nbsp;\u00b7\u00a0'+(rolDescAplicadaPDF?'Con descuento':'Sin descuento')+'</span>';
     d+='</div>';
-    d+='<div class="rol-fm">'+baseTxt+' \u00d7 '+pctTxt+' = USD '+N(rFm)+' del rol. Cada subtarea = USD '+N(rFm)+' \u00d7 % de incidencia.</div>';
+    d+='<div class="rol-fm">'+baseTxt+' \u00d7 '+pctTxt+' = USD '+N(rFm)+' del rol'+(esDibRol?' (monto real, antes de descuento)':'')+'. Cada subtarea = USD '+N(rFm)+' \u00d7 % de incidencia'+(esDibRol?' (% calculado sobre este monto real)':'')+'.</div>';
     // Traducci\u00f3n a USD/m\u00b2 \u2014 a pedido de Diego (24-ago-2026): que cualquiera que lea el presupuesto
     // pueda verificar el monto con una cuenta simple (honorarios del rol \u00f7 superficie total del
     // encargo), sin importar si el rol se calcul\u00f3 por % CATDF, USD/m\u00b2, tarifa fija o render por \u00edtem.
