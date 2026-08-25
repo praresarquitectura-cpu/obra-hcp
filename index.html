@@ -839,6 +839,43 @@ input,select,textarea,button{font-family:var(--font)}
     </div>
   </div>
 
+  <!-- Robot de precios: seguimiento de ferreterías/corralones + sugerencias a revisar -->
+  <div class="card" style="margin-bottom:12px;padding:10px 14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+      <div class="csec">🤖 Robot de precios — Ferreterías y corralones</div>
+      <span style="font-size:9.5px;color:var(--tx3);background:var(--bg3);border:1px solid var(--br);border-radius:20px;padding:3px 10px">Revisa los lunes, automático</span>
+    </div>
+    <div style="font-size:10px;color:var(--tx3);margin:0 0 10px">Agregá abajo los materiales que querés seguir. Todas las semanas se consultan los precios publicados en los sitios elegidos y aparece acá una lista de sugerencias — ningún precio se actualiza solo: vos revisás y aceptás cada cambio.</div>
+
+    <div style="font-size:10.5px;font-weight:700;color:var(--tx2);margin-bottom:6px">Materiales en seguimiento</div>
+    <div id="pm-tracking-tabla" style="margin-bottom:8px"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px">
+      <div class="fg" style="min-width:160px;flex:1">
+        <label class="fl">Código del material (Listado de Precios)</label>
+        <input class="fi" type="text" id="pm-new-cod" placeholder="ej: 1603" style="font-size:12px">
+      </div>
+      <div class="fg" style="min-width:120px">
+        <label class="fl">Sitio</label>
+        <select class="fi" id="pm-new-sitio" style="font-size:12px">
+          <option value="imcofue">Imcofue</option>
+          <option value="casafuegia">Casa Fuegia</option>
+          <option value="casazeila">Casa Zeila</option>
+        </select>
+      </div>
+      <div class="fg" style="min-width:220px;flex:2">
+        <label class="fl">URL del producto</label>
+        <input class="fi" type="text" id="pm-new-url" placeholder="https://..." style="font-size:12px">
+      </div>
+      <button class="btn" style="background:var(--bt);color:#fff;font-size:11px;padding:8px 14px" onclick="pmAgregarTracking()">+ Agregar</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <div style="font-size:10.5px;font-weight:700;color:var(--tx2)">Sugerencias pendientes</div>
+      <span id="pm-badge-pendientes" style="display:none;background:var(--gt);color:#fff;font-size:9px;font-weight:700;padding:1px 7px;border-radius:10px">0</span>
+    </div>
+    <div id="pm-sugerencias-tabla"></div>
+  </div>
+
   <!-- Tabs de categorías -->
   <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px" id="pr-tabs"></div>
 
@@ -1346,7 +1383,12 @@ function parseNum(v){
 }
 
 /* ── STORAGE ─────────────────────────────────────────────────────────── */
-let EMPRESA={nombre:'PRARES ARQUITECTURA',titulo:'',nombreCompleto:'',matricula:'',rpc:'',cuit:'',catdfMat:'',cptMat:'',email:'',tel:'',dir:'',logo:null,qr:null,ptoVenta:'0001',tipoComp:'C',condIVA:'Monotributista',brandColor1:'#8a0e1e',brandColor2:'#c42d46',brandFont:'Montserrat'};
+// Nota: el valor por defecto de 'nombre' queda vacío a propósito — OBRAERP se
+// comercializa a otros estudios/profesionales, así que una cuenta nueva NO
+// debe arrancar mostrando "PRARES ARQUITECTURA" (el estudio de Diego) como si
+// fuera el suyo. La cuenta de Diego no se ve afectada: su nombre real ya está
+// guardado en su propio documento de Firestore y lo pisa apenas carga.
+let EMPRESA={nombre:'',titulo:'',nombreCompleto:'',matricula:'',rpc:'',cuit:'',catdfMat:'',cptMat:'',email:'',tel:'',dir:'',logo:null,qr:null,ptoVenta:'0001',tipoComp:'C',condIVA:'Monotributista',brandColor1:'#8a0e1e',brandColor2:'#c42d46',brandFont:'Montserrat'};
 let CLIENTES=[];
 let HON_DATA=[];
 let OBRAS_DATA=[];
@@ -3297,7 +3339,7 @@ function goTo(id,btn,sb){
   // el estado en memoria ya está siempre al día.
   if(id==='apu'){apuTabRender();}
   if(id==='sistemas'){scFiltrar('');}
-  if(id==='precios')prRender();
+  if(id==='precios'){prRender();if(typeof pmRenderTracking==='function')pmRenderTracking();if(typeof pmRenderSugerencias==='function')pmRenderSugerencias();}
   if(id==='config'){setTimeout(function(){loadEmpresaToForm();actualizarUIEmpresa();},60);}
 }
 
@@ -3860,6 +3902,8 @@ setTimeout(function(){
   if(typeof prCargar==='function')prCargar();
   if(typeof honCfgCargar==='function')honCfgCargar();
   if(typeof cpCargarCatalogoUser==='function')cpCargarCatalogoUser();
+  if(typeof pmCargarTracking==='function')pmCargarTracking();
+  if(typeof pmCargarSugerencias==='function')pmCargarSugerencias();
 },0);
 // Verificar trial local
 (function(){
@@ -4194,6 +4238,8 @@ async function fbLoadAll(){
     scCargar();
     // Load listado de precios (custom/editado) y catálogo de rubros/ítems guardados por el usuario
     if(typeof prCargar==='function')prCargar();
+    if(typeof pmCargarTracking==='function')pmCargarTracking();
+    if(typeof pmCargarSugerencias==='function')pmCargarSugerencias();
   if(typeof honCfgCargar==='function')honCfgCargar();
     if(typeof cpCargarCatalogoUser==='function')cpCargarCatalogoUser();
     guardarTodo(); // save to localStorage as cache
@@ -11515,6 +11561,174 @@ function prCargar(){
     var loc=localStorage.getItem('obraerp_precios');
     if(loc){var d=JSON.parse(loc);if(d.deleted)PR_DATA_DELETED=d.deleted;if(d.items)prMergeStored(d.items,d.deleted);if(d.historial)PR_HISTORIAL=d.historial;prAplicarFactores(d);prSincronizarConCatalogo();}
     cpMergePrecios();
+  }
+}
+
+/* ══ ROBOT DE PRECIOS — seguimiento de ferreterías/corralones (Imcofue, Casa ═══
+   Fuegia, Casa Zeila) + cola de sugerencias que cada usuario revisa y acepta
+   a mano. 100% gratis, sin plan pago: un navegador no puede consultar esos
+   sitios directamente (restricción de seguridad CORS, no evitable), así que
+   el robot que realmente lee los precios vive fuera de este archivo, en
+   /robot-precios — un script de Node que corre gratis en GitHub Actions
+   (una vez por semana) y escribe las sugerencias directo en Firestore, en
+   users/{uid}/preciosSugeridos. Acá, en la app, solo vive: (a) la pantalla
+   para elegir qué materiales seguir (PM_TRACKING, guardado en Firestore), y
+   (b) la bandeja de sugerencias con Aceptar/Rechazar, en vivo (onSnapshot).
+   Aceptar reusa prUpdPU()+prGuardar(), o sea que un precio aceptado sigue
+   exactamente el mismo camino que si el usuario lo hubiera tipeado a mano
+   en "Listado de Precios". ════════════════════════════════════════════ */
+var PM_TRACKING=[];       // [{cod,nom,sitio,url}]
+var PM_SUGERENCIAS=[];    // [{id,cod,nombre,sitio,url,puAnterior,puNuevo,variacionPct,estado,motivo}]
+var PM_SITIO_LABEL={imcofue:'Imcofue',casafuegia:'Casa Fuegia',casazeila:'Casa Zeila'};
+var _pmUnsub=null;
+
+function pmRenderTracking(){
+  var el=document.getElementById('pm-tracking-tabla');
+  if(!el)return;
+  if(!PM_TRACKING.length){
+    el.innerHTML='<div style="font-size:10.5px;color:var(--tx3);padding:6px 0">Todavía no agregaste ningún material en seguimiento.</div>';
+    return;
+  }
+  el.innerHTML=PM_TRACKING.map(function(t,i){
+    var mat=PR_DATA.find(function(p){return p.cod===t.cod;});
+    var nomMat=mat?mat.nom:(t.nom||'(código no encontrado en el Listado de Precios)');
+    return '<div style="display:grid;grid-template-columns:70px 1fr 90px 1fr 26px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--br);font-size:11px">'
+      +'<div style="color:var(--tx3)">'+t.cod+'</div>'
+      +'<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+nomMat+'">'+nomMat+'</div>'
+      +'<div style="color:var(--tx3)">'+(PM_SITIO_LABEL[t.sitio]||t.sitio)+'</div>'
+      +'<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="'+t.url+'" target="_blank" rel="noopener" style="color:var(--bt);text-decoration:none">'+t.url+'</a></div>'
+      +'<div style="text-align:center"><button onclick="pmEliminarTracking('+i+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px" title="Eliminar">✕</button></div>'
+      +'</div>';
+  }).join('');
+}
+
+function pmAgregarTracking(){
+  var cod=(document.getElementById('pm-new-cod').value||'').trim();
+  var sitio=document.getElementById('pm-new-sitio').value;
+  var url=(document.getElementById('pm-new-url').value||'').trim();
+  if(!cod){toast('Ingresá el código del material',false);return;}
+  if(!/^https?:\/\//i.test(url)){toast('Ingresá una URL válida (con http:// o https://)',false);return;}
+  var mat=PR_DATA.find(function(p){return p.cod===cod;});
+  if(!mat){toast('No encontré ese código en el Listado de Precios — revisalo',false);return;}
+  PM_TRACKING.push({cod:cod,nom:mat.nom,sitio:sitio,url:url});
+  document.getElementById('pm-new-cod').value='';
+  document.getElementById('pm-new-url').value='';
+  pmRenderTracking();
+  pmGuardarTracking();
+  toast('✓ Material agregado al seguimiento');
+}
+function pmEliminarTracking(i){
+  PM_TRACKING.splice(i,1);
+  pmRenderTracking();
+  pmGuardarTracking();
+}
+function pmGuardarTracking(){
+  localStorage.setItem('obraerp_precios_tracking',JSON.stringify(PM_TRACKING));
+  if(_db&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('preciosTracking')
+      .set({items:PM_TRACKING,ts:Date.now()}).catch(function(){});
+  }
+}
+function pmCargarTracking(){
+  if(_db&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('preciosTracking').get()
+      .then(function(doc){
+        if(doc.exists&&doc.data().items)PM_TRACKING=doc.data().items;
+        pmRenderTracking();
+      }).catch(function(){
+        var loc=localStorage.getItem('obraerp_precios_tracking');
+        if(loc)PM_TRACKING=JSON.parse(loc);
+        pmRenderTracking();
+      });
+  }else{
+    var loc=localStorage.getItem('obraerp_precios_tracking');
+    if(loc)PM_TRACKING=JSON.parse(loc);
+    pmRenderTracking();
+  }
+}
+
+function pmFmtMoneda(v){
+  return v==null?'—':('$'+Math.round(v).toLocaleString('es-AR'));
+}
+
+function pmRenderSugerencias(){
+  var el=document.getElementById('pm-sugerencias-tabla');
+  var badge=document.getElementById('pm-badge-pendientes');
+  if(!el)return;
+  var pend=PM_SUGERENCIAS.filter(function(s){return s.estado==='pendiente';});
+  var errs=PM_SUGERENCIAS.filter(function(s){return s.estado==='error';});
+  if(badge){
+    if(pend.length){badge.style.display='';badge.textContent=pend.length;}
+    else badge.style.display='none';
+  }
+  if(!pend.length&&!errs.length){
+    el.innerHTML='<div style="font-size:10.5px;color:var(--tx3);padding:6px 0">Sin novedades por ahora. El robot revisa los materiales en seguimiento todos los lunes.</div>';
+    return;
+  }
+  var h='';
+  if(pend.length){
+    h+=pend.map(function(s){
+      var mat=PR_DATA.find(function(p){return p.cod===s.cod;});
+      var nomMat=mat?mat.nom:(s.nombre||s.cod);
+      var varTxt=s.variacionPct==null?'(primer precio registrado)':((s.variacionPct>0?'+':'')+s.variacionPct.toLocaleString('es-AR')+'%');
+      var varColor=s.variacionPct==null?'var(--tx3)':(s.variacionPct>0?'var(--rt)':'var(--gt)');
+      return '<div style="display:grid;grid-template-columns:1fr 90px 90px 70px 90px 90px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--br);font-size:11px">'
+        +'<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+nomMat+'"><a href="'+s.url+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">'+nomMat+'</a><div style="font-size:9px;color:var(--tx3)">'+(PM_SITIO_LABEL[s.sitio]||s.sitio)+' · cód. '+s.cod+'</div></div>'
+        +'<div style="text-align:right;color:var(--tx3)">'+pmFmtMoneda(s.puAnterior)+'</div>'
+        +'<div style="text-align:right;font-weight:700">'+pmFmtMoneda(s.puNuevo)+'</div>'
+        +'<div style="text-align:right;color:'+varColor+';font-weight:600">'+varTxt+'</div>'
+        +'<div style="text-align:center"><button onclick="pmAceptar(\''+s.id+'\')" style="background:var(--gt);color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:10px;padding:4px 10px;font-weight:700">Aceptar</button></div>'
+        +'<div style="text-align:center"><button onclick="pmRechazar(\''+s.id+'\')" style="background:none;border:1px solid var(--br);color:var(--tx3);border-radius:5px;cursor:pointer;font-size:10px;padding:4px 10px">Rechazar</button></div>'
+        +'</div>';
+    }).join('');
+  }
+  if(errs.length){
+    h+=errs.map(function(s){
+      var mat=PR_DATA.find(function(p){return p.cod===s.cod;});
+      var nomMat=mat?mat.nom:(s.nombre||s.cod);
+      return '<div style="padding:6px 0;border-bottom:1px solid var(--br);font-size:10.5px;color:var(--rt)">⚠ '+nomMat+' ('+(PM_SITIO_LABEL[s.sitio]||s.sitio)+'): '+(s.motivo||'no se pudo leer el precio')+' <button onclick="pmRechazar(\''+s.id+'\')" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:10px;text-decoration:underline;margin-left:6px">descartar</button></div>';
+    }).join('');
+  }
+  el.innerHTML=h;
+}
+
+// Las sugerencias las escribe el robot (corre en GitHub Actions, gratis —
+// ver /robot-precios en el repositorio) directo en Firestore, en
+// users/{uid}/preciosSugeridos/{id}. Esta pantalla solo las LEE en vivo
+// (onSnapshot) y deja Aceptar/Rechazar — nunca genera sugerencias desde
+// acá, porque el navegador no puede consultar esos sitios directamente
+// (restricción de seguridad de CORS, no evitable desde ningún sitio).
+function pmCargarSugerencias(){
+  if(!(_db&&_uid))return;
+  if(_pmUnsub)_pmUnsub();
+  _pmUnsub=_db.collection('users').doc(_uid).collection('preciosSugeridos')
+    .where('estado','in',['pendiente','error'])
+    .onSnapshot(function(snap){
+      PM_SUGERENCIAS=snap.docs.map(function(d){var v=d.data();v.id=d.id;return v;});
+      pmRenderSugerencias();
+    },function(){/* silencioso: puede fallar si todavía no existe la colección */});
+}
+
+function pmAceptar(id){
+  var s=PM_SUGERENCIAS.find(function(x){return x.id===id;});
+  if(!s)return;
+  var idx=PR_DATA.findIndex(function(p){return p.cod===s.cod;});
+  if(idx<0){toast('El código '+s.cod+' ya no existe en el Listado de Precios',false);return;}
+  PR_DATA[idx].pu=s.puNuevo;
+  PR_DATA[idx].fuente=(PM_SITIO_LABEL[s.sitio]||s.sitio)+' — actualizado por el robot de precios';
+  PR_DATA[idx].modif=Date.now();
+  prRegistrarHistorial(idx,'precio (robot)',s.puNuevo);
+  prSincronizarConCatalogo();
+  if(typeof prRender==='function')prRender();
+  prGuardar();
+  if(_db&&_uid){
+    _db.collection('users').doc(_uid).collection('preciosSugeridos').doc(id).update({estado:'aceptado'}).catch(function(){});
+  }
+  toast('✓ Precio actualizado: '+(PR_DATA[idx].nom));
+}
+function pmRechazar(id){
+  if(_db&&_uid){
+    _db.collection('users').doc(_uid).collection('preciosSugeridos').doc(id).update({estado:'rechazado'}).catch(function(){});
   }
 }
 
