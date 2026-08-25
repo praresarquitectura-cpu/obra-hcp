@@ -1,0 +1,37 @@
+name: Robot de precios OBRAERP
+
+# Corre gratis en la infraestructura de GitHub — no usa Firebase Functions
+# ni ningun plan pago. Lee los materiales en seguimiento de cada usuario,
+# consulta Imcofue / Casa Fuegia / Casa Zeila, y deja sugerencias en
+# Firestore para que cada usuario las revise desde la app.
+#
+# Se dispara solo (automatico, todos los lunes) y tambien se puede disparar
+# a mano desde la pestana "Actions" de este repositorio (boton "Run workflow").
+
+on:
+  schedule:
+    - cron: "0 11 * * 1" # lunes 11:00 UTC = 08:00 en Ushuaia (UTC-3)
+  workflow_dispatch: {}
+
+jobs:
+  ejecutar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: robot-precios
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Correr el robot
+        run: node run.js
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
