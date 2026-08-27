@@ -843,16 +843,23 @@ input,select,textarea,button{font-family:var(--font)}
   <div class="card" style="margin-bottom:12px;padding:10px 14px">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px">
       <div class="csec">🤖 Robot de precios — Ferreterías y corralones</div>
-      <span style="font-size:9.5px;color:var(--tx3);background:var(--bg3);border:1px solid var(--br);border-radius:20px;padding:3px 10px">Revisa los lunes, automático</span>
+      <span style="font-size:9.5px;color:var(--tx3);background:var(--bg3);border:1px solid var(--br);border-radius:20px;padding:3px 10px">Revisa los lunes 8am, automático</span>
     </div>
     <div style="font-size:10px;color:var(--tx3);margin:0 0 10px">Agregá abajo los materiales que querés seguir. Todas las semanas se consultan los precios publicados en los sitios elegidos y aparece acá una lista de sugerencias — ningún precio se actualiza solo: vos revisás y aceptás cada cambio.</div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:var(--bg3);border:1px solid var(--br);border-radius:8px;padding:8px 12px;margin-bottom:14px">
+      <div style="font-size:10.5px;color:var(--tx2)">¿No querés esperar al lunes? Pedile al robot que revise los precios ahora mismo.</div>
+      <button class="btn" style="background:var(--gt);color:#fff;font-size:11px;padding:7px 14px;white-space:nowrap" onclick="pmActualizarAhora()">▶ Actualizar precios ahora</button>
+    </div>
 
     <div style="font-size:10.5px;font-weight:700;color:var(--tx2);margin-bottom:6px">Materiales en seguimiento</div>
     <div id="pm-tracking-tabla" style="margin-bottom:8px"></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px">
-      <div class="fg" style="min-width:160px;flex:1">
-        <label class="fl">Código del material (Listado de Precios)</label>
-        <input class="fi" type="text" id="pm-new-cod" placeholder="ej: 1603" style="font-size:12px">
+      <div class="fg" style="min-width:220px;flex:2;position:relative">
+        <label class="fl">Material (buscá por nombre — del Listado de Precios)</label>
+        <input class="fi" type="text" id="pm-new-buscar" placeholder="ej: chapa galvanizada, cemento..." style="font-size:12px" oninput="pmBuscarMaterial(this.value)" onfocus="pmBuscarMaterial(this.value)" onblur="setTimeout(function(){var s=document.getElementById('pm-new-sugs');if(s)s.style.display='none'},400)" autocomplete="off">
+        <div id="pm-new-sugs" style="display:none;position:absolute;z-index:20;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--br);border-radius:6px;max-height:220px;overflow:auto;box-shadow:0 4px 14px rgba(0,0,0,.25)"></div>
+        <div id="pm-new-elegido" style="font-size:10px;color:var(--gt);margin-top:3px;display:none"></div>
       </div>
       <div class="fg" style="min-width:120px">
         <label class="fl">Sitio</label>
@@ -7333,6 +7340,78 @@ var CP_CATALOGO_EXTRA = [
 {cod:'AG04',nom:'Caldera (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2501',nom:'Caldera dual 20.000kcal/h mural PEISA DIVA DS',un:'un',rend:1}],mo:[{rol:'of',hh:4},{rol:'ay',hh:2}]},
 {cod:'AG05',nom:'Termotanque (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2451',nom:'Termotanque 225 lts SCA080',un:'un',rend:1}],mo:[{rol:'of',hh:2},{rol:'ay',hh:1}]},
 {cod:'AG06',nom:'Calefactor (provisión y colocación — MO estándar, verificar)',un:'un',cat:'ARTEFACTOS DE GAS',unidades_permitidas:['un'],mats:[{id:'2753',nom:'Calefactor a gas tiro balanceado 3000 kcal/h',un:'un',rend:1}],mo:[{rol:'of',hh:1.5},{rol:'ay',hh:0.5}]},
+
+// ══ CERCOS (agregado a pedido de Diego, ago-2026) ═══════════════════
+// TP06 ("Cerco de obra perimetral") ya cubre el cerco PROVISORIO de obra.
+// CO01 es el cerco PERMANENTE de límite de terreno — materiales distintos
+// (más robusto, con pintura de terminación) y por eso un ítem aparte.
+{cod:'CO01',nom:'Cerco Perimetral (límite de terreno, postes + malla electrosoldada)',un:'ml',
+ cat:'CERCOS Y SEGURIDAD',
+ unidades_permitidas:['ml','m²','gl'],
+ mats:[
+  {id:'tb_cuad_40x40',nom:'Tubo cuadrado 40x40x2mm (postes)',un:'m',rend:0.9},
+  {id:'507',nom:'Malla Electrosoldada 50x50x3mm (paño)',un:'m²',rend:2.0},
+  {id:'104',nom:'H21 350kg (bases de postes)',un:'m³',rend:0.02},
+  {id:'1508',nom:'Esmalte Sintético Tersuave 3en1 (terminación)',un:'lts',rend:0.03},
+  {id:'1505',nom:'Aguarrás',un:'lts',rend:0.03},
+  {id:'519',nom:'Electrodos 2.5 (soldadura postes)',un:'kg',rend:0.05},
+ ],
+ mo:[{rol:'of',hh:0.7},{rol:'ay',hh:0.7}]
+},
+
+// ══ REPARACIONES Y REEMPLAZOS (agregado a pedido de Diego, ago-2026) ═
+// Para trabajos puntuales de reforma/reparación: cambiar un paño de
+// revestimiento dañado o reemplazar una abertura, sin tener que armar
+// todo el ítem de tabique/cubierta completo de cero. Unidad m² porque
+// se computa por el área real a reemplazar (largo x alto del paño).
+{cod:'RP01',nom:'Reemplazo de Revestimiento — Placa Cementicia (retiro + colocación)',un:'m²',
+ cat:'REPARACIONES Y REEMPLAZOS',
+ unidades_permitidas:['m²','un'],
+ mats:[
+  {id:'placa_cem_10',nom:'Placa cementicia 10mm',un:'m²',rend:1.05},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm (fijación)',un:'un',rend:12},
+  {id:'sellador_siliconico',nom:'Sellador siliconico neutro (juntas)',un:'un',rend:0.05},
+ ],
+ mo:[{rol:'of',hh:0.5},{rol:'ay',hh:0.5}]
+},
+{cod:'RP02',nom:'Reemplazo de Revestimiento — Durlock/Placa de Yeso (retiro + colocación)',un:'m²',
+ cat:'REPARACIONES Y REEMPLAZOS',
+ unidades_permitidas:['m²','un'],
+ mats:[
+  {id:'placa_yeso_12',nom:'Placa de Yeso 12mm',un:'m²',rend:1.05},
+  {id:'torn_T1_25',nom:'Tornillo T1 25mm (fijación)',un:'un',rend:12},
+  {id:'cinta_papel',nom:'Cinta de papel para juntas',un:'m',rend:1.0},
+  {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.3},
+ ],
+ mo:[{rol:'of',hh:0.45},{rol:'ay',hh:0.45}]
+},
+{cod:'RP03',nom:'Reemplazo de Revestimiento — Siding (retiro + colocación)',un:'m²',
+ cat:'REPARACIONES Y REEMPLAZOS',
+ unidades_permitidas:['m²','un'],
+ mats:[
+  {id:'1203',nom:'Siding cedral 8mm Eternit',un:'m²',rend:1.1},
+  {id:'torn_T2_25',nom:'Tornillo T2 25mm (fijación)',un:'un',rend:10},
+ ],
+ mo:[{rol:'of',hh:0.6},{rol:'ay',hh:0.6}]
+},
+{cod:'RP04',nom:'Reemplazo de Revestimiento — Chapa (retiro + colocación)',un:'m²',
+ cat:'REPARACIONES Y REEMPLAZOS',
+ unidades_permitidas:['m²','un'],
+ mats:[
+  {id:'1103',nom:'Chapa Trapezoidal T101 Negra',un:'m²',rend:1.1},
+  {id:'torn_T3_38',nom:'Tornillo autotaladrante T3 38mm (fijación chapa)',un:'un',rend:8},
+ ],
+ mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.4}]
+},
+{cod:'RP05',nom:'Reemplazo de Abertura — retiro + colocación (agregá la abertura nueva aparte, con su precio real)',un:'m²',
+ cat:'REPARACIONES Y REEMPLAZOS',
+ unidades_permitidas:['m²','un'],
+ mats:[
+  {id:'sellador_siliconico',nom:'Sellador siliconico neutro (perimetral)',un:'un',rend:0.15},
+  {id:'espuma_poliuret',nom:'Espuma de poliuretano (relleno contramarco)',un:'un',rend:0.1},
+ ],
+ mo:[{rol:'of',hh:1.2},{rol:'ay',hh:1.2}]
+},
 ];
 
 
@@ -8862,8 +8941,12 @@ function cpAgregarRubro(){
     var userOpts=(typeof CP_RUBROS_USER!=='undefined'?CP_RUBROS_USER:[]).map(function(nom){
       return '<option value="__user__'+nom+'">'+nom+' (guardado por mí)</option>';
     }).join('');
+    var opcionalesOpts=(typeof CP_RUBROS_OPCIONALES_DEFS!=='undefined'?CP_RUBROS_OPCIONALES_DEFS:[]).map(function(d){return '<option value="'+d.nom+'">'+d.nom+'</option>';}).join('');
     sel.innerHTML='<option value="">— Elegí un rubro preestablecido —</option>'+
+      '<optgroup label="Estructura estándar (obra completa)">'+
       CP_ESTRUCTURA_ESTANDAR_DEFS.map(function(d){return '<option value="'+d.nom+'">'+d.nom+'</option>';}).join('')+
+      '</optgroup>'+
+      (opcionalesOpts?'<optgroup label="Rubros puntuales">'+opcionalesOpts+'</optgroup>':'')+
       userOpts+
       '<option value="__custom__">PERSONALIZADO (nombre libre)</option>';
     sel.value='';
@@ -8892,7 +8975,8 @@ function cpConfirmarAgregarRubro(){
     var nomUser=val.substring('__user__'.length);
     r={id:cpNID(),nom:nomUser,items:[]};
   }else{
-    var rDef=CP_ESTRUCTURA_ESTANDAR_DEFS.find(function(d){return d.nom===val;});
+    var rDef=CP_ESTRUCTURA_ESTANDAR_DEFS.find(function(d){return d.nom===val;})
+      ||(typeof CP_RUBROS_OPCIONALES_DEFS!=='undefined'?CP_RUBROS_OPCIONALES_DEFS.find(function(d){return d.nom===val;}):null);
     if(!rDef){toast('Rubro no encontrado',false);return;}
     r=cpConstruirRubroEstandar(rDef);
   }
@@ -8905,7 +8989,8 @@ function cpConfirmarAgregarRubro(){
   // general de Rubros para poder elegirlo de nuevo en futuras obras.
   if(esNuevoPersonalizado&&nomNuevo){
     var yaGuardado=(typeof CP_RUBROS_USER!=='undefined')&&CP_RUBROS_USER.indexOf(nomNuevo)>=0;
-    var yaPreestablecido=CP_ESTRUCTURA_ESTANDAR_DEFS.some(function(d){return d.nom===nomNuevo;});
+    var yaPreestablecido=CP_ESTRUCTURA_ESTANDAR_DEFS.some(function(d){return d.nom===nomNuevo;})
+      ||(typeof CP_RUBROS_OPCIONALES_DEFS!=='undefined'&&CP_RUBROS_OPCIONALES_DEFS.some(function(d){return d.nom===nomNuevo;}));
     if(!yaGuardado&&!yaPreestablecido){
       var quiere=confirm('¿Guardar el rubro "'+nomNuevo+'" en el catálogo general de Rubros, para poder elegirlo directamente en futuras obras?');
       if(quiere){
@@ -8949,7 +9034,11 @@ var CP_MAPA_ITEMS_ESTANDAR={
   'Mesada Cocina':'MZ01',
   'Inodoro':'AS01','Bidet':'AS02','Lavatorio':'AS03','Bañera':'AS04','Juego de Accesorios':'AS05',
   'Botiquín':'AS06','Grifería':'AS07','Pileta de Cocina':'AS08','Pileta Lavadero':'AS09',
-  'Zepelín':'AG01','Cocina':'AG02','Calefón':'AG03','Caldera':'AG04','Termotanque':'AG05','Calefactor':'AG06'
+  'Zepelín':'AG01','Cocina':'AG02','Calefón':'AG03','Caldera':'AG04','Termotanque':'AG05','Calefactor':'AG06',
+  'Cerco Perimetral':'CO01',
+  'Reemplazo de Revestimiento - Placa Cementicia':'RP01','Reemplazo de Revestimiento - Durlock':'RP02',
+  'Reemplazo de Revestimiento - Siding':'RP03','Reemplazo de Revestimiento - Chapa':'RP04',
+  'Reemplazo de Abertura':'RP05'
 };
 var CP_ESTRUCTURA_ESTANDAR_DEFS=[
   {nom:'TAREAS PRELIMINARES',items:['Limpieza Terreno','Limpieza Sector de Obra','Cartel de Obra','Baño Químico','Obrador','Cerco de Obra','Replanteo']},
@@ -8962,6 +9051,16 @@ var CP_ESTRUCTURA_ESTANDAR_DEFS=[
   {nom:'MESADAS',items:['Mesada Cocina']},
   {nom:'ARTEFACTOS SANITARIOS',items:['Inodoro','Bidet','Lavatorio','Bañera','Juego de Accesorios','Botiquín','Grifería','Pileta de Cocina','Pileta Lavadero']},
   {nom:'ARTEFACTOS DE GAS',items:['Zepelín','Cocina','Calefón','Caldera','Termotanque','Calefactor']}
+];
+// Rubros preestablecidos "sueltos" — no forman parte de los 10 rubros de la
+// Estructura estándar (que arma una obra completa de punta a punta), pero
+// aparecen igual como opción en "+ Rubro" para trabajos puntuales: cambiar
+// un cerco, o una reparación/reemplazo de revestimiento o abertura.
+// A pedido de Diego, ago-2026.
+var CP_RUBROS_OPCIONALES_DEFS=[
+  {nom:'CERCO DE OBRA',items:['Cerco de Obra']},
+  {nom:'CERCO PERIMETRAL',items:['Cerco Perimetral']},
+  {nom:'REPARACIONES Y REEMPLAZOS',items:['Reemplazo de Revestimiento - Placa Cementicia','Reemplazo de Revestimiento - Durlock','Reemplazo de Revestimiento - Siding','Reemplazo de Revestimiento - Chapa','Reemplazo de Abertura']}
 ];
 function cpConstruirRubroEstandar(rDef){
   return {id:cpNID(),nom:rDef.nom,items:rDef.items.map(function(nomIt){
@@ -11602,20 +11701,66 @@ function pmRenderTracking(){
   }).join('');
 }
 
+// Buscador por nombre (más simple que pedirle a Diego que sepa el código de
+// memoria) — reusa el mismo PR_DATA del Listado de Precios. Al elegir un
+// resultado, PM_NEW_COD_SEL guarda el código real que se usa al agregar.
+var PM_NEW_COD_SEL=null;
+function pmBuscarMaterial(val){
+  var el=document.getElementById('pm-new-sugs');
+  var elegido=document.getElementById('pm-new-elegido');
+  if(!el)return;
+  PM_NEW_COD_SEL=null;
+  if(elegido)elegido.style.display='none';
+  val=(val||'').trim().toLowerCase();
+  if(val.length<2){el.style.display='none';return;}
+  var res=PR_DATA.filter(function(p){return p.nom&&p.nom.toLowerCase().indexOf(val)>=0;}).slice(0,25);
+  if(!res.length){el.innerHTML='<div style="padding:8px 10px;font-size:11px;color:var(--tx3)">Sin resultados — probá con otra palabra</div>';el.style.display='block';return;}
+  el.innerHTML=res.map(function(p){
+    return '<div onclick="pmSeleccionarMaterial(\''+p.cod+'\')" style="padding:6px 10px;cursor:pointer;border-bottom:1px solid var(--br);font-size:11px" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'\'">'
+      +'<span style="color:var(--tx3);margin-right:6px;font-size:10px">'+p.cod+'</span><b>'+p.nom+'</b>'
+      +'<div style="font-size:9px;color:var(--tx3);margin-top:2px">'+p.cat+' · $'+Math.round(p.pu||0).toLocaleString('es-AR')+'</div></div>';
+  }).join('');
+  el.style.display='block';
+}
+function pmSeleccionarMaterial(cod){
+  var mat=PR_DATA.find(function(p){return p.cod===cod;});
+  if(!mat)return;
+  PM_NEW_COD_SEL=cod;
+  var input=document.getElementById('pm-new-buscar');
+  var sugs=document.getElementById('pm-new-sugs');
+  var elegido=document.getElementById('pm-new-elegido');
+  if(input)input.value=mat.nom;
+  if(sugs)sugs.style.display='none';
+  if(elegido){elegido.style.display='block';elegido.textContent='✓ Elegido: cód. '+mat.cod+' — '+mat.nom;}
+}
 function pmAgregarTracking(){
-  var cod=(document.getElementById('pm-new-cod').value||'').trim();
+  var cod=PM_NEW_COD_SEL;
   var sitio=document.getElementById('pm-new-sitio').value;
   var url=(document.getElementById('pm-new-url').value||'').trim();
-  if(!cod){toast('Ingresá el código del material',false);return;}
+  if(!cod){toast('Buscá el material por nombre y elegilo de la lista',false);return;}
   if(!/^https?:\/\//i.test(url)){toast('Ingresá una URL válida (con http:// o https://)',false);return;}
   var mat=PR_DATA.find(function(p){return p.cod===cod;});
-  if(!mat){toast('No encontré ese código en el Listado de Precios — revisalo',false);return;}
+  if(!mat){toast('Ese material ya no existe en el Listado de Precios — buscalo de nuevo',false);return;}
+  if(PM_TRACKING.some(function(t){return t.cod===cod&&t.sitio===sitio;})){toast('Ese material ya está en seguimiento en ese sitio',false);return;}
   PM_TRACKING.push({cod:cod,nom:mat.nom,sitio:sitio,url:url});
-  document.getElementById('pm-new-cod').value='';
+  document.getElementById('pm-new-buscar').value='';
   document.getElementById('pm-new-url').value='';
+  document.getElementById('pm-new-elegido').style.display='none';
+  PM_NEW_COD_SEL=null;
   pmRenderTracking();
   pmGuardarTracking();
   toast('✓ Material agregado al seguimiento');
+}
+// Botón "Actualizar precios ahora": el robot en sí corre en GitHub Actions
+// (no en el navegador — los sitios de los corralones bloquean pedidos
+// directos desde un sitio web por seguridad, algo que ningún navegador
+// puede evitar). Lo más simple y seguro sin exponer ninguna clave en la
+// app pública es abrirle a Diego la pantalla de GitHub Actions ya lista
+// para tocar "Run workflow" — un click más y el robot corre en el momento,
+// en vez de esperar al lunes.
+function pmActualizarAhora(){
+  window.open('https://github.com/praresarquitectura-cpu/obra-hcp/actions/workflows/robot-precios.yml','_blank','noopener');
+  toast('Se abrió GitHub Actions — arriba a la derecha, tocá "Run workflow" y confirmá. Tarda 1 o 2 minutos.');
 }
 function pmEliminarTracking(i){
   PM_TRACKING.splice(i,1);
