@@ -7359,6 +7359,33 @@ var CP_CATALOGO_EXTRA = [
  mo:[{rol:'of',hh:0.7},{rol:'ay',hh:0.7}]
 },
 
+// Cerco perimetral de MADERA — dos variantes según el tipo de poste que
+// se use (a pedido de Diego, ago-2026): postes redondos (rollizo, más
+// económico) o postes cuadrados (aserrado, terminación más prolija).
+// Ambas comparten el mismo cerramiento de tablas — solo cambia el poste.
+{cod:'CO02',nom:'Cerco Perimetral de Madera — postes redondos (rollizo) + tablas',un:'ml',
+ cat:'CERCOS Y SEGURIDAD',
+ unidades_permitidas:['ml','m²','gl'],
+ mats:[
+  {id:'1423',nom:'Poste de Madera Rollizo Ø14-16cm Impregnado CCA',un:'m',rend:0.9},
+  {id:'1415',nom:'Tabla de Lenga 1" x 6" (cerramiento)',un:'m',rend:3.5},
+  {id:'clavo_pp_3',nom:'Clavo punta París 3" (fijación tablas)',un:'kg',rend:0.15},
+  {id:'1506',nom:'Protector para madera cetol (terminación)',un:'lts',rend:0.08},
+ ],
+ mo:[{rol:'of',hh:0.8},{rol:'ay',hh:0.8}]
+},
+{cod:'CO03',nom:'Cerco Perimetral de Madera — postes cuadrados (aserrado) + tablas',un:'ml',
+ cat:'CERCOS Y SEGURIDAD',
+ unidades_permitidas:['ml','m²','gl'],
+ mats:[
+  {id:'1425',nom:'Poste de Madera Cuadrado 15x15cm Impregnado CCA',un:'m',rend:0.9},
+  {id:'1415',nom:'Tabla de Lenga 1" x 6" (cerramiento)',un:'m',rend:3.5},
+  {id:'clavo_pp_3',nom:'Clavo punta París 3" (fijación tablas)',un:'kg',rend:0.15},
+  {id:'1506',nom:'Protector para madera cetol (terminación)',un:'lts',rend:0.08},
+ ],
+ mo:[{rol:'of',hh:0.8},{rol:'ay',hh:0.8}]
+},
+
 // ══ REPARACIONES Y REEMPLAZOS (agregado a pedido de Diego, ago-2026) ═
 // Para trabajos puntuales de reforma/reparación: cambiar un paño de
 // revestimiento dañado o reemplazar una abertura, sin tener que armar
@@ -9036,6 +9063,7 @@ var CP_MAPA_ITEMS_ESTANDAR={
   'Botiquín':'AS06','Grifería':'AS07','Pileta de Cocina':'AS08','Pileta Lavadero':'AS09',
   'Zepelín':'AG01','Cocina':'AG02','Calefón':'AG03','Caldera':'AG04','Termotanque':'AG05','Calefactor':'AG06',
   'Cerco Perimetral':'CO01',
+  'Cerco Perimetral de Madera (postes redondos)':'CO02','Cerco Perimetral de Madera (postes cuadrados)':'CO03',
   'Reemplazo de Revestimiento - Placa Cementicia':'RP01','Reemplazo de Revestimiento - Durlock':'RP02',
   'Reemplazo de Revestimiento - Siding':'RP03','Reemplazo de Revestimiento - Chapa':'RP04',
   'Reemplazo de Abertura':'RP05'
@@ -9059,7 +9087,7 @@ var CP_ESTRUCTURA_ESTANDAR_DEFS=[
 // A pedido de Diego, ago-2026.
 var CP_RUBROS_OPCIONALES_DEFS=[
   {nom:'CERCO DE OBRA',items:['Cerco de Obra']},
-  {nom:'CERCO PERIMETRAL',items:['Cerco Perimetral']},
+  {nom:'CERCO PERIMETRAL',items:['Cerco Perimetral','Cerco Perimetral de Madera (postes redondos)','Cerco Perimetral de Madera (postes cuadrados)']},
   {nom:'REPARACIONES Y REEMPLAZOS',items:['Reemplazo de Revestimiento - Placa Cementicia','Reemplazo de Revestimiento - Durlock','Reemplazo de Revestimiento - Siding','Reemplazo de Revestimiento - Chapa','Reemplazo de Abertura']}
 ];
 function cpConstruirRubroEstandar(rDef){
@@ -10932,6 +10960,21 @@ var PR_DATA = [
 {cod:'1420',nom:'Madera Tabla Pino Norte (encofrado hormigón)',cat:'MADERAS',un:'Pie²',pu:0,medida:'Pie² (pie tablar)',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
 {cod:'1421',nom:'Tirante Pino Norte (encofrado hormigón)',cat:'MADERAS',un:'Pie²',pu:0,medida:'Pie² (pie tablar)',fuente:'Sin precio — completar',modif:0,fecha:'2026-06'},
 {cod:'tabla_pino',nom:'Tabla pino encofrado 1"x6"',cat:'MADERAS',un:'m',pu:840,medida:'tabla 12m',fuente:'Estimado mercado local',modif:0},
+
+// ── POSTES Y CERCOS (agregado a pedido de Diego, ago-2026) ──────────
+// Postes redondos (rollizo) = precio real relevado en MercadoLibre (poste
+// de eucalipto impregnado CCA, listado con buena calificación/ventas).
+// Postes cuadrados (aserrados) = NO se encontró un precio real de venta en
+// Ushuaia/IMCOFUE ni en MercadoLibre con envío a Tierra del Fuego — se
+// estima +30% sobre el rollizo equivalente (desperdicio propio del
+// aserrado de un tronco redondo a sección cuadrada, criterio estándar de
+// obrador). Recomendado: cotizar en una maderera local antes de una obra
+// grande y actualizar este precio.
+{cod:'1422',nom:'Poste de Madera Rollizo (circular) Ø10-13cm Impregnado CCA',cat:'POSTES Y CERCOS',un:'m',pu:2760,medida:'m (postes de 2,5m de largo, $6.900 c/u — Ø10-13cm, impregnado CCA para uso enterrado)',fuente:'mercadolibre',modif:0,fecha:'2026-08'},
+{cod:'1423',nom:'Poste de Madera Rollizo (circular) Ø14-16cm Impregnado CCA',cat:'POSTES Y CERCOS',un:'m',pu:5440,medida:'m (postes de 2,5m de largo, $13.600 c/u — Ø14-16cm, impregnado CCA para uso enterrado)',fuente:'mercadolibre',modif:0,fecha:'2026-08'},
+{cod:'1424',nom:'Poste de Madera Cuadrado (aserrado) 10x10cm Impregnado CCA',cat:'POSTES Y CERCOS',un:'m',pu:3600,medida:'m — estimado, equivalente aserrado del rollizo Ø10-13cm',fuente:'Estimado (+30% sobre el poste rollizo equivalente, por desperdicio de aserrado) — no se encontró precio real de poste cuadrado con venta/envío a Ushuaia; verificar con maderera local antes de una obra grande',modif:0,fecha:'2026-08'},
+{cod:'1425',nom:'Poste de Madera Cuadrado (aserrado) 15x15cm Impregnado CCA',cat:'POSTES Y CERCOS',un:'m',pu:7070,medida:'m — estimado, equivalente aserrado del rollizo Ø14-16cm',fuente:'Estimado (+30% sobre el poste rollizo equivalente, por desperdicio de aserrado) — no se encontró precio real de poste cuadrado con venta/envío a Ushuaia; verificar con maderera local antes de una obra grande',modif:0,fecha:'2026-08'},
+
 // ── PINTURAS ──
 {cod:'1501',nom:'Latex interior lavable',cat:'PINTURAS',un:'lts',pu:12680,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1502',nom:'Latex exterior',cat:'PINTURAS',un:'lts',pu:12596,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
