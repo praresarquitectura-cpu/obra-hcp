@@ -1554,7 +1554,11 @@ var ROLES=[
        {id:'detalles',nm:'Plano de Detalles',tipo:'normal',inc:11,dsc:'Planos y planillas para ejecución'},
        {id:'cmp_met',nm:'Cómputo Métrico',tipo:'normal',inc:4,dsc:'Cómputo completo + listado de materiales'},
      ]},
-   ]}]},
+   ]},
+   {id:'ta_demol',nm:'Demolición',grupos:[{nm:null,items:[
+     {id:'dir_demol',nm:'Dirección de Demolición',tipo:'normal',inc:100,baseSup:'existente',dsc:'Honorario de Dirección de Proyecto por la demolición de la construcción existente. A diferencia del resto de las tareas de este rol (que se calculan sobre la superficie NUEVA a construir), esta tarea toma como base la SUPERFICIE EXISTENTE a demoler (declarada + sin declarar) × costo m² × categoría. Se suma de forma independiente a las demás tareas seleccionadas y se refleja también en la forma de pago.'},
+   ]}]}
+  ]},
   {id:'calc',nm:'Calculista',clr:'#f59e0b',descuentable:true,
    usaSupTotal:true,usaUSDm2:true,
    dsc:'Cálculo y verificación estructural. Honorarios sobre superficie total (nueva + existente declarada + sin declarar), a un precio en USD/m² fijado por el profesional (orientativo: USD 8-12/m² — vivienda unifamiliar en la parte alta, obra multifamiliar de 250 m² en adelante en la parte baja). Aplica descuento.',
@@ -2189,6 +2193,7 @@ function recalc(){
   var vObraNueva=m2*cu*cat;       // SOLO superficie nueva — base para Dir.Proyecto/Obra/Administración/Constructor-RT
   var vObraInf=m2sind*cu*cat;     // superficie EXISTENTE SIN DECLARAR — base para Informe Técnico (empadronamiento)
   var vObraCalc=m2total*cu*cat;   // superficie TOTAL — solo informativo (Calculista ahora cotiza USD/m², no % s/valor de obra)
+  var vObraDemol=(m2dec+m2sind)*cu*cat; // superficie EXISTENTE (declarada + sin declarar) — base para la tarea de Demolición de Dir. Proyecto
   var vObra=vObraNueva;           // alias usado en textos informativos (superficie nueva)
   var vi=document.getElementById('mot-val-obra');
   if(vi){
@@ -2230,6 +2235,13 @@ function recalc(){
     if(fb)fb.innerHTML=esDibujante
       ? ('<b>Fórmula:</b> cada subtarea se cotiza por su propio precio de mercado (USD/m² o USD/unidad, editable) — no por un % fijo del rol.'+(descAplicaBadge?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>'))
       : ('<b>Fórmula:</b> '+baseLbl+' '+baseValTxt+' × <b>'+pctTxt+'</b> = <b>USD '+Math.round(rolTotal).toLocaleString()+'</b> honorarios del rol. Cada subtarea = USD '+Math.round(rolTotal).toLocaleString()+' × % de incidencia.'+(descAplicaBadge?'<span style="background:rgba(248,113,113,.1);color:var(--rt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">DESCUENTO APLICA</span>':'<span style="background:rgba(212,168,67,.08);color:var(--golt);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px">SIN DESCUENTO</span>'));
+    // Nota aclaratoria cuando el rol tiene ítems con base distinta a la del rol (ej. Demolición dentro
+    // de Dirección de Proyecto → superficie EXISTENTE, no la superficie nueva de la fórmula de arriba)
+    // — a pedido de Diego (ago-2026), para que no parezca un error que el monto de esa subtarea no
+    // cierre contra la fórmula del encabezado (que solo describe la base "por defecto" del rol).
+    if(fb&&role.tareas.some(function(t){return t.grupos.some(function(g){return g.items.some(function(it){return it.baseSup==='existente'&&st.subs[it.id];});});})){
+      fb.innerHTML+='<div style="margin-top:4px;font-size:10px;color:var(--tx3)">⚠ La tarea de <b>Demolición</b> no usa la superficie nueva de arriba — se calcula sobre la <b>superficie existente a demoler</b> (declarada + sin declarar = '+(m2dec+m2sind)+' m²) × USD '+cu+'/m² × cat ×'+cat+' = USD '+Math.round(vObraDemol).toLocaleString()+'.</div>';
+    }
     var rs=0;
     // renderItems: se guardan acá para poder calcular la INCIDENCIA REAL de cada ítem 'render' recién
     // cuando se conoce el total del rol (rs) — no se puede calcular dentro del mismo forEach porque rs
@@ -2259,7 +2271,7 @@ function recalc(){
           usd=qty*prc;
           // Actualizar objeto
           it.qty=qty;it.unitPrice=prc;
-        }else{usd=vObraRole*it.pct;}
+        }else{usd=(it.baseSup==='existente'?vObraDemol:vObraRole)*it.pct;}
       }
       rs+=usd;
       var ue=document.getElementById('usd-'+it.id),ae=document.getElementById('ars-'+it.id),bk=document.getElementById('brk-'+it.id);
@@ -2524,6 +2536,7 @@ function motorGuardar(draft){
   var vObraNueva=m2*cu*cat;       // base Dir.Proyecto/Obra/Administración/Constructor-RT
   var vObraInf=m2sind*cu*cat;     // base Informe Técnico (empadronamiento)
   var vObraCalc=m2total*cu*cat;   // solo informativo (Calculista cotiza USD/m², no % s/valor de obra)
+  var vObraDemol=(m2dec+m2sind)*cu*cat; // superficie EXISTENTE (declarada + sin declarar) — base para la tarea de Demolición de Dir. Proyecto
   var vObra=vObraNueva;           // alias para compatibilidad
   var totalDesc=0,totalNoDesc=0,dibujanteTotalNeto=0;
   var detalle=[];
@@ -2560,9 +2573,9 @@ function motorGuardar(draft){
           iusd=Math.round(rawUsd);
           items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'render',qty:qty,unitPrice:prc});
         }else{
-          rawUsd=vObraRole*it.pct;
+          rawUsd=(it.baseSup==='existente'?vObraDemol:vObraRole)*it.pct;
           iusd=Math.round(rawUsd);
-          items.push({nm:it.nm,inc:it.inc,pct:it.pct,usd:iusd,tipo:'normal'});
+          items.push({nm:it.nm,inc:it.inc,pct:it.pct,usd:iusd,tipo:'normal',baseSup:it.baseSup});
         }
         rawTotal+=rawUsd;
       }
@@ -2575,17 +2588,31 @@ function motorGuardar(draft){
     // criterio (última subtarea seleccionada absorbe el residuo) es matemáticamente válido para
     // cualquier suma de inc seleccionada — no solo 100% — por eso también sirve para Conforme a
     // Obra – Clientes cuando se suma Gestoría (100% base + 20% adicional = incSum hasta 120%).
-    var normalIdxs=[],incSum=0;
-    items.forEach(function(it,idx){if(it.tipo==='normal'){normalIdxs.push(idx);incSum+=(it.inc||0);}});
-    if(normalIdxs.length){
-      // El target del residuo tiene que ser el total de SOLO las subtareas seleccionadas
-      // (incSum% de incidencia), no el 100% del rol — si no, cuando el usuario tilda apenas
-      // alguna(s) subtarea(s), la última absorbe el valor de las que no seleccionó (sobrefacturación).
-      var targetRol=(esCalc||esConfObra)?Math.round(rolTotalCustom*(incSum/100)):Math.round(role.catdf*vObraRole*(incSum/100));
+    // Items 'normal' se agrupan por BASE antes de corregir el residuo — normalmente todos los ítems
+    // 'normal' de un rol comparten una misma base (vObraRole, o rolTotalCustom para Calculista/Conforme
+    // a Obra), pero desde que Dir. Proyecto puede tener la tarea de Demolición (base = superficie
+    // EXISTENTE, distinta a la superficie NUEVA del resto del rol), hace falta cerrar el residuo POR
+    // SEPARADO en cada grupo de base — si no, mezclar el % de incidencia de Demolición (base existente)
+    // con el de Proyecto (base nueva) contra una sola base rompería el monto de la última subtarea
+    // seleccionada de cada grupo (a pedido de Diego, ago-2026).
+    var buckets={};
+    items.forEach(function(it,idx){
+      if(it.tipo!=='normal')return;
+      var key=(esCalc||esConfObra)?'custom':(it.baseSup==='existente'?'existente':'default');
+      if(!buckets[key])buckets[key]={idxs:[],incSum:0};
+      buckets[key].idxs.push(idx);buckets[key].incSum+=(it.inc||0);
+    });
+    Object.keys(buckets).forEach(function(key){
+      var b=buckets[key];
+      // El target del residuo tiene que ser el total de SOLO las subtareas seleccionadas de ESTE grupo
+      // (incSum% de incidencia sobre SU base), no el 100% del rol — si no, cuando el usuario tilda
+      // apenas alguna(s) subtarea(s), la última absorbe el valor de las que no seleccionó (sobrefacturación).
+      var baseVal=(key==='custom')?rolTotalCustom:role.catdf*(key==='existente'?vObraDemol:vObraRole);
+      var targetRol=Math.round(baseVal*(b.incSum/100));
       var sumOtros=0;
-      for(var k=0;k<normalIdxs.length-1;k++)sumOtros+=items[normalIdxs[k]].usd;
-      items[normalIdxs[normalIdxs.length-1]].usd=targetRol-sumOtros;
-    }
+      for(var k=0;k<b.idxs.length-1;k++)sumOtros+=items[b.idxs[k]].usd;
+      items[b.idxs[b.idxs.length-1]].usd=targetRol-sumOtros;
+    });
     var rs=items.reduce(function(a,b){return a+b.usd;},0);
     // Corrección adicional para ítems tipo 'render' (ej. Dibujante: precios por m²/unidad con
     // centavos — o extras de otros roles como renders/DD.JJ.): la suma de montos YA redondeados
