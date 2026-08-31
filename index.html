@@ -1544,6 +1544,7 @@ var ROLES=[
        {id:'guia_aviso',nm:'Guía de Aviso de Obra',tipo:'render',inc:0,qty:1,unitPrice:3.0,dsc:'Gestión Guía de Aviso ante Municipio'},
        {id:'ddj_mojones_proy',nm:'Declaración Jurada de Mojones',tipo:'render',inc:0,qty:1,unitPrice:272,dsc:'DD.JJ. Deslinde y Amojonamiento'},
        {id:'atb_bomberos',nm:'Informe Preliminar de Bomberos (ATB)',tipo:'render',inc:0,qty:1,unitPrice:35,dsc:'Trámite ante el Cuerpo de Bomberos: envío por mail del plano y el formulario para el informe preliminar (Actuación Técnica de Bomberos) — gestión administrativa simple, sin visita a obra. Honorario estimado — editable a criterio del profesional.'},
+       {id:'cert_desrat',nm:'Certificado de Desratización / Libre de Plagas',tipo:'render',inc:0,qty:1,unitPrice:45,dsc:'Trámite y coordinación para la obtención del Certificado de Desratización / Libre de Plagas (contratación de empresa habilitada, seguimiento y entrega del certificado) — gestión administrativa. Honorario estimado — editable a criterio del profesional. No incluye el costo del servicio de fumigación en sí, que abona el comitente directamente a la empresa contratada.'},
      ]},
      {nm:'Documentación Ejecutiva',items:[
        {id:'rep_est',nm:'Plano de Replanteo Estructura',tipo:'normal',inc:7,dsc:'Replanteo estructural escala 1:50 / 1:100'},
@@ -1710,7 +1711,8 @@ var ROLES=[
        {id:'dib_arq_cortes',nm:'Cortes',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.44,unitPrice:0.44,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
        {id:'dib_arq_fachadas',nm:'Fachadas/vistas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.44,unitPrice:0.44,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
        {id:'dib_arq_planilla_loc',nm:'Planilla de locales (iluminación y ventilación)',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.32,unitPrice:0.32,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_balance_sup',nm:'Balance de superficies',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.24,unitPrice:0.24,origenTipo:'arq',dsc:'Por m² de superficie del encargo'}
+       {id:'dib_arq_balance_sup',nm:'Balance de superficies',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.24,unitPrice:0.24,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_demol',nm:'Plano de Demolición',tipo:'render',inc:0,esM2Existente:true,qty:1,baseUnitPrice:0.55,unitPrice:0.55,origenTipo:'arq',dsc:'Dibujo del plano de demolición — vinculado a la superficie EXISTENTE a demoler (declarada + sin declarar), no a la superficie nueva ni al total del encargo. Por m².'}
     ]}]},
     {id:'ta_dib_replanteo',nm:'B) Replanteo',grupos:[{nm:null,items:[
        {id:'dib_repl_arq',nm:'Replanteo Arquitectura 1:50',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.36,unitPrice:0.36,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
@@ -2011,7 +2013,7 @@ function dibujanteRecomputarPrecios(){
   role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
     if(it.tipo==='render'&&typeof it.baseUnitPrice==='number'){
       var co=it.origenTipo==='arq'?c.coefOArq:it.origenTipo==='estr'?c.coefOEstr:1;
-      var ce=it.esM2?c.coefEscala:1;
+      var ce=(it.esM2||it.esM2Existente)?c.coefEscala:1;
       it.unitPrice=Math.round(it.baseUnitPrice*c.coefC*c.coefU*c.coefN*co*ce*100)/100;
       var pEl=document.getElementById('rprc-'+it.id);if(pEl)pEl.value=it.unitPrice;
     }
@@ -2043,7 +2045,7 @@ function makeRenderRow(it,on,roleId,tareaId){
   // ("cuadritos" que reportó Diego). Además ese input nunca se respeta: recalc() lo pisa siempre con
   // la superficie real, así que mostrarlo como editable era engañoso. Ahora, para estos ítems, se
   // muestra un texto fijo bien formateado en vez de un input — más legible y más honesto.
-  var qtyForzada=!!it.esM2||it.id==='guia_aviso';
+  var qtyForzada=!!it.esM2||!!it.esM2Existente||it.id==='guia_aviso';
   var html='<div class="str-render">';
   html+='<input type="checkbox" class="st-chk" id="it-'+it.id+'"'+(on?' checked':'')+' onchange="onItem(\''+roleId+'\',\''+tareaId+'\',\''+it.id+'\',this.checked)">';
   html+='<div>';
@@ -2269,6 +2271,10 @@ function recalc(){
           if(it.id==='guia_aviso'){qty=m2;var qEl2=document.getElementById('rqty-'+it.id);if(qEl2)qEl2.value=m2;var qFix2=document.getElementById('rqty-'+it.id+'-fixed');if(qFix2)qFix2.textContent=m2.toLocaleString('es-AR',{maximumFractionDigits:2})+' m²';}
           // Ítems Dibujante marcados esM2: la cantidad es siempre la superficie total del encargo
           if(it.esM2){qty=m2total;var qEl3=document.getElementById('rqty-'+it.id);if(qEl3)qEl3.value=m2total;var qFix3=document.getElementById('rqty-'+it.id+'-fixed');if(qFix3)qFix3.textContent=m2total.toLocaleString('es-AR',{maximumFractionDigits:2})+' m²';}
+          // Ítems vinculados a la superficie EXISTENTE (ej. Plano de Demolición del Dibujante): la
+          // cantidad es siempre la superficie existente a demoler (declarada + sin declarar), NO el
+          // total del encargo — a pedido de Diego (ago-2026).
+          if(it.esM2Existente){var qtyExist=m2dec+m2sind;qty=qtyExist;var qEl4=document.getElementById('rqty-'+it.id);if(qEl4)qEl4.value=qtyExist;var qFix4=document.getElementById('rqty-'+it.id+'-fixed');if(qFix4)qFix4.textContent=qtyExist.toLocaleString('es-AR',{maximumFractionDigits:2})+' m²';}
           usd=qty*prc;
           // Actualizar objeto
           it.qty=qty;it.unitPrice=prc;
@@ -2570,6 +2576,7 @@ function motorGuardar(draft){
           var prc=pEl?Math.max(0,parseFloat(pEl.value)||it.unitPrice||0):(it.unitPrice||0);
           if(it.id==='guia_aviso'){qty=m2;}
           if(it.esM2){qty=m2total;}
+          if(it.esM2Existente){qty=m2dec+m2sind;}
           rawUsd=qty*prc;
           iusd=Math.round(rawUsd);
           items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'render',qty:qty,unitPrice:prc});
