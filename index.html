@@ -1748,6 +1748,14 @@ var ROLES=[
     ]}]},
     {id:'ta_dib_reun',nm:'K) Reuniones Técnicas de Coordinación',grupos:[{nm:null,items:[
        {id:'dib_reun_hora',nm:'Reunión técnica de coordinación',tipo:'render',inc:0,qty:1,baseUnitPrice:30,unitPrice:30,dsc:'Por hora de reunión, presencial o remota'}
+    ]}]},
+    // Trámites de gestión administrativa que el Dibujante puede realizar directamente cuando lo
+    // contrata otro/a profesional o empresa (en vez del Director de Proyecto) — a pedido de Diego
+    // (ago-2026). Mismo alcance y monto de referencia que los ítems equivalentes del rol Dirección
+    // de Proyecto, para que el honorario no cambie según quién los gestione.
+    {id:'ta_dib_gestion',nm:'L) Trámites y Gestión Administrativa',grupos:[{nm:null,items:[
+       {id:'dib_atb_bomberos',nm:'Trámite Informe Preliminar de Bomberos (ATB)',tipo:'render',inc:0,qty:1,baseUnitPrice:35,unitPrice:35,dsc:'Gestión administrativa: envío por mail del plano y el formulario ante el Cuerpo de Bomberos para el informe preliminar (ATB). Mismo trámite que en Dirección de Proyecto — usar este ítem solo si lo realiza el Dibujante en lugar del Director de Proyecto.'},
+       {id:'dib_cert_desrat',nm:'Trámite Certificado de Desratización / Libre de Plagas',tipo:'render',inc:0,qty:1,baseUnitPrice:45,unitPrice:45,dsc:'Gestión administrativa: contratación de empresa habilitada, seguimiento y entrega del Certificado de Desratización / Libre de Plagas. No incluye el costo del servicio de fumigación en sí. Mismo trámite que en Dirección de Proyecto — usar este ítem solo si lo realiza el Dibujante en lugar del Director de Proyecto.'}
     ]}]}
    ]}
 ];
