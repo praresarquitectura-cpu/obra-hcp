@@ -1530,8 +1530,21 @@ async function fetchDolar(){
 
 /* ── ROLES ────────────────────────────────────────────────────────────── */
 var ROLES=[
-  {id:'dir_proy',nm:'Dirección de Proyecto',clr:'#60a5fa',catdf:0.045,descuentable:true,
-   dsc:'Conducción técnico-creativa del proyecto. CATDF: 4.5% del valor de obra. Aplica descuento.',
+  // Recalibrado 01-sep-2026 a pedido de Diego: "los honorarios me dan muy altos, compará con los
+  // colegios (técnicos y arquitectos) y adaptá". Se leyó la planilla oficial CATDF vigente (enero 2026,
+  // catdf.org.ar/docs/honorariosEnero2026.pdf, tabla "HONORARIOS PROFESIONALES SUGERIDOS TDF"): la fila
+  // 1 "PROYECTO (A-B-C1-C2-D)" es 3,00%-5,00% del valor de obra, pero esa cifra YA INCLUYE el ítem D
+  // (Estructura, memoria y cálculo). Como esta app cobra la estructura aparte con el rol "Calculista",
+  // corresponde usar la fila 2 "Proyecto SIN estructura (A-B-C1-C2)" = suma de A-B (Anteproyecto y
+  // estudios previos, 0,40%-0,67%) + C1 (Legajo municipal, 0,60%-1,00%) + C2 (Proyecto ejecutivo,
+  // 0,90%-1,50%) = 1,90%-3,17%. Se tomó el techo del rango (3,17%≈3,2%) porque la documentación de este
+  // rol es completa (replanteos + instalaciones ejecutivas + detalles + cómputo), no un anteproyecto
+  // simple. Antes: 4.5% (duplicaba parcialmente el honorario de estructura que ya cobra "Calculista").
+  // Referencia cruzada, Colegio de Profesionales Técnicos de TDF (CPT-TDF, honorarios MMO junio 2026):
+  // Proyecto de Arquitectura+Sanitario+Eléctrico+Gas (sin estructura) ≈ 2,16% del valor de obra — corre
+  // más bajo que CATDF, consistente con la baja aplicada acá.
+  {id:'dir_proy',nm:'Dirección de Proyecto',clr:'#60a5fa',catdf:0.032,descuentable:true,
+   dsc:'Conducción técnico-creativa del proyecto (documentación de Arquitectura, replanteos e instalaciones ejecutivas — sin incluir cálculo estructural, que se cobra aparte con el rol Calculista). CATDF: 3.2% del valor de obra (techo de "Proyecto sin estructura", planilla enero 2026). Aplica descuento.',
    tareas:[{id:'ta_proy',nm:'Proyecto',grupos:[
      {nm:null,items:[
        {id:'croquis',nm:'Croquis Preliminar',tipo:'normal',inc:8,dsc:'Idea general + memoria descriptiva + estimación presupuesto'},
@@ -1561,32 +1574,49 @@ var ROLES=[
      {id:'dir_demol',nm:'Dirección de Demolición',tipo:'normal',inc:100,baseSup:'existente',dsc:'Honorario de Dirección de Proyecto por la demolición de la construcción existente. A diferencia del resto de las tareas de este rol (que se calculan sobre la superficie NUEVA a construir), esta tarea toma como base la SUPERFICIE EXISTENTE a demoler (declarada + sin declarar) × costo m² × categoría. Se suma de forma independiente a las demás tareas seleccionadas y se refleja también en la forma de pago.'},
    ]}]}
   ]},
+  // Revisado 01-sep-2026 (comparativa CATDF vs. CPT-TDF a pedido de Diego): el ítem "D" (Estructura,
+  // memoria y cálculo) de la planilla CATDF enero 2026 es 0,90%-1,50% del valor de obra → a USD 1.200/m²
+  // equivale a USD ~10,8-18/m². El módulo de Estructura de CPT-TDF (honorarios MMO junio 2026) da un
+  // valor bastante más bajo, del orden de USD ~5,4/m² (proyecto) + USD ~9/m² (dirección). El default de
+  // esta app (USD 9/m²) queda entre ambas referencias — no se modificó, ya estaba bien calibrado.
   {id:'calc',nm:'Calculista',clr:'#f59e0b',descuentable:true,
    usaSupTotal:true,usaUSDm2:true,
-   dsc:'Cálculo y verificación estructural. Honorarios sobre superficie total (nueva + existente declarada + sin declarar), a un precio en USD/m² fijado por el profesional (orientativo: USD 8-12/m² — vivienda unifamiliar en la parte alta, obra multifamiliar de 250 m² en adelante en la parte baja). Aplica descuento.',
+   dsc:'Cálculo y verificación estructural. Honorarios sobre superficie total (nueva + existente declarada + sin declarar), a un precio en USD/m² fijado por el profesional (orientativo: USD 8-12/m², entre las referencias de CPT-TDF y CATDF — vivienda unifamiliar en la parte alta, obra multifamiliar de 250 m² en adelante en la parte baja). Aplica descuento.',
    tareas:[{id:'ta_calc',nm:'Cálculo Estructural',grupos:[{nm:null,items:[
      {id:'calc_mem',nm:'Memoria de Cálculo Estructural (CIRSOC)',tipo:'normal',inc:40,dsc:'Memoria conforme CIRSOC — nueva construcción y/o verificación de estructura existente'},
      {id:'calc_plan',nm:'Plano de Estructura Municipal',tipo:'normal',inc:35,dsc:'Plano estructural + planillas de armadura para aprobación municipal — firma del Calculista'},
      {id:'calc_verif',nm:'Informe de Verificación Estructural',tipo:'normal',inc:25,dsc:'Informe técnico de verificación para obras existentes declaradas y sin declarar'},
    ]}]}]},
-  {id:'dir_obra',nm:'Dirección de Obra',clr:'#4ade80',catdf:0.07,descuentable:false,
-   // Actualizado 24-ago-2026 a pedido de Diego, según la escala de Honorarios Sugeridos CATDF vigente
-   // (enero 2026, catdf.org.ar/docs/honorariosEnero2026.pdf): "Corresponde un 7% para las Dir. Téc.
-   // de obras de estructura" — antes la app usaba 5%. Sigue siendo 100% editable desde el Motor
-   // (input % CATDF de este rol) o desde Configuración si Diego quiere cobrar menos en un caso puntual.
-   dsc:'Control técnico durante la ejecución. CATDF vigente: 7% (obras con estructura). Sin descuento.',
+  // CORREGIDO 01-sep-2026 a pedido de Diego ("los honorarios me dan muy altos, comparalos con los
+  // colegios"): el 7% cargado el 24-ago-2026 fue una lectura equivocada de la planilla CATDF. La nota
+  // "corresponde un 7% para las Dir. Téc. de obras de estructura y un 33% para las Dir. Téc. de obras
+  // sin estructura" NO es el % sobre el valor de obra — es cómo se reparte el 40% que le corresponde a
+  // "Dirección" dentro del 100% del honorario total Proyecto(60%)+Dirección(40%): 7%+33%=40%. La columna
+  // real "% honorario/costo de obra" de la fila 3 "DIRECCIÓN DE OBRA (obra nueva)" de esa misma planilla
+  // es 2,00%-5,00%. Se bajó de 7% (que superaba el techo publicado por CATDF) a 5% (techo real del
+  // rango, justificado por la presencia full-time en obra que hace Diego). Referencia cruzada, CPT-TDF
+  // (colegio de técnicos, honorarios MMO junio 2026): Dirección de Arquitectura+Estructura ≈ 1,5% del
+  // valor de obra — bastante más bajo; se optó por quedar en el techo de CATDF (5%) y no en el piso de
+  // CPT-TDF por ser el estudio quien decide el nivel de servicio. Sigue siendo 100% editable.
+  {id:'dir_obra',nm:'Dirección de Obra',clr:'#4ade80',catdf:0.05,descuentable:false,
+   dsc:'Control técnico durante la ejecución. CATDF vigente: 2%-5% del valor de obra — se usa el techo (5%) por presencia full-time en obra. Sin descuento.',
    tareas:[{id:'ta_do',nm:'Dirección de Obra',grupos:[{nm:null,items:[
      {id:'dir_tec',nm:'Dirección Técnica de Obra',tipo:'normal',inc:70,dsc:'Control técnico y representación ante organismos'},
      {id:'dir_vis',nm:'Visitas de Inspección Adicionales',tipo:'normal',inc:20,dsc:'Visitas extraordinarias por avance o consultas'},
      {id:'dir_cer',nm:'Certificados de Avance de Obra',tipo:'normal',inc:10,dsc:'Certificados para pagos parciales al constructor'},
    ]}]}]},
+  // Verificado 01-sep-2026 contra planilla CATDF enero 2026, fila 4 "Administración de obra" = 2%-5% del
+  // valor de obra: 3% cae dentro del rango, no requirió cambio.
   {id:'admin_obra',nm:'Administración de Obra',clr:'#f472b6',catdf:0.03,descuentable:false,
-   dsc:'Administración y gestión de la obra. CATDF: 3%. Sin descuento.',
+   dsc:'Administración y gestión de la obra. CATDF: 3% (dentro del rango sugerido 2%-5%). Sin descuento.',
    tareas:[{id:'ta_admin',nm:'Administración de Obra',grupos:[{nm:null,items:[
      {id:'adm_obra',nm:'Administración de Obra',tipo:'normal',inc:100,dsc:'Gestión administrativa: compras, pagos, coordinación de proveedores y subcontratistas'},
    ]}]}]},
+  // Verificado 01-sep-2026 contra planilla CATDF enero 2026, fila 5 "Representación técnica (de empresas
+  // constructoras, industrias, etc.)" = 2%-8% del valor de obra: 4.5% cae dentro del rango, no requirió
+  // cambio (además este rol suma construcción + representación, por eso se ubica en la parte media-alta).
   {id:'const_rt',nm:'Constructor y/o Representante Técnico',clr:'#c084fc',catdf:0.045,descuentable:false,
-   dsc:'Responsabilidad técnica en la ejecución y representación ante organismos. CATDF: 4.5%. Sin descuento.',
+   dsc:'Responsabilidad técnica en la ejecución y representación ante organismos. CATDF: 4.5% (dentro del rango sugerido 2%-8% para representación técnica). Sin descuento.',
    tareas:[{id:'ta_const_rt',nm:'Construcción y Representación Técnica',grupos:[
      {nm:'Construcción',items:[
        {id:'cdir',nm:'Dirección de Construcción',tipo:'normal',inc:41,dsc:'Responsabilidad técnica directa'},
@@ -1599,8 +1629,18 @@ var ROLES=[
        {id:'rprov',nm:'Presentaciones Provinciales',tipo:'normal',inc:6,dsc:'DPOSS, EDELAP, CAMUZZI, Sec. Ambiental'},
      ]},
    ]}]},
-  {id:'inf',nm:'Informante Técnico',clr:'#fb923c',catdf:0.06,descuentable:false,
-   dsc:'Relevamiento, informes y DD.JJ. CATDF: 4%-8%. Sin descuento.',
+  // CORREGIDO 01-sep-2026 a pedido de Diego ("los honorarios me dan muy altos, comparalos con los
+  // colegios"): el "CATDF 4%-8%" que traía este rol no corresponde a ninguna fila de la planilla real
+  // (catdf.org.ar/docs/honorariosEnero2026.pdf). La fila que sí aplica a este rol es la nº7 "Relevamiento
+  // técnico/Empadronamiento" = 1,00%-1,50% del valor de obra. Se subió levemente a 2% (no se dejó en
+  // 1,5%) porque este rol además de relevar (irelev+iplan_emp = 50% del total) incluye redacción de
+  // informe técnico, DD.JJ. y registro fotográfico (iredac+iddj+ifoto = 50% restante), que en la
+  // planilla CATDF están tarifados aparte como ítems de tipo "jornada" (nº19-22, % sobre un costo de obra
+  // de referencia FIJO, no escalado por m² del proyecto) — no hay forma exacta de traducirlos a %
+  // proporcional sin distorsionar en obras grandes o chicas, así que se usó un criterio conservador.
+  // Antes: 6% (4x lo que sugiere la planilla solo para la parte de relevamiento).
+  {id:'inf',nm:'Informante Técnico',clr:'#fb923c',catdf:0.02,descuentable:false,
+   dsc:'Relevamiento, redacción de informe técnico y DD.JJ. CATDF: 1%-1.5% (relevamiento/empadronamiento) + margen por informe y DD.JJ. → 2% del valor de obra. Sin descuento.',
    tareas:[{id:'ta_inf',nm:'Informe Técnico',grupos:[{nm:null,items:[
      {id:'irelev',nm:'Relevamiento Arquitectónico y Estructural',tipo:'normal',inc:22,dsc:'Medición y relevamiento de la construcción existente'},
      {id:'iplan_emp',nm:'Plano de Empadronamiento Municipal',tipo:'normal',inc:28,dsc:'Plano arquitectónico para presentación ante Municipio — empadronamiento y empadronamiento de refacciones'},
