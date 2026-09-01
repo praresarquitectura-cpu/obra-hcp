@@ -1704,19 +1704,45 @@ var ROLES=[
    tipoCalculo:'render_dibujante',
    dsc:'Colaboración de dibujo técnico subcontratada por otro/a arquitecto/a, ingeniero/a, constructor/a o empresa. NO incluye firma profesional, responsabilidad profesional principal, dirección de obra, representación técnica, presentación ante organismos ni gestoría — estos servicios solo se suman si se contratan expresamente y por separado (ver roles correspondientes). Honorarios por ítem (m² / unidad / lámina / hora), según coeficientes de complejidad, urgencia y nivel de intervención. Sin descuento.',
    tareas:[
+    // Base de superficie por ítem — corregido a pedido de Diego (ago-2026), quien marcó que un
+    // Relevamiento no puede mezclar sup. nueva y existente, y pidió un criterio prolijo para el
+    // resto de los planos ahora que existe un ítem propio de Demolición:
+    //  · Relevamiento → superficie EXISTENTE (se releva lo que YA está construido, no lo nuevo).
+    //  · Implantación / Plantas / Cortes / Fachadas / Planilla de locales → superficie NUEVA (son
+    //    los planos del edificio que se está proyectando; lo existente a demoler ya tiene su propio
+    //    ítem "Plano de Demolición").
+    //  · Balance de superficies → superficie TOTAL (nueva + existente): a propósito, porque esa
+    //    planilla necesita sumar ambas para el cálculo de FOT/FOS ante el Municipio.
+    //  · Replanteo (arquitectura y estructura) → superficie NUEVA: se replantea en obra lo que se
+    //    va a construir, no lo que ya existe.
     {id:'ta_dib_arq',nm:'A) Planos de Arquitectura y Estructura Municipal',grupos:[{nm:null,items:[
-       {id:'dib_arq_relev',nm:'Relevamiento',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.40,unitPrice:0.40,origenTipo:'arq',dsc:'Relevamiento de campo previo al dibujo, por m² de superficie del encargo'},
-       {id:'dib_arq_impl',nm:'Implantación',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.56,unitPrice:0.56,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_plantas',nm:'Plantas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.88,unitPrice:0.88,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_cortes',nm:'Cortes',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.44,unitPrice:0.44,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_fachadas',nm:'Fachadas/vistas',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.44,unitPrice:0.44,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_planilla_loc',nm:'Planilla de locales (iluminación y ventilación)',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.32,unitPrice:0.32,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_arq_balance_sup',nm:'Balance de superficies',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.24,unitPrice:0.24,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
+       {id:'dib_arq_relev',nm:'Relevamiento',tipo:'render',inc:0,esM2Existente:true,qty:1,baseUnitPrice:0.40,unitPrice:0.40,origenTipo:'arq',dsc:'Relevamiento de campo de lo YA existente en el terreno, previo al dibujo — por m² de superficie EXISTENTE (declarada + sin declarar)'},
+       {id:'dib_arq_impl',nm:'Implantación',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.56,unitPrice:0.56,origenTipo:'arq',dsc:'Por m² de superficie NUEVA a construir'},
+       {id:'dib_arq_plantas',nm:'Plantas',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.88,unitPrice:0.88,origenTipo:'arq',dsc:'Por m² de superficie NUEVA a construir'},
+       {id:'dib_arq_cortes',nm:'Cortes',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.44,unitPrice:0.44,origenTipo:'arq',dsc:'Por m² de superficie NUEVA a construir'},
+       {id:'dib_arq_fachadas',nm:'Fachadas/vistas',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.44,unitPrice:0.44,origenTipo:'arq',dsc:'Por m² de superficie NUEVA a construir'},
+       {id:'dib_arq_planilla_loc',nm:'Planilla de locales (iluminación y ventilación)',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.32,unitPrice:0.32,origenTipo:'arq',dsc:'Por m² de superficie NUEVA a construir'},
+       {id:'dib_arq_balance_sup',nm:'Balance de superficies',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.24,unitPrice:0.24,origenTipo:'arq',dsc:'Por m² de superficie TOTAL (nueva + existente) — a propósito: la planilla de balance necesita sumar ambas para el cálculo de FOT/FOS'},
        {id:'dib_arq_demol',nm:'Plano de Demolición',tipo:'render',inc:0,esM2Existente:true,qty:1,baseUnitPrice:0.55,unitPrice:0.55,origenTipo:'arq',dsc:'Dibujo del plano de demolición — vinculado a la superficie EXISTENTE a demoler (declarada + sin declarar), no a la superficie nueva ni al total del encargo. Por m².'}
     ]}]},
+    // Adaptación de un proyecto YA COMPLETO (ya diseñado, sin necesidad de proyectar de cero) a un
+    // terreno nuevo — a pedido de Diego (ago-2026): "adaptar la documentación" de un proyecto
+    // existente NO es lo mismo que Dirección de Proyecto completa (0 responsabilidad de autoría/firma,
+    // solo redibujo/ajuste de toda la documentación a la nueva parcela: implantación, plantas, cortes,
+    // fachadas, planilla de locales, replanteo, verificación de código urbano del nuevo lote, etc.).
+    // Se calibró como el 15% de lo que cobraría Dirección de Proyecto por esa misma superficie (su
+    // CATDF vigente × costo m² × categoría) — un valor intermedio: bastante más que la suma de los
+    // ítems sueltos de dibujo de arriba (porque acá se factura como servicio integral, no por plano
+    // suelto), pero muy por debajo del 100% de Dirección de Proyecto (porque no hay autoría nueva,
+    // ni firma, ni responsabilidad profesional principal — ver aclaración del rol Dibujante). Con los
+    // valores por defecto de la app (USD 1.200/m², categoría ×1) equivale a USD 8,10/m² de superficie
+    // nueva. 100% editable: el % es un punto de partida razonable, no una tarifa fija.
+    {id:'ta_dib_adapt',nm:'M) Adaptación de Proyecto Existente a Nuevo Terreno',grupos:[{nm:null,items:[
+       {id:'dib_adapt_proy',nm:'Adaptación de proyecto ya completo a nuevo terreno',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:8.10,unitPrice:8.10,dsc:'Servicio integral de adaptar un proyecto YA DISEÑADO Y COMPLETO a un terreno distinto: implantación, ajustes de plantas/cortes/fachadas al nuevo lote, planilla de locales, replanteo y verificación de código urbano — sin proyectar de cero. Calibrado como ≈15% de lo que cobraría Dirección de Proyecto por una obra nueva de esa superficie (sin autoría ni firma profesional). Por m² de superficie NUEVA — 100% editable.'}
+    ]}]},
     {id:'ta_dib_replanteo',nm:'B) Replanteo',grupos:[{nm:null,items:[
-       {id:'dib_repl_arq',nm:'Replanteo Arquitectura 1:50',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.36,unitPrice:0.36,origenTipo:'arq',dsc:'Por m² de superficie del encargo'},
-       {id:'dib_repl_estr',nm:'Replanteo Estructural',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.36,unitPrice:0.36,origenTipo:'estr',dsc:'Por m² de superficie del encargo'}
+       {id:'dib_repl_arq',nm:'Replanteo Arquitectura 1:50',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.36,unitPrice:0.36,origenTipo:'arq',dsc:'Por m² de superficie NUEVA a construir'},
+       {id:'dib_repl_estr',nm:'Replanteo Estructural',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.36,unitPrice:0.36,origenTipo:'estr',dsc:'Por m² de superficie NUEVA a construir'}
     ]}]},
     {id:'ta_dib_det',nm:'C) Detalles Constructivos',grupos:[{nm:null,items:[
        {id:'dib_det_generico',nm:'Detalle constructivo genérico',tipo:'render',inc:0,qty:1,baseUnitPrice:45,unitPrice:45,dsc:'Por detalle — escalera, encuentros, cubierta, etc.'},
@@ -2021,7 +2047,7 @@ function dibujanteRecomputarPrecios(){
   role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
     if(it.tipo==='render'&&typeof it.baseUnitPrice==='number'){
       var co=it.origenTipo==='arq'?c.coefOArq:it.origenTipo==='estr'?c.coefOEstr:1;
-      var ce=(it.esM2||it.esM2Existente)?c.coefEscala:1;
+      var ce=(it.esM2||it.esM2Existente||it.esM2Nueva)?c.coefEscala:1;
       it.unitPrice=Math.round(it.baseUnitPrice*c.coefC*c.coefU*c.coefN*co*ce*100)/100;
       var pEl=document.getElementById('rprc-'+it.id);if(pEl)pEl.value=it.unitPrice;
     }
@@ -2053,7 +2079,7 @@ function makeRenderRow(it,on,roleId,tareaId){
   // ("cuadritos" que reportó Diego). Además ese input nunca se respeta: recalc() lo pisa siempre con
   // la superficie real, así que mostrarlo como editable era engañoso. Ahora, para estos ítems, se
   // muestra un texto fijo bien formateado en vez de un input — más legible y más honesto.
-  var qtyForzada=!!it.esM2||!!it.esM2Existente||it.id==='guia_aviso';
+  var qtyForzada=!!it.esM2||!!it.esM2Existente||!!it.esM2Nueva||it.id==='guia_aviso';
   var html='<div class="str-render">';
   html+='<input type="checkbox" class="st-chk" id="it-'+it.id+'"'+(on?' checked':'')+' onchange="onItem(\''+roleId+'\',\''+tareaId+'\',\''+it.id+'\',this.checked)">';
   html+='<div>';
@@ -2283,6 +2309,10 @@ function recalc(){
           // cantidad es siempre la superficie existente a demoler (declarada + sin declarar), NO el
           // total del encargo — a pedido de Diego (ago-2026).
           if(it.esM2Existente){var qtyExist=m2dec+m2sind;qty=qtyExist;var qEl4=document.getElementById('rqty-'+it.id);if(qEl4)qEl4.value=qtyExist;var qFix4=document.getElementById('rqty-'+it.id+'-fixed');if(qFix4)qFix4.textContent=qtyExist.toLocaleString('es-AR',{maximumFractionDigits:2})+' m²';}
+          // Ítems vinculados a la superficie NUEVA a construir (ej. Plantas, Cortes, Fachadas,
+          // Implantación, Replanteo, Adaptación de proyecto): la cantidad es siempre la superficie
+          // nueva, NO el total del encargo ni la existente — a pedido de Diego (ago-2026).
+          if(it.esM2Nueva){qty=m2;var qEl5=document.getElementById('rqty-'+it.id);if(qEl5)qEl5.value=m2;var qFix5=document.getElementById('rqty-'+it.id+'-fixed');if(qFix5)qFix5.textContent=m2.toLocaleString('es-AR',{maximumFractionDigits:2})+' m²';}
           usd=qty*prc;
           // Actualizar objeto
           it.qty=qty;it.unitPrice=prc;
@@ -2585,6 +2615,7 @@ function motorGuardar(draft){
           if(it.id==='guia_aviso'){qty=m2;}
           if(it.esM2){qty=m2total;}
           if(it.esM2Existente){qty=m2dec+m2sind;}
+          if(it.esM2Nueva){qty=m2;}
           rawUsd=qty*prc;
           iusd=Math.round(rawUsd);
           items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'render',qty:qty,unitPrice:prc});
