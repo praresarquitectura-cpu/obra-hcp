@@ -1716,14 +1716,14 @@ var ROLES=[
     //  · Replanteo (arquitectura y estructura) → superficie NUEVA: se replantea en obra lo que se
     //    va a construir, no lo que ya existe.
     {id:'ta_dib_arq',nm:'A) Planos de Arquitectura y Estructura Municipal',grupos:[{nm:null,items:[
-       {id:'dib_arq_relev',nm:'Relevamiento',tipo:'render',inc:0,esM2Existente:true,qty:1,baseUnitPrice:0.40,unitPrice:0.40,origenTipo:'arq',dsc:'Relevamiento de campo de lo YA existente en el terreno, previo al dibujo — por m² de superficie EXISTENTE (declarada + sin declarar)'},
+       {id:'dib_arq_relev',nm:'Relevamiento',tipo:'render',inc:0,esM2Existente:true,qty:1,baseUnitPrice:1.10,unitPrice:1.10,origenTipo:'arq',dsc:'Relevamiento de campo de lo YA existente en el terreno: visita, medición manual, croquis y fotografiado previo al dibujo — por m² de superficie EXISTENTE (declarada + sin declarar). Tarifa más alta que el dibujo de gabinete (Plantas/Cortes) porque implica trabajo de campo, traslado y levantamiento a mano de una construcción que no tiene planos previos.'},
        {id:'dib_arq_impl',nm:'Implantación',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.56,unitPrice:0.56,origenTipo:'arq',dsc:'Por m² de superficie NUEVA a construir'},
        {id:'dib_arq_plantas',nm:'Plantas',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.88,unitPrice:0.88,origenTipo:'arq',dsc:'Por m² de superficie NUEVA a construir'},
        {id:'dib_arq_cortes',nm:'Cortes',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.44,unitPrice:0.44,origenTipo:'arq',dsc:'Por m² de superficie NUEVA a construir'},
        {id:'dib_arq_fachadas',nm:'Fachadas/vistas',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.44,unitPrice:0.44,origenTipo:'arq',dsc:'Por m² de superficie NUEVA a construir'},
        {id:'dib_arq_planilla_loc',nm:'Planilla de locales (iluminación y ventilación)',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.32,unitPrice:0.32,origenTipo:'arq',dsc:'Por m² de superficie NUEVA a construir'},
        {id:'dib_arq_balance_sup',nm:'Balance de superficies',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.24,unitPrice:0.24,origenTipo:'arq',dsc:'Por m² de superficie TOTAL (nueva + existente) — a propósito: la planilla de balance necesita sumar ambas para el cálculo de FOT/FOS'},
-       {id:'dib_arq_demol',nm:'Plano de Demolición',tipo:'render',inc:0,esM2Existente:true,qty:1,baseUnitPrice:0.55,unitPrice:0.55,origenTipo:'arq',dsc:'Dibujo del plano de demolición — vinculado a la superficie EXISTENTE a demoler (declarada + sin declarar), no a la superficie nueva ni al total del encargo. Por m².'}
+       {id:'dib_arq_demol',nm:'Plano de Demolición',tipo:'render',inc:0,esM2Existente:true,qty:1,baseUnitPrice:0.70,unitPrice:0.70,origenTipo:'arq',dsc:'Dibujo del plano de demolición — vinculado a la superficie EXISTENTE a demoler (declarada + sin declarar), no a la superficie nueva ni al total del encargo. Por m². Tarifa en línea con Cortes/Fachadas, algo mayor porque requiere indicar correctamente qué se retira sin contar todavía con planos de relevamiento previos en formato digital.'}
     ]}]},
     // Adaptación de un proyecto YA COMPLETO (ya diseñado, sin necesidad de proyectar de cero) a un
     // terreno nuevo — a pedido de Diego (ago-2026): "adaptar la documentación" de un proyecto
@@ -1752,8 +1752,8 @@ var ROLES=[
        {id:'dib_carp_unidad',nm:'Carpintería — dibujo por unidad',tipo:'render',inc:0,qty:1,baseUnitPrice:18,unitPrice:18,dsc:'Puertas, ventanas u otras aberturas, por unidad'}
     ]}]},
     {id:'ta_dib_inst',nm:'E) Planos de Instalaciones (colaboración de dibujo)',grupos:[{nm:null,items:[
-       {id:'dib_inst_san',nm:'Colaboración dibujo — Sanitaria',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,dsc:'Por m² — solo dibujo, sin cálculo ni firma'},
-       {id:'dib_inst_elec',nm:'Colaboración dibujo — Eléctrica',tipo:'render',inc:0,esM2:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,dsc:'Por m² — solo dibujo, sin cálculo ni firma'}
+       {id:'dib_inst_san',nm:'Colaboración dibujo — Sanitaria',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,dsc:'Por m² de superficie NUEVA a construir — solo dibujo, sin cálculo ni firma. No incluye la superficie a demoler: lo demolido no se proyecta.'},
+       {id:'dib_inst_elec',nm:'Colaboración dibujo — Eléctrica',tipo:'render',inc:0,esM2Nueva:true,qty:1,baseUnitPrice:0.9,unitPrice:0.9,dsc:'Por m² de superficie NUEVA a construir — solo dibujo, sin cálculo ni firma. No incluye la superficie a demoler: lo demolido no se proyecta.'}
     ]}]},
     {id:'ta_dib_3d',nm:'F) Documentación 3D / Renders básicos',grupos:[{nm:null,items:[
        {id:'dib_3d_ext',nm:'Render exterior básico',tipo:'render',inc:0,qty:1,baseUnitPrice:90,unitPrice:90,dsc:'Modelado simple, sin postproducción avanzada'},
