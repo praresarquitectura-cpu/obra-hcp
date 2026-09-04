@@ -8344,7 +8344,7 @@ function apuRenderEditor(){
   var it=(typeof CP_CATALOGO!=='undefined')?CP_CATALOGO.find(function(x){return x.cod===APU_ITEM_SEL;}):null;
   if(!it){cont.innerHTML='';cont.style.display='none';return;}
   cont.style.display='block';
-  var calc=(typeof cpCalcPreciso==='function')?cpCalcPreciso(it.mats,it.mo,1):null;
+  var calc=(typeof cpCalcPreciso==='function')?cpCalcPreciso(it.mats,it.mo,1,it.cod):null;
   var h='<div class="card" style="border:1px solid var(--bt);margin-top:10px">';
   h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px;flex-wrap:wrap">';
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:260px">';
@@ -8458,7 +8458,7 @@ function cpNID(){return 'n'+(CP_NID++);}
 
 // ── Motor de c\u00e1lculo preciso (misma f\u00f3rmula que el An\u00e1lisis de Precio Unitario municipal) ──
 // Materiales+Varios(0.01%) + Equipos+Herramientas(0.02%) + MO => CUT => 5.1(15%)+5.2(10%)+5.3(3%)+5.4(4%) en cascada
-function cpCalcPreciso(mats,mo,qty){
+function cpCalcPreciso(mats,mo,qty,itemCod){
   qty=qty||1;
   function _pu(id){
     if(typeof PR_DATA!=='undefined'){var p=PR_DATA.find(function(x){return x.cod===String(id);});if(p&&p.pu>0)return p.pu;}
@@ -8467,7 +8467,7 @@ function cpCalcPreciso(mats,mo,qty){
   }
   var sumMat=0,sumEquipo=0,sumMO=0;
   (mats||[]).forEach(function(m){
-    var pu=m.pu||_pu(m.id)||0,sub=qty*(m.rend||0)*pu;
+    var pu=m.pu||_pu(m.id)||0,sub=qty*(cpEffectiveRend(itemCod,m.id,m.rend)||0)*pu;
     if(m.esEquipo) sumEquipo+=sub; else sumMat+=sub;
   });
   (mo||[]).forEach(function(m){
@@ -8501,7 +8501,7 @@ function cpCalcPreciso(mats,mo,qty){
 }
 
 function cpCalcPU(cat){
-  var r=cpCalcPreciso(cat.mats,cat.mo,1);
+  var r=cpCalcPreciso(cat.mats,cat.mo,1,cat.cod);
   return {puMat:r.costoMat,puMO:r.costoMO,puTotal:r.pu_adopt};
 }
 
@@ -8667,7 +8667,7 @@ function cpRenderMats(it){
   h+='<thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:3px 5px;color:var(--tx3)">Material / Equipo</th><th style="text-align:center;padding:3px 5px;color:var(--tx3)">Un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Rend/un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Cant. total</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)" title="Desperdicio % (materiales) o Rendimiento un/hora (mano de obra)">Desp.% / Rend.MO</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)" title="Cantidad comercial redondeada (barras/rollos) con el % de desperdicio aplicado">Cant. Comercial</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">$/un</th><th style="text-align:right;padding:3px 5px;color:var(--tx3)">Subtotal</th><th></th></tr></thead><tbody>';
   (it.mats||[]).forEach(function(m,mi){
     var pu=m.pu||CP_PRECIOS_MAT[m.id]||0;
-    var cant=Math.round(qty*m.rend*1000)/1000;
+    var cant=Math.round(qty*cpEffectiveRend(it.cod,m.id,m.rend)*1000)/1000;
     var sub=Math.round(cant*pu);
     var esBarra=(m.un==='m'||m.un==='ml');
     var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
@@ -8878,8 +8878,8 @@ function cpRenderMetalica(it){
 
 function cpRenderItem(rid,it){
   var qty=cpQty(it.dims,it.un);
-  var calc=cpCalcPreciso(it.mats,it.mo,qty);            // TOTAL real del ítem (cantidad real del Cómputo)
-  var calcU=cpCalcPreciso(it.mats,it.mo,1);              // Análisis de Precio UNITARIO (por 1 unidad de medida)
+  var calc=cpCalcPreciso(it.mats,it.mo,qty,it.cod);            // TOTAL real del ítem (cantidad real del Cómputo)
+  var calcU=cpCalcPreciso(it.mats,it.mo,1,it.cod);              // Análisis de Precio UNITARIO (por 1 unidad de medida)
   var totM=calc.costoMat,totO=calc.costoMO,totE=calc.costoEquipo,totT=calc.pu_adopt;
   var uniM=calcU.costoMat,uniO=calcU.costoMO,uniE=calcU.costoEquipo,uniT=calcU.pu_adopt;
   var h='<div class="card cp-item" id="cpi-'+it.id+'" style="margin-bottom:8px;padding:10px">';
@@ -8952,7 +8952,7 @@ function cpRenderRubro(rub){
   var totT=0;
   rub.items.forEach(function(it){
     var qty=cpQty(it.dims,it.un);
-    var calc=cpCalcPreciso(it.mats,it.mo,qty);
+    var calc=cpCalcPreciso(it.mats,it.mo,qty,it.cod);
     totT+=calc.pu_adopt;
   });
   var h='<div class="card" id="cpr-'+rub.id+'" style="margin-bottom:12px">';
@@ -8977,7 +8977,7 @@ function cpAbrirPickerSistema(rid){
     lista.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3);font-size:12px">No ten\u00e9s sistemas constructivos guardados todav\u00eda.<br><button class="btn btn-sm" style="margin-top:8px" onclick="closeM(\'mod-sc-picker\');goTo(\'sistemas\')">Ir a Sistemas Constructivos \u2192</button></div>';
   }else{
     lista.innerHTML=SC_SISTEMAS.map(function(s,i){
-      var puM2=(s.capas||[]).reduce(function(a,c){return a+((c.rend||1)*scGetPU(c.cod));},0);
+      var puM2=(s.capas||[]).reduce(function(a,c){return a+((cpEffectiveRend(null,c.cod,c.rend)||1)*scGetPU(c.cod));},0);
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--br);cursor:pointer" onclick="cpElegirSistema('+i+')" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'\'">'
         +'<div><div style="font-size:12px;font-weight:600">'+s.nom+'</div><div style="font-size:10px;color:var(--tx3);margin-top:2px">'+s.tipo+' \u00b7 '+(s.capas||[]).length+' capas'+(s.esp?' \u00b7 '+s.esp+'mm':'')+'</div></div>'
         +'<div style="font-size:12px;font-weight:700;color:var(--bt)">$'+Math.round(puM2).toLocaleString()+'/m\u00b2</div></div>';
@@ -9033,7 +9033,7 @@ function cpRender(){
   if(tabsC){
     tabsC.innerHTML=CP_RUBROS.map(function(r,idx){
       var totR=0;
-      r.items.forEach(function(it){var qty=cpQty(it.dims,it.un);var calc=cpCalcPreciso(it.mats,it.mo,qty);totR+=calc.pu_adopt;});
+      r.items.forEach(function(it){var qty=cpQty(it.dims,it.un);var calc=cpCalcPreciso(it.mats,it.mo,qty,it.cod);totR+=calc.pu_adopt;});
       var activo=r.id===CP_RUBRO_TAB;
       var esPrimero=idx===0,esUltimo=idx===CP_RUBROS.length-1;
       return '<span style="display:inline-flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1px solid '+(activo?'var(--bt)':'var(--br)')+'">'
@@ -9070,9 +9070,39 @@ function cpBuscarEnCatalogo(cod){
     cat=CP_CATALOGO_EXTRA.find(function(x){return x.cod===cod;});
   return cat||null;
 }
+// Resuelve el rendimiento EFECTIVO de un material en el momento del cálculo, en vez de usar
+// el valor congelado que se copió al agregar la línea. Permite que futuras correcciones al
+// catálogo (CP_CATALOGO/CP_CATALOGO_EXTRA, SC_MAT_CATS) se reflejen automáticamente en obras
+// ya cargadas, sin tener que borrar y volver a agregar cada línea. Agregado 04-sep-2026 a
+// pedido de Diego.
+// 1) Si el ítem tiene cod de catálogo (it.cod) y el material está en su receta actual, usa ese rend.
+// 2) Si no, y el llamador indicó EXPLÍCITAMENTE que esto es una capa de Sub-Cómputo (itemCod
+//    pasado como null, no simplemente omitido), busca por su propio código en la tabla de
+//    referencia de Sub-Cómputo (SC_REND_REF, reconstruida desde SC_MAT_CATS en cada carga).
+//    OJO: esto NO se aplica cuando itemCod es undefined (= ítem de Cómputo viejo, previo a
+//    que empezáramos a guardar cod, que todavía no tiene con qué resolver en vivo) — un mismo
+//    id de material (ej. '1001' cemento) se usa con rendimientos muy distintos según la receta
+//    (hormigón, mampostería, revoque), así que sin saber la receta exacta NO hay que adivinar
+//    contra una tabla de otro sistema: se devuelve el valor guardado tal cual.
+// 3) Si no hay match en ningún lado (línea custom, material sin código), devuelve el valor
+//    guardado tal cual — no rompe nada existente.
+function cpEffectiveRend(itemCod, matId, storedRend){
+  if(itemCod){
+    var cat=cpBuscarEnCatalogo(itemCod);
+    if(cat){
+      var m=(cat.mats||[]).find(function(x){return x.id===matId;});
+      if(m && typeof m.rend==='number') return m.rend;
+    }
+  }
+  if(itemCod===null && matId && typeof SC_REND_REF!=='undefined' && SC_REND_REF[matId] && typeof SC_REND_REF[matId].rend==='number'){
+    return SC_REND_REF[matId].rend;
+  }
+  return (typeof storedRend==='number')?storedRend:(storedRend||0);
+}
 function cpAplicarCatalogoAItem(it,cod){
   var cat=cpBuscarEnCatalogo(cod);
   if(!cat||!it)return false;
+  it.cod=cod;
   it.nom=cat.nom;
   it.un=cat.un;
   it.dims=it.dims&&it.dims.length?it.dims:[];
@@ -9511,10 +9541,10 @@ function cpVerResumen(){
   CP_RUBROS.forEach(function(rub){
     rub.items.forEach(function(it){
       var qty=cpQty(it.dims,it.un);
-      var calc=cpCalcPreciso(it.mats,it.mo,qty);
+      var calc=cpCalcPreciso(it.mats,it.mo,qty,it.cod);
       totM+=calc.costoMat;totE+=calc.costoEquipo;totO+=calc.costoMO;totT+=calc.pu_adopt;
       (it.mats||[]).forEach(function(m){
-        var pu=(m.pu||CP_PRECIOS_MAT[m.id]||0)*factorAjuste,c=Math.round(qty*m.rend*1000)/1000,s=Math.round(c*pu);
+        var pu=(m.pu||CP_PRECIOS_MAT[m.id]||0)*factorAjuste,c=Math.round(qty*cpEffectiveRend(it.cod,m.id,m.rend)*1000)/1000,s=Math.round(c*pu);
         var k=(m.id||m.nom||'x').replace(/\s/g,'_');
         var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
         if(!matMap[k])matMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:pu,esEquipo:m.esEquipo||false,isMO:false,desp:desp,cod:m.id};
@@ -9716,8 +9746,8 @@ function cpAPUItemHtml(it){
   // (calcReal/qtyReal) y se devuelve para que cpPDF siga acumulando correctamente los totales
   // del Cómputo y Presupuesto — eso NO cambia con este ajuste.
   var qtyReal=cpQty(it.dims,it.un);
-  var calcReal=cpCalcPreciso(it.mats,it.mo,qtyReal);
-  var calc=cpCalcPreciso(it.mats,it.mo,1);
+  var calcReal=cpCalcPreciso(it.mats,it.mo,qtyReal,it.cod);
+  var calc=cpCalcPreciso(it.mats,it.mo,1,it.cod);
   var factorAjuste=(typeof cpFactorAjusteTotal==='function')?cpFactorAjusteTotal():1;
   var mats=(it.mats||[]).filter(function(m){return !m.esEquipo;});
   var equipos=(it.mats||[]).filter(function(m){return m.esEquipo;});
@@ -9746,7 +9776,7 @@ function cpAPUItemHtml(it){
   h+='<div style="font-size:8pt;font-weight:700;margin:6px 0 2px"><span class="apu-secnum">1</span>MATERIALES</div>';
   h+='<table><thead><tr><th>Cód.</th><th>Descripción</th><th>Unidad</th><th class="r">Cantidad</th><th class="r">Precio Unitario</th><th class="r">Precio Total</th></tr></thead><tbody>';
   mats.forEach(function(m){
-    var cant=Math.round((m.rend||0)*1000)/1000;
+    var cant=Math.round((cpEffectiveRend(it.cod,m.id,m.rend)||0)*1000)/1000;
     var puAj=(m.pu||0)*factorAjuste;
     var pt=cant*puAj;
     h+='<tr><td>'+(m.id||'')+'</td><td>'+m.nom+(m.sinPrecio?' <span style="color:#c02d46;font-weight:700">!</span>':'')+'</td><td>'+m.un+'</td><td class="r mat">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">$'+cpFmtAR(puAj)+'</td><td class="r mat">$'+cpFmtAR(pt)+'</td></tr>';
@@ -9758,7 +9788,7 @@ function cpAPUItemHtml(it){
   h+='<div style="font-size:8pt;font-weight:700;margin:6px 0 2px"><span class="apu-secnum">2</span>EQUIPOS</div>';
   h+='<table><thead><tr><th>Cód.</th><th>Descripción</th><th>Unidad</th><th class="r">Cantidad</th><th class="r">Precio Unitario</th><th class="r">Precio Total</th></tr></thead><tbody>';
   equipos.forEach(function(m){
-    var cant=Math.round((m.rend||0)*1000)/1000;
+    var cant=Math.round((cpEffectiveRend(it.cod,m.id,m.rend)||0)*1000)/1000;
     var puAj=(m.pu||0)*factorAjuste;
     var pt=cant*puAj;
     h+='<tr><td>'+(m.id||'')+'</td><td>'+m.nom+'</td><td>'+m.un+'</td><td class="r mat">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">$'+cpFmtAR(puAj)+'</td><td class="r mat">$'+cpFmtAR(pt)+'</td></tr>';
@@ -9898,7 +9928,7 @@ function cpPDF(modo){
       d+='<div class="item-block">'+res.html+'</div>';
       var calc=res.calc,qty=res.qty;
       (it.mats||[]).forEach(function(m){
-        var puAj=(m.pu||0)*factorAjuste,c=Math.round(qty*(m.rend||0)*1000)/1000,s=Math.round(c*puAj);
+        var puAj=(m.pu||0)*factorAjuste,c=Math.round(qty*(cpEffectiveRend(it.cod,m.id,m.rend)||0)*1000)/1000,s=Math.round(c*puAj);
         var k=(m.id||m.nom||'x').replace(/\s/g,'_');
         var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
         if(!lisMap[k])lisMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:puAj,esEquipo:m.esEquipo||false,desp:desp,cod:m.id};
@@ -9953,11 +9983,11 @@ function cpAgregarDatos(rubros){
     rub.items.forEach(function(it){
       if(!it.nom)return;
       var qty=cpQty(it.dims,it.un);
-      var calc=cpCalcPreciso(it.mats,it.mo,qty);
+      var calc=cpCalcPreciso(it.mats,it.mo,qty,it.cod);
       itemRows.push({nom:it.nom,un:it.un,qty:qty,costoMat:calc.costoMat,costoMO:calc.costoMO,puAdopt:calc.pu_adopt});
       rSubMat+=calc.costoMat;rSubMO+=calc.costoMO;rSubTot+=calc.pu_adopt;
       (it.mats||[]).forEach(function(m){
-        var puAj=(m.pu||0)*factorAjuste,c=Math.round(qty*(m.rend||0)*1000)/1000,s=Math.round(c*puAj);
+        var puAj=(m.pu||0)*factorAjuste,c=Math.round(qty*(cpEffectiveRend(it.cod,m.id,m.rend)||0)*1000)/1000,s=Math.round(c*puAj);
         var k=(m.id||m.nom||'x').replace(/\s/g,'_');
         var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
         if(!matMap[k])matMap[k]={nom:m.nom,un:m.un,cant:0,sub:0,pu:puAj,esEquipo:m.esEquipo||false,desp:desp,cod:m.id};
@@ -10435,7 +10465,7 @@ function cpComputoPresupuestoBuild(modo){
           return;
         }
         mats.forEach(function(m){
-          var cant=Math.round(qty*(m.rend||0)*1000)/1000;
+          var cant=Math.round(qty*(cpEffectiveRend(it.cod,m.id,m.rend)||0)*1000)/1000;
           var pu=(m.pu||0)*factorAjuste;
           var parcial=cant*pu;
           subtotalRubro+=parcial;
@@ -12428,7 +12458,8 @@ function scRenderCapas(){
   }
   cont.innerHTML = SC_CAPAS.map(function(c,i){
     var pu = scGetPU(c.cod);
-    var subtotal = Math.round((c.rend||1)*pu);
+    var rendEfectivo = cpEffectiveRend(null,c.cod,c.rend)||1;
+    var subtotal = Math.round(rendEfectivo*pu);
     return '<div style="background:var(--bg);border-radius:6px;padding:10px;margin-bottom:8px;border-left:3px solid var(--bt)">'
       +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">'
       +'<div style="background:var(--bt);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">'+(i+1)+'</div>'
@@ -12465,7 +12496,7 @@ function scRenderCapas(){
       +'<input class="fi" type="text" inputmode="decimal" value="'+String(c.esp||0).replace('.',',')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);scUpdCapa('+i+',\'esp\',isNaN(v)?0:v);" style="font-size:10px;width:100%"></div>'
       +'</div>'
       // Subtotal de la capa
-      +(pu>0?'<div style="text-align:right;margin-top:6px;font-size:11px;color:var(--bt);font-weight:700">$'+pu.toLocaleString()+'/'+c.un+' × '+(c.rend||1)+' = <b>$'+subtotal.toLocaleString()+'/m²</b></div>':'')
+      +(pu>0?'<div style="text-align:right;margin-top:6px;font-size:11px;color:var(--bt);font-weight:700">$'+pu.toLocaleString()+'/'+c.un+' × '+rendEfectivo+' = <b>$'+subtotal.toLocaleString()+'/m²</b></div>':'')
       +(c.nota?'<div style="font-size:10px;color:var(--tx3);margin-top:4px">ℹ '+c.nota+'</div>':'')
       +'</div>';
   }).join('');
@@ -12606,7 +12637,7 @@ function scAdaptadorItem(nom,capas,mo){
     un:'m²',
     dims:[{id:'d1',desc:'',l:1,a:1,h:0,q:1,sust:false}],
     mats:(capas||[]).map(function(c){
-      return {id:c.cod||('sc_'+c.id),nom:c.nom,un:c.un||'m²',rend:c.rend||1,pu:scGetPU(c.cod)||0,esEquipo:false,sinPrecio:!(scGetPU(c.cod)>0)};
+      return {id:c.cod||('sc_'+c.id),nom:c.nom,un:c.un||'m²',rend:cpEffectiveRend(null,c.cod,c.rend)||1,pu:scGetPU(c.cod)||0,esEquipo:false,sinPrecio:!(scGetPU(c.cod)>0)};
     }),
     mo:(mo||[]).map(function(m){
       var rolNom={ofEsp:'Oficial Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'}[m.rol]||m.rol;
@@ -12649,7 +12680,7 @@ function scCalcular(){
 
   var rowsMat = SC_CAPAS.map(function(c,i){
     var pu=scGetPU(c.cod);
-    var cant=Math.round((c.rend||1)*100)/100;
+    var cant=Math.round((cpEffectiveRend(null,c.cod,c.rend)||1)*100)/100;
     var sub=Math.round(cant*pu);
     return '<tr style="border-bottom:1px solid var(--br)">'
       +'<td style="padding:4px 6px;font-size:10px;color:var(--tx3)">'+(i+1)+'</td>'
