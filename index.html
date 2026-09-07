@@ -745,6 +745,7 @@ input,select,textarea,button{font-family:var(--font)}
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
     <div><div class="pgt">Análisis de Precios</div>
     <div class="pgs">Librería de rendimiento/incidencia por Rubro → Ítem — separada del Cómputo de cada obra. Acá se carga CUÁNTO material hace falta por cada 1 unidad (m²/ml/m³/un) de un ítem; en el Cómputo de cada obra solo se elige el ítem y se carga la medición real.</div></div>
+    <button class="btn" style="background:var(--bt);color:#fff;font-size:11px;padding:6px 12px" onclick="apuMostrarAuditoria()" title="Revisa toda la biblioteca en busca de unidades cruzadas, consumos/precios en cero, recursos duplicados e ítems sin mano de obra">&#128269; Auditar Biblioteca</button>
   </div>
   <div class="card" style="margin-bottom:10px">
     <label class="fl">Buscar por material (auditar en qué ítems se usa y con qué rendimiento)</label>
@@ -1244,6 +1245,14 @@ input,select,textarea,button{font-family:var(--font)}
       </div>
     </div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-add-rubro')">Cancelar</button><button class="btn" style="background:var(--gt);color:#fff" onclick="cpConfirmarAgregarRubro()">Agregar</button></div>
+  </div>
+</div>
+<div class="mb" id="mod-apu-audit" onclick="closeBg(event,'mod-apu-audit')">
+  <div class="modal" style="max-width:820px;max-height:85vh;overflow-y:auto">
+    <div class="mt2">Auditoría automática de la Biblioteca de Análisis de Precios</div>
+    <div class="msub">Chequeos de consistencia interna (unidades cruzadas, consumos/precios en cero, recursos duplicados, ítems sin mano de obra). No reemplaza la revisión técnica ítem por ítem contra fuente — ver AUDITORIA_FASE_A.md.</div>
+    <div id="apu-audit-body" style="margin-top:14px"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-apu-audit')">Cerrar</button></div>
   </div>
 </div>
 <div class="mb" id="mod-pliego" onclick="closeBg(event,'mod-pliego')">
@@ -5659,9 +5668,9 @@ var CP_CATALOGO = [
 {cod:'301',nom:'Excavación, Nivelación y Compactación',un:'m³',
  cat:'MOVIMIENTO DE SUELO',
  mats:[
-  {id:'retroex',nom:'Retroexcavadora',un:'hh',rend:0.05,esEquipo:true},
-  {id:'camion_6m3',nom:'Camión volcador 6m³',un:'hh',rend:0.10,esEquipo:true},
-  {id:'vibrocomp',nom:'Vibrocompactador manual 7HP',un:'hh',rend:0.10,esEquipo:true},
+  {id:'retroex',nom:'Retroexcavadora',un:'h-eq',rend:0.05,esEquipo:true},
+  {id:'camion_6m3',nom:'Camión volcador 6m³',un:'h-eq',rend:0.10,esEquipo:true},
+  {id:'vibrocomp',nom:'Vibrocompactador manual 7HP',un:'h-eq',rend:0.10,esEquipo:true},
  ],
  mo:[{rol:'of',hh:0.1},{rol:'ay',hh:0.1}]
 },
@@ -5669,8 +5678,8 @@ var CP_CATALOGO = [
  cat:'MOVIMIENTO DE SUELO',
  mats:[
   {id:'205',nom:'Relleno Seleccionado',un:'m³',rend:1.1},
-  {id:'vibrocomp',nom:'Vibrocompactador manual 7HP',un:'hh',rend:0.06,esEquipo:true},
-  {id:'camion_6m3',nom:'Camión volcador 6m³',un:'hh',rend:0.06,esEquipo:true},
+  {id:'vibrocomp',nom:'Vibrocompactador manual 7HP',un:'h-eq',rend:0.06,esEquipo:true},
+  {id:'camion_6m3',nom:'Camión volcador 6m³',un:'h-eq',rend:0.06,esEquipo:true},
  ],
  mo:[{rol:'of',hh:0.1},{rol:'ay',hh:0.1}]
 },
@@ -5682,7 +5691,7 @@ var CP_CATALOGO = [
   {id:'210',nom:'Piedra Grillada',un:'m³',rend:0.15},
   {id:'803',nom:'Film nylon polietileno 200μ',un:'m²',rend:1.7},
   {id:'2305',nom:'Tubo PVC φ 160 x 3,2 mm 4m Ramat Tigre Et',un:'m',rend:1.0},
-  {id:'retroex',nom:'Retroexcavadora oruga',un:'hh',rend:0.06,esEquipo:true},
+  {id:'retroex',nom:'Retroexcavadora oruga',un:'h-eq',rend:0.06,esEquipo:true},
  ],
  mo:[{rol:'of',hh:0.1},{rol:'ay',hh:0.3}]
 },
@@ -5696,7 +5705,7 @@ var CP_CATALOGO = [
   {id:'arena_mixta',nom:'Arena mixta',un:'m³',rend:0.05},
   {id:'arena',nom:'Arena (relleno juntas)',un:'m³',rend:0.003},
   {id:'adoquin_ps6',nom:'Adoquín Ps6 6cm',un:'un',rend:45},
-  {id:'vibrocomp',nom:'Vibrocompactador manual 7HP',un:'hh',rend:0.06,esEquipo:true},
+  {id:'vibrocomp',nom:'Vibrocompactador manual 7HP',un:'h-eq',rend:0.06,esEquipo:true},
  ],
  mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.75}]
 },
@@ -5706,7 +5715,7 @@ var CP_CATALOGO = [
   {id:'arena_mixta',nom:'Arena mixta',un:'m³',rend:0.05},
   {id:'arena',nom:'Arena (relleno juntas)',un:'m³',rend:0.005},
   {id:'adoquin_ps8',nom:'Adoquín Ps8 8cm',un:'un',rend:45},
-  {id:'vibrocomp',nom:'Vibrocompactador manual 7HP',un:'hh',rend:0.06,esEquipo:true},
+  {id:'vibrocomp',nom:'Vibrocompactador manual 7HP',un:'h-eq',rend:0.06,esEquipo:true},
  ],
  mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.75}]
 },
@@ -5818,7 +5827,7 @@ var CP_CATALOGO = [
   {id:'1001',nom:'Cemento portland',un:'kg',rend:14.0},
   {id:'201',nom:'Arena',un:'m³',rend:0.03},
   {id:'213',nom:'Piedra Laja Negra Irregular tipo pirca',un:'m²',rend:1.1},
-  {id:'1507',nom:'Protector hidrorepelente incoloro para piedra',un:'lts',rend:0.8},
+  {id:'1507',nom:'Protector hidrorepelente incoloro para piedra',un:'lt',rend:0.8},
  ],
  mo:[{rol:'mo',hh:1.3}]
 },
@@ -5835,7 +5844,7 @@ var CP_CATALOGO = [
   {id:'803',nom:'Film nylon polietileno 200μ',un:'m²',rend:1.6},
   {id:'503',nom:'Fe Ø8',un:'m',rend:4.0},
   {id:'501',nom:'Fe Ø5',un:'m',rend:4.4},
-  {id:'468',nom:'Anclaje barandas (platina 1/8 + 4 Fe8)',un:'u',rend:2.0},
+  {id:'468',nom:'Anclaje barandas (platina 1/8 + 4 Fe8)',un:'un',rend:2.0},
  ],
  mo:[{rol:'of',hh:0.75},{rol:'ay',hh:0.85}]
 },
@@ -5846,9 +5855,9 @@ var CP_CATALOGO = [
   {id:'401',nom:'Tubo Redondo 7/8 x 1.60mm',un:'m',rend:0.3},
   {id:'426',nom:'Tubo Cuadrado 40x40 x2.00mm',un:'m',rend:2.1},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.1},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.06},
-  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',rend:0.02},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.01},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.06},
+  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',rend:0.02},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.01},
  ],
  mo:[{rol:'of',hh:1},{rol:'ay',hh:2}]
 },
@@ -5859,40 +5868,40 @@ var CP_CATALOGO = [
 {cod:'801',nom:'Latex Interior',un:'m²',
  cat:'PINTURAS',
  mats:[
-  {id:'1501',nom:'Latex interior lavable',un:'lts',rend:0.2},
-  {id:'1504',nom:'Sellador Fijador al agua premium alba',un:'lts',rend:0.1},
+  {id:'1501',nom:'Latex interior lavable',un:'lt',rend:0.2},
+  {id:'1504',nom:'Sellador Fijador al agua premium alba',un:'lt',rend:0.1},
  ],
  mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.3}]
 },
 {cod:'802',nom:'Latex Exterior',un:'m²',
  cat:'PINTURAS',
  mats:[
-  {id:'1502',nom:'Latex exterior',un:'lts',rend:0.2},
-  {id:'1504',nom:'Sellador Fijador al agua premium alba',un:'lts',rend:0.1},
+  {id:'1502',nom:'Latex exterior',un:'lt',rend:0.2},
+  {id:'1504',nom:'Sellador Fijador al agua premium alba',un:'lt',rend:0.1},
  ],
  mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.3}]
 },
 {cod:'803',nom:'Protector para madera (Cetol)',un:'m²',
  cat:'PINTURAS',
  mats:[
-  {id:'1506',nom:'Protector para madera cetol',un:'lts',rend:0.4},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.1},
+  {id:'1506',nom:'Protector para madera cetol',un:'lt',rend:0.4},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.1},
  ],
  mo:[{rol:'of',hh:0.35},{rol:'ay',hh:0.35}]
 },
 {cod:'804',nom:'Esmalte Sintético',un:'m²',
  cat:'PINTURAS',
  mats:[
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.2},
-  {id:'1512',nom:'Convertidor de oxido',un:'lts',rend:0.1},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.15},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.2},
+  {id:'1512',nom:'Convertidor de oxido',un:'lt',rend:0.1},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.15},
  ],
  mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.5}]
 },
 {cod:'807',nom:'Pintura Epoxi Alto Tránsito',un:'m²',
  cat:'PINTURAS',
  mats:[
-  {id:'1503',nom:'Pintura Epoxi Alto Transito',un:'lts',rend:0.4},
+  {id:'1503',nom:'Pintura Epoxi Alto Transito',un:'lt',rend:0.4},
   {id:'1518',nom:'Diluyente Epoxi',un:'lt',rend:0.1},
  ],
  mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.3}]
@@ -5904,7 +5913,7 @@ var CP_CATALOGO = [
 {cod:'R01',nom:'Demolición de piso cerámico',un:'m²',
  cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'volquete_5m3',nom:'Volquete 5m³',un:'hh',rend:0.05,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³',un:'h-eq',rend:0.05,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:0.8}]
 },
@@ -5916,7 +5925,7 @@ var CP_CATALOGO = [
 {cod:'R03',nom:'Extracción / picado de revoques',un:'m²',
  cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'volquete_5m3',nom:'Volquete 5m³',un:'hh',rend:0.03,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³',un:'h-eq',rend:0.03,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:0.9}]
 },
@@ -6229,7 +6238,7 @@ var CP_CATALOGO_EXTRA = [
  cat:'TRABAJOS PRELIMINARES',
  unidades_permitidas:['m²','gl'],
  mats:[
-  {id:'volquete_5m3',nom:'Volquete 5m³ (residuos)',un:'hh',rend:0.02,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³ (residuos)',un:'h-eq',rend:0.02,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:0.15},{rol:'of',hh:0.05}]
 },
@@ -6237,8 +6246,8 @@ var CP_CATALOGO_EXTRA = [
  cat:'TRABAJOS PRELIMINARES',
  unidades_permitidas:['m²','gl'],
  mats:[
-  {id:'3210',nom:'Retroexcavadora c/martillo (limpieza)',un:'hh',rend:0.02,esEquipo:true},
-  {id:'3209',nom:'Volquete 5m³',un:'hh',rend:0.02,esEquipo:true},
+  {id:'3210',nom:'Retroexcavadora c/martillo (limpieza)',un:'h-eq',rend:0.02,esEquipo:true},
+  {id:'3209',nom:'Volquete 5m³',un:'h-eq',rend:0.02,esEquipo:true},
  ],
  mo:[{rol:'of',hh:0.05},{rol:'ay',hh:0.05}]
 },
@@ -6248,8 +6257,8 @@ var CP_CATALOGO_EXTRA = [
  mats:[
   {id:'clavo_pp_3',nom:'Clavo punta París 3"',un:'kg',rend:0.1},
   {id:'tabla_pino',nom:'Tabla pino encofrado (estacas)',un:'m',rend:2.0},
-  {id:'nivel_laser',nom:'Nivel láser (herramienta)',un:'hh',rend:0.5,esEquipo:true},
-  {id:'taladro',nom:'Taladro percutor',un:'hh',rend:0.3,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser (herramienta)',un:'h-eq',rend:0.5,esEquipo:true},
+  {id:'taladro',nom:'Taladro percutor',un:'h-eq',rend:0.3,esEquipo:true},
  ],
  mo:[{rol:'ofEsp',hh:4},{rol:'of',hh:4},{rol:'ay',hh:4}]
 },
@@ -6261,7 +6270,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'chapa_galv_N25',nom:'Chapa Galvanizada N25 (cerramiento)',un:'m²',rend:2.0},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm (fijación)',un:'un',rend:8},
   {id:'H21',nom:'Hormigón H21 (base postes)',un:'m³',rend:0.03},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.3,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:0.3,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.5},{rol:'ay',hh:1.5}]
 },
@@ -6279,8 +6288,8 @@ var CP_CATALOGO_EXTRA = [
  cat:'TRABAJOS PRELIMINARES',
  unidades_permitidas:['gl','m²','m³'],
  mats:[
-  {id:'3210',nom:'Retroexcavadora c/martillo E 80 HP',un:'hh',rend:1,esEquipo:true},
-  {id:'3209',nom:'Volquete 5m³',un:'hh',rend:2,esEquipo:true},
+  {id:'3210',nom:'Retroexcavadora c/martillo E 80 HP',un:'h-eq',rend:1,esEquipo:true},
+  {id:'3209',nom:'Volquete 5m³',un:'h-eq',rend:2,esEquipo:true},
  ],
  mo:[{rol:'of',hh:8},{rol:'ay',hh:8}]
 },
@@ -6288,8 +6297,8 @@ var CP_CATALOGO_EXTRA = [
  cat:'TRABAJOS PRELIMINARES',
  unidades_permitidas:['gl','m²','m³','un'],
  mats:[
-  {id:'3202',nom:'Camión volcador 6m³',un:'hh',rend:2,esEquipo:true},
-  {id:'3209',nom:'Volquete 5m³',un:'hh',rend:1,esEquipo:true},
+  {id:'3202',nom:'Camión volcador 6m³',un:'h-eq',rend:2,esEquipo:true},
+  {id:'3209',nom:'Volquete 5m³',un:'h-eq',rend:1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:4},{rol:'ay',hh:8}]
 },
@@ -6316,7 +6325,7 @@ var CP_CATALOGO_EXTRA = [
  cat:'TRABAJOS PRELIMINARES',
  unidades_permitidas:['gl','m²'],
  mats:[
-  {id:'volquete_5m3',nom:'Volquete 5m³ (residuos)',un:'hh',rend:1,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³ (residuos)',un:'h-eq',rend:1,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:6},{rol:'of',hh:2}]
 },
@@ -6327,34 +6336,34 @@ var CP_CATALOGO_EXTRA = [
 // ══════════════════════════════════════════════════
 {cod:'D01',nom:'Demolición piso cerámico / porcelanato',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.04,esEquipo:true},
-  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'hh',rend:0.15,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'h-eq',rend:0.04,esEquipo:true},
+  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'h-eq',rend:0.15,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:0.5},{rol:'of',hh:0.2}]
 },
 {cod:'D02',nom:'Demolición de cielorraso (placas yeso/cemento)',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.02,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'h-eq',rend:0.02,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:0.4},{rol:'of',hh:0.1}]
 },
 {cod:'D03',nom:'Demolición tabique liviano (placa+perfil)',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.02,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'h-eq',rend:0.02,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:0.5},{rol:'of',hh:0.2}]
 },
 {cod:'D04',nom:'Demolición tabique de mampostería (bloques)',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'hh',rend:0.5,esEquipo:true},
-  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.10,esEquipo:true},
+  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'h-eq',rend:0.5,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'h-eq',rend:0.10,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:1.2},{rol:'of',hh:0.5}]
 },
 {cod:'D05',nom:'Picado y extracción de revoques (interior)',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'hh',rend:0.2,esEquipo:true},
-  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.03,esEquipo:true},
+  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'h-eq',rend:0.2,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'h-eq',rend:0.03,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:0.8},{rol:'of',hh:0.2}]
 },
@@ -6364,7 +6373,7 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'D07',nom:'Demolición instalación sanitaria existente',un:'gl',cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'volquete_5m3',nom:'Volquete 5m³',un:'hh',rend:0.1,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:12},{rol:'ay',hh:8}]
 },
@@ -6374,28 +6383,28 @@ var CP_CATALOGO_EXTRA = [
 },
 {cod:'D09',nom:'Demolición carpeta de hormigón',un:'m²',cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'hh',rend:0.4,esEquipo:true},
-  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'hh',rend:0.08,esEquipo:true},
+  {id:'martillo_demo',nom:'Martillo demoledor eléctrico',un:'h-eq',rend:0.4,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³ (escombros)',un:'h-eq',rend:0.08,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:1.0},{rol:'of',hh:0.3}]
 },
 {cod:'D10',nom:'Acarreo y clasificación de escombros',un:'m³',cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'volquete_5m3',nom:'Volquete 5m³',un:'hh',rend:0.5,esEquipo:true},
+  {id:'volquete_5m3',nom:'Volquete 5m³',un:'h-eq',rend:0.5,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:1.5}]
 },
 {cod:'D11',nom:'Demolición Gl',un:'gl',cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'3202',nom:'Camión volcador 6m³',un:'hh',rend:2,esEquipo:true},
-  {id:'3203',nom:'Motocompresor con martillo',un:'hh',rend:2,esEquipo:true},
-  {id:'3206',nom:'Retroexcavadora E 80 HP',un:'hh',rend:2,esEquipo:true},
+  {id:'3202',nom:'Camión volcador 6m³',un:'h-eq',rend:2,esEquipo:true},
+  {id:'3203',nom:'Motocompresor con martillo',un:'h-eq',rend:2,esEquipo:true},
+  {id:'3206',nom:'Retroexcavadora E 80 HP',un:'h-eq',rend:2,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:8}]
 },
 {cod:'D12',nom:'Retiro Gl',un:'gl',cat:'DEMOLICIÓN Y RETIROS',
  mats:[
-  {id:'3202',nom:'Camión volcador 6m³',un:'hh',rend:2,esEquipo:true},
+  {id:'3202',nom:'Camión volcador 6m³',un:'h-eq',rend:2,esEquipo:true},
  ],
  mo:[{rol:'ay',hh:24}]
 },
@@ -6413,8 +6422,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'banda_acust',nom:'Banda acústica soleras y montantes',un:'m',rend:4.0},
   {id:'cinta_papel',nom:'Cinta de papel para juntas',un:'m',rend:3.3},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:1.8},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.8,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:0.8,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.2},{rol:'ay',hh:0.8}]
 },
@@ -6429,8 +6438,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
   {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.3},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:1.8},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.9,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:0.9,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.4},{rol:'ay',hh:0.9}]
 },
@@ -6443,9 +6452,9 @@ var CP_CATALOGO_EXTRA = [
   {id:'torn_T2_25',nom:'Tornillo T2 25mm (perfil-perfil)',un:'un',rend:30},
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
   {id:'malla_Q131',nom:'Malla fibra vidrio juntas (opcional)',un:'m',rend:2.0},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
-  {id:'amoladora',nom:'Amoladora 4.5" (corte placa)',un:'hh',rend:0.2,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:1.0,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5" (corte placa)',un:'h-eq',rend:0.2,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.4},{rol:'ay',hh:1.0}]
 },
@@ -6463,8 +6472,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
   {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.3},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:1.8},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.8,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:0.8,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.2},{rol:'ay',hh:0.8}]
 },
@@ -6479,8 +6488,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
   {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.3},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:1.8},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.9,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:0.9,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.4},{rol:'ay',hh:0.9}]
 },
@@ -6493,9 +6502,9 @@ var CP_CATALOGO_EXTRA = [
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:10},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:30},
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
-  {id:'amoladora',nom:'Amoladora 4.5"',un:'hh',rend:0.2,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:1.0,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5"',un:'h-eq',rend:0.2,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.5},{rol:'ay',hh:1.0}]
 },
@@ -6513,8 +6522,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
   {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.3},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:1.8},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.8,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:0.8,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.3},{rol:'ay',hh:0.9}]
 },
@@ -6529,8 +6538,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
   {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.3},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:1.8},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.9,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:0.9,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.5},{rol:'ay',hh:1.0}]
 },
@@ -6546,8 +6555,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
   {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:6.6},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:3.2},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.2,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:1.2,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.8},{rol:'ay',hh:1.2}]
 },
@@ -6560,9 +6569,9 @@ var CP_CATALOGO_EXTRA = [
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:10},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:30},
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
-  {id:'amoladora',nom:'Amoladora 4.5"',un:'hh',rend:0.3,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:1.0,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5"',un:'h-eq',rend:0.3,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.6},{rol:'ay',hh:1.1}]
 },
@@ -6580,8 +6589,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
   {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.3},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:1.8},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:1.0,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.4},{rol:'ay',hh:1.0}]
 },
@@ -6597,8 +6606,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.3},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:1.8},
   {id:'film_barrera',nom:'Film barrera de vapor 200μ',un:'m²',rend:1.05},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:1.0,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.6},{rol:'ay',hh:1.1}]
 },
@@ -6612,9 +6621,9 @@ var CP_CATALOGO_EXTRA = [
   {id:'torn_T2_25',nom:'Tornillo T2 25mm (1ra placa)',un:'un',rend:28},
   {id:'torn_T3_38',nom:'Tornillo T3 38mm (2da placa + perfil grueso)',un:'un',rend:32},
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:4.0},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.4,esEquipo:true},
-  {id:'amoladora',nom:'Amoladora 4.5" (corte placa)',un:'hh',rend:0.3,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.1,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:1.4,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5" (corte placa)',un:'h-eq',rend:0.3,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.1,esEquipo:true},
  ],
  mo:[{rol:'of',hh:2.0},{rol:'ay',hh:1.4}]
 },
@@ -6632,9 +6641,9 @@ var CP_CATALOGO_EXTRA = [
   {id:'banda_acust',nom:'Banda acústica perímetro',un:'m',rend:1.5},
   {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:1.65},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.9},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.9,esEquipo:true},
-  {id:'andamio_tubul',nom:'Andamio tubular',un:'hh',rend:1.0,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.15,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:0.9,esEquipo:true},
+  {id:'andamio_tubul',nom:'Andamio tubular',un:'h-eq',rend:1.0,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.15,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.5},{rol:'ay',hh:1.2}]
 },
@@ -6650,9 +6659,9 @@ var CP_CATALOGO_EXTRA = [
   {id:'banda_acust',nom:'Banda acústica perímetro',un:'m',rend:1.5},
   {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:1.65},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:0.9},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
-  {id:'andamio_tubul',nom:'Andamio tubular',un:'hh',rend:1.2,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.15,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:1.0,esEquipo:true},
+  {id:'andamio_tubul',nom:'Andamio tubular',un:'h-eq',rend:1.2,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.15,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.8},{rol:'ay',hh:1.4}]
 },
@@ -6664,10 +6673,10 @@ var CP_CATALOGO_EXTRA = [
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:16},
   {id:'torn_T2_25',nom:'Tornillo T2 25mm',un:'un',rend:18},
   {id:'banda_acust',nom:'Banda acústica perímetro',un:'m',rend:1.5},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
-  {id:'amoladora',nom:'Amoladora 4.5"',un:'hh',rend:0.2,esEquipo:true},
-  {id:'andamio_tubul',nom:'Andamio tubular',un:'hh',rend:1.2,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.15,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:1.0,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5"',un:'h-eq',rend:0.2,esEquipo:true},
+  {id:'andamio_tubul',nom:'Andamio tubular',un:'h-eq',rend:1.2,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.15,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.6},{rol:'ay',hh:1.3}]
 },
@@ -6687,8 +6696,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'espuma_poliuret',nom:'Espuma poliuretano (sello perímetro)',un:'un',rend:0.3},
   {id:'cinta_papel',nom:'Cinta de papel juntas',un:'m',rend:3.3},
   {id:'masilla_junt',nom:'Masilla para juntas',un:'kg',rend:1.8},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.0,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.15,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:1.0,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.15,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.8},{rol:'ay',hh:1.2}]
 },
@@ -6703,9 +6712,9 @@ var CP_CATALOGO_EXTRA = [
   {id:'torn_T3_38',nom:'Tornillo T3 38mm (perfil grueso)',un:'un',rend:12},
   {id:'banda_acust',nom:'Banda acústica soleras',un:'m',rend:5.0},
   {id:'espuma_poliuret',nom:'Espuma poliuretano (sello perímetro)',un:'un',rend:0.3},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:1.2,esEquipo:true},
-  {id:'amoladora',nom:'Amoladora 4.5"',un:'hh',rend:0.3,esEquipo:true},
-  {id:'nivel_laser',nom:'Nivel láser',un:'hh',rend:0.15,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:1.2,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5"',un:'h-eq',rend:0.3,esEquipo:true},
+  {id:'nivel_laser',nom:'Nivel láser',un:'h-eq',rend:0.15,esEquipo:true},
  ],
  mo:[{rol:'of',hh:2.0},{rol:'ay',hh:1.4}]
 },
@@ -6716,7 +6725,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'arena',nom:'Arena',un:'m³',rend:0.03},
   {id:'fe6',nom:'Fe ø6 (encadenado horizontal)',un:'m',rend:4},
   {id:'H21',nom:'Hormigón H21 (viga encadenado)',un:'m³',rend:0.02},
-  {id:'martillo_demo',nom:'Martillo demoledor (ranura anclaje)',un:'hh',rend:0.2,esEquipo:true},
+  {id:'martillo_demo',nom:'Martillo demoledor (ranura anclaje)',un:'h-eq',rend:0.2,esEquipo:true},
  ],
  mo:[{rol:'of',hh:3.5},{rol:'ay',hh:2.0}]
 },
@@ -6725,7 +6734,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'espuma_poliuret',nom:'Espuma poliuretano 750ml',un:'un',rend:1.5},
   {id:'sellador_siliconico',nom:'Sellador silicónico neutro 320ml',un:'un',rend:1.0},
   {id:'torn_T3_38',nom:'Tornillo autotaladrante T3 (fijación marco)',un:'un',rend:12},
-  {id:'taladro',nom:'Taladro percutor',un:'hh',rend:0.3,esEquipo:true},
+  {id:'taladro',nom:'Taladro percutor',un:'h-eq',rend:0.3,esEquipo:true},
  ],
  mo:[{rol:'of',hh:3.0},{rol:'ay',hh:2.0}]
 },
@@ -6734,7 +6743,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'espuma_poliuret',nom:'Espuma poliuretano 750ml',un:'un',rend:1.0},
   {id:'sellador_siliconico',nom:'Sellador silicónico neutro 320ml',un:'un',rend:2.0},
   {id:'torn_T3_38',nom:'Tornillo autotaladrante T3 (fijación)',un:'un',rend:8},
-  {id:'taladro',nom:'Taladro percutor',un:'hh',rend:0.3,esEquipo:true},
+  {id:'taladro',nom:'Taladro percutor',un:'h-eq',rend:0.3,esEquipo:true},
  ],
  mo:[{rol:'of',hh:2.5},{rol:'ay',hh:1.5}]
 },
@@ -6749,8 +6758,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:16},
   {id:'torn_wafer',nom:'Tornillo Wafer autotaladrante (chapa)',un:'un',rend:12},
   {id:'sellador_siliconico',nom:'Sellador silicónico (juntas)',un:'un',rend:0.3},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.5,esEquipo:true},
-  {id:'amoladora',nom:'Amoladora 4.5" (corte chapa)',un:'hh',rend:0.2,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:0.5,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5" (corte chapa)',un:'h-eq',rend:0.2,esEquipo:true},
  ],
  mo:[{rol:'of',hh:0.8},{rol:'ay',hh:0.6}]
 },
@@ -6762,8 +6771,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'PGU35_052',nom:'Montante 35mm (subestructura)',un:'m',rend:3.0},
   {id:'torn_T1_25',nom:'Tornillo T1 25mm',un:'un',rend:16},
   {id:'torn_wafer',nom:'Tornillo Wafer (chapa)',un:'un',rend:12},
-  {id:'atornillador',nom:'Atornillador inalámbrico',un:'hh',rend:0.7,esEquipo:true},
-  {id:'amoladora',nom:'Amoladora 4.5"',un:'hh',rend:0.2,esEquipo:true},
+  {id:'atornillador',nom:'Atornillador inalámbrico',un:'h-eq',rend:0.7,esEquipo:true},
+  {id:'amoladora',nom:'Amoladora 4.5"',un:'h-eq',rend:0.2,esEquipo:true},
  ],
  mo:[{rol:'of',hh:1.2},{rol:'ay',hh:0.9}]
 },
@@ -6793,7 +6802,7 @@ var CP_CATALOGO_EXTRA = [
  cat:'SOLADOS',
  mats:[
   {id:'201',nom:'Arena',un:'m³',rend:0.003},
-  {id:'1701',nom:'Cemento de contacto Fortex 101',un:'lts',rend:0.3},
+  {id:'1701',nom:'Cemento de contacto Fortex 101',un:'lt',rend:0.3},
   {id:'1715',nom:'Cinta de union p/cesped Ultrabond Turf Tape 30cm',un:'m',rend:0.35},
  ],
  mo:[]
@@ -6817,7 +6826,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1417',nom:'Tabla de Lenga 3" x 2"',un:'m',rend:4.0},
   {id:'611',nom:'Varilla roscada 1/2" x 1,00mts',un:'un',rend:0.3},
   {id:'609',nom:'Tornillo autoperf mecha cabeza hexag c/arandela  φ 6,3x50 (14 x 2")p/chapa',un:'un',rend:20.0},
-  {id:'1506',nom:'Protector para madera cetol',un:'lts',rend:0.2},
+  {id:'1506',nom:'Protector para madera cetol',un:'lt',rend:0.2},
  ],
  mo:[]
 },
@@ -6829,8 +6838,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',rend:3.0},
   {id:'467',nom:'Planchuela Hierro 2x3/16',un:'m',rend:7.53},
   {id:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m²',rend:5.0},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.02},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.02},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.02},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.02},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.01},
  ],
  mo:[]
@@ -6842,7 +6851,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'507',nom:'Malla Electrosoldada 50X50X3mm',un:'m²',rend:1.5},
   {id:'405',nom:'Tubo Redondo 2 x 2mm',un:'m',rend:1.4},
   {id:'463',nom:'Planchuela Hierro 1.1/2x3/16',un:'m',rend:0.25},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.02},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.02},
   {id:'104',nom:'H21 350kg',un:'m³',rend:0.024},
  ],
  mo:[]
@@ -6853,8 +6862,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',rend:6.0},
   {id:'467',nom:'Planchuela Hierro 2x3/16',un:'m',rend:3.5},
   {id:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m²',rend:1.5},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.02},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.02},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.02},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.02},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.01},
  ],
  mo:[]
@@ -6864,8 +6873,8 @@ var CP_CATALOGO_EXTRA = [
  mats:[
   {id:'467',nom:'Planchuela Hierro 2x3/16',un:'m',rend:4.5},
   {id:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m²',rend:2.5},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.026},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.026},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.026},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.026},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.017},
  ],
  mo:[]
@@ -6876,8 +6885,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',rend:1.0},
   {id:'467',nom:'Planchuela Hierro 2x3/16',un:'m',rend:4.5},
   {id:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m²',rend:2.5},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.026},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.026},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.026},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.026},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.017},
  ],
  mo:[]
@@ -6890,8 +6899,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',rend:2.6},
   {id:'467',nom:'Planchuela Hierro 2x3/16',un:'m',rend:6.7},
   {id:'510',nom:'Malla Sima 6mm Q188 2.40x6m',un:'m²',rend:2.5},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.02},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.02},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.02},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.02},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.01},
  ],
  mo:[]
@@ -6902,8 +6911,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'467',nom:'Planchuela Hierro 2x3/16',un:'m',rend:7.8},
   {id:'510',nom:'Malla Sima 6mm Q188 2.40x6m',un:'m²',rend:2.5},
   {id:'507',nom:'Malla Electrosoldada 50X50X3mm',un:'m²',rend:2.4},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.02},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.02},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.02},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.02},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.01},
  ],
  mo:[]
@@ -6913,8 +6922,8 @@ var CP_CATALOGO_EXTRA = [
  mats:[
   {id:'467',nom:'Planchuela Hierro 2x3/16',un:'m',rend:4.5},
   {id:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m²',rend:2.5},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.02},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.02},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.02},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.02},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.01},
  ],
  mo:[]
@@ -6924,9 +6933,9 @@ var CP_CATALOGO_EXTRA = [
  mats:[
   {id:'430',nom:'Tubo Cuadrado 100x100 x2.00mm',un:'m',rend:1.0},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.3},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.02},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.02},
-  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',rend:0.1},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.02},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.02},
+  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',rend:0.1},
  ],
  mo:[]
 },
@@ -6934,9 +6943,9 @@ var CP_CATALOGO_EXTRA = [
  cat:'CERCOS Y SEGURIDAD',
  mats:[
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.3},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.02},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.02},
-  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',rend:0.1},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.02},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.02},
+  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',rend:0.1},
  ],
  mo:[]
 },
@@ -6950,9 +6959,9 @@ var CP_CATALOGO_EXTRA = [
   {id:'454',nom:'Perfil Angulo Hierro 1 x 3/16',un:'m',rend:4.5},
   {id:'1107',nom:'Metal desplegado 150x300 6mm (620-30-60)',un:'m²',rend:1.35},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:2.0},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.2},
-  {id:'1505',nom:'Aguarras',un:'lts',rend:0.1},
-  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',rend:0.2},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.2},
+  {id:'1505',nom:'Aguarras',un:'lt',rend:0.1},
+  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',rend:0.2},
  ],
  mo:[]
 },
@@ -6963,7 +6972,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'401',nom:'Tubo Redondo 7/8 x 1.60mm',un:'m',rend:4.0},
   {id:'470',nom:'Tubo rectangular 60x40x2',un:'m',rend:1.0},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.15},
-  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',rend:0.05},
+  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',rend:0.05},
   {id:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',rend:0.1},
   {id:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',rend:0.2},
   {id:'1518',nom:'Diluyente Epoxi',un:'lt',rend:0.03},
@@ -6974,7 +6983,7 @@ var CP_CATALOGO_EXTRA = [
 {cod:'EP18',nom:'Protector impermeabilizante para piedra',un:'m²',
  cat:'PINTURAS Y SEÑALIZACIÓN',
  mats:[
-  {id:'1507',nom:'Protector hidrorepelente incoloro para piedra',un:'lts',rend:0.2},
+  {id:'1507',nom:'Protector hidrorepelente incoloro para piedra',un:'lt',rend:0.2},
  ],
  mo:[]
 },
@@ -6996,9 +7005,9 @@ var CP_CATALOGO_EXTRA = [
  cat:'ILUMINACIÓN EXTERIOR',
  mats:[
   {id:'104',nom:'H21 350kg',un:'m³',rend:0.1},
-  {id:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un.',rend:1.0},
-  {id:'2712',nom:'Luminaria urbana IEP FO5 CNX color gris forja',un:'un.',rend:1.0},
-  {id:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml.',rend:5.0},
+  {id:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un',rend:1.0},
+  {id:'2712',nom:'Luminaria urbana IEP FO5 CNX color gris forja',un:'un',rend:1.0},
+  {id:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml',rend:5.0},
   {id:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',rend:9.0},
   {id:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',rend:4.0},
   {id:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',rend:9.0},
@@ -7011,9 +7020,9 @@ var CP_CATALOGO_EXTRA = [
  cat:'ILUMINACIÓN EXTERIOR',
  mats:[
   {id:'104',nom:'H21 350kg',un:'m³',rend:0.8},
-  {id:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un.',rend:1.0},
-  {id:'2711',nom:'Luminaria urbana Bael STRADA',un:'un.',rend:1.0},
-  {id:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml.',rend:11.0},
+  {id:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un',rend:1.0},
+  {id:'2711',nom:'Luminaria urbana Bael STRADA',un:'un',rend:1.0},
+  {id:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml',rend:11.0},
   {id:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',rend:30.0},
   {id:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',rend:10.0},
   {id:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',rend:30.0},
@@ -7025,11 +7034,11 @@ var CP_CATALOGO_EXTRA = [
 {cod:'EP23',nom:'Provisión e instalación de luminarias triple GARDEN ECOTREBOL 300w con zanjeo (cada 15m)',un:'un',
  cat:'ILUMINACIÓN EXTERIOR',
  mats:[
-  {id:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un.',rend:1.0},
-  {id:'2718',nom:'Luminaria urbana GARDEN TREBOL 300W (3 de un de 100w con anclaje )',un:'un.',rend:1.0},
+  {id:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un',rend:1.0},
+  {id:'2718',nom:'Luminaria urbana GARDEN TREBOL 300W (3 de un de 100w con anclaje )',un:'un',rend:1.0},
   {id:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',rend:8.0},
   {id:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',rend:15.0},
-  {id:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml.',rend:9.0},
+  {id:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml',rend:9.0},
   {id:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',rend:15.0},
   {id:'2303',nom:'Tubo PVC φ 63 x 3,2 mm 4m Ramat Tigre Et',un:'m',rend:15.0},
   {id:'201',nom:'Arena',un:'m³',rend:0.9},
@@ -7040,11 +7049,11 @@ var CP_CATALOGO_EXTRA = [
 {cod:'EP24',nom:'Provisión e instalación de luminarias triple GARDEN ECOTREBOL 600w con zanjeo (cada 20m)',un:'un',
  cat:'ILUMINACIÓN EXTERIOR',
  mats:[
-  {id:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un.',rend:1.0},
-  {id:'2721',nom:'Luminaria urbana GARDEN TREBOL 600W (3 de un de 200w con anclaje )',un:'un.',rend:1.0},
+  {id:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un',rend:1.0},
+  {id:'2721',nom:'Luminaria urbana GARDEN TREBOL 600W (3 de un de 200w con anclaje )',un:'un',rend:1.0},
   {id:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',rend:10.0},
   {id:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',rend:20.0},
-  {id:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml.',rend:11.0},
+  {id:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml',rend:11.0},
   {id:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',rend:20.0},
   {id:'2303',nom:'Tubo PVC φ 63 x 3,2 mm 4m Ramat Tigre Et',un:'m',rend:20.0},
   {id:'201',nom:'Arena',un:'m³',rend:1.2},
@@ -7060,7 +7069,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'426',nom:'Tubo Cuadrado 40x40 x2.00mm',un:'m',rend:7.0},
   {id:'423',nom:'Tubo Cuadrado 20x20 x1.60mm',un:'m',rend:2.36},
   {id:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',rend:0.02},
-  {id:'1506',nom:'Protector para madera cetol',un:'lts',rend:0.02},
+  {id:'1506',nom:'Protector para madera cetol',un:'lt',rend:0.02},
   {id:'2202',nom:'Impresión sobre vinilo laminado',un:'m²',rend:1.4},
   {id:'104',nom:'H21 350kg',un:'m³',rend:0.09},
  ],
@@ -7083,7 +7092,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1110',nom:'Chapa Galvanizada Lisa N14 (2mm)',un:'m²',rend:0.16},
   {id:'461',nom:'Perfil Angulo Hierro 1.1/4 x1/8',un:'m',rend:3.0},
   {id:'503',nom:'Fe Ø8',un:'m',rend:0.5},
-  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',rend:0.01},
+  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',rend:0.01},
   {id:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',rend:0.012},
   {id:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',rend:0.04},
   {id:'1518',nom:'Diluyente Epoxi',un:'lt',rend:0.01},
@@ -7096,7 +7105,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'408',nom:'Tubo Redondo 3 x 3,2mm',un:'m',rend:19.0},
   {id:'407',nom:'Tubo Redondo 3 x 2.00mm',un:'m',rend:9.0},
   {id:'104',nom:'H21 350kg',un:'m³',rend:0.15},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.5},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.5},
   {id:'2124',nom:'Tablero basquet con Aro apto exterior',un:'un',rend:1.0},
  ],
  mo:[]
@@ -7107,8 +7116,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'103',nom:'H17 300kg',un:'m³',rend:0.01},
   {id:'469',nom:'Tubo rectangular 60x20x1,6',un:'m',rend:8.84},
   {id:'470',nom:'Tubo rectangular 60x40x2',un:'m',rend:8.6},
-  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',rend:0.01},
-  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',rend:0.26},
+  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',rend:0.01},
+  {id:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',rend:0.26},
   {id:'613',nom:'Anclaje Fisher Broca perno hormigon Fwa',un:'un',rend:4.0},
  ],
  mo:[]
@@ -7118,11 +7127,11 @@ var CP_CATALOGO_EXTRA = [
  mats:[
   {id:'1112',nom:'Chapa Lisa 3/16" (4,75mm)',un:'m²',rend:0.8},
   {id:'1416',nom:'Tabla de Lenga 4" x 2"',un:'m',rend:12.0},
-  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',rend:0.1},
+  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',rend:0.1},
   {id:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',rend:0.18},
   {id:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',rend:0.35},
   {id:'1518',nom:'Diluyente Epoxi',un:'lt',rend:0.02},
-  {id:'1506',nom:'Protector para madera cetol',un:'lts',rend:0.8},
+  {id:'1506',nom:'Protector para madera cetol',un:'lt',rend:0.8},
   {id:'613',nom:'Anclaje Fisher Broca perno hormigon Fwa',un:'un',rend:4.0},
  ],
  mo:[]
@@ -7132,11 +7141,11 @@ var CP_CATALOGO_EXTRA = [
  mats:[
   {id:'1112',nom:'Chapa Lisa 3/16" (4,75mm)',un:'m²',rend:0.45},
   {id:'1416',nom:'Tabla de Lenga 4" x 2"',un:'m',rend:1.7},
-  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',rend:0.05},
+  {id:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',rend:0.05},
   {id:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',rend:0.1},
   {id:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',rend:0.2},
   {id:'1518',nom:'Diluyente Epoxi',un:'lt',rend:0.03},
-  {id:'1506',nom:'Protector para madera cetol',un:'lts',rend:0.15},
+  {id:'1506',nom:'Protector para madera cetol',un:'lt',rend:0.15},
   {id:'613',nom:'Anclaje Fisher Broca perno hormigon Fwa',un:'un',rend:2.0},
  ],
  mo:[]
@@ -7214,7 +7223,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'104',nom:'Hormigón elaborado H21 350kg (MASCIOTRA)',un:'m³',rend:1.05},
   {id:'525',nom:'Hierro Torsionado 10mm',un:'m',kgBase:30,rend:48.6588},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.25},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.0,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:1.0,esEquipo:true},
  ],
  mo:[{rol:'of',hh:4.44},{rol:'ay',hh:4.44}]
 },
@@ -7231,8 +7240,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'214',nom:'Ripio (para hormigón)',un:'m³',rend:0.8},
   {id:'525',nom:'Hierro Torsionado 10mm',un:'m',kgBase:30,rend:48.6588},
   {id:'516',nom:'Alambre Negro (atar)',un:'kg',rend:0.25},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.0,esEquipo:true},
-  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:1.0,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'h-eq',rend:0.4,esEquipo:true},
  ],
  mo:[{rol:'of',hh:4.84},{rol:'ay',hh:4.84}]
 },
@@ -7246,7 +7255,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:23.1},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:13.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.18,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:2.18,esEquipo:true},
  ],
  mo:[{rol:'of',hh:9.22},{rol:'ay',hh:9.22}]
 },
@@ -7262,8 +7271,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:23.1},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:13.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.18,esEquipo:true},
-  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:2.18,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'h-eq',rend:0.4,esEquipo:true},
  ],
  mo:[{rol:'of',hh:9.62},{rol:'ay',hh:9.62}]
 },
@@ -7277,7 +7286,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.45,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:2.45,esEquipo:true},
  ],
  mo:[{rol:'of',hh:9.71},{rol:'ay',hh:9.71}]
 },
@@ -7293,8 +7302,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.45,esEquipo:true},
-  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:2.45,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'h-eq',rend:0.4,esEquipo:true},
  ],
  mo:[{rol:'of',hh:10.11},{rol:'ay',hh:10.11}]
 },
@@ -7306,7 +7315,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'524',nom:'Hierro Torsionado 8mm',un:'m',kgBase:60,rend:152.0588},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:20.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:0.25},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:1.3,esEquipo:true},
  ],
  mo:[{rol:'of',hh:5.78},{rol:'ay',hh:5.78}]
 },
@@ -7320,8 +7329,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'524',nom:'Hierro Torsionado 8mm',un:'m',kgBase:60,rend:152.0588},
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:20.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:0.25},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
-  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:1.3,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'h-eq',rend:0.4,esEquipo:true},
  ],
  mo:[{rol:'of',hh:6.18},{rol:'ay',hh:6.18}]
 },
@@ -7335,7 +7344,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.45,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:2.45,esEquipo:true},
  ],
  mo:[{rol:'of',hh:9.71},{rol:'ay',hh:9.71}]
 },
@@ -7351,8 +7360,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:40.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:12.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:3.0},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:2.45,esEquipo:true},
-  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:2.45,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'h-eq',rend:0.4,esEquipo:true},
  ],
  mo:[{rol:'of',hh:10.11},{rol:'ay',hh:10.11}]
 },
@@ -7366,7 +7375,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:6.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:16.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:1.3,esEquipo:true},
  ],
  mo:[{rol:'of',hh:5.09},{rol:'ay',hh:5.09}]
 },
@@ -7382,8 +7391,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'1420',nom:'Madera Tabla Pino Norte (encofrado)',un:'Pie²',rend:6.0},
   {id:'1421',nom:'Tirante Pino Norte (encofrado)',un:'Pie²',rend:16.0},
   {id:'610',nom:'Clavo punta paris 3"',un:'kg',rend:2.0},
-  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'hh',rend:1.3,esEquipo:true},
-  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'hh',rend:0.4,esEquipo:true},
+  {id:'3207',nom:'Vibrador de inmersion hp 8',un:'h-eq',rend:1.3,esEquipo:true},
+  {id:'3215',nom:'Hormigonera 130L (amortización)',un:'h-eq',rend:0.4,esEquipo:true},
  ],
  mo:[{rol:'of',hh:5.49},{rol:'ay',hh:5.49}]
 },
@@ -7402,15 +7411,15 @@ var CP_CATALOGO_EXTRA = [
 // mats con Retroexcavadora/Camión volcador agregados 04-sep-2026 a pedido de Diego: habilita la
 // calculadora de rendimiento por esponjamiento (ver cpDemoEsAplicable/CP_EXCAV_RETRO_M3H) para
 // excavación de tierra virgen en este ítem, en vez de dejar solo la MO estándar fija.
-{cod:'MS01',nom:'Excavación Bases (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'hh',rend:0,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'hh',rend:0,esEquipo:true}],mo:[{rol:'ay',hh:3.5}]},
-{cod:'MS02',nom:'Excavación Vigas de Fundación (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'hh',rend:0,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'hh',rend:0,esEquipo:true}],mo:[{rol:'ay',hh:4}]},
-{cod:'MS03',nom:'Excavación de Pilotines (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'hh',rend:0,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'hh',rend:0,esEquipo:true}],mo:[{rol:'ay',hh:5}]},
+{cod:'MS01',nom:'Excavación Bases (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0,esEquipo:true}],mo:[{rol:'ay',hh:3.5}]},
+{cod:'MS02',nom:'Excavación Vigas de Fundación (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0,esEquipo:true}],mo:[{rol:'ay',hh:4}]},
+{cod:'MS03',nom:'Excavación de Pilotines (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0,esEquipo:true}],mo:[{rol:'ay',hh:5}]},
 {cod:'MS04',nom:'Excavación de Cámaras de Instalación Cloacal (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4.5}]},
 {cod:'MS05',nom:'Excavación Cañería de Gas (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4.5}]},
 {cod:'MS06',nom:'Excavación Cañería Eléctrica (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4}]},
 {cod:'MS07',nom:'Excavación Cañería Agua Fría (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4}]},
 {cod:'MS08',nom:'Excavación Cañería Cloaca (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4.5}]},
-{cod:'MS09',nom:'Extracción de Suelo en Sector de Implantación (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'hh',rend:0,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'hh',rend:0,esEquipo:true}],mo:[{rol:'ay',hh:2.5}]},
+{cod:'MS09',nom:'Extracción de Suelo en Sector de Implantación (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0,esEquipo:true}],mo:[{rol:'ay',hh:2.5}]},
 {cod:'MS10',nom:'Compactación Suelo Seleccionado (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:0.8}]},
 // ══ ESTRUCTURA METÁLICA — incidencias ESTIMADAS de mercado (ajustar) ══
 {cod:'EM01',nom:'Estructura Metálica (MO estándar — verificar)',un:'m²',
@@ -7514,8 +7523,8 @@ var CP_CATALOGO_EXTRA = [
   {id:'tb_cuad_40x40',nom:'Tubo cuadrado 40x40x2mm (postes)',un:'m',rend:0.9},
   {id:'507',nom:'Malla Electrosoldada 50x50x3mm (paño)',un:'m²',rend:2.0},
   {id:'104',nom:'H21 350kg (bases de postes)',un:'m³',rend:0.02},
-  {id:'1508',nom:'Esmalte Sintético Tersuave 3en1 (terminación)',un:'lts',rend:0.03},
-  {id:'1505',nom:'Aguarrás',un:'lts',rend:0.03},
+  {id:'1508',nom:'Esmalte Sintético Tersuave 3en1 (terminación)',un:'lt',rend:0.03},
+  {id:'1505',nom:'Aguarrás',un:'lt',rend:0.03},
   {id:'519',nom:'Electrodos 2.5 (soldadura postes)',un:'kg',rend:0.05},
  ],
  mo:[{rol:'of',hh:0.7},{rol:'ay',hh:0.7}]
@@ -7532,7 +7541,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1423',nom:'Poste de Madera Rollizo Ø14-16cm Impregnado CCA',un:'m',rend:0.9},
   {id:'1415',nom:'Tabla de Lenga 1" x 6" (cerramiento)',un:'m',rend:3.5},
   {id:'clavo_pp_3',nom:'Clavo punta París 3" (fijación tablas)',un:'kg',rend:0.15},
-  {id:'1506',nom:'Protector para madera cetol (terminación)',un:'lts',rend:0.08},
+  {id:'1506',nom:'Protector para madera cetol (terminación)',un:'lt',rend:0.08},
  ],
  mo:[{rol:'of',hh:0.8},{rol:'ay',hh:0.8}]
 },
@@ -7543,7 +7552,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'1425',nom:'Poste de Madera Cuadrado 15x15cm Impregnado CCA',un:'m',rend:0.9},
   {id:'1415',nom:'Tabla de Lenga 1" x 6" (cerramiento)',un:'m',rend:3.5},
   {id:'clavo_pp_3',nom:'Clavo punta París 3" (fijación tablas)',un:'kg',rend:0.15},
-  {id:'1506',nom:'Protector para madera cetol (terminación)',un:'lts',rend:0.08},
+  {id:'1506',nom:'Protector para madera cetol (terminación)',un:'lt',rend:0.08},
  ],
  mo:[{rol:'of',hh:0.8},{rol:'ay',hh:0.8}]
 },
@@ -7977,7 +7986,7 @@ function apuRenderMatsTable(it){
     var rn={ofEsp:'Of. Esp.',of:'Oficial',mo:'Medio Of.',ay:'Ayudante'}[m.rol]||m.rol;
     h+='<tr style="border-bottom:1px solid var(--br);background:rgba(251,191,36,.05)">';
     h+='<td style="padding:3px 5px;color:var(--golt)">⚒ MO — '+rn+'</td>';
-    h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">hs</td>';
+    h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">hh</td>';
     h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" title="Horas por 1 '+(it.un||'un')+'" value="'+hh+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUMO(\'apu:'+it.cod+'\','+mi+',\'hh\',v);" style="width:75px;text-align:right;font-weight:700;color:var(--bt)"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--tx3)">$'+pu.toLocaleString('es-AR')+'</td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:700">$'+sub.toLocaleString('es-AR')+'</td>';
@@ -8753,6 +8762,149 @@ function cpCantBarras(cant,desp,largo){
   if(!largo||largo<=0)largo=6;
   return Math.ceil((cant*(1+(desp||0)/100))/largo);
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// FASE B — 07-sep-2026: tipificación de recursos + Auditor automático de APU
+// (Orden Maestra de Diego: reestructuración del módulo Análisis de Precios).
+// Todo lo de acá abajo es SOLO estructura/lectura: no cambia ningún rendimiento,
+// consumo ni precio existente. Ver AUDITORIA_FASE_A.md y CRITERIO_UNICO_FUENTES.md
+// en la raíz del repo para el diagnóstico completo y las fuentes usadas.
+// ═══════════════════════════════════════════════════════════════════════
+
+// cpTipoRecurso: clasifica un recurso en MATERIAL / MANO_OBRA / EQUIPO, DERIVADO
+// de los datos que ya existen (nunca un campo nuevo a mantener a mano, para que
+// no se pueda desincronizar): si tiene `rol` es de mo[] => MANO_OBRA; si tiene
+// `esEquipo:true` => EQUIPO; si no, => MATERIAL. `contexto` es opcional ('mats'|'mo'),
+// solo para desambiguar si algún día un mismo objeto se reutiliza en otro array.
+function cpTipoRecurso(m, contexto){
+  if(!m)return null;
+  if(contexto==='mo'||m.rol!=null)return 'MANO_OBRA';
+  if(m.esEquipo)return 'EQUIPO';
+  return 'MATERIAL';
+}
+
+// Unidades reconocidas como "de equipo" — cualquier recurso con esEquipo:true
+// debería usar 'h-eq' (hora-equipo), nunca 'hh' (hora-hombre, exclusivo de MO).
+var CP_UNIDADES_EQUIPO = ['h-eq'];
+var CP_UNIDADES_MO = ['hh'];
+
+// cpAuditarAPU: recorre CP_CATALOGO (la biblioteca completa) y devuelve un
+// listado de hallazgos clasificados CORRECTO/ADVERTENCIA/ERROR, por ítem.
+// Cubre el subconjunto de chequeos de la Etapa 22 que se puede verificar de
+// forma 100% automática a partir de los datos ya cargados (sin necesitar una
+// fuente externa): unidades de equipo/MO cruzadas, material sin unidad,
+// consumo o precio en cero, recurso duplicado dentro del mismo ítem, ítem sin
+// mano de obra, ítem marcado "(verificar)" en su propio nombre, y unidades no
+// normalizadas. No evalúa nada que requiera una fuente técnica externa (eso
+// es la Fase D, ítem por ítem, con vos).
+function cpAuditarAPU(){
+  var hallazgos=[];
+  var UNIDADES_VALIDAS=['m','m²','m2','m³','m3','kg','un','lt','gl','h-eq','hh','Pie²','ml'];
+  if(typeof CP_CATALOGO==='undefined')return {hallazgos:hallazgos,resumen:{CORRECTO:0,ADVERTENCIA:0,ERROR:0}};
+  CP_CATALOGO.forEach(function(it){
+    var vistos={};
+    (it.mats||[]).forEach(function(m){
+      // equipo con unidad de mano de obra (o viceversa)
+      if(m.esEquipo && m.un==='hh'){
+        hallazgos.push({cod:it.cod,item:it.nom,severidad:'ERROR',tipo:'UNIDAD_EQUIPO_COMO_HH',
+          detalle:'"'+(m.nom||m.id)+'" es equipo pero está cargado con unidad "hh" (hora-hombre) en vez de "h-eq" (hora-equipo).'});
+      }
+      if(!m.esEquipo && m.un==='h-eq'){
+        hallazgos.push({cod:it.cod,item:it.nom,severidad:'ERROR',tipo:'MATERIAL_COMO_HEQ',
+          detalle:'"'+(m.nom||m.id)+'" no está marcado como equipo pero usa unidad "h-eq".'});
+      }
+      // material sin unidad
+      if(!m.un){
+        hallazgos.push({cod:it.cod,item:it.nom,severidad:'ERROR',tipo:'SIN_UNIDAD',
+          detalle:'"'+(m.nom||m.id)+'" no tiene unidad cargada.'});
+      } else if(UNIDADES_VALIDAS.indexOf(m.un)===-1){
+        hallazgos.push({cod:it.cod,item:it.nom,severidad:'ADVERTENCIA',tipo:'UNIDAD_NO_NORMALIZADA',
+          detalle:'"'+(m.nom||m.id)+'" usa la unidad "'+m.un+'", que no está en la lista normalizada.'});
+      }
+      // consumo/rendimiento en cero o ausente
+      if(m.rend==null || m.rend===0){
+        hallazgos.push({cod:it.cod,item:it.nom,severidad:'ADVERTENCIA',tipo:'CONSUMO_CERO',
+          detalle:'"'+(m.nom||m.id)+'" tiene consumo/rendimiento '+(m.rend==null?'ausente':'igual a 0')+' — revisar antes de presupuestar con este ítem.'});
+      }
+      // precio en cero (contra el diccionario ya sincronizado desde PR_DATA)
+      var puResuelto=m.pu||(typeof CP_PRECIOS_MAT!=='undefined'?CP_PRECIOS_MAT[m.id]:0)||0;
+      if(!puResuelto){
+        hallazgos.push({cod:it.cod,item:it.nom,severidad:'ADVERTENCIA',tipo:'PRECIO_CERO',
+          detalle:'"'+(m.nom||m.id)+'" no tiene precio cargado en el Listado de Precios.'});
+      }
+      // recurso duplicado dentro del mismo ítem
+      if(m.id){
+        if(vistos[m.id]){
+          hallazgos.push({cod:it.cod,item:it.nom,severidad:'ERROR',tipo:'RECURSO_DUPLICADO',
+            detalle:'El recurso "'+m.id+'" aparece más de una vez en el mismo ítem.'});
+        }
+        vistos[m.id]=true;
+      }
+    });
+    // ítem sin mano de obra
+    if(!(it.mo||[]).length){
+      hallazgos.push({cod:it.cod,item:it.nom,severidad:'ADVERTENCIA',tipo:'SIN_MANO_DE_OBRA',
+        detalle:'Este ítem no tiene ninguna línea de mano de obra cargada.'});
+    }
+    // nombre auto-marcado como pendiente de verificar por una sesión anterior
+    if(/verificar/i.test(it.nom||'')){
+      hallazgos.push({cod:it.cod,item:it.nom,severidad:'ADVERTENCIA',tipo:'PENDIENTE_DE_VALIDACION',
+        detalle:'El nombre del ítem indica que ya estaba marcado como pendiente de verificar.'});
+    }
+  });
+  var resumen={CORRECTO:0,ADVERTENCIA:0,ERROR:0};
+  var itemsConHallazgo={};
+  hallazgos.forEach(function(h){resumen[h.severidad]=(resumen[h.severidad]||0)+1;itemsConHallazgo[h.cod]=true;});
+  resumen.CORRECTO=(CP_CATALOGO.length-Object.keys(itemsConHallazgo).length);
+  return {hallazgos:hallazgos,resumen:resumen,totalItems:CP_CATALOGO.length};
+}
+
+// apuMostrarAuditoria: corre cpAuditarAPU() y renderiza el resultado en un
+// modal simple (reutiliza el patrón de modales ya existente en la app).
+function apuMostrarAuditoria(){
+  var r=cpAuditarAPU();
+  var el=document.getElementById('apu-audit-body');
+  if(!el)return;
+  var porTipo={};
+  r.hallazgos.forEach(function(h){(porTipo[h.tipo]=porTipo[h.tipo]||[]).push(h);});
+  var h='<div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap">'
+    +'<div style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:8px;background:rgba(34,197,94,.1)"><div style="font-size:22px;font-weight:800;color:var(--gt)">'+r.resumen.CORRECTO+'</div><div style="font-size:10px;color:var(--tx3)">ítems sin hallazgos</div></div>'
+    +'<div style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:8px;background:rgba(251,191,36,.1)"><div style="font-size:22px;font-weight:800;color:var(--golt)">'+(r.resumen.ADVERTENCIA||0)+'</div><div style="font-size:10px;color:var(--tx3)">advertencias</div></div>'
+    +'<div style="flex:1;min-width:120px;text-align:center;padding:10px;border-radius:8px;background:rgba(239,68,68,.1)"><div style="font-size:22px;font-weight:800;color:var(--rt)">'+(r.resumen.ERROR||0)+'</div><div style="font-size:10px;color:var(--tx3)">errores</div></div>'
+    +'</div>';
+  if(!r.hallazgos.length){
+    h+='<div style="font-size:12px;color:var(--tx3)">No se encontraron hallazgos automáticos. Esto NO reemplaza la revisión técnica ítem por ítem contra fuente (Fase D) — solo cubre lo verificable por consistencia interna.</div>';
+  }else{
+    Object.keys(porTipo).sort().forEach(function(tipo){
+      var arr=porTipo[tipo];
+      h+='<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">'+tipo.replace(/_/g,' ')+' ('+arr.length+')</div>'
+        +'<table style="width:100%;font-size:10px;border-collapse:collapse">'
+        +arr.map(function(x){
+          var color=x.severidad==='ERROR'?'var(--rt)':'var(--golt)';
+          return '<tr style="border-bottom:1px solid var(--br)"><td style="padding:3px 5px;color:'+color+';font-weight:700;white-space:nowrap">'+x.severidad+'</td><td style="padding:3px 5px;white-space:nowrap">'+x.cod+'</td><td style="padding:3px 5px;color:var(--tx3)">'+x.item+'</td><td style="padding:3px 5px">'+x.detalle+'</td></tr>';
+        }).join('')
+        +'</table></div>';
+    });
+  }
+  el.innerHTML=h;
+  var m=document.getElementById('mod-apu-audit');
+  if(m)m.classList.add('open');
+}
+
+// APU_HISTORIAL: versionado de cambios a rendimiento/consumo (paralelo a
+// PR_HISTORIAL, que ya existe y cubre solo precios). Scaffolding para la
+// Fase D — todavía no se le escribe nada, ningún rendimiento se tocó en esta
+// etapa. Formato de cada entrada: cod, campo, valor_anterior, valor_nuevo,
+// fecha, motivo, fuente, usuario.
+var APU_HISTORIAL = (typeof APU_HISTORIAL!=='undefined')?APU_HISTORIAL:[];
+function apuRegistrarCambio(cod, campo, valorAnterior, valorNuevo, motivo, fuente, usuario){
+  APU_HISTORIAL.push({
+    cod:cod, campo:campo, valor_anterior:valorAnterior, valor_nuevo:valorNuevo,
+    fecha:new Date().toISOString(), motivo:motivo||'', fuente:fuente||'',
+    usuario:usuario||'Diego Rojas'
+  });
+}
+
 function cpRenderMats(it){
   var qty=cpQty(it.dims,it.un);
   var h='';
@@ -8809,8 +8961,8 @@ function cpRenderMats(it){
     var rendUH=hh>0?(Math.round((1/hh)*1000)/1000):0;
     h+='<tr style="border-bottom:1px solid var(--br);background:rgba(251,191,36,.05)">';
     h+='<td style="padding:3px 5px;color:var(--golt)">\u2692 MO \u2014 '+rn+'</td>';
-    h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">hs</td>';
-    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" title="Horas por unidad (hs/'+it.un+')" value="'+hh+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUMO(\''+it.id+'\','+mi+',\'hh\',v);" style="width:75px;text-align:right"></td>';
+    h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">hh</td>';
+    h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" title="Horas por unidad (hh/'+it.un+')" value="'+hh+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUMO(\''+it.id+'\','+mi+',\'hh\',v);" style="width:75px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:600">'+hs.toLocaleString('es-AR',{maximumFractionDigits:2})+' hs</td>';
     h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" title="Rendimiento ('+it.un+'/hora) — ajustalo y las horas se recalculan solas" value="'+rendUH+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>0)cpUMO(\''+it.id+'\','+mi+',\'hh\',Math.round((1/v)*10000)/10000);" style="width:60px;text-align:right;color:var(--bt)"></td>';
     h+='<td style="text-align:right;padding:3px 5px"><span style="color:var(--tx3)">—</span></td>';
@@ -9220,7 +9372,7 @@ function cpAplicarCatalogoAItem(it,cod){
   });
   var equip_items=(cat.mats||[]).filter(function(m){return m.esEquipo;}).map(function(m){
     var pu=_getPU(m.id, m.pu||0);
-    return {id:m.id,nom:m.nom,un:m.un||'hh',rend:m.rend||1,pu:pu,esEquipo:true,
+    return {id:m.id,nom:m.nom,un:m.un||'h-eq',rend:m.rend||1,pu:pu,esEquipo:true,
             sinPrecio:pu===0};
   });
   it.mats=it.mats.concat(equip_items);
@@ -9403,7 +9555,7 @@ function cpUMO(iid,mi,campo,val){var it=cpFindItem(iid);if(!it||!it.mo[mi])retur
 function cpBorrarMat(iid,mi){var it=cpFindItem(iid);if(!it)return;it.mats.splice(mi,1);cpRenderActive(iid);}
 function cpBorrarMO(iid,mi){var it=cpFindItem(iid);if(!it)return;it.mo.splice(mi,1);cpRenderActive(iid);}
 function cpAgregarMat(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'_'+cpNID(),nom:'Nuevo material',un:'m\u00b2',rend:1,pu:0,esEquipo:false});cpRender();}
-function cpAgregarEquipo(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'_'+cpNID(),nom:'Nuevo equipo',un:'hh',rend:1,pu:0,esEquipo:true});cpRender();}
+function cpAgregarEquipo(iid){var it=cpFindItem(iid);if(!it)return;it.mats.push({id:'_'+cpNID(),nom:'Nuevo equipo',un:'h-eq',rend:1,pu:0,esEquipo:true});cpRender();}
 function cpAgregarMO(iid){var it=cpFindItem(iid);if(!it)return;it.mo.push({rol:'of',hh:1,pu:(typeof apuGetMOpu==='function'?apuGetMOpu('of'):0)});cpRender();}
 var CP_PICKER_MAT_IID=null;
 function cpAbrirPickerMat(iid){
@@ -11009,7 +11161,7 @@ var PR_DATA = [
 {cod:'465',nom:'Planchuela Hierro 1/2x3/16',cat:'PERFILES HIERRO NEGRO',un:'m',pu:1742.84,medida:'barra 6m = $10.457,04',fuente:'Corregido: el valor de v58 (fuente genérica "IMCOFUE" sin verificación en vivo) provenía de datos de búsqueda desactualizados. Precio real vigente confirmado por relevamiento en vivo del catálogo IMCOFUE, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'466',nom:'Planchuela Hierro 2.1/2x3/16\'',cat:'PERFILES HIERRO NEGRO',un:'m',pu:8277.87,medida:'barra 6m = $49.667,20',fuente:'Completado: precio real vigente IMCOFUE (imcofue.com.ar/planchuela-hierro-2-1-2x3-16-x-6m) — no tenía precio cargado',modif:0,fecha:'2026-07'},
 {cod:'467',nom:'Planchuela Hierro 2x3/16',cat:'PERFILES HIERRO NEGRO',un:'m',pu:6081.24,medida:'barra 6m = $36.487,44',fuente:'Actualizado: pequeña variación de precio (~2%) detectada en relevamiento en vivo del catálogo IMCOFUE, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
-{cod:'468',nom:'Anclaje barandas (platina 1/8 + 4 Fe8)',cat:'PERFILES HIERRO NEGRO',un:'u',pu:2102.14,medida:'u',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'468',nom:'Anclaje barandas (platina 1/8 + 4 Fe8)',cat:'PERFILES HIERRO NEGRO',un:'un',pu:2102.14,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'469',nom:'Tubo rectangular 60x20x1,6',cat:'PERFILES HIERRO NEGRO',un:'m',pu:6010.6,medida:'barra 6m = $36.064',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'470',nom:'Tubo rectangular 60x40x2',cat:'PERFILES HIERRO NEGRO',un:'m',pu:8466.15,medida:'barra 6m = $50.797',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 // ── BARRAS Y MALLAS ──
@@ -11080,7 +11232,7 @@ var PR_DATA = [
 {cod:'701',nom:'Cinta Tramada Autoadhesiva 50 mm',cat:'CONSTRUCCIÓN EN SECO',un:'m',pu:73.82,medida:'m',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'702',nom:'Cinta Papel Microperforada 50mm',cat:'CONSTRUCCIÓN EN SECO',un:'m',pu:68.01,medida:'m',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'703',nom:'Masilla para Yeso',cat:'CONSTRUCCIÓN EN SECO',un:'kg',pu:1477.64,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'704',nom:'Enduido Interior',cat:'CONSTRUCCIÓN EN SECO',un:'lts',pu:6273,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'704',nom:'Enduido Interior',cat:'CONSTRUCCIÓN EN SECO',un:'lt',pu:6273,medida:'lt',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'705',nom:'Masilla para placa cementicia',cat:'CONSTRUCCIÓN EN SECO',un:'kg',pu:13992.13,medida:'kg',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
 {cod:'706',nom:'Tapa de Inspección Durlock 40x40mm Marco Oculto',cat:'CONSTRUCCIÓN EN SECO',un:'un',pu:109573,medida:'un',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'707',nom:'Tapa de Inspección Durlock 60x60mm Marco Oculto',cat:'CONSTRUCCIÓN EN SECO',un:'un',pu:142595,medida:'un',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
@@ -11100,7 +11252,7 @@ var PR_DATA = [
 {cod:'808',nom:'Poliestireno expandido 50mm',cat:'AISLACIONES',un:'m²',pu:16571.04,medida:'m² (Plancha Telgopor 1x1m)',fuente:'Actualizado: Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'809',nom:'Poliestireno expandido 25mm',cat:'AISLACIONES',un:'m²',pu:8240.49,medida:'m² (Plancha Telgopor 1x1m)',fuente:'Actualizado: Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'810',nom:'Malla Refuerzo para membrana liquida SikaTex 75 (1.05x25m)',cat:'AISLACIONES',un:'m²',pu:3781.45,medida:'m² (rollo 1.05x25m=26.25m2 $99.263,00)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
-{cod:'811',nom:'Membrana Liquida Megaflex transitable',cat:'AISLACIONES',un:'lts',pu:0,medida:'lts',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'811',nom:'Membrana Liquida Megaflex transitable',cat:'AISLACIONES',un:'lt',pu:0,medida:'lt',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'812',nom:'Membrana Bajo Piso Megaflex Geocen',cat:'AISLACIONES',un:'m²',pu:0,medida:'m²',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'813',nom:'Membrana No Transitable Megaflex con aluminio tipo No Crack',cat:'AISLACIONES',un:'m²',pu:0,medida:'m²',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'814',nom:'Membrana Transitable Megaflex tipo Geotrans',cat:'AISLACIONES',un:'m²',pu:0,medida:'m²',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
@@ -11242,19 +11394,19 @@ var PR_DATA = [
 {cod:'1425',nom:'Poste de Madera Cuadrado (aserrado) 15x15cm Impregnado CCA',cat:'POSTES Y CERCOS',un:'m',pu:7070,medida:'m — estimado, equivalente aserrado del rollizo Ø14-16cm',fuente:'Estimado (+30% sobre el poste rollizo equivalente, por desperdicio de aserrado) — no se encontró precio real de poste cuadrado con venta/envío a Ushuaia; verificar con maderera local antes de una obra grande',modif:0,fecha:'2026-08'},
 
 // ── PINTURAS ──
-{cod:'1501',nom:'Latex interior lavable',cat:'PINTURAS',un:'lts',pu:12680,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'1502',nom:'Latex exterior',cat:'PINTURAS',un:'lts',pu:12596,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'1503',nom:'Pintura Epoxi Alto Transito',cat:'PINTURAS',un:'lts',pu:36377.5,medida:'lts',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
-{cod:'1504',nom:'Sellador Fijador al agua premium alba',cat:'PINTURAS',un:'lts',pu:8398,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'1505',nom:'Aguarras',cat:'PINTURAS',un:'lts',pu:9261,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'1506',nom:'Protector para madera cetol',cat:'PINTURAS',un:'lts',pu:25910,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'1507',nom:'Protector hidrorepelente incoloro para piedra',cat:'PINTURAS',un:'lts',pu:10725,medida:'lts',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
-{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',cat:'PINTURAS',un:'lts',pu:21163.75,medida:'lts',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
-{cod:'1509',nom:'Membrana liquida',cat:'PINTURAS',un:'lts',pu:13287,medida:'lts (Membrana Liquida Sikalastic 560 Bco 20kg $265.740,00)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
-{cod:'1510',nom:'Antioxido Tersuave',cat:'PINTURAS',un:'lts',pu:14587,medida:'lts (Antioxido Cromato Zinc Mate Rojo 4L Tersuave $58.348,00, variante estandar)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
-{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',cat:'PINTURAS',un:'lts',pu:13595.68,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'1512',nom:'Convertidor de oxido',cat:'PINTURAS',un:'lts',pu:22869,medida:'lts',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'1513',nom:'Pintura Asfáltica Clipper',cat:'PINTURAS',un:'lts',pu:4234.72,medida:'lts - no se encontro marca Clipper; se uso Pintura Asfaltica 18L Intec real disponible, mismo producto generico',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1501',nom:'Latex interior lavable',cat:'PINTURAS',un:'lt',pu:12680,medida:'lt',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1502',nom:'Latex exterior',cat:'PINTURAS',un:'lt',pu:12596,medida:'lt',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1503',nom:'Pintura Epoxi Alto Transito',cat:'PINTURAS',un:'lt',pu:36377.5,medida:'lt',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'1504',nom:'Sellador Fijador al agua premium alba',cat:'PINTURAS',un:'lt',pu:8398,medida:'lt',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1505',nom:'Aguarras',cat:'PINTURAS',un:'lt',pu:9261,medida:'lt',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1506',nom:'Protector para madera cetol',cat:'PINTURAS',un:'lt',pu:25910,medida:'lt',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1507',nom:'Protector hidrorepelente incoloro para piedra',cat:'PINTURAS',un:'lt',pu:10725,medida:'lt',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',cat:'PINTURAS',un:'lt',pu:21163.75,medida:'lt',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'1509',nom:'Membrana liquida',cat:'PINTURAS',un:'lt',pu:13287,medida:'lts (Membrana Liquida Sikalastic 560 Bco 20kg $265.740,00)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1510',nom:'Antioxido Tersuave',cat:'PINTURAS',un:'lt',pu:14587,medida:'lts (Antioxido Cromato Zinc Mate Rojo 4L Tersuave $58.348,00, variante estandar)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',cat:'PINTURAS',un:'lt',pu:13595.68,medida:'lt',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1512',nom:'Convertidor de oxido',cat:'PINTURAS',un:'lt',pu:22869,medida:'lt',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1513',nom:'Pintura Asfáltica Clipper',cat:'PINTURAS',un:'lt',pu:4234.72,medida:'lts - no se encontro marca Clipper; se uso Pintura Asfaltica 18L Intec real disponible, mismo producto generico',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'1514',nom:'Revear Revex Fino',cat:'PINTURAS',un:'kg',pu:0,medida:'kg',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'1515',nom:'Revear Base Niveladora',cat:'PINTURAS',un:'kg',pu:0,medida:'kg',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'1516',nom:'Pintura Vial amarilla',cat:'PINTURAS',un:'lt',pu:29618,medida:'lt',fuente:'pintureriamafer',modif:0,fecha:'2026-06'},
@@ -11263,7 +11415,7 @@ var PR_DATA = [
 {cod:'1519',nom:'Esmalte epoxi bicomponente',cat:'PINTURAS',un:'lt',pu:33844,medida:'lt',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
 {cod:'1521',nom:'Fondo anticorrosivo epoxi',cat:'PINTURAS',un:'lt',pu:32999,medida:'lt',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
 // ── SOLADOS ──
-{cod:'1701',nom:'Cemento de contacto Fortex 101',cat:'SOLADOS',un:'lts',pu:10763.33,medida:'lts',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'1701',nom:'Cemento de contacto Fortex 101',cat:'SOLADOS',un:'lt',pu:10763.33,medida:'lt',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
 {cod:'1714',nom:'Adhesivo poliuretanico p/ piso caucho',cat:'SOLADOS',un:'kg',pu:27370,medida:'kg',fuente:'pinturex',modif:0,fecha:'2026-06'},
 {cod:'1715',nom:'Cinta de union p/cesped Ultrabond Turf Tape 30cm',cat:'SOLADOS',un:'m',pu:3999.8,medida:'m',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
 {cod:'1716',nom:'Endurecedor de superficie Sealkrete',cat:'SOLADOS',un:'kg',pu:3373.72,medida:'kg',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
@@ -11323,10 +11475,10 @@ var PR_DATA = [
 {cod:'2201',nom:'Letras Corpóreas polifan 20mm con imitacion acero inox',cat:'IMPRESIÓN Y CARTELERÍA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'2202',nom:'Impresión sobre vinilo laminado',cat:'IMPRESIÓN Y CARTELERÍA',un:'m²',pu:32000,medida:'m²',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 // ── MANO DE OBRA ──
-{cod:'MO1',nom:'Oficial Especializado',cat:'MANO DE OBRA',un:'hs',pu:26067,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
-{cod:'MO2',nom:'Oficial',cat:'MANO DE OBRA',un:'hs',pu:22299,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
-{cod:'MO3',nom:'Medio Oficial',cat:'MANO DE OBRA',un:'hs',pu:20608,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
-{cod:'MO4',nom:'Ayudante',cat:'MANO DE OBRA',un:'hs',pu:18968,medida:'hs',fuente:'UOCRA-MUN USH 2026',modif:0},
+{cod:'MO1',nom:'Oficial Especializado',cat:'MANO DE OBRA',un:'hh',pu:26067,medida:'hh',fuente:'UOCRA-MUN USH 2026',modif:0},
+{cod:'MO2',nom:'Oficial',cat:'MANO DE OBRA',un:'hh',pu:22299,medida:'hh',fuente:'UOCRA-MUN USH 2026',modif:0},
+{cod:'MO3',nom:'Medio Oficial',cat:'MANO DE OBRA',un:'hh',pu:20608,medida:'hh',fuente:'UOCRA-MUN USH 2026',modif:0},
+{cod:'MO4',nom:'Ayudante',cat:'MANO DE OBRA',un:'hh',pu:18968,medida:'hh',fuente:'UOCRA-MUN USH 2026',modif:0},
 // ── EQUIPOS ──
 {cod:'3201',nom:'Retroexcavadora',cat:'EQUIPOS',un:'hh',pu:125000,medida:'hh',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'3202',nom:'Camion volcador 6m3 -camion c/semi',cat:'EQUIPOS',un:'hh',pu:112500,medida:'hh',fuente:'Corregido: precio real obra municipal \'Oficina de Turismo\' (jun-2025) $90.000/hh + 25% ajuste inflación interanual (mismo % verificado en Mano de Obra y Retroexcavadora E80HP del mismo período) — precio anterior ($198.200) estaba mal cargado, ~2,2x por encima de lo real',modif:0,fecha:'2026-07'},
@@ -11475,42 +11627,42 @@ var PR_DATA = [
 {cod:'3109',nom:'Pomo Yale Roma para Cerradura de Embutir',cat:'HERRAJES',un:'un',pu:16566,medida:'un',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 {cod:'3110',nom:'Gancho contra viento 15cm FHC',cat:'HERRAJES',un:'un',pu:4221.15,medida:'un (p/ventana proyectante/batiente)',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
 // ── INCENDIO Y EMERGENCIA ──
-{cod:'2801',nom:'Central de Alarma 4 Zonas',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2802',nom:'Teclado alarma 4 zonas',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2803',nom:'Detector de humo fotoeléctrico',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2804',nom:'Detector termovelocimétrico',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2805',nom:'Detector de gas',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2806',nom:'Estación de aviso manual doble acción',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2807',nom:'Zumbador con luz estroboscópica',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2808',nom:'Sirena exterior con luz estroboscópica',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2809',nom:'Extintor ABC × 5 kg',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2810',nom:'Chapa baliza para extintor ABC con soporte p/pared',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2811',nom:'Sensor infrarrojo inalámbrico',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2812',nom:'Combo Incendio: Gabinete + Lanza + Manguera + Valvula',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2813',nom:'Caño de Hierro IRAM 2502 negro 6.4m',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2814',nom:'Equipo de Bombas Contra Incendio ( 2 electrobomba cntrifuga 10HP - 1 bomba jockey 4HP - 1 pulmon amortiguador 60 lts - 1 colector de aspiración 3" - 1 colector de impulsión 3" - 1 tablero electrico - 1 sistema de automatizacion )',cat:'INCENDIO Y EMERGENCIA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2801',nom:'Central de Alarma 4 Zonas',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2802',nom:'Teclado alarma 4 zonas',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2803',nom:'Detector de humo fotoeléctrico',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2804',nom:'Detector termovelocimétrico',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2805',nom:'Detector de gas',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2806',nom:'Estación de aviso manual doble acción',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2807',nom:'Zumbador con luz estroboscópica',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2808',nom:'Sirena exterior con luz estroboscópica',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2809',nom:'Extintor ABC × 5 kg',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2810',nom:'Chapa baliza para extintor ABC con soporte p/pared',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2811',nom:'Sensor infrarrojo inalámbrico',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2812',nom:'Combo Incendio: Gabinete + Lanza + Manguera + Valvula',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2813',nom:'Caño de Hierro IRAM 2502 negro 6.4m',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2814',nom:'Equipo de Bombas Contra Incendio ( 2 electrobomba cntrifuga 10HP - 1 bomba jockey 4HP - 1 pulmon amortiguador 60 lts - 1 colector de aspiración 3" - 1 colector de impulsión 3" - 1 tablero electrico - 1 sistema de automatizacion )',cat:'INCENDIO Y EMERGENCIA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 // ── INSTALACIÓN ELÉCTRICA ──
 {cod:'2701',nom:'Cable unipolar 2,5mm (precio x3:vivo neutro tierra)',cat:'INSTALACIÓN ELÉCTRICA',un:'m',pu:2627.95,medida:'m (3x $875.98/m, rollo 100m Imsa $87.598,36)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',cat:'INSTALACIÓN ELÉCTRICA',un:'m',pu:2337.44,medida:'m',fuente:'electromedina',modif:0,fecha:'2026-06'},
 {cod:'2703',nom:'Cable subterraneo bipolar 2x4mm',cat:'INSTALACIÓN ELÉCTRICA',un:'m',pu:3458.93,medida:'m',fuente:'electromedina',modif:0,fecha:'2026-06'},
 {cod:'2704',nom:'Cañerias y accesorios para la instalacion eléctrica',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:23110,medida:'un',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
-{cod:'2705',nom:'Pilar monofasico + kit completo',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:274395,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2706',nom:'Caja 6 modulos + kit 2 termicas 2x15amp + 1 disyuntor 2x25amp Sica',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:35376,medida:'un.',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
-{cod:'2707',nom:'Jabalina lisa 5/8" x 1,50m',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:19581,medida:'un.',fuente:'elreydelcable',modif:0,fecha:'2026-06'},
-{cod:'2708',nom:'Caja inspeccion de PCV 15x15cm',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:4096,medida:'un.',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
-{cod:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',cat:'INSTALACIÓN ELÉCTRICA',un:'ml.',pu:41666.67,medida:'ml.',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'2705',nom:'Pilar monofasico + kit completo',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:274395,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2706',nom:'Caja 6 modulos + kit 2 termicas 2x15amp + 1 disyuntor 2x25amp Sica',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:35376,medida:'un',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'2707',nom:'Jabalina lisa 5/8" x 1,50m',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:19581,medida:'un',fuente:'elreydelcable',modif:0,fecha:'2026-06'},
+{cod:'2708',nom:'Caja inspeccion de PCV 15x15cm',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:4096,medida:'un',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',cat:'INSTALACIÓN ELÉCTRICA',un:'ml',pu:41666.67,medida:'ml',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
 {cod:'2710',nom:'Cable subterraneo 3x6mm',cat:'INSTALACIÓN ELÉCTRICA',un:'m',pu:11000,medida:'m',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
-{cod:'2711',nom:'Luminaria urbana Bael STRADA',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2712',nom:'Luminaria urbana IEP FO5 CNX color gris forja',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:350000,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2713',nom:'Luminaria urbana GARDEN PRO 100',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:114462,medida:'un.',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
-{cod:'2714',nom:'Termostato',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:0,medida:'un.',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2715',nom:'Disyuntor Diferencial Eléctrico 25A',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:46981.30,medida:'un. (Disyuntor Bipolar 2x25A Sica)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
-{cod:'2716',nom:'Llave Térmica    2P     10A',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:11257.50,medida:'un. (Interruptor Termomagnetico 2x10A Sica)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'2711',nom:'Luminaria urbana Bael STRADA',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2712',nom:'Luminaria urbana IEP FO5 CNX color gris forja',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:350000,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2713',nom:'Luminaria urbana GARDEN PRO 100',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:114462,medida:'un',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
+{cod:'2714',nom:'Termostato',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:0,medida:'un',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
+{cod:'2715',nom:'Disyuntor Diferencial Eléctrico 25A',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:46981.30,medida:'un. (Disyuntor Bipolar 2x25A Sica)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'2716',nom:'Llave Térmica    2P     10A',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:11257.50,medida:'un. (Interruptor Termomagnetico 2x10A Sica)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'2717',nom:'Cable Calefactor',cat:'INSTALACIÓN ELÉCTRICA',un:'m',pu:0,medida:'m',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
-{cod:'2718',nom:'Luminaria urbana GARDEN TREBOL 300W (3 de un de 100w con anclaje )',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:370044,medida:'un.',fuente:'electromisiones',modif:0,fecha:'2026-06'},
-{cod:'2719',nom:'Tablero Gabinete PVC estanco ip65 250x240x150 apto 6modulo',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:47900,medida:'un.',fuente:'gabinete estanco',modif:0,fecha:'2026-06'},
-{cod:'2720',nom:'Pilar trifasico',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:140000,medida:'un.',fuente:'dato landri',modif:0,fecha:'2026-06'},
-{cod:'2721',nom:'Luminaria urbana GARDEN TREBOL 600W (3 de un de 200w con anclaje )',cat:'INSTALACIÓN ELÉCTRICA',un:'un.',pu:563547,medida:'un.',fuente:'electromisiones',modif:0,fecha:'2026-06'},
+{cod:'2718',nom:'Luminaria urbana GARDEN TREBOL 300W (3 de un de 100w con anclaje )',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:370044,medida:'un',fuente:'electromisiones',modif:0,fecha:'2026-06'},
+{cod:'2719',nom:'Tablero Gabinete PVC estanco ip65 250x240x150 apto 6modulo',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:47900,medida:'un',fuente:'gabinete estanco',modif:0,fecha:'2026-06'},
+{cod:'2720',nom:'Pilar trifasico',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:140000,medida:'un',fuente:'dato landri',modif:0,fecha:'2026-06'},
+{cod:'2721',nom:'Luminaria urbana GARDEN TREBOL 600W (3 de un de 200w con anclaje )',cat:'INSTALACIÓN ELÉCTRICA',un:'un',pu:563547,medida:'un',fuente:'electromisiones',modif:0,fecha:'2026-06'},
 {cod:'2722',nom:'Malla advertencia electrica (rollo 15cm)',cat:'INSTALACIÓN ELÉCTRICA',un:'m',pu:843.48,medida:'m',fuente:'laelectrica',modif:0,fecha:'2026-06'},
 // ── INSTALACIÓN GAS ──
 {cod:'2601',nom:'Caño Epoxi φ 3/4 x 6,40m',cat:'INSTALACIÓN GAS',un:'un',pu:53766,medida:'un',fuente:'IMCOFUE',modif:0,fecha:'2026-07'},
@@ -13047,48 +13199,48 @@ var CP_APU_DATA = [
 {descrip:'Platea para playón deportivo',unidad:'m2',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.12,pu:467200.0},{cod:'510',nom:'Malla Sima 6mm Q188 2.40x6m',un:'m2',cant:1.05,pu:8483.46},{cod:'803',nom:'Film nylon polietileno 200μ',un:'m2',cant:1.05,pu:808.0}],equipos:[],mo:[],cut:87981.86,g51:3035.37,sub1:111297.06,g53:3035.37,sub2:4573.3,g54:4573.3,pu:118905.73,pu_adopt:118906.0},
 {descrip:'Provisión y colocación de Baldosa de Caucho Molido 50cm',unidad:'m2',mats:[{cod:'1829',nom:'Baldosa de Caucho Molido 0,5x0,5m 2mm',un:'m2',cant:1.1,pu:47700.0},{cod:'1714',nom:'Adhesivo poliuretanico p/ piso caucho',un:'kg',cant:0.3,pu:27370.0}],equipos:[],mo:[],cut:86203.19,g51:2974.01,sub1:109047.03,g53:2974.01,sub2:4480.84,g54:4480.84,pu:116501.88,pu_adopt:116502.0},
 {descrip:'Provisión y colocación de Baldosa de Pórfido',unidad:'m2',mats:[{cod:'1830',nom:'Baldosa de Pórfido Mixto 25cm x LV x m2',un:'m2',cant:1.1,pu:0.0},{cod:'1001',nom:'Cemento portland',un:'kg',cant:11.0,pu:656.0},{cod:'201',nom:'Arena',un:'m3',cant:0.023,pu:76000.0}],equipos:[],mo:[],cut:33969.02,g51:1171.93,sub1:42970.81,g53:1171.93,sub2:1765.71,g54:1765.71,pu:45908.45,pu_adopt:45909.0},
-{descrip:'Provisión y colocación de Césped Sintético',unidad:'m2',mats:[{cod:'1833',nom:'Cesped Sintético Rollo 20mm',un:'m2',cant:1.05,pu:14595.0},{cod:'201',nom:'Arena',un:'m3',cant:0.003,pu:76000.0},{cod:'1701',nom:'Cemento de contacto Fortex 101',un:'lts',cant:0.3,pu:10763.33},{cod:'1715',nom:'Cinta de union p/cesped Ultrabond Turf Tape 30cm',un:'m',cant:0.35,pu:3999.8}],equipos:[],mo:[],cut:24422.79,g51:842.59,sub1:30894.84,g53:842.59,sub2:1269.5,g54:1269.5,pu:33006.92,pu_adopt:33007.0},
-{descrip:'Pegado de Cesped Sintético',unidad:'m2',mats:[{cod:'201',nom:'Arena',un:'m3',cant:0.003,pu:76000.0},{cod:'1701',nom:'Cemento de contacto Fortex 101',un:'lts',cant:0.3,pu:10763.33},{cod:'1715',nom:'Cinta de union p/cesped Ultrabond Turf Tape 30cm',un:'m',cant:0.35,pu:3999.8}],equipos:[],mo:[],cut:8944.8,g51:308.6,sub1:11315.17,g53:308.6,sub2:464.95,g54:464.95,pu:12088.71,pu_adopt:12089.0},
+{descrip:'Provisión y colocación de Césped Sintético',unidad:'m2',mats:[{cod:'1833',nom:'Cesped Sintético Rollo 20mm',un:'m2',cant:1.05,pu:14595.0},{cod:'201',nom:'Arena',un:'m3',cant:0.003,pu:76000.0},{cod:'1701',nom:'Cemento de contacto Fortex 101',un:'lt',cant:0.3,pu:10763.33},{cod:'1715',nom:'Cinta de union p/cesped Ultrabond Turf Tape 30cm',un:'m',cant:0.35,pu:3999.8}],equipos:[],mo:[],cut:24422.79,g51:842.59,sub1:30894.84,g53:842.59,sub2:1269.5,g54:1269.5,pu:33006.92,pu_adopt:33007.0},
+{descrip:'Pegado de Cesped Sintético',unidad:'m2',mats:[{cod:'201',nom:'Arena',un:'m3',cant:0.003,pu:76000.0},{cod:'1701',nom:'Cemento de contacto Fortex 101',un:'lt',cant:0.3,pu:10763.33},{cod:'1715',nom:'Cinta de union p/cesped Ultrabond Turf Tape 30cm',un:'m',cant:0.35,pu:3999.8}],equipos:[],mo:[],cut:8944.8,g51:308.6,sub1:11315.17,g53:308.6,sub2:464.95,g54:464.95,pu:12088.71,pu_adopt:12089.0},
 {descrip:'Vereda de H° peinado esp=10cm',unidad:'m2',mats:[{cod:'803',nom:'Film nylon polietileno 200μ',un:'m2',cant:1.05,pu:808.0},{cod:'510',nom:'Malla Sima 6mm Q188 2.40x6m',un:'m2',cant:1.05,pu:8483.46},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.11,pu:467200.0},{cod:'1716',nom:'Endurecedor de superficie Sealkrete',un:'kg',cant:0.25,pu:3373.72}],equipos:[],mo:[],cut:84734.92,g51:2923.35,sub1:107189.68,g53:2923.35,sub2:4404.52,g54:4404.52,pu:114517.55,pu_adopt:114518.0},
 {descrip:'Solado guia y de prevención 30x30cm',unidad:'ml',mats:[{cod:'1843',nom:'Baldosa Cementicia de Señalización Podotactil 4 Vainillas Amarillo  30x30',un:'un',cant:3.4,pu:7916.0},{cod:'1002',nom:'Pegamento Weber Superflex',un:'kg',cant:1.5,pu:1656.68}],equipos:[],mo:[],cut:46530.2,g51:1605.29,sub1:58860.7,g53:1605.29,sub2:2418.64,g54:2418.64,pu:62884.63,pu_adopt:62885.0},
 {descrip:'Vado Trapezoidal',unidad:'un',mats:[{cod:'105',nom:'H25 380kg',un:'m3',cant:0.3,pu:476900.0},{cod:'510',nom:'Malla Sima 6mm Q188 2.40x6m',un:'m2',cant:3.0,pu:8483.46},{cod:'803',nom:'Film nylon polietileno 200μ',un:'m2',cant:3.0,pu:808.0},{cod:'1843',nom:'Baldosa Cementicia de Señalización Podotactil 4 Vainillas Amarillo  30x30',un:'un',cant:20.0,pu:7916.0},{cod:'1002',nom:'Pegamento Weber Superflex',un:'kg',cant:12.0,pu:1656.68},{cod:'1516',nom:'Pintura Vial amarilla',un:'lt',cant:0.75,pu:29618.0}],equipos:[],mo:[],cut:459255.52,g51:15844.32,sub1:580958.23,g53:15844.32,sub2:23872.1,g54:23872.1,pu:620674.64,pu_adopt:620675.0},
 {descrip:'Muro de contencion de bloques de H°',unidad:'m2',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.05,pu:467200.0},{cod:'901',nom:'Bloque H° 19x19x40',un:'un',cant:13.0,pu:3200.0},{cod:'1010',nom:'Weber block gris para bloques',un:'kg',cant:22.0,pu:419.97},{cod:'503',nom:'Fe Ø8',un:'m',cant:3.5,pu:967.56},{cod:'502',nom:'Fe Ø6',un:'m',cant:8.0,pu:558.3},{cod:'1008',nom:'Revoque 3en1 weber mix E',un:'kg',cant:44.0,pu:1038.67},{cod:'509',nom:'Malla Sima 5mm Q131 2.40x6m',un:'m2',cant:0.15,pu:6166.36},{cod:'2301',nom:'Tubo PVC φ 40 x 3,2 mm 4m Ramat Tigre Et',un:'m',cant:0.1,pu:4040.0}],equipos:[],mo:[],cut:237302.11,g51:8186.92,sub1:300187.16,g53:8186.92,sub2:12334.96,g54:12334.96,pu:320709.05,pu_adopt:320710.0},
 {descrip:'Muro lineal de bloques de H°',unidad:'ml',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.1,pu:467200.0},{cod:'901',nom:'Bloque H° 19x19x40',un:'un',cant:5.0,pu:3200.0},{cod:'502',nom:'Fe Ø6',un:'m',cant:12.0,pu:558.3},{cod:'503',nom:'Fe Ø8',un:'m',cant:4.6,pu:967.56},{cod:'1010',nom:'Weber block gris para bloques',un:'kg',cant:8.5,pu:419.97},{cod:'1008',nom:'Revoque 3en1 weber mix E',un:'kg',cant:18.0,pu:1038.67},{cod:'509',nom:'Malla Sima 5mm Q131 2.40x6m',un:'m2',cant:0.32,pu:6166.36}],equipos:[],mo:[],cut:221968.35,g51:7657.91,sub1:280789.97,g53:7657.91,sub2:11537.91,g54:11537.91,pu:299985.79,pu_adopt:299986.0},
-{descrip:'Revestimiento de madera para banco corrido',unidad:'ml',mats:[{cod:'1416',nom:'Tabla de Lenga 4" x 2"',un:'m',cant:2.0,pu:839.88},{cod:'1417',nom:'Tabla de Lenga 3" x 2"',un:'m',cant:4.0,pu:630.0},{cod:'611',nom:'Varilla roscada 1/2" x 1,00mts',un:'un',cant:0.3,pu:5565.0},{cod:'609',nom:'Tornillo autoperf mecha cabeza hexag c/arandela  φ 6,3x50 (14 x 2")p/chapa',un:'un',cant:20.0,pu:115.05},{cod:'1506',nom:'Protector para madera cetol',un:'lts',cant:0.2,pu:25910.0}],equipos:[],mo:[],cut:76623.7,g51:2643.52,sub1:96928.98,g53:103555.4,sub2:3982.9,g54:3982.9,pu:103555.4,pu_adopt:103556.0},
-{descrip:'Revestimiento de piedra',unidad:'m2',mats:[{cod:'509',nom:'Malla Sima 5mm Q131 2.40x6m',un:'m2',cant:1.05,pu:6166.36},{cod:'1001',nom:'Cemento portland',un:'kg',cant:14.0,pu:656.0},{cod:'201',nom:'Arena',un:'m3',cant:0.03,pu:76000.0},{cod:'213',nom:'Piedra Laja Negra Irregular tipo pirca',un:'m2',cant:1.1,pu:40311.0},{cod:'1507',nom:'Protector hidrorepelente incoloro para piedra',un:'lts',cant:0.8,pu:10725.0}],equipos:[],mo:[],cut:98895.26,g51:3411.89,sub1:125102.51,g53:3411.89,sub2:5140.58,g54:5140.58,pu:133654.97,pu_adopt:133655.0},
-{descrip:'Cerco perimetral de cancha - Alto',unidad:'ml',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.25,pu:467200.0},{cod:'430',nom:'Tubo Cuadrado 100x100 x2.00mm',un:'m',cant:2.27,pu:16884.29},{cod:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',cant:3.0,pu:13581.33},{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:7.53,pu:5948.71},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:5.0,pu:16550.53},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.02,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.01,pu:1226.44}],equipos:[],mo:[],cut:557986.18,g51:19250.52,sub1:705852.52,g53:19250.52,sub2:29004.12,g54:29004.12,pu:754107.17,pu_adopt:754108.0},
-{descrip:'Cerco de plaza',unidad:'ml',mats:[{cod:'454',nom:'Perfil Angulo Hierro 1 x 3/16',un:'m',cant:1.1,pu:4994.19},{cod:'507',nom:'Malla Electrosoldada 50X50X3mm',un:'m2',cant:1.5,pu:11010.0},{cod:'405',nom:'Tubo Redondo 2 x 2mm',un:'m',cant:1.4,pu:6926.5},{cod:'463',nom:'Planchuela Hierro 1.1/2x3/16',un:'m',cant:0.25,pu:4599.72},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.02,pu:21163.75},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.024,pu:467200.0}],equipos:[],mo:[],cut:388337.78,g51:13397.65,sub1:491247.29,g53:13397.65,sub2:20185.8,g54:20185.8,pu:524830.74,pu_adopt:524831.0},
-{descrip:'Reparación parapelotas de cancha - Altura 2,50m',unidad:'ml',mats:[{cod:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',cant:6.0,pu:13581.33},{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:3.5,pu:5948.71},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:1.5,pu:16550.53},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.02,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.01,pu:1226.44}],equipos:[],mo:[],cut:359739.88,g51:12411.03,sub1:455070.95,g53:12411.03,sub2:18699.28,g54:18699.28,pu:486181.25,pu_adopt:486182.0},
-{descrip:'Cerco lateral de parapelotas - Altura 2,50m',unidad:'ml',mats:[{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:4.5,pu:5948.71},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:2.5,pu:16550.53},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.026,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.026,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.017,pu:1226.44}],equipos:[],mo:[],cut:310027.77,g51:10695.96,sub1:392185.13,g53:10695.96,sub2:16115.24,g54:16115.24,pu:418996.33,pu_adopt:418997.0},
-{descrip:'Reparación parapelotas de cancha CON PARANTE - Altura 1,20m',unidad:'ml',mats:[{cod:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',cant:1.0,pu:13581.33},{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:4.5,pu:5948.71},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:2.5,pu:16550.53},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.026,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.026,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.017,pu:1226.44}],equipos:[],mo:[],cut:314071.42,g51:10835.46,sub1:397300.34,g53:10835.46,sub2:16325.43,g54:16325.43,pu:424461.24,pu_adopt:424462.0},
-{descrip:'Jaula de acceso a cancha',unidad:'ml',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.25,pu:467200.0},{cod:'430',nom:'Tubo Cuadrado 100x100 x2.00mm',un:'m',cant:2.5,pu:16884.29},{cod:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',cant:2.6,pu:13581.33},{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:6.7,pu:5948.71},{cod:'510',nom:'Malla Sima 6mm Q188 2.40x6m',un:'m2',cant:2.5,pu:8483.46},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.02,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.01,pu:1226.44}],equipos:[],mo:[],cut:386254.96,g51:13325.8,sub1:488612.52,g53:13325.8,sub2:20077.53,g54:20077.53,pu:522015.85,pu_adopt:522016.0},
-{descrip:'Cerco de cancha - Paño inferior: malla ø6. Paño superior: malla electrosoldada reciclada',unidad:'ml',mats:[{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:7.8,pu:5948.71},{cod:'510',nom:'Malla Sima 6mm Q188 2.40x6m',un:'m2',cant:2.5,pu:8483.46},{cod:'507',nom:'Malla Electrosoldada 50X50X3mm',un:'m2',cant:2.4,pu:11010.0},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.02,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.01,pu:1226.44}],equipos:[],mo:[],cut:326307.14,g51:11257.6,sub1:412778.53,g53:11257.6,sub2:16961.45,g54:16961.45,pu:440997.58,pu_adopt:440998.0},
-{descrip:'Cerco de cancha - Paño superior: malla ø8',unidad:'ml',mats:[{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:4.5,pu:5948.71},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:2.5,pu:16550.53},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.02,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.01,pu:1226.44}],equipos:[],mo:[],cut:184807.57,g51:6375.86,sub1:233781.58,g53:6375.86,sub2:9606.3,g54:9606.3,pu:249763.74,pu_adopt:249764.0},
-{descrip:'Cerco de cancha - reeemplazo tubo cuadrado 100x100',unidad:'ml',mats:[{cod:'430',nom:'Tubo Cuadrado 100x100 x2.00mm',un:'m',cant:1.0,pu:16884.29},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.3,pu:1226.44},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.02,pu:9261.0},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',cant:0.1,pu:13595.68}],equipos:[],mo:[],cut:51830.94,g51:1788.17,sub1:65566.14,g53:1788.17,sub2:2694.17,g54:2694.17,pu:70048.48,pu_adopt:70049.0},
-{descrip:'Cerco de cancha - reparacion soldadura de caño',unidad:'ml',mats:[{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.3,pu:1226.44},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.02,pu:9261.0},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',cant:0.1,pu:13595.68}],equipos:[],mo:[],cut:9376.31,g51:323.48,sub1:11861.03,g53:323.48,sub2:487.38,g54:487.38,pu:12671.9,pu_adopt:12672.0},
-{descrip:'Escalera de H° A° 1,50m de ancho',unidad:'ml',mats:[{cod:'105',nom:'H25 380kg',un:'m3',cant:0.4,pu:476900.0},{cod:'1716',nom:'Endurecedor de superficie Sealkrete',un:'kg',cant:6.3,pu:3373.72},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:1.6,pu:16550.53},{cod:'803',nom:'Film nylon polietileno 200μ',un:'m2',cant:1.6,pu:808.0},{cod:'503',nom:'Fe Ø8',un:'m',cant:4.0,pu:967.56},{cod:'501',nom:'Fe Ø5',un:'m',cant:4.4,pu:423.28},{cod:'468',nom:'Anclaje barandas (platina 1/8 + 4 Fe8)',un:'u',cant:2.0,pu:2102.14}],equipos:[],mo:[],cut:290420.96,g51:10019.52,sub1:367382.51,g53:10019.52,sub2:15096.08,g54:15096.08,pu:392498.12,pu_adopt:392499.0},
-{descrip:'Escalera Metálica 1,50m de ancho',unidad:'ml',mats:[{cod:'445',nom:'Perfil UPN 100mm',un:'m',cant:3.2,pu:27725.62},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.1,pu:467200.0},{cod:'520',nom:'Hierro Liso 7/16',un:'m',cant:1.2,pu:3911.78},{cod:'456',nom:'Perfil Angulo Hierro 1.1/2x3/16',un:'m',cant:9.0,pu:7916.19},{cod:'454',nom:'Perfil Angulo Hierro 1 x 3/16',un:'m',cant:4.5,pu:4994.19},{cod:'1107',nom:'Metal desplegado 150x300 6mm (620-30-60)',un:'m2',cant:1.35,pu:37464.44},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:2.0,pu:1226.44},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.2,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.1,pu:9261.0},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',cant:0.2,pu:13595.68}],equipos:[],mo:[],cut:604905.91,g51:20869.25,sub1:765205.97,g53:20869.25,sub2:31443.01,g54:31443.01,pu:817518.24,pu_adopt:817519.0},
-{descrip:'Baranda Metálica h:0,90m',unidad:'ml',mats:[{cod:'405',nom:'Tubo Redondo 2 x 2mm',un:'m',cant:1.05,pu:6926.5},{cod:'401',nom:'Tubo Redondo 7/8 x 1.60mm',un:'m',cant:0.3,pu:2388.64},{cod:'426',nom:'Tubo Cuadrado 40x40 x2.00mm',un:'m',cant:2.1,pu:6630.5},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.1,pu:1226.44},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.06,pu:21163.75},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',cant:0.02,pu:13595.68},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.01,pu:9261.0}],equipos:[],mo:[],cut:85346.12,g51:2944.44,sub1:107962.84,g53:2944.44,sub2:4436.29,g54:4436.29,pu:115343.58,pu_adopt:115344.0},
-{descrip:'Baranda de contención',unidad:'ml',mats:[{cod:'405',nom:'Tubo Redondo 2 x 2mm',un:'m',cant:2.0,pu:6926.5},{cod:'401',nom:'Tubo Redondo 7/8 x 1.60mm',un:'m',cant:4.0,pu:2388.64},{cod:'470',nom:'Tubo rectangular 60x40x2',un:'m',cant:1.0,pu:8466.15},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.15,pu:1226.44},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',cant:0.05,pu:13595.68},{cod:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',cant:0.1,pu:32999.0},{cod:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',cant:0.2,pu:33844.0},{cod:'1518',nom:'Diluyente Epoxi',un:'lt',cant:0.03,pu:13353.0},{cod:'103',nom:'H17 300kg',un:'m3',cant:0.05,pu:438200.0}],equipos:[],mo:[],cut:127206.89,g51:4388.64,sub1:160916.72,g53:165305.36,sub2:6612.21,g54:6612.21,pu:171917.57,pu_adopt:171918.0},
-{descrip:'Latex Interior',unidad:'m2',mats:[{cod:'1501',nom:'Latex interior lavable',un:'lts',cant:0.2,pu:12680.0},{cod:'1504',nom:'Sellador Fijador al agua premium alba',un:'lts',cant:0.1,pu:8398.0}],equipos:[],mo:[],cut:16037.14,g51:553.28,sub1:20286.99,g53:553.28,sub2:833.61,g54:833.61,pu:21673.88,pu_adopt:21674.0},
-{descrip:'Latex Exterior',unidad:'m2',mats:[{cod:'1502',nom:'Latex exterior',un:'lts',cant:0.2,pu:12596.0},{cod:'1504',nom:'Sellador Fijador al agua premium alba',un:'lts',cant:0.1,pu:8398.0}],equipos:[],mo:[],cut:16020.18,g51:552.7,sub1:20265.52,g53:552.7,sub2:832.73,g54:832.73,pu:21650.95,pu_adopt:21651.0},
-{descrip:'Protector para madera',unidad:'m2',mats:[{cod:'1506',nom:'Protector para madera cetol',un:'lts',cant:0.4,pu:25910.0},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.1,pu:9261.0}],equipos:[],mo:[],cut:26135.18,g51:901.66,sub1:33061.01,g53:901.66,sub2:1358.51,g54:1358.51,pu:35321.18,pu_adopt:35322.0},
-{descrip:'Esmalte Sintético',unidad:'m2',mats:[{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.2,pu:21163.75},{cod:'1512',nom:'Convertidor de oxido',un:'lts',cant:0.1,pu:22869.0},{cod:'1505',nom:'Aguarras',un:'lts',cant:0.15,pu:9261.0}],equipos:[],mo:[],cut:24484.87,g51:844.73,sub1:30973.37,g53:844.73,sub2:1272.72,g54:1272.72,pu:33090.82,pu_adopt:33091.0},
-{descrip:'Protector impermeabilizante para piedra',unidad:'m2',mats:[{cod:'1507',nom:'Protector hidrorepelente incoloro para piedra',un:'lts',cant:0.2,pu:10725.0}],equipos:[],mo:[],cut:14794.04,g51:510.39,sub1:18714.46,g53:510.39,sub2:768.99,g54:768.99,pu:19993.84,pu_adopt:19994.0},
+{descrip:'Revestimiento de madera para banco corrido',unidad:'ml',mats:[{cod:'1416',nom:'Tabla de Lenga 4" x 2"',un:'m',cant:2.0,pu:839.88},{cod:'1417',nom:'Tabla de Lenga 3" x 2"',un:'m',cant:4.0,pu:630.0},{cod:'611',nom:'Varilla roscada 1/2" x 1,00mts',un:'un',cant:0.3,pu:5565.0},{cod:'609',nom:'Tornillo autoperf mecha cabeza hexag c/arandela  φ 6,3x50 (14 x 2")p/chapa',un:'un',cant:20.0,pu:115.05},{cod:'1506',nom:'Protector para madera cetol',un:'lt',cant:0.2,pu:25910.0}],equipos:[],mo:[],cut:76623.7,g51:2643.52,sub1:96928.98,g53:103555.4,sub2:3982.9,g54:3982.9,pu:103555.4,pu_adopt:103556.0},
+{descrip:'Revestimiento de piedra',unidad:'m2',mats:[{cod:'509',nom:'Malla Sima 5mm Q131 2.40x6m',un:'m2',cant:1.05,pu:6166.36},{cod:'1001',nom:'Cemento portland',un:'kg',cant:14.0,pu:656.0},{cod:'201',nom:'Arena',un:'m3',cant:0.03,pu:76000.0},{cod:'213',nom:'Piedra Laja Negra Irregular tipo pirca',un:'m2',cant:1.1,pu:40311.0},{cod:'1507',nom:'Protector hidrorepelente incoloro para piedra',un:'lt',cant:0.8,pu:10725.0}],equipos:[],mo:[],cut:98895.26,g51:3411.89,sub1:125102.51,g53:3411.89,sub2:5140.58,g54:5140.58,pu:133654.97,pu_adopt:133655.0},
+{descrip:'Cerco perimetral de cancha - Alto',unidad:'ml',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.25,pu:467200.0},{cod:'430',nom:'Tubo Cuadrado 100x100 x2.00mm',un:'m',cant:2.27,pu:16884.29},{cod:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',cant:3.0,pu:13581.33},{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:7.53,pu:5948.71},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:5.0,pu:16550.53},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.02,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.01,pu:1226.44}],equipos:[],mo:[],cut:557986.18,g51:19250.52,sub1:705852.52,g53:19250.52,sub2:29004.12,g54:29004.12,pu:754107.17,pu_adopt:754108.0},
+{descrip:'Cerco de plaza',unidad:'ml',mats:[{cod:'454',nom:'Perfil Angulo Hierro 1 x 3/16',un:'m',cant:1.1,pu:4994.19},{cod:'507',nom:'Malla Electrosoldada 50X50X3mm',un:'m2',cant:1.5,pu:11010.0},{cod:'405',nom:'Tubo Redondo 2 x 2mm',un:'m',cant:1.4,pu:6926.5},{cod:'463',nom:'Planchuela Hierro 1.1/2x3/16',un:'m',cant:0.25,pu:4599.72},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.02,pu:21163.75},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.024,pu:467200.0}],equipos:[],mo:[],cut:388337.78,g51:13397.65,sub1:491247.29,g53:13397.65,sub2:20185.8,g54:20185.8,pu:524830.74,pu_adopt:524831.0},
+{descrip:'Reparación parapelotas de cancha - Altura 2,50m',unidad:'ml',mats:[{cod:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',cant:6.0,pu:13581.33},{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:3.5,pu:5948.71},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:1.5,pu:16550.53},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.02,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.01,pu:1226.44}],equipos:[],mo:[],cut:359739.88,g51:12411.03,sub1:455070.95,g53:12411.03,sub2:18699.28,g54:18699.28,pu:486181.25,pu_adopt:486182.0},
+{descrip:'Cerco lateral de parapelotas - Altura 2,50m',unidad:'ml',mats:[{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:4.5,pu:5948.71},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:2.5,pu:16550.53},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.026,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.026,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.017,pu:1226.44}],equipos:[],mo:[],cut:310027.77,g51:10695.96,sub1:392185.13,g53:10695.96,sub2:16115.24,g54:16115.24,pu:418996.33,pu_adopt:418997.0},
+{descrip:'Reparación parapelotas de cancha CON PARANTE - Altura 1,20m',unidad:'ml',mats:[{cod:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',cant:1.0,pu:13581.33},{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:4.5,pu:5948.71},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:2.5,pu:16550.53},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.026,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.026,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.017,pu:1226.44}],equipos:[],mo:[],cut:314071.42,g51:10835.46,sub1:397300.34,g53:10835.46,sub2:16325.43,g54:16325.43,pu:424461.24,pu_adopt:424462.0},
+{descrip:'Jaula de acceso a cancha',unidad:'ml',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.25,pu:467200.0},{cod:'430',nom:'Tubo Cuadrado 100x100 x2.00mm',un:'m',cant:2.5,pu:16884.29},{cod:'419',nom:'Tubo Rectangular 60x100 x2.00mm',un:'m',cant:2.6,pu:13581.33},{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:6.7,pu:5948.71},{cod:'510',nom:'Malla Sima 6mm Q188 2.40x6m',un:'m2',cant:2.5,pu:8483.46},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.02,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.01,pu:1226.44}],equipos:[],mo:[],cut:386254.96,g51:13325.8,sub1:488612.52,g53:13325.8,sub2:20077.53,g54:20077.53,pu:522015.85,pu_adopt:522016.0},
+{descrip:'Cerco de cancha - Paño inferior: malla ø6. Paño superior: malla electrosoldada reciclada',unidad:'ml',mats:[{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:7.8,pu:5948.71},{cod:'510',nom:'Malla Sima 6mm Q188 2.40x6m',un:'m2',cant:2.5,pu:8483.46},{cod:'507',nom:'Malla Electrosoldada 50X50X3mm',un:'m2',cant:2.4,pu:11010.0},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.02,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.01,pu:1226.44}],equipos:[],mo:[],cut:326307.14,g51:11257.6,sub1:412778.53,g53:11257.6,sub2:16961.45,g54:16961.45,pu:440997.58,pu_adopt:440998.0},
+{descrip:'Cerco de cancha - Paño superior: malla ø8',unidad:'ml',mats:[{cod:'467',nom:'Planchuela Hierro 2x3/16',un:'m',cant:4.5,pu:5948.71},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:2.5,pu:16550.53},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.02,pu:9261.0},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.01,pu:1226.44}],equipos:[],mo:[],cut:184807.57,g51:6375.86,sub1:233781.58,g53:6375.86,sub2:9606.3,g54:9606.3,pu:249763.74,pu_adopt:249764.0},
+{descrip:'Cerco de cancha - reeemplazo tubo cuadrado 100x100',unidad:'ml',mats:[{cod:'430',nom:'Tubo Cuadrado 100x100 x2.00mm',un:'m',cant:1.0,pu:16884.29},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.3,pu:1226.44},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.02,pu:9261.0},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',cant:0.1,pu:13595.68}],equipos:[],mo:[],cut:51830.94,g51:1788.17,sub1:65566.14,g53:1788.17,sub2:2694.17,g54:2694.17,pu:70048.48,pu_adopt:70049.0},
+{descrip:'Cerco de cancha - reparacion soldadura de caño',unidad:'ml',mats:[{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.3,pu:1226.44},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.02,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.02,pu:9261.0},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',cant:0.1,pu:13595.68}],equipos:[],mo:[],cut:9376.31,g51:323.48,sub1:11861.03,g53:323.48,sub2:487.38,g54:487.38,pu:12671.9,pu_adopt:12672.0},
+{descrip:'Escalera de H° A° 1,50m de ancho',unidad:'ml',mats:[{cod:'105',nom:'H25 380kg',un:'m3',cant:0.4,pu:476900.0},{cod:'1716',nom:'Endurecedor de superficie Sealkrete',un:'kg',cant:6.3,pu:3373.72},{cod:'511',nom:'Malla Sima 8mm Q335 2.40x6m (14.4m2)',un:'m2',cant:1.6,pu:16550.53},{cod:'803',nom:'Film nylon polietileno 200μ',un:'m2',cant:1.6,pu:808.0},{cod:'503',nom:'Fe Ø8',un:'m',cant:4.0,pu:967.56},{cod:'501',nom:'Fe Ø5',un:'m',cant:4.4,pu:423.28},{cod:'468',nom:'Anclaje barandas (platina 1/8 + 4 Fe8)',un:'un',cant:2.0,pu:2102.14}],equipos:[],mo:[],cut:290420.96,g51:10019.52,sub1:367382.51,g53:10019.52,sub2:15096.08,g54:15096.08,pu:392498.12,pu_adopt:392499.0},
+{descrip:'Escalera Metálica 1,50m de ancho',unidad:'ml',mats:[{cod:'445',nom:'Perfil UPN 100mm',un:'m',cant:3.2,pu:27725.62},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.1,pu:467200.0},{cod:'520',nom:'Hierro Liso 7/16',un:'m',cant:1.2,pu:3911.78},{cod:'456',nom:'Perfil Angulo Hierro 1.1/2x3/16',un:'m',cant:9.0,pu:7916.19},{cod:'454',nom:'Perfil Angulo Hierro 1 x 3/16',un:'m',cant:4.5,pu:4994.19},{cod:'1107',nom:'Metal desplegado 150x300 6mm (620-30-60)',un:'m2',cant:1.35,pu:37464.44},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:2.0,pu:1226.44},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.2,pu:21163.75},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.1,pu:9261.0},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',cant:0.2,pu:13595.68}],equipos:[],mo:[],cut:604905.91,g51:20869.25,sub1:765205.97,g53:20869.25,sub2:31443.01,g54:31443.01,pu:817518.24,pu_adopt:817519.0},
+{descrip:'Baranda Metálica h:0,90m',unidad:'ml',mats:[{cod:'405',nom:'Tubo Redondo 2 x 2mm',un:'m',cant:1.05,pu:6926.5},{cod:'401',nom:'Tubo Redondo 7/8 x 1.60mm',un:'m',cant:0.3,pu:2388.64},{cod:'426',nom:'Tubo Cuadrado 40x40 x2.00mm',un:'m',cant:2.1,pu:6630.5},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.1,pu:1226.44},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.06,pu:21163.75},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',cant:0.02,pu:13595.68},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.01,pu:9261.0}],equipos:[],mo:[],cut:85346.12,g51:2944.44,sub1:107962.84,g53:2944.44,sub2:4436.29,g54:4436.29,pu:115343.58,pu_adopt:115344.0},
+{descrip:'Baranda de contención',unidad:'ml',mats:[{cod:'405',nom:'Tubo Redondo 2 x 2mm',un:'m',cant:2.0,pu:6926.5},{cod:'401',nom:'Tubo Redondo 7/8 x 1.60mm',un:'m',cant:4.0,pu:2388.64},{cod:'470',nom:'Tubo rectangular 60x40x2',un:'m',cant:1.0,pu:8466.15},{cod:'519',nom:'Electrodos 2.5',un:'kg',cant:0.15,pu:1226.44},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',cant:0.05,pu:13595.68},{cod:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',cant:0.1,pu:32999.0},{cod:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',cant:0.2,pu:33844.0},{cod:'1518',nom:'Diluyente Epoxi',un:'lt',cant:0.03,pu:13353.0},{cod:'103',nom:'H17 300kg',un:'m3',cant:0.05,pu:438200.0}],equipos:[],mo:[],cut:127206.89,g51:4388.64,sub1:160916.72,g53:165305.36,sub2:6612.21,g54:6612.21,pu:171917.57,pu_adopt:171918.0},
+{descrip:'Latex Interior',unidad:'m2',mats:[{cod:'1501',nom:'Latex interior lavable',un:'lt',cant:0.2,pu:12680.0},{cod:'1504',nom:'Sellador Fijador al agua premium alba',un:'lt',cant:0.1,pu:8398.0}],equipos:[],mo:[],cut:16037.14,g51:553.28,sub1:20286.99,g53:553.28,sub2:833.61,g54:833.61,pu:21673.88,pu_adopt:21674.0},
+{descrip:'Latex Exterior',unidad:'m2',mats:[{cod:'1502',nom:'Latex exterior',un:'lt',cant:0.2,pu:12596.0},{cod:'1504',nom:'Sellador Fijador al agua premium alba',un:'lt',cant:0.1,pu:8398.0}],equipos:[],mo:[],cut:16020.18,g51:552.7,sub1:20265.52,g53:552.7,sub2:832.73,g54:832.73,pu:21650.95,pu_adopt:21651.0},
+{descrip:'Protector para madera',unidad:'m2',mats:[{cod:'1506',nom:'Protector para madera cetol',un:'lt',cant:0.4,pu:25910.0},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.1,pu:9261.0}],equipos:[],mo:[],cut:26135.18,g51:901.66,sub1:33061.01,g53:901.66,sub2:1358.51,g54:1358.51,pu:35321.18,pu_adopt:35322.0},
+{descrip:'Esmalte Sintético',unidad:'m2',mats:[{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.2,pu:21163.75},{cod:'1512',nom:'Convertidor de oxido',un:'lt',cant:0.1,pu:22869.0},{cod:'1505',nom:'Aguarras',un:'lt',cant:0.15,pu:9261.0}],equipos:[],mo:[],cut:24484.87,g51:844.73,sub1:30973.37,g53:844.73,sub2:1272.72,g54:1272.72,pu:33090.82,pu_adopt:33091.0},
+{descrip:'Protector impermeabilizante para piedra',unidad:'m2',mats:[{cod:'1507',nom:'Protector hidrorepelente incoloro para piedra',un:'lt',cant:0.2,pu:10725.0}],equipos:[],mo:[],cut:14794.04,g51:510.39,sub1:18714.46,g53:510.39,sub2:768.99,g54:768.99,pu:19993.84,pu_adopt:19994.0},
 {descrip:'Demarcación de cancha',unidad:'m2',mats:[{cod:'1517',nom:'Recubrimiento acrilico Sinteplast Recufloor canchas',un:'lt',cant:0.35,pu:16544.0}],equipos:[],mo:[],cut:16371.29,g51:564.81,sub1:20709.68,g53:564.81,sub2:850.98,g54:22125.47,pu:22125.47,pu_adopt:22126.0},
-{descrip:'Pintura Epoxi Alto Transito',unidad:'m2',mats:[{cod:'1503',nom:'Pintura Epoxi Alto Transito',un:'lts',cant:0.4,pu:36377.5},{cod:'1518',nom:'Diluyente Epoxi',un:'lt',cant:0.1,pu:13353.0}],equipos:[],mo:[],cut:28672.75,g51:989.21,sub1:36271.03,g53:989.21,sub2:1490.41,g54:1490.41,pu:38750.65,pu_adopt:38751.0},
+{descrip:'Pintura Epoxi Alto Transito',unidad:'m2',mats:[{cod:'1503',nom:'Pintura Epoxi Alto Transito',un:'lt',cant:0.4,pu:36377.5},{cod:'1518',nom:'Diluyente Epoxi',un:'lt',cant:0.1,pu:13353.0}],equipos:[],mo:[],cut:28672.75,g51:989.21,sub1:36271.03,g53:989.21,sub2:1490.41,g54:1490.41,pu:38750.65,pu_adopt:38751.0},
 {descrip:'Pintura para demarcación vial acrilica',unidad:'m2',mats:[{cod:'1516',nom:'Pintura Vial amarilla',un:'lt',cant:0.4,pu:29618.0}],equipos:[],mo:[],cut:11965.67,g51:412.82,sub1:15136.58,g53:412.82,sub2:621.98,g54:621.98,pu:16171.37,pu_adopt:16172.0},
-{descrip:'Provisión e instalación de luminarias IEP F05 CNX con zanjeo incluido (cada 9m)',unidad:'un',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.1,pu:467200.0},{cod:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un.',cant:1.0,pu:4096.0},{cod:'2712',nom:'Luminaria urbana IEP FO5 CNX color gris forja',un:'un.',cant:1.0,pu:350000.0},{cod:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml.',cant:5.0,pu:41666.67},{cod:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',cant:9.0,pu:3458.93},{cod:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',cant:4.0,pu:2337.44},{cod:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',cant:9.0,pu:843.48},{cod:'2303',nom:'Tubo PVC φ 63 x 3,2 mm 4m Ramat Tigre Et',un:'m',cant:9.0,pu:6369.25},{cod:'201',nom:'Arena',un:'m3',cant:0.5,pu:76000.0}],equipos:[],mo:[],cut:1012213.66,g51:34921.37,sub1:1280450.28,g53:34921.37,sub2:52614.87,g54:52614.87,pu:1367986.52,pu_adopt:1367987.0},
-{descrip:'Provisión e instalación de luminaria STRADA con columna y zanjeo incluido (cada 30m)',unidad:'un',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.8,pu:467200.0},{cod:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un.',cant:1.0,pu:4096.0},{cod:'2711',nom:'Luminaria urbana Bael STRADA',un:'un.',cant:1.0,pu:0.0},{cod:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml.',cant:11.0,pu:41666.67},{cod:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',cant:30.0,pu:3458.93},{cod:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',cant:10.0,pu:2337.44},{cod:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',cant:30.0,pu:843.48},{cod:'2303',nom:'Tubo PVC φ 63 x 3,2 mm 4m Ramat Tigre Et',un:'m',cant:30.0,pu:6369.25},{cod:'201',nom:'Arena',un:'m3',cant:1.8,pu:76000.0}],equipos:[],mo:[],cut:1877923.58,g51:64788.36,sub1:2375573.33,g53:64788.36,sub2:97614.47,g54:97614.47,pu:2537976.16,pu_adopt:2537977.0},
-{descrip:'Provisión e instalación de luminarias triple GARDEN ECOTREBOL 300w con zanjeo (cada 15m)',unidad:'un',mats:[{cod:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un.',cant:1.0,pu:4096.0},{cod:'2718',nom:'Luminaria urbana GARDEN TREBOL 300W (3 de un de 100w con anclaje )',un:'un.',cant:1.0,pu:370044.0},{cod:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',cant:8.0,pu:2337.44},{cod:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',cant:15.0,pu:3458.93},{cod:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml.',cant:9.0,pu:41666.67},{cod:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',cant:15.0,pu:843.48},{cod:'2303',nom:'Tubo PVC φ 63 x 3,2 mm 4m Ramat Tigre Et',un:'m',cant:15.0,pu:6369.25},{cod:'201',nom:'Arena',un:'m3',cant:0.9,pu:76000.0},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.5,pu:467200.0}],equipos:[],mo:[],cut:1687591.57,g51:58221.91,sub1:2134803.34,g53:58221.91,sub2:87721.01,g54:87721.01,pu:2280746.25,pu_adopt:2280747.0},
-{descrip:'Provisión e instalación de luminarias triple GARDEN ECOTREBOL 600w con zanjeo (cada 20m)',unidad:'un',mats:[{cod:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un.',cant:1.0,pu:4096.0},{cod:'2721',nom:'Luminaria urbana GARDEN TREBOL 600W (3 de un de 200w con anclaje )',un:'un.',cant:1.0,pu:563547.0},{cod:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',cant:10.0,pu:2337.44},{cod:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',cant:20.0,pu:3458.93},{cod:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml.',cant:11.0,pu:41666.67},{cod:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',cant:20.0,pu:843.48},{cod:'2303',nom:'Tubo PVC φ 63 x 3,2 mm 4m Ramat Tigre Et',un:'m',cant:20.0,pu:6369.25},{cod:'201',nom:'Arena',un:'m3',cant:1.2,pu:76000.0},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.5,pu:467200.0}],equipos:[],mo:[],cut:2048837.78,g51:70684.9,sub1:2591779.79,g53:70684.9,sub2:106498.59,g54:106498.59,pu:2768963.28,pu_adopt:2768964.0},
-{descrip:'Provisión y colocación de Cartel de Plaza',unidad:'un',mats:[{cod:'1109',nom:'Chapa Galvanizada Lisa N18 (1,25mm)',un:'m2',cant:2.0,pu:30740.3},{cod:'1415',nom:'Tabla de Lenga 1" x 6"',un:'m',cant:3.0,pu:629.92},{cod:'426',nom:'Tubo Cuadrado 40x40 x2.00mm',un:'m',cant:7.0,pu:6630.5},{cod:'423',nom:'Tubo Cuadrado 20x20 x1.60mm',un:'m',cant:2.36,pu:270.42},{cod:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',cant:0.02,pu:33844.0},{cod:'1506',nom:'Protector para madera cetol',un:'lts',cant:0.02,pu:25910.0},{cod:'2202',nom:'Impresión sobre vinilo laminado',un:'m2',cant:1.4,pu:32000.0},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.09,pu:467200.0}],equipos:[],mo:[],cut:575879.39,g51:19867.84,sub1:728487.42,g53:19867.84,sub2:29934.21,g54:29934.21,pu:778289.47,pu_adopt:778290.0},
+{descrip:'Provisión e instalación de luminarias IEP F05 CNX con zanjeo incluido (cada 9m)',unidad:'un',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.1,pu:467200.0},{cod:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un',cant:1.0,pu:4096.0},{cod:'2712',nom:'Luminaria urbana IEP FO5 CNX color gris forja',un:'un',cant:1.0,pu:350000.0},{cod:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml',cant:5.0,pu:41666.67},{cod:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',cant:9.0,pu:3458.93},{cod:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',cant:4.0,pu:2337.44},{cod:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',cant:9.0,pu:843.48},{cod:'2303',nom:'Tubo PVC φ 63 x 3,2 mm 4m Ramat Tigre Et',un:'m',cant:9.0,pu:6369.25},{cod:'201',nom:'Arena',un:'m3',cant:0.5,pu:76000.0}],equipos:[],mo:[],cut:1012213.66,g51:34921.37,sub1:1280450.28,g53:34921.37,sub2:52614.87,g54:52614.87,pu:1367986.52,pu_adopt:1367987.0},
+{descrip:'Provisión e instalación de luminaria STRADA con columna y zanjeo incluido (cada 30m)',unidad:'un',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.8,pu:467200.0},{cod:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un',cant:1.0,pu:4096.0},{cod:'2711',nom:'Luminaria urbana Bael STRADA',un:'un',cant:1.0,pu:0.0},{cod:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml',cant:11.0,pu:41666.67},{cod:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',cant:30.0,pu:3458.93},{cod:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',cant:10.0,pu:2337.44},{cod:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',cant:30.0,pu:843.48},{cod:'2303',nom:'Tubo PVC φ 63 x 3,2 mm 4m Ramat Tigre Et',un:'m',cant:30.0,pu:6369.25},{cod:'201',nom:'Arena',un:'m3',cant:1.8,pu:76000.0}],equipos:[],mo:[],cut:1877923.58,g51:64788.36,sub1:2375573.33,g53:64788.36,sub2:97614.47,g54:97614.47,pu:2537976.16,pu_adopt:2537977.0},
+{descrip:'Provisión e instalación de luminarias triple GARDEN ECOTREBOL 300w con zanjeo (cada 15m)',unidad:'un',mats:[{cod:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un',cant:1.0,pu:4096.0},{cod:'2718',nom:'Luminaria urbana GARDEN TREBOL 300W (3 de un de 100w con anclaje )',un:'un',cant:1.0,pu:370044.0},{cod:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',cant:8.0,pu:2337.44},{cod:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',cant:15.0,pu:3458.93},{cod:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml',cant:9.0,pu:41666.67},{cod:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',cant:15.0,pu:843.48},{cod:'2303',nom:'Tubo PVC φ 63 x 3,2 mm 4m Ramat Tigre Et',un:'m',cant:15.0,pu:6369.25},{cod:'201',nom:'Arena',un:'m3',cant:0.9,pu:76000.0},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.5,pu:467200.0}],equipos:[],mo:[],cut:1687591.57,g51:58221.91,sub1:2134803.34,g53:58221.91,sub2:87721.01,g54:87721.01,pu:2280746.25,pu_adopt:2280747.0},
+{descrip:'Provisión e instalación de luminarias triple GARDEN ECOTREBOL 600w con zanjeo (cada 20m)',unidad:'un',mats:[{cod:'2708',nom:'Caja inspeccion de PCV 15x15cm',un:'un',cant:1.0,pu:4096.0},{cod:'2721',nom:'Luminaria urbana GARDEN TREBOL 600W (3 de un de 200w con anclaje )',un:'un',cant:1.0,pu:563547.0},{cod:'2702',nom:'Cable subterraneo bipolar 2x2,5mm',un:'m',cant:10.0,pu:2337.44},{cod:'2703',nom:'Cable subterraneo bipolar 2x4mm',un:'m',cant:20.0,pu:3458.93},{cod:'2709',nom:'Columna  Alumbrado Publico Acero Galvanizado',un:'ml',cant:11.0,pu:41666.67},{cod:'2722',nom:'Malla advertencia electrica (rollo 15cm)',un:'m',cant:20.0,pu:843.48},{cod:'2303',nom:'Tubo PVC φ 63 x 3,2 mm 4m Ramat Tigre Et',un:'m',cant:20.0,pu:6369.25},{cod:'201',nom:'Arena',un:'m3',cant:1.2,pu:76000.0},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.5,pu:467200.0}],equipos:[],mo:[],cut:2048837.78,g51:70684.9,sub1:2591779.79,g53:70684.9,sub2:106498.59,g54:106498.59,pu:2768963.28,pu_adopt:2768964.0},
+{descrip:'Provisión y colocación de Cartel de Plaza',unidad:'un',mats:[{cod:'1109',nom:'Chapa Galvanizada Lisa N18 (1,25mm)',un:'m2',cant:2.0,pu:30740.3},{cod:'1415',nom:'Tabla de Lenga 1" x 6"',un:'m',cant:3.0,pu:629.92},{cod:'426',nom:'Tubo Cuadrado 40x40 x2.00mm',un:'m',cant:7.0,pu:6630.5},{cod:'423',nom:'Tubo Cuadrado 20x20 x1.60mm',un:'m',cant:2.36,pu:270.42},{cod:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',cant:0.02,pu:33844.0},{cod:'1506',nom:'Protector para madera cetol',un:'lt',cant:0.02,pu:25910.0},{cod:'2202',nom:'Impresión sobre vinilo laminado',un:'m2',cant:1.4,pu:32000.0},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.09,pu:467200.0}],equipos:[],mo:[],cut:575879.39,g51:19867.84,sub1:728487.42,g53:19867.84,sub2:29934.21,g54:29934.21,pu:778289.47,pu_adopt:778290.0},
 {descrip:'Provisión y colocación de cartel Prohibido Trepar 0,30*0,40m',unidad:'un',mats:[{cod:'1106',nom:'Chapa Galvanizada Lisa N25 (0,5mm)',un:'m2',cant:0.12,pu:12302.03},{cod:'2202',nom:'Impresión sobre vinilo laminado',un:'m2',cant:0.12,pu:32000.0}],equipos:[],mo:[],cut:15042.91,g51:518.98,sub1:19029.28,g53:518.98,sub2:781.93,g54:781.93,pu:20330.19,pu_adopt:20331.0},
-{descrip:'Provisión y colocación de Cestos P80',unidad:'un',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.032,pu:467200.0},{cod:'414',nom:'Tubo Rectangular 40x80 x2mm',un:'m',cant:5.2,pu:10512.32},{cod:'521',nom:'Malla Electrosoldada 25X25X2,6mm',un:'m2',cant:0.85,pu:20055.0},{cod:'1110',nom:'Chapa Galvanizada Lisa N14 (2mm)',un:'m2',cant:0.16,pu:47090.47},{cod:'461',nom:'Perfil Angulo Hierro 1.1/4 x1/8',un:'m',cant:3.0,pu:4446.31},{cod:'503',nom:'Fe Ø8',un:'m',cant:0.5,pu:967.56},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',cant:0.01,pu:13595.68},{cod:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',cant:0.012,pu:32999.0},{cod:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',cant:0.04,pu:33844.0},{cod:'1518',nom:'Diluyente Epoxi',un:'lt',cant:0.01,pu:13353.0}],equipos:[],mo:[],cut:356893.83,g51:12312.84,sub1:451470.7,g53:12312.84,sub2:18551.34,g54:18551.34,pu:482334.88,pu_adopt:482335.0},
-{descrip:'Provisión y colocación de Arcos con aro',unidad:'un',mats:[{cod:'408',nom:'Tubo Redondo 3 x 3,2mm',un:'m',cant:19.0,pu:16291.67},{cod:'407',nom:'Tubo Redondo 3 x 2.00mm',un:'m',cant:9.0,pu:10528.94},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.15,pu:467200.0},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.5,pu:21163.75},{cod:'2124',nom:'Tablero basquet con Aro apto exterior',un:'un',cant:1.0,pu:143200.0}],equipos:[],mo:[],cut:925691.36,g51:31936.35,sub1:1170999.57,g53:31936.35,sub2:48117.44,g54:48117.44,pu:1251053.36,pu_adopt:1251054.0},
-{descrip:'Provisión y colocación de Banco metalico BT-01',unidad:'un',mats:[{cod:'103',nom:'H17 300kg',un:'m3',cant:0.01,pu:438200.0},{cod:'469',nom:'Tubo rectangular 60x20x1,6',un:'m',cant:8.84,pu:6010.6},{cod:'470',nom:'Tubo rectangular 60x40x2',un:'m',cant:8.6,pu:8466.15},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',cant:0.01,pu:13595.68},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lts',cant:0.26,pu:21163.75},{cod:'613',nom:'Anclaje Fisher Broca perno hormigon Fwa',un:'un',cant:4.0,pu:1934.3}],equipos:[],mo:[],cut:313505.14,g51:10815.93,sub1:396584.0,g53:10815.93,sub2:16296.0,g54:16296.0,pu:423695.92,pu_adopt:423696.0},
-{descrip:'Provisión y colocación de Banco B2000',unidad:'un',mats:[{cod:'1112',nom:'Chapa Lisa 3/16" (4,75mm)',un:'m2',cant:0.8,pu:103642.88},{cod:'1416',nom:'Tabla de Lenga 4" x 2"',un:'m',cant:12.0,pu:839.88},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',cant:0.1,pu:13595.68},{cod:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',cant:0.18,pu:32999.0},{cod:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',cant:0.35,pu:33844.0},{cod:'1518',nom:'Diluyente Epoxi',un:'lt',cant:0.02,pu:13353.0},{cod:'1506',nom:'Protector para madera cetol',un:'lts',cant:0.8,pu:25910.0},{cod:'613',nom:'Anclaje Fisher Broca perno hormigon Fwa',un:'un',cant:4.0,pu:1934.3}],equipos:[],mo:[],cut:426728.38,g51:14722.13,sub1:539811.4,g53:14722.13,sub2:22181.34,g54:22181.34,pu:576714.87,pu_adopt:576715.0},
-{descrip:'Provisión y colocación de Banco B400',unidad:'un',mats:[{cod:'1112',nom:'Chapa Lisa 3/16" (4,75mm)',un:'m2',cant:0.45,pu:103642.88},{cod:'1416',nom:'Tabla de Lenga 4" x 2"',un:'m',cant:1.7,pu:839.88},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lts',cant:0.05,pu:13595.68},{cod:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',cant:0.1,pu:32999.0},{cod:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',cant:0.2,pu:33844.0},{cod:'1518',nom:'Diluyente Epoxi',un:'lt',cant:0.03,pu:13353.0},{cod:'1506',nom:'Protector para madera cetol',un:'lts',cant:0.15,pu:25910.0},{cod:'613',nom:'Anclaje Fisher Broca perno hormigon Fwa',un:'un',cant:2.0,pu:1934.3}],equipos:[],mo:[],cut:209865.88,g51:7240.37,sub1:265480.34,g53:7240.37,sub2:10908.83,g54:10908.83,pu:283629.55,pu_adopt:283630.0},
+{descrip:'Provisión y colocación de Cestos P80',unidad:'un',mats:[{cod:'104',nom:'H21 350kg',un:'m3',cant:0.032,pu:467200.0},{cod:'414',nom:'Tubo Rectangular 40x80 x2mm',un:'m',cant:5.2,pu:10512.32},{cod:'521',nom:'Malla Electrosoldada 25X25X2,6mm',un:'m2',cant:0.85,pu:20055.0},{cod:'1110',nom:'Chapa Galvanizada Lisa N14 (2mm)',un:'m2',cant:0.16,pu:47090.47},{cod:'461',nom:'Perfil Angulo Hierro 1.1/4 x1/8',un:'m',cant:3.0,pu:4446.31},{cod:'503',nom:'Fe Ø8',un:'m',cant:0.5,pu:967.56},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',cant:0.01,pu:13595.68},{cod:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',cant:0.012,pu:32999.0},{cod:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',cant:0.04,pu:33844.0},{cod:'1518',nom:'Diluyente Epoxi',un:'lt',cant:0.01,pu:13353.0}],equipos:[],mo:[],cut:356893.83,g51:12312.84,sub1:451470.7,g53:12312.84,sub2:18551.34,g54:18551.34,pu:482334.88,pu_adopt:482335.0},
+{descrip:'Provisión y colocación de Arcos con aro',unidad:'un',mats:[{cod:'408',nom:'Tubo Redondo 3 x 3,2mm',un:'m',cant:19.0,pu:16291.67},{cod:'407',nom:'Tubo Redondo 3 x 2.00mm',un:'m',cant:9.0,pu:10528.94},{cod:'104',nom:'H21 350kg',un:'m3',cant:0.15,pu:467200.0},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.5,pu:21163.75},{cod:'2124',nom:'Tablero basquet con Aro apto exterior',un:'un',cant:1.0,pu:143200.0}],equipos:[],mo:[],cut:925691.36,g51:31936.35,sub1:1170999.57,g53:31936.35,sub2:48117.44,g54:48117.44,pu:1251053.36,pu_adopt:1251054.0},
+{descrip:'Provisión y colocación de Banco metalico BT-01',unidad:'un',mats:[{cod:'103',nom:'H17 300kg',un:'m3',cant:0.01,pu:438200.0},{cod:'469',nom:'Tubo rectangular 60x20x1,6',un:'m',cant:8.84,pu:6010.6},{cod:'470',nom:'Tubo rectangular 60x40x2',un:'m',cant:8.6,pu:8466.15},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',cant:0.01,pu:13595.68},{cod:'1508',nom:'Esmalte Sintetico Tersuave 3en1',un:'lt',cant:0.26,pu:21163.75},{cod:'613',nom:'Anclaje Fisher Broca perno hormigon Fwa',un:'un',cant:4.0,pu:1934.3}],equipos:[],mo:[],cut:313505.14,g51:10815.93,sub1:396584.0,g53:10815.93,sub2:16296.0,g54:16296.0,pu:423695.92,pu_adopt:423696.0},
+{descrip:'Provisión y colocación de Banco B2000',unidad:'un',mats:[{cod:'1112',nom:'Chapa Lisa 3/16" (4,75mm)',un:'m2',cant:0.8,pu:103642.88},{cod:'1416',nom:'Tabla de Lenga 4" x 2"',un:'m',cant:12.0,pu:839.88},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',cant:0.1,pu:13595.68},{cod:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',cant:0.18,pu:32999.0},{cod:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',cant:0.35,pu:33844.0},{cod:'1518',nom:'Diluyente Epoxi',un:'lt',cant:0.02,pu:13353.0},{cod:'1506',nom:'Protector para madera cetol',un:'lt',cant:0.8,pu:25910.0},{cod:'613',nom:'Anclaje Fisher Broca perno hormigon Fwa',un:'un',cant:4.0,pu:1934.3}],equipos:[],mo:[],cut:426728.38,g51:14722.13,sub1:539811.4,g53:14722.13,sub2:22181.34,g54:22181.34,pu:576714.87,pu_adopt:576715.0},
+{descrip:'Provisión y colocación de Banco B400',unidad:'un',mats:[{cod:'1112',nom:'Chapa Lisa 3/16" (4,75mm)',un:'m2',cant:0.45,pu:103642.88},{cod:'1416',nom:'Tabla de Lenga 4" x 2"',un:'m',cant:1.7,pu:839.88},{cod:'1511',nom:'Desengrasante, desoxidante y fosfatizante',un:'lt',cant:0.05,pu:13595.68},{cod:'1521',nom:'Fondo anticorrosivo epoxi',un:'lt',cant:0.1,pu:32999.0},{cod:'1519',nom:'Esmalte epoxi bicomponente',un:'lt',cant:0.2,pu:33844.0},{cod:'1518',nom:'Diluyente Epoxi',un:'lt',cant:0.03,pu:13353.0},{cod:'1506',nom:'Protector para madera cetol',un:'lt',cant:0.15,pu:25910.0},{cod:'613',nom:'Anclaje Fisher Broca perno hormigon Fwa',un:'un',cant:2.0,pu:1934.3}],equipos:[],mo:[],cut:209865.88,g51:7240.37,sub1:265480.34,g53:7240.37,sub2:10908.83,g54:10908.83,pu:283629.55,pu_adopt:283630.0},
 ];
 
 /* APU ENGINE */
