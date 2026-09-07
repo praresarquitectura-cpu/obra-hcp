@@ -6172,20 +6172,14 @@ function cpMergePrecios(){
       if(p.cod&&p.pu>0) CP_PRECIOS_MAT[p.cod]=p.pu;
     });
   }
-  // Mapear precios de perfiles por ml (desde IMCOFUE 2026)
-  CP_PRECIOS_MAT['PGU35_052'] = 1534;   // estimado (no listado en IMCOFUE)
-  CP_PRECIOS_MAT['PGC35_052'] = 1360;
-  CP_PRECIOS_MAT['PGU50_052'] = 2006;
-  CP_PRECIOS_MAT['PGC50_052'] = 1849;
-  CP_PRECIOS_MAT['PGC70_052_mont'] = 3912;   // IMCOFUE: PGU70x0.92 = $23.471/6m = $3.912/ml
-  CP_PRECIOS_MAT['PGU70_052_sol'] = 4725;   // IMCOFUE: PGC70x0.92 = $28.352/6m = $4.725/ml
-  CP_PRECIOS_MAT['PGC100_092_mont'] = 4032;  // IMCOFUE: PGU100x0.92 = $24.189/6m = $4.032/ml
-  CP_PRECIOS_MAT['PGU100_092_sol'] = 4862;  // IMCOFUE: PGC100x0.92 = $29.173/6m = $4.862/ml
-  CP_PRECIOS_MAT['PGU100_129'] = 5290;  // IMCOFUE: PGU100x1.29 = $31.739/6m = $5.290/ml
-  CP_PRECIOS_MAT['PGC100_129'] = 6538;  // IMCOFUE: PGC100x1.29 = $39.230/6m = $6.538/ml
-  // IMPORTANTE: en el resumen de compra el sistema muestra ml
-  // El usuario ve: "PGU 70mm: 37,44 ml → necesitás 7 barras de 6m"
-  // Esta nota se muestra en cpVerResumen y PDF
+  // NOTA 06-sep-2026: los overrides hardcodeados de precios de perfiles PG* que
+  // estaban acá (PGU35_052, PGC35_052, PGU50_052, PGC50_052, PGC70_052_mont,
+  // PGU70_052_sol, PGC100_092_mont, PGU100_092_sol, PGU100_129, PGC100_129) se
+  // ELIMINARON porque se ejecutaban DESPUÉS del mapeo de PR_DATA de arriba y
+  // pisaban silenciosamente los precios reales/visibles del Listado de Precios
+  // con valores viejos estimados. Ahora esos ids tienen su propia fila real en
+  // PR_DATA (alias de los cod 301/302/303/304/313/314/315/316) y el mapeo de
+  // arriba (`if(p.cod&&p.pu>0) CP_PRECIOS_MAT[p.cod]=p.pu`) ya los completa bien.
   // Precios de los materiales de la planilla Municipalidad (fallback hardcoded)
   var _fallback={
     '2202':32000,'1106':12302,'302':4829,'303':5254,'601':28,'102':410800,
@@ -8683,18 +8677,77 @@ function cpRenderDim(iid,d,un){
 function cpDespDefault(un){
   if(un==='m'||un==='ml')return 10;
   if(un==='m²'||un==='m2')return 5;
+  if(un==='kg')return 5;
   return 0;
 }
-function cpLargoBarra(cod){
-  if(!cod)return 6;
-  if(typeof PR_DATA!=='undefined'){
-    var p=PR_DATA.find(function(x){return x.cod===String(cod);});
-    if(p&&p.medida){
-      var mm=p.medida.match(/barra\s*([\d.,]+)\s*m/i)||p.medida.match(/rollo\s*([\d.,]+)\s*m/i);
-      if(mm){var v=parseFloat(mm[1].replace(',','.'));if(!isNaN(v)&&v>0)return v;}
-    }
+// cpPackInfo: generaliza la detección del "pack" comercial real de un material (barra, rollo,
+// placa, bolsa/balde/bidón, caja) parseando el campo `medida` de su fila en PR_DATA — el mismo
+// texto que Diego ve y edita en el Listado de Precios. Devuelve {size, unit, singular, plural}
+// o null si el material no tiene un pack detectable (se vende por unidad suelta, ej. m³ de H°).
+function cpPackInfo(cod){
+  if(!cod||typeof PR_DATA==='undefined')return null;
+  var p=PR_DATA.find(function(x){return x.cod===String(cod);});
+  if(!p||!p.medida)return null;
+  var md=p.medida,mm,v;
+  // Placa / plancha con área total documentada: "placa 1.20x2.40m = 2.88m² ..."
+  if((mm=md.match(/(?:placa|plancha)[^=]*=\s*([\d.,]+)\s*m²/i))){
+    v=parseFloat(mm[1].replace(',','.'));
+    if(v>0)return{size:v,unit:'m²',singular:'placa',plural:'placas'};
   }
-  return 6;
+  // Rollo con área total documentada: "rollo 1.20x14.5m = 17.40m² ..."
+  if((mm=md.match(/rollo[^=]*=\s*([\d.,]+)\s*m²/i))){
+    v=parseFloat(mm[1].replace(',','.'));
+    if(v>0)return{size:v,unit:'m²',singular:'rollo',plural:'rollos'};
+  }
+  // Barra (perfiles, caños, molduras): "barra 2.6m ..." / "barra 6m ..."
+  if((mm=md.match(/barra\s*([\d.,]+)\s*m\b/i))){
+    v=parseFloat(mm[1].replace(',','.'));
+    if(v>0)return{size:v,unit:'m',singular:'barra',plural:'barras'};
+  }
+  // Rollo lineal (cinta, banda): "rollo 75m ..." / "rollo 25m ..."
+  if((mm=md.match(/rollo\s*([\d.,]+)\s*m\b/i))){
+    v=parseFloat(mm[1].replace(',','.'));
+    if(v>0)return{size:v,unit:'m',singular:'rollo',plural:'rollos'};
+  }
+  // Bolsa / balde / bidón (masilla, mortero, pintura, adhesivo): "balde 32kg ..."
+  if((mm=md.match(/(bolsa|balde|bid[oó]n)\s*([\d.,]+)\s*kg/i))){
+    v=parseFloat(mm[2].replace(',','.'));
+    var base=mm[1].toLowerCase();
+    var sing=(base==='balde')?'balde':((/bid/i.test(base))?'bidón':'bolsa');
+    var plur=(sing==='balde')?'baldes':((sing==='bidón')?'bidones':'bolsas');
+    if(v>0)return{size:v,unit:'kg',singular:sing,plural:plur};
+  }
+  // Caja de N unidades (tornillos, clavos, etc.): "caja x100 ..." / "caja x1400 ..."
+  if((mm=md.match(/caja\s*x\s*([\d.,]+)/i))){
+    v=parseFloat(mm[1].replace(',','.'));
+    if(v>0)return{size:v,unit:'un',singular:'caja',plural:'cajas'};
+  }
+  return null;
+}
+function cpCantComercial(pack,cant,desp){
+  if(!pack||!pack.size)return null;
+  return Math.ceil((cant*(1+(desp||0)/100))/pack.size);
+}
+// Texto HTML corto para la columna "Cant. Comercial" de la tabla por-ítem
+function cpComercialTxt(cod,cant,desp){
+  var pack=cpPackInfo(cod);
+  if(!pack)return null;
+  var n=cpCantComercial(pack,cant,desp||0);
+  var lbl=n===1?pack.singular:pack.plural;
+  return n+' '+lbl+' <span style=\'color:var(--tx3);font-weight:400;font-size:9px\'>('+pack.size+pack.unit+' c/'+(desp||0)+'%)</span>';
+}
+// Texto plano (sin HTML) para el listado consolidado / PDF / Excel
+function cpComercialPlain(cod,cant,desp){
+  var pack=cpPackInfo(cod);
+  if(!pack)return '—';
+  var n=cpCantComercial(pack,cant,desp||0);
+  var lbl=n===1?pack.singular:pack.plural;
+  return n+' '+lbl+' de '+pack.size+pack.unit+' (c/'+(desp||0)+'% desp.)';
+}
+// Alias retrocompatibles (barra únicamente) por si queda alguna referencia suelta.
+function cpLargoBarra(cod){
+  var pk=cpPackInfo(cod);
+  return (pk&&pk.unit==='m')?pk.size:6;
 }
 function cpCantBarras(cant,desp,largo){
   if(!largo||largo<=0)largo=6;
@@ -8712,10 +8765,9 @@ function cpRenderMats(it){
     var pu=m.pu||CP_PRECIOS_MAT[m.id]||0;
     var cant=Math.round(qty*cpEffectiveRend(it.cod,m.id,m.rend)*1000)/1000;
     var sub=Math.round(cant*pu);
-    var esBarra=(m.un==='m'||m.un==='ml');
+    var pack=cpPackInfo(m.id);
+    var tienePack=!!pack;
     var desp=(m.desp!=null?m.desp:cpDespDefault(m.un));
-    var largoBarra=cpLargoBarra(m.id);
-    var barras=esBarra?cpCantBarras(cant,desp,largoBarra):null;
     var hierroVar=(typeof cpHierroVariante==='function')?cpHierroVariante(m.id):null;
     var famGen=(!hierroVar&&typeof cpFamiliasGenerico==='function')?(cpFamiliasGenerico()[m.id]||null):null;
     h+='<tr style="border-bottom:1px solid var(--br);background:'+(m.esEquipo?'rgba(251,146,60,.06)':'')+'">';
@@ -8742,8 +8794,8 @@ function cpRenderMats(it){
     h+='<td style="text-align:center;padding:3px 5px;color:var(--tx3)">'+m.un+'</td>';
     h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="'+m.rend+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>0)cpUM(\''+it.id+'\','+mi+',\'rend\',v);" style="width:75px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:var(--bt);font-weight:600">'+cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td>';
-    h+='<td style="text-align:right;padding:3px 5px">'+(esBarra?'<input class="cp-di" type="text" inputmode="decimal" value="'+desp+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUM(\''+it.id+'\','+mi+',\'desp\',v);" style="width:45px;text-align:right">':'<span style="color:var(--tx3)">—</span>')+'</td>';
-    h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:700">'+(esBarra?(barras+' barras <span style=\'color:var(--tx3);font-weight:400;font-size:9px\'>('+largoBarra+'m c/'+desp+'%)</span>'):'<span style="color:var(--tx3)">—</span>')+'</td>';
+    h+='<td style="text-align:right;padding:3px 5px">'+(tienePack?'<input class="cp-di" type="text" inputmode="decimal" value="'+desp+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUM(\''+it.id+'\','+mi+',\'desp\',v);" style="width:45px;text-align:right">':'<span style="color:var(--tx3)">—</span>')+'</td>';
+    h+='<td style="text-align:right;padding:3px 5px;color:var(--golt);font-weight:700">'+(tienePack?cpComercialTxt(m.id,cant,desp):'<span style="color:var(--tx3)">—</span>')+'</td>';
     h+='<td style="text-align:right;padding:3px 5px"><input class="cp-di" type="text" inputmode="decimal" value="'+pu.toLocaleString('es-AR')+'" onfocus="this.select()" onblur="var v=parseARNum(this.value);if(!isNaN(v)&&v>=0)cpUM(\''+it.id+'\','+mi+',\'pu\',v);" style="width:95px;text-align:right"></td>';
     h+='<td style="text-align:right;padding:3px 5px;color:'+(m.esEquipo?'var(--golt)':'var(--gt)')+';font-weight:700">$'+sub.toLocaleString()+'</td>';
     h+='<td><button onclick="cpBorrarMat(\''+it.id+'\','+mi+')" style="background:none;border:none;color:var(--rt);cursor:pointer;font-size:13px;padding:0">\u00d7</button></td></tr>';
@@ -9609,11 +9661,13 @@ function cpVerResumen(){
       +'<table style="width:100%;font-size:10px;border-collapse:collapse"><thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:3px 5px">Descripci\u00f3n</th><th style="text-align:center;padding:3px 5px">Un</th><th style="text-align:right;padding:3px 5px">Cantidad</th><th style="text-align:right;padding:3px 5px">$/un</th><th style="text-align:right;padding:3px 5px">Subtotal</th></tr></thead><tbody>'
       +arr.map(function(m){
         var extras='';
-        // Para perfiles (ml): mostrar barras necesarias, con el % de desperdicio real de cada material
-        if(m.un==='m'||m.un==='ml'){
-          var largoBarra=cpLargoBarra(m.cod);
-          var barras=cpCantBarras(m.cant,m.desp||0,largoBarra);
-          extras='<span style="font-size:9px;color:var(--tx3);margin-left:4px">('+barras+' barras '+largoBarra+'m c/'+(m.desp||0)+'%)</span>';
+        // Mostrar la cantidad comercial (barras/rollos/placas/bolsas/cajas) que hay que comprar,
+        // con el % de desperdicio real de cada material — no solo perfiles, cualquier material con
+        // pack detectado en su `medida` de PR_DATA.
+        var packR=cpPackInfo(m.cod);
+        if(packR){
+          var comR=cpComercialTxt(m.cod,m.cant,m.desp||0);
+          extras='<span style="font-size:9px;color:var(--tx3);margin-left:4px">('+comR+')</span>';
         }
         return'<tr style="border-bottom:1px solid var(--br)"><td style="padding:3px 5px">'+m.nom+extras+'</td><td style="text-align:center;padding:3px 5px;color:var(--tx3)">'+m.un+'</td><td style="text-align:right;padding:3px 5px;font-weight:600">'+m.cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td style="text-align:right;padding:3px 5px;color:var(--tx3)">$'+m.pu.toLocaleString()+'</td><td style="text-align:right;padding:3px 5px;font-weight:700;color:'+color+'">$'+m.sub.toLocaleString()+'</td></tr>';
       }).join('')
@@ -10000,12 +10054,7 @@ function cpPDF(modo){
     if(!arr.length)return'';
     return'<h3>'+tit+'</h3><table><thead><tr><th>Descripción</th><th>Un</th><th class="r">Cantidad</th><th class="r">Cant. Comercial</th><th class="r">$/un</th><th class="r">Subtotal</th></tr></thead><tbody>'
     +arr.map(function(m){
-      var comercial='—';
-      if(m.un==='m'||m.un==='ml'){
-        var largoBarra=cpLargoBarra(m.cod);
-        var barras=cpCantBarras(m.cant,m.desp||0,largoBarra);
-        comercial=barras+' barras de '+largoBarra+'m (c/'+(m.desp||0)+'% desp.)';
-      }
+      var comercial=cpComercialPlain(m.cod,m.cant,m.desp||0);
       return'<tr><td>'+m.nom+'</td><td>'+m.un+'</td><td class="r mat">'+m.cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">'+comercial+'</td><td class="r">$'+cpFmtAR(m.pu)+'</td><td class="r mat">$'+cpFmtAR(m.sub)+'</td></tr>';
     }).join('')
     +'</tbody></table>';
@@ -10083,12 +10132,7 @@ function cpListadoMateriales(modo){
     var sub=0;
     var h='<h3>'+tit+'</h3><table><thead><tr><th>Cód.</th><th>Descripción</th><th>Un</th><th class="r">Cantidad</th><th class="r">Cant. Comercial</th><th class="r">Precio Unitario</th><th class="r">Precio Total</th></tr></thead><tbody>';
     arr.forEach(function(m){
-      var comercial='—';
-      if(m.un==='m'||m.un==='ml'){
-        var largoBarra=cpLargoBarra(m.cod);
-        var barras=cpCantBarras(m.cant,m.desp||0,largoBarra);
-        comercial=barras+' barras de '+largoBarra+'m (c/'+(m.desp||0)+'% desp.)';
-      }
+      var comercial=cpComercialPlain(m.cod,m.cant,m.desp||0);
       sub+=m.sub;
       h+='<tr><td>'+(m.cod||'')+'</td><td>'+m.nom+'</td><td>'+m.un+'</td><td class="r mat">'+m.cant.toLocaleString('es-AR',{maximumFractionDigits:3})+'</td><td class="r">'+comercial+'</td><td class="r">$'+cpFmtAR(m.pu)+'</td><td class="r mat">$'+cpFmtAR(m.sub)+'</td></tr>';
     });
@@ -10108,12 +10152,7 @@ function cpListadoMaterialesXLS(modo){
   var rows=[['LISTADO DE COMPUTO DE MATERIALES'],[obraNom+' — '+sc.titulo+' — Precios 2026'],[],
     ['Código','Descripción','Un','Cantidad','Cant. Comercial','Precio Unitario','Precio Total']];
   Object.values(ag.matMap).forEach(function(m){
-    var comercial='—';
-    if(m.un==='m'||m.un==='ml'){
-      var largoBarra=cpLargoBarra(m.cod);
-      var barras=cpCantBarras(m.cant,m.desp||0,largoBarra);
-      comercial=barras+' barras de '+largoBarra+'m (c/'+(m.desp||0)+'% desp.)';
-    }
+    var comercial=cpComercialPlain(m.cod,m.cant,m.desp||0);
     rows.push([m.cod||'',(m.esEquipo?'[Equipo] ':'')+m.nom,m.un,m.cant,comercial,m.pu,m.sub]);
   });
   var wb=XLSX.utils.book_new();
@@ -11055,7 +11094,7 @@ var PR_DATA = [
 {cod:'802',nom:'Membrana espuma polietileno 2mm',cat:'AISLACIONES',un:'m²',pu:461.30,medida:'m² (rollo 20m2 = $9.226)',fuente:'Actualizado: Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'803',nom:'Film nylon polietileno 200μ',cat:'AISLACIONES',un:'m²',pu:877,medida:'m²',fuente:'Actualizado: Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'804',nom:'Lana de vidrio 50mm sin papel',cat:'AISLACIONES',un:'m²',pu:5133.84,medida:'m² (Isover)',fuente:'Actualizado: Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
-{cod:'805',nom:'Lana de vidrio 50mm con aluminio',cat:'AISLACIONES',un:'m²',pu:8364.83,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'805',nom:'Lana de vidrio 50mm con aluminio',cat:'AISLACIONES',un:'m²',pu:480.74,medida:'m² (rollo 1.20x14.5m = 17.40m² por $8.364,83)',fuente:'IMCOFUE — CORREGIDO 06-sep-2026: el precio cargado ($8.364,83) era el del ROLLO ENTERO, no el de 1m². Precio real por m² = 8364,83/17,40',modif:0,fecha:'2026-09'},
 {cod:'806',nom:'Lana de vidrio 50mm con papel kraft',cat:'AISLACIONES',un:'m²',pu:6073.17,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'807',nom:'Membrana Hidrofuga Wichi/Tyvek',cat:'AISLACIONES',un:'m²',pu:1417,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'808',nom:'Poliestireno expandido 50mm',cat:'AISLACIONES',un:'m²',pu:16571.04,medida:'m² (Plancha Telgopor 1x1m)',fuente:'Actualizado: Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
@@ -11066,11 +11105,11 @@ var PR_DATA = [
 {cod:'813',nom:'Membrana No Transitable Megaflex con aluminio tipo No Crack',cat:'AISLACIONES',un:'m²',pu:0,medida:'m²',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'814',nom:'Membrana Transitable Megaflex tipo Geotrans',cat:'AISLACIONES',un:'m²',pu:0,medida:'m²',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'815',nom:'Manto geotextil 200gr drenante',cat:'AISLACIONES',un:'m²',pu:3134,medida:'m²',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
-{cod:'816',nom:'Lana de vidrio 100mm con aluminio',cat:'AISLACIONES',un:'m²',pu:14964.38,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'816',nom:'Lana de vidrio 100mm con aluminio',cat:'AISLACIONES',un:'m²',pu:1559.83,medida:'m² (rollo 1.20x8m = 9.60m² por $14.964,38)',fuente:'IMCOFUE — CORREGIDO 06-sep-2026: el precio cargado ($14.964,38) era el del ROLLO ENTERO, no el de 1m². Precio real por m² = 14964,38/9,60',modif:0,fecha:'2026-09'},
 {cod:'817',nom:'Lana de vidrio 100mm con papel kraft',cat:'AISLACIONES',un:'m²',pu:11700,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'818',nom:'Lana de Vidrio 100mm Cortada 40cm Durlock',cat:'AISLACIONES',un:'m²',pu:12161.05,medida:'m²',fuente:'Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'819',nom:'Lana Vidrio 100mm C/Alu Isover',cat:'AISLACIONES',un:'m²',pu:14821.94,medida:'m²',fuente:'Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
-{cod:'820',nom:'Lana Vidrio 80mm C/Alu Isover',cat:'AISLACIONES',un:'m²',pu:12299.65,medida:'m²',fuente:'Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+{cod:'820',nom:'Lana Vidrio 80mm C/Alu Isover',cat:'AISLACIONES',un:'m²',pu:854.14,medida:'m² (rollo 1.20x12m = 14.40m² por $12.299,65)',fuente:'IMCOFUE — CORREGIDO 06-sep-2026: el precio cargado ($12.299,65) era el del ROLLO ENTERO, no el de 1m². Precio real por m² = 12299,65/14,40',modif:0,fecha:'2026-09'},
 {cod:'821',nom:'Lana Vidrio 70mm Acustiver R400 Isover',cat:'AISLACIONES',un:'m²',pu:10744.62,medida:'m²',fuente:'Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'822',nom:'Lana Vidrio 50mm Acustiver R400 Isover',cat:'AISLACIONES',un:'m²',pu:8670.36,medida:'m²',fuente:'Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'823',nom:'Lana Vidrio 50mm C/Aluminio Isover',cat:'AISLACIONES',un:'m²',pu:8023.96,medida:'m²',fuente:'Completado: relevamiento en vivo del catálogo IMCOFUE (categoría Aislación), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
@@ -11144,7 +11183,7 @@ var PR_DATA = [
 {cod:'1114',nom:'Chapa Trapezoidal T101 Cincalum',cat:'CHAPAS',un:'m²',pu:15098.87,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE (talle 3.00m, ancho útil ~1.0658m derivado de comparación con cod 1103), producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'1115',nom:'Chapa Policarbonato Trapezoidal Cristal',cat:'CHAPAS',un:'m²',pu:18308.79,medida:'m² (panel 1.10x3.0m $60.419,00)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 // ── PLACAS CEMENTICIAS ──
-{cod:'1201',nom:'Placa cementicia 10mm (2.40x1.20) Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:24348.96,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1201',nom:'Placa cementicia 10mm (2.40x1.20) Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:24348.96,medida:'m² (placa 1.20x2.40m = 2.88m² por $70.125,00)',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1202',nom:'Placa cementicia 8mm (2.40x1.20) Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:20777.08,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1203',nom:'Siding cedral 8mm Crudo (0.20x3.6m) Eternit',cat:'PLACAS CEMENTICIAS',un:'m²',pu:26166.67,medida:'m² (panel $18.840,00/0.72m²)',fuente:'Corregido: relevamiento en vivo IMCOFUE, precio anterior desactualizado (39% mas alto), ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'1204',nom:'Placa cementicia 6mm (2.40x1.20) Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:18930.21,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
@@ -11152,7 +11191,7 @@ var PR_DATA = [
 {cod:'1206',nom:'Placa Cementicia 10mm Premium Pulida (2.40x1.20) Superboard',cat:'PLACAS CEMENTICIAS',un:'m²',pu:44690.28,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'1207',nom:'Siding Cedral 10mm Smart (0.10x3.20m) Eternit',cat:'PLACAS CEMENTICIAS',un:'m²',pu:53540.63,medida:'m²',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 // ── PLACAS DE YESO ──
-{cod:'1301',nom:'Placa de yeso 12.5 Std (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:8066.67,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
+{cod:'1301',nom:'Placa de yeso 12.5 Std (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:8066.67,medida:'m² (placa 1.20x2.40m = 2.88m² por $23.232,01)',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1302',nom:'Placa de yeso 9.5 Std (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:7491.32,medida:'m²',fuente:'mercadolibre',modif:0,fecha:'2026-06'},
 {cod:'1303',nom:'Placa de yeso 12.5 Antihumed (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:18896.47,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
 {cod:'1304',nom:'Placa de yeso 12.5 Resist Fuego (1.20x2.40) Durlock',cat:'PLACAS DE YESO',un:'m²',pu:11395.14,medida:'m²',fuente:'IMCOFUE',modif:0,fecha:'2026-06'},
@@ -11658,6 +11697,32 @@ var PR_DATA = [
 {cod:'1905',nom:'Zócalo Square 50mm Blanco 2.5',cat:'ZÓCALOS',un:'m',pu:0,medida:'m',fuente:'Municipalidad Ushuaia 2026',modif:0,fecha:'2026-06'},
 {cod:'1906',nom:'Zocalo Piso Flotante 6cm x 2.40m Egger',cat:'ZÓCALOS',un:'m',pu:7575,medida:'m (barra 2.40m $18.180,00, precio tipico segun color)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
 {cod:'1907',nom:'Zócalo de PVC classic blanco  liso (8mx3m)',cat:'ZÓCALOS',un:'m',pu:12523.34,medida:'m (barra 8cm x3m $37.570,03)',fuente:'Completado: relevamiento en vivo IMCOFUE, producto real confirmado, ciudad Ushuaia, 2026-07',modif:0,fecha:'2026-07'},
+// ── ALIAS 06-sep-2026: filas agregadas para que los ids internos usados en las recetas de
+// TABIQUES LIVIANOS / CIELORRASO LIVIANO / CERRAMIENTO DE VANOS (Steel Frame/Drywall) tengan
+// su propio precio VISIBLE y EDITABLE en el Listado de Precios, respetando la unidad comercial
+// real (barra/placa/caja/balde/rollo), en vez de vivir solo en un diccionario interno invisible.
+// Donde el mismo producto ya tenía una fila real en PR_DATA (cod numérico de abajo), se alía el
+// precio 1 a 1 al mismo valor — no son precios nuevos, son el mismo dato con otro código de acceso.
+{cod:'PGU35_052',nom:'Montante 35mm E0.52mm (alias de cod 315)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1581.30,medida:'barra 2.6m = $4.111,38',fuente:'IMCOFUE — mismo producto que cod 315',modif:0,fecha:'2026-09'},
+{cod:'PGC35_052',nom:'Solera 35mm E0.52mm (alias de cod 316)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1401.74,medida:'barra 2.6m = $3.644,52',fuente:'IMCOFUE — mismo producto que cod 316',modif:0,fecha:'2026-09'},
+{cod:'PGC70_052_mont',nom:'Montante 70mm E0.52mm (alias de cod 313)',cat:'PERFILES GALVANIZADOS',un:'m',pu:2085.23,medida:'barra 2.6m = $5.421,60',fuente:'IMCOFUE — mismo producto que cod 313',modif:0,fecha:'2026-09'},
+{cod:'PGU70_052_sol',nom:'Solera 70mm E0.52mm (alias de cod 314)',cat:'PERFILES GALVANIZADOS',un:'m',pu:1905.67,medida:'barra 2.6m = $4.954,74',fuente:'IMCOFUE — mismo producto que cod 314',modif:0,fecha:'2026-09'},
+{cod:'PGC100_092_mont',nom:'PGC 100x0.92mm (alias de cod 302)',cat:'PERFILES GALVANIZADOS',un:'m',pu:4862.23,medida:'barra 6m = $29.173',fuente:'IMCOFUE — mismo producto que cod 302',modif:0,fecha:'2026-09'},
+{cod:'PGU100_092_sol',nom:'PGU 100x0.92mm (alias de cod 301)',cat:'PERFILES GALVANIZADOS',un:'m',pu:4031.5,medida:'barra 6m = $24.189',fuente:'IMCOFUE — mismo producto que cod 301',modif:0,fecha:'2026-09'},
+{cod:'PGU100_129',nom:'PGU 100x1.29mm (alias de cod 303)',cat:'PERFILES GALVANIZADOS',un:'m',pu:5289.82,medida:'barra 6m = $31.739',fuente:'IMCOFUE — mismo producto que cod 303',modif:0,fecha:'2026-09'},
+{cod:'PGC100_129',nom:'PGC 100x1.29mm (alias de cod 304)',cat:'PERFILES GALVANIZADOS',un:'m',pu:6538.36,medida:'barra 6m = $39.230',fuente:'IMCOFUE — mismo producto que cod 304',modif:0,fecha:'2026-09'},
+{cod:'placa_yeso_12',nom:'Placa de yeso 12.5 Std Durlock (alias de cod 1301)',cat:'PLACAS DE YESO',un:'m²',pu:8066.67,medida:'m² (placa 1.20x2.40m = 2.88m² por $23.232,01)',fuente:'IMCOFUE — mismo producto que cod 1301',modif:0,fecha:'2026-09'},
+{cod:'placa_cem_10',nom:'Placa cementicia 10mm Superboard (alias de cod 1201)',cat:'PLACAS CEMENTICIAS',un:'m²',pu:24348.96,medida:'m² (placa 1.20x2.40m = 2.88m² por $70.125,00)',fuente:'IMCOFUE — mismo producto que cod 1201',modif:0,fecha:'2026-09'},
+{cod:'placa_cem_12',nom:'Placa cementicia 12mm Superboard (aprox., ver nota)',cat:'PLACAS CEMENTICIAS',un:'m²',pu:24348.96,medida:'m² (placa 1.20x2.40m = 2.88m² por $70.125,00, mismo precio que 10mm — ver nota)',fuente:'APROXIMADO: 12mm no es un espesor de fábrica estándar de Superboard (fabrica 4/6/8/10/15/20mm) — se usa el precio de la placa de 10mm hasta confirmar el espesor real con Diego',modif:0,fecha:'2026-09'},
+{cod:'torn_T1_25',nom:'Tornillo T1 Mecha punta aguja 8x9/16 (alias de cod 601)',cat:'FIJACIONES',un:'un',pu:28.36,medida:'un (caja x100 $2.836,00 aprox.)',fuente:'IMCOFUE — mismo producto que cod 601',modif:0,fecha:'2026-09'},
+{cod:'torn_T2_25',nom:'Tornillo T2 Aguja 6x1 (alias de cod 603)',cat:'FIJACIONES',un:'un',pu:21.19,medida:'un (caja x100 $2.119,00 aprox.)',fuente:'IMCOFUE — mismo producto que cod 603',modif:0,fecha:'2026-09'},
+{cod:'torn_T3_38',nom:'Tornillo T3 Mecha Zinc 6x1.5/8 (alias de cod 615)',cat:'FIJACIONES',un:'un',pu:33.86,medida:'un (caja x100 $3.385,94)',fuente:'IMCOFUE — mismo producto que cod 615',modif:0,fecha:'2026-09'},
+{cod:'torn_wafer',nom:'Tornillo wafer autoperforante punta broca',cat:'FIJACIONES',un:'un',pu:21.34,medida:'un (caja x1400 $29.869,00)',fuente:'BulPlus (no IMCOFUE) — relevamiento previo, verificar precio local antes de comprar en cantidad',modif:0,fecha:'2026-09'},
+{cod:'cinta_papel',nom:'Cinta de papel microperforada Durlock 50mm (alias de cod 702)',cat:'CONSTRUCCIÓN EN SECO',un:'m',pu:68.01,medida:'m (rollo 75m = $5.100,75 aprox.)',fuente:'IMCOFUE — mismo producto que cod 702',modif:0,fecha:'2026-09'},
+{cod:'masilla_junt',nom:'Masilla para juntas LPU Durlock (balde)',cat:'CONSTRUCCIÓN EN SECO',un:'kg',pu:1827,medida:'kg (balde 32kg = $58.453,00)',fuente:'IMCOFUE — producto puntual (LPU en balde), no confirmado como el mismo ítem que cod 703 (Masilla para Yeso genérica a $1.477,64/kg); verificar cuál corresponde antes de comprar',modif:0,fecha:'2026-09'},
+{cod:'film_barrera',nom:'Film de polietileno barrera de vapor 200µ (alias de cod 803)',cat:'AISLACIONES',un:'m²',pu:877,medida:'m² (rollo 4x50m = 200m² aprox.)',fuente:'IMCOFUE — mismo producto que cod 803',modif:0,fecha:'2026-09'},
+{cod:'banda_acust',nom:'Banda Acústica 70mm x 25m (alias de cod 830, convertido a $/m)',cat:'AISLACIONES',un:'m',pu:574.36,medida:'m (rollo 25m = $14.359,00)',fuente:'IMCOFUE — mismo producto que cod 830 (ahí cargado por rollo entero), convertido a precio por metro lineal',modif:0,fecha:'2026-09'},
+{cod:'sellador_siliconico',nom:'Sellador silicónico neutro 320ml',cat:'CONSTRUCCIÓN EN SECO',un:'un',pu:0,medida:'un (cartucho 320ml)',fuente:'SIN PRECIO CONFIRMADO — completar manualmente desde el Listado de Precios (ver columna "$/un")',modif:0,fecha:'2026-09'},
 ];
 
 // Historial de modificaciones (se guarda en Firebase)
