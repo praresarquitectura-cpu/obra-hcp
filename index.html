@@ -7446,7 +7446,7 @@ var CP_CATALOGO_EXTRA = [
  cat:'ESTRUCTURA METÁLICA',
  unidades_permitidas:['m²','kg'],
  mats:[
-  {id:'430',nom:'Tubo Cuadrado 100x100 x2.00mm',un:'m',rend:0.3},
+  {id:'430',nom:'Tubo Cuadrado 100x100 x2.00mm',un:'m',rend:0.3,nota:'ALERTA FASE D: espesor 2mm esta por debajo del minimo normativo para elementos resistentes de acero (CIRSOC 301, exigido tambien por pliego Muni Ushuaia 03/2022): 4mm en general, 3mm en ambientes no corrosivos. Verificar contra calculo estructural del proyecto antes de usar en obra real — no reemplazado automaticamente porque el perfil correcto depende del calculo y de la clasificacion de exposicion.'},
   {id:'445',nom:'Perfil UPN 100mm',un:'m',rend:0.5},
   {id:'454',nom:'Perfil Angulo Hierro 1 x 3/16',un:'m',rend:0.4},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.15,esEquipo:false},
@@ -7458,7 +7458,7 @@ var CP_CATALOGO_EXTRA = [
  unidades_permitidas:['m²'],
  mats:[
   {id:'445',nom:'Perfil UPN 100mm',un:'m',rend:1.0},
-  {id:'470',nom:'Tubo rectangular 60x40x2',un:'m',rend:0.8},
+  {id:'470',nom:'Tubo rectangular 60x40x2',un:'m',rend:0.8,nota:'ALERTA FASE D: espesor 2mm esta por debajo del minimo normativo para elementos resistentes de acero (CIRSOC 301, exigido tambien por pliego Muni Ushuaia 03/2022): 4mm en general, 3mm en ambientes no corrosivos. Verificar contra calculo estructural del proyecto antes de usar en obra real — no reemplazado automaticamente porque el perfil correcto depende del calculo y de la clasificacion de exposicion.'},
   {id:'519',nom:'Electrodos 2.5',un:'kg',rend:0.1},
  ],
  mo:[{rol:'ofEsp',hh:0.7},{rol:'ay',hh:0.6}]
@@ -8819,7 +8819,7 @@ var CP_UNIDADES_MO = ['hh'];
 // es la Fase D, ítem por ítem, con vos).
 function cpAuditarAPU(){
   var hallazgos=[];
-  var UNIDADES_VALIDAS=['m','m²','m2','m³','m3','kg','un','lt','gl','h-eq','hh','Pie²','ml'];
+  var UNIDADES_VALIDAS=['m','m²','m2','m³','m3','kg','un','lt','gl','h-eq','hh','Pie²','ml','mes'];
   if(typeof CP_CATALOGO==='undefined')return {hallazgos:hallazgos,resumen:{CORRECTO:0,ADVERTENCIA:0,ERROR:0}};
   CP_CATALOGO.forEach(function(it){
     var vistos={};
