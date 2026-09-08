@@ -746,6 +746,7 @@ input,select,textarea,button{font-family:var(--font)}
     <div><div class="pgt">Análisis de Precios</div>
     <div class="pgs">Librería de rendimiento/incidencia por Rubro → Ítem — separada del Cómputo de cada obra. Acá se carga CUÁNTO material hace falta por cada 1 unidad (m²/ml/m³/un) de un ítem; en el Cómputo de cada obra solo se elige el ítem y se carga la medición real.</div></div>
     <button class="btn" style="background:var(--bt);color:#fff;font-size:11px;padding:6px 12px" onclick="apuMostrarAuditoria()" title="Revisa toda la biblioteca en busca de unidades cruzadas, consumos/precios en cero, recursos duplicados e ítems sin mano de obra">&#128269; Auditar Biblioteca</button>
+    <button class="btn" style="background:var(--gt);color:#fff;font-size:11px;padding:6px 12px" onclick="rrAbrirModulo()" title="Cargá mediciones reales de tus obras (horas y consumos reales) y compará contra el rendimiento presupuestado de la biblioteca, para calibrar con datos propios en vez de fuentes que no existen">&#128207; Rendimiento Real</button>
   </div>
   <div class="card" style="margin-bottom:10px">
     <label class="fl">Buscar por material (auditar en qué ítems se usa y con qué rendimiento)</label>
@@ -1253,6 +1254,14 @@ input,select,textarea,button{font-family:var(--font)}
     <div class="msub">Chequeos de consistencia interna (unidades cruzadas, consumos/precios en cero, recursos duplicados, ítems sin mano de obra). No reemplaza la revisión técnica ítem por ítem contra fuente — ver AUDITORIA_FASE_A.md.</div>
     <div id="apu-audit-body" style="margin-top:14px"></div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-apu-audit')">Cerrar</button></div>
+  </div>
+</div>
+<div class="mb" id="mod-rr" onclick="closeBg(event,'mod-rr')">
+  <div class="modal" style="max-width:900px;max-height:88vh;overflow-y:auto">
+    <div class="mt2">Rendimiento Real de Obra</div>
+    <div class="msub">Cargá mediciones reales de campo (cantidad ejecutada + horas y consumos reales) para comparar contra el rendimiento presupuestado de la biblioteca y calibrar con tus propios datos — nunca se estima ni se inventa un valor acá, todo sale de una medición que vos cargás.</div>
+    <div id="rr-modulo-body" style="margin-top:14px"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-rr')">Cerrar</button></div>
   </div>
 </div>
 <div class="mb" id="mod-pliego" onclick="closeBg(event,'mod-pliego')">
@@ -4032,6 +4041,7 @@ setTimeout(function(){
   if(typeof prCargar==='function')prCargar();
   if(typeof honCfgCargar==='function')honCfgCargar();
   if(typeof cpCargarCatalogoUser==='function')cpCargarCatalogoUser();
+  if(typeof rrCargarDatos==='function')rrCargarDatos();
   if(typeof pmCargarTracking==='function')pmCargarTracking();
   if(typeof pmCargarSugerencias==='function')pmCargarSugerencias();
 },0);
@@ -4372,6 +4382,7 @@ async function fbLoadAll(){
     if(typeof pmCargarSugerencias==='function')pmCargarSugerencias();
   if(typeof honCfgCargar==='function')honCfgCargar();
     if(typeof cpCargarCatalogoUser==='function')cpCargarCatalogoUser();
+    if(typeof rrCargarDatos==='function')rrCargarDatos();
     guardarTodo(); // save to localStorage as cache
     renderHon(HON_DATA);
     renderCli(CLIENTES);
@@ -8924,6 +8935,285 @@ function apuRegistrarCambio(cod, campo, valorAnterior, valorNuevo, motivo, fuent
     usuario:usuario||'Diego Rojas'
   });
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// RENDIMIENTO REAL DE OBRA — módulo de calibración con datos de campo.
+// Agregado en Fase D (2026-09-08) a pedido de Diego, ver ORDEN MAESTRA
+// Etapa "RENDIMIENTO REAL DE OBRA" / proceso de calibración presupuestado
+// vs. real. Con las fuentes públicas ya agotadas (no existe ningún APU real
+// publicado con hh/unidad para Ushuaia — ver CRITERIO_UNICO_FUENTES.md),
+// este es el único camino realista para seguir corrigiendo la biblioteca:
+// Diego carga mediciones reales de SUS obras (cantidad ejecutada + horas
+// reales + consumo real de materiales) y el sistema las compara contra el
+// rendimiento presupuestado, sin inventar ningún número — el dato sale
+// siempre de una medición real cargada a mano.
+//
+// Persistencia: mismo patrón que CP_CATALOGO_USER (Firestore en
+// users/{uid}/config/rendimientoReal, con fallback a localStorage).
+// ═══════════════════════════════════════════════════════════════════════
+var RR_DATA = [];
+var RR_NID = 1;
+var RR_SEL_COD = null;
+
+function rrGuardarDatos(){
+  var data={registros:RR_DATA,nextId:RR_NID,ts:Date.now()};
+  try{localStorage.setItem('obraerp_rendimiento_real',JSON.stringify(data));}catch(e){}
+  if(typeof _db!=='undefined'&&_db&&typeof _uid!=='undefined'&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('rendimientoReal')
+      .set(data).catch(function(){});
+  }
+}
+function rrCargarDatos(){
+  function aplicar(d){
+    if(!d)return;
+    if(d.registros)RR_DATA=d.registros;
+    if(d.nextId)RR_NID=d.nextId;
+  }
+  function fallbackLocal(){
+    try{
+      var loc=localStorage.getItem('obraerp_rendimiento_real');
+      if(loc)aplicar(JSON.parse(loc));
+    }catch(e){}
+  }
+  if(typeof _db!=='undefined'&&_db&&typeof _uid!=='undefined'&&_uid){
+    _db.collection('users').doc(_uid).collection('config').doc('rendimientoReal').get()
+      .then(function(doc){if(doc.exists)aplicar(doc.data());else fallbackLocal();})
+      .catch(fallbackLocal);
+  }else{
+    fallbackLocal();
+  }
+}
+
+function rrHistorialItem(cod){
+  return RR_DATA.filter(function(r){return r.itemCod===cod;}).sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+}
+
+// Copia el ítem (editado) al catálogo del usuario para persistirlo, igual que
+// hace la app con cualquier edición de un ítem preestablecido: al recargar,
+// cpCargarCatalogoUser() lo vuelve a aplicar sobre CP_CATALOGO por cod.
+function rrPersistirItemCalibrado(it){
+  if(typeof CP_CATALOGO_USER==='undefined')return;
+  var copia=JSON.parse(JSON.stringify(it));
+  var idx=CP_CATALOGO_USER.findIndex(function(x){return x.cod===it.cod;});
+  if(idx>=0)CP_CATALOGO_USER[idx]=copia;else CP_CATALOGO_USER.push(copia);
+  if(typeof cpGuardarCatalogoUser==='function')cpGuardarCatalogoUser();
+}
+
+function rrAbrirModulo(){
+  RR_SEL_COD=null;
+  rrRenderModulo();
+  var m=document.getElementById('mod-rr');
+  if(m)m.classList.add('open');
+}
+
+function rrBuscarItemInput(val){
+  var box=document.getElementById('rr-buscar-resultados');
+  if(!box)return;
+  val=(val||'').trim().toLowerCase();
+  if(!val){box.innerHTML='';box.style.display='none';return;}
+  var matches=(CP_CATALOGO||[]).filter(function(it){
+    return (it.nom||'').toLowerCase().indexOf(val)>-1 || (it.cod||'').toLowerCase().indexOf(val)>-1;
+  }).slice(0,20);
+  if(!matches.length){box.innerHTML='<div style="padding:8px;font-size:11px;color:var(--tx3)">Sin resultados</div>';box.style.display='block';return;}
+  box.innerHTML=matches.map(function(it){
+    return '<div onclick="rrSeleccionarItem(\''+it.cod+'\')" style="padding:7px 10px;border-bottom:1px solid var(--br);cursor:pointer;font-size:11px" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'\'"><b>'+it.cod+'</b> — '+it.nom+' <span style="color:var(--tx3)">('+it.cat+')</span></div>';
+  }).join('');
+  box.style.display='block';
+}
+
+function rrSeleccionarItem(cod){
+  RR_SEL_COD=cod;
+  var input=document.getElementById('rr-buscar-input');
+  if(input)input.value='';
+  var box=document.getElementById('rr-buscar-resultados');
+  if(box){box.innerHTML='';box.style.display='none';}
+  rrRenderModulo();
+}
+
+function rrRenderModulo(){
+  var el=document.getElementById('rr-modulo-body');
+  if(!el)return;
+  var h='<input class="fi" id="rr-buscar-input" type="text" placeholder="Buscar ítem por nombre o código (ej: Contrapiso, HA02, 404...)" oninput="rrBuscarItemInput(this.value)" style="font-size:12px;width:100%">'
+      +'<div id="rr-buscar-resultados" style="position:relative;max-height:220px;overflow-y:auto;background:var(--bg3);border:1px solid var(--br);border-radius:6px;display:none;margin-top:2px;z-index:5"></div>';
+  var it=RR_SEL_COD?(CP_CATALOGO||[]).find(function(x){return x.cod===RR_SEL_COD;}):null;
+  if(!it){
+    h+='<div style="margin-top:14px;font-size:12px;color:var(--tx3)">Elegí un ítem de la biblioteca para cargar una medición real de campo o ver su historial.</div>';
+    el.innerHTML=h;
+    return;
+  }
+  h+='<div style="margin-top:14px;padding:10px;border:1px solid var(--br);border-radius:8px;background:var(--bg3)">'
+    +'<div style="font-weight:700;font-size:13px">'+it.nom+' <span style="color:var(--tx3);font-weight:400">('+it.cod+' · '+it.cat+' · un: '+it.un+')</span></div>'
+    +'<div style="font-size:10px;color:var(--tx3);margin-top:4px">Rendimiento presupuestado actual (biblioteca) — de referencia:</div>'
+    +'<table style="width:100%;font-size:10px;margin-top:4px;border-collapse:collapse">'
+    +(it.mats||[]).map(function(m){return '<tr><td style="padding:2px 4px;color:var(--tx2)">'+(m.esEquipo?'⚙ ':'')+m.nom+'</td><td style="padding:2px 4px;text-align:right">'+(m.rend==null?'—':m.rend)+' '+m.un+'/'+it.un+'</td></tr>';}).join('')
+    +(it.mo||[]).map(function(m){var rn={ofEsp:'Of. Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'}[m.rol]||m.rol;return '<tr><td style="padding:2px 4px;color:var(--golt)">⚒ MO — '+rn+'</td><td style="padding:2px 4px;text-align:right">'+(m.hh==null?'—':m.hh)+' hh/'+it.un+'</td></tr>';}).join('')
+    +'</table></div>';
+
+  h+='<div style="margin-top:14px"><button class="btn" style="background:var(--gt);color:#fff;font-size:11px;padding:6px 12px" onclick="rrMostrarFormulario(\''+it.cod+'\')">+ Cargar medición real</button></div>';
+  h+='<div id="rr-form-nueva" style="margin-top:10px"></div>';
+
+  var hist=rrHistorialItem(it.cod);
+  h+='<div style="margin-top:16px"><div style="font-size:12px;font-weight:700;margin-bottom:6px">Mediciones reales cargadas ('+hist.length+')</div>';
+  if(!hist.length){
+    h+='<div style="font-size:11px;color:var(--tx3)">Todavía no hay mediciones reales para este ítem. Cargá al menos 2 o 3 para que el promedio sea representativo antes de calibrar.</div>';
+  }else{
+    h+='<div style="overflow-x:auto"><table style="width:100%;font-size:10px;border-collapse:collapse">'
+      +'<thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:3px 5px">Fecha</th><th style="text-align:left;padding:3px 5px">Obra</th><th style="text-align:right;padding:3px 5px">Cant. ejecutada</th><th style="text-align:left;padding:3px 5px">Notas</th></tr></thead><tbody>'
+      +hist.map(function(r){
+        return '<tr style="border-bottom:1px solid var(--br)"><td style="padding:3px 5px">'+(r.fecha||'').slice(0,10)+'</td><td style="padding:3px 5px">'+(r.obra||'—')+'</td><td style="padding:3px 5px;text-align:right">'+r.cantidadEjecutada+' '+it.un+'</td><td style="padding:3px 5px;color:var(--tx3)">'+(r.notas||'')+'</td></tr>';
+      }).join('')
+      +'</tbody></table></div>';
+
+    h+='<div style="font-size:12px;font-weight:700;margin-top:14px;margin-bottom:6px">Comparación presupuestado vs. real (promedio de '+hist.length+' medición/es)</div>';
+    h+='<div style="overflow-x:auto"><table style="width:100%;font-size:10px;border-collapse:collapse">'
+      +'<thead><tr style="background:var(--bg4)"><th style="text-align:left;padding:3px 5px">Recurso</th><th style="text-align:right;padding:3px 5px">Presupuestado</th><th style="text-align:right;padding:3px 5px">Real (promedio)</th><th style="text-align:right;padding:3px 5px">Desvío</th><th></th></tr></thead><tbody>';
+    (it.mats||[]).forEach(function(m){
+      var reales=hist.map(function(r){
+        var mm=(r.materiales||[]).find(function(x){return x.id===m.id;});
+        if(!mm||mm.cantidadTotal==null||!r.cantidadEjecutada)return null;
+        return mm.cantidadTotal/r.cantidadEjecutada;
+      }).filter(function(x){return x!=null;});
+      if(!reales.length)return;
+      var prom=reales.reduce(function(a,b){return a+b;},0)/reales.length;
+      var desv=(m.rend?((prom-m.rend)/m.rend*100):null);
+      h+='<tr style="border-bottom:1px solid var(--br)"><td style="padding:3px 5px">'+(m.esEquipo?'⚙ ':'')+m.nom+'</td>'
+        +'<td style="padding:3px 5px;text-align:right">'+(m.rend==null?'—':m.rend)+'</td>'
+        +'<td style="padding:3px 5px;text-align:right;font-weight:700">'+Math.round(prom*1000)/1000+' <span style="color:var(--tx3);font-weight:400">('+reales.length+' med.)</span></td>'
+        +'<td style="padding:3px 5px;text-align:right;color:'+(desv==null?'var(--tx3)':(Math.abs(desv)>15?'var(--rt)':'var(--gt)'))+'">'+(desv==null?'—':(desv>0?'+':'')+Math.round(desv*10)/10+'%')+'</td>'
+        +'<td style="padding:3px 5px;text-align:right"><button class="btn" style="font-size:9px;padding:3px 8px" onclick="rrCalibrarRecurso(\''+it.cod+'\',\'mat\',\''+m.id+'\','+prom+')">Calibrar</button></td></tr>';
+    });
+    (it.mo||[]).forEach(function(m){
+      var reales=hist.map(function(r){
+        var mm=(r.mo||[]).find(function(x){return x.rol===m.rol;});
+        if(!mm||mm.hhTotal==null||!r.cantidadEjecutada)return null;
+        return mm.hhTotal/r.cantidadEjecutada;
+      }).filter(function(x){return x!=null;});
+      if(!reales.length)return;
+      var prom=reales.reduce(function(a,b){return a+b;},0)/reales.length;
+      var desv=(m.hh?((prom-m.hh)/m.hh*100):null);
+      var rn={ofEsp:'Of. Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'}[m.rol]||m.rol;
+      h+='<tr style="border-bottom:1px solid var(--br)"><td style="padding:3px 5px;color:var(--golt)">⚒ MO — '+rn+'</td>'
+        +'<td style="padding:3px 5px;text-align:right">'+(m.hh==null?'—':m.hh)+'</td>'
+        +'<td style="padding:3px 5px;text-align:right;font-weight:700">'+Math.round(prom*1000)/1000+' <span style="color:var(--tx3);font-weight:400">('+reales.length+' med.)</span></td>'
+        +'<td style="padding:3px 5px;text-align:right;color:'+(desv==null?'var(--tx3)':(Math.abs(desv)>15?'var(--rt)':'var(--gt)'))+'">'+(desv==null?'—':(desv>0?'+':'')+Math.round(desv*10)/10+'%')+'</td>'
+        +'<td style="padding:3px 5px;text-align:right"><button class="btn" style="font-size:9px;padding:3px 8px" onclick="rrCalibrarRecurso(\''+it.cod+'\',\'mo\',\''+m.rol+'\','+prom+')">Calibrar</button></td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function rrMostrarFormulario(cod){
+  var it=(CP_CATALOGO||[]).find(function(x){return x.cod===cod;});
+  var el=document.getElementById('rr-form-nueva');
+  if(!it||!el)return;
+  var h='<div style="padding:10px;border:1px dashed var(--golt);border-radius:8px;background:var(--bg3)">';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
+    +'<div style="flex:1;min-width:140px"><label style="font-size:9px;color:var(--tx3)">Fecha</label><input class="fi" id="rr-f-fecha" type="date" value="'+new Date().toISOString().slice(0,10)+'" style="font-size:11px"></div>'
+    +'<div style="flex:1;min-width:140px"><label style="font-size:9px;color:var(--tx3)">Obra (opcional)</label><input class="fi" id="rr-f-obra" type="text" style="font-size:11px"></div>'
+    +'<div style="flex:1;min-width:140px"><label style="font-size:9px;color:var(--tx3)">Cantidad ejecutada ('+it.un+')</label><input class="fi" id="rr-f-cant" type="text" inputmode="decimal" style="font-size:11px"></div>'
+    +'</div>';
+  h+='<div style="font-size:10px;color:var(--tx3);margin-bottom:4px">Cantidad TOTAL realmente consumida en esa ejecución (dejá en blanco lo que no mediste):</div>';
+  h+='<table style="width:100%;font-size:10px;border-collapse:collapse;margin-bottom:8px">';
+  (it.mats||[]).forEach(function(m){
+    h+='<tr><td style="padding:2px 4px">'+(m.esEquipo?'⚙ ':'')+m.nom+'</td><td style="padding:2px 4px;width:120px"><input class="fi" id="rr-mat-'+m.id+'" type="text" inputmode="decimal" placeholder="'+m.un+' totales" style="font-size:10px"></td></tr>';
+  });
+  (it.mo||[]).forEach(function(m){
+    var rn={ofEsp:'Of. Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'}[m.rol]||m.rol;
+    h+='<tr><td style="padding:2px 4px;color:var(--golt)">⚒ MO — '+rn+'</td><td style="padding:2px 4px;width:120px"><input class="fi" id="rr-mo-'+m.rol+'" type="text" inputmode="decimal" placeholder="hh totales" style="font-size:10px"></td></tr>';
+  });
+  h+='</table>';
+  h+='<label style="font-size:9px;color:var(--tx3)">Notas (condiciones, cuadrilla, clima, etc.)</label><textarea class="fi" id="rr-f-notas" style="font-size:11px;width:100%;min-height:40px"></textarea>';
+  h+='<div style="display:flex;gap:8px;margin-top:8px"><button class="btn" style="background:var(--gt);color:#fff;font-size:11px;padding:6px 12px" onclick="rrGuardarRegistro(\''+cod+'\')">Guardar medición</button><button class="btn" style="font-size:11px;padding:6px 12px" onclick="document.getElementById(\'rr-form-nueva\').innerHTML=\'\'">Cancelar</button></div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function rrGuardarRegistro(cod){
+  var it=(CP_CATALOGO||[]).find(function(x){return x.cod===cod;});
+  if(!it)return;
+  var cantEl=document.getElementById('rr-f-cant');
+  var cant=cantEl?parseARNum(cantEl.value):NaN;
+  if(!cant||isNaN(cant)||cant<=0){toast('Cargá la cantidad ejecutada primero',false);return;}
+  var materiales=[];
+  (it.mats||[]).forEach(function(m){
+    var el2=document.getElementById('rr-mat-'+m.id);
+    if(el2&&el2.value.trim()!==''){
+      var v=parseARNum(el2.value);
+      if(!isNaN(v))materiales.push({id:m.id,cantidadTotal:v});
+    }
+  });
+  var mo=[];
+  (it.mo||[]).forEach(function(m){
+    var el2=document.getElementById('rr-mo-'+m.rol);
+    if(el2&&el2.value.trim()!==''){
+      var v=parseARNum(el2.value);
+      if(!isNaN(v))mo.push({rol:m.rol,hhTotal:v});
+    }
+  });
+  if(!materiales.length&&!mo.length){toast('Cargá al menos un consumo real (material o mano de obra)',false);return;}
+  var fechaEl=document.getElementById('rr-f-fecha');
+  var obraEl=document.getElementById('rr-f-obra');
+  var notasEl=document.getElementById('rr-f-notas');
+  var registro={
+    id:'rr_'+(RR_NID++),
+    itemCod:cod,
+    fecha:(fechaEl&&fechaEl.value)?fechaEl.value:new Date().toISOString().slice(0,10),
+    obra:obraEl?obraEl.value.trim():'',
+    cantidadEjecutada:cant,
+    materiales:materiales,
+    mo:mo,
+    notas:notasEl?notasEl.value.trim():'',
+    registradoEl:new Date().toISOString(),
+    usuario:'Diego Rojas'
+  };
+  RR_DATA.push(registro);
+  rrGuardarDatos();
+  toast('✓ Medición real guardada');
+  rrRenderModulo();
+}
+
+function rrCalibrarRecurso(cod, tipo, key, promedio){
+  var it=(CP_CATALOGO||[]).find(function(x){return x.cod===cod;});
+  if(!it)return;
+  promedio=Math.round(promedio*10000)/10000;
+  var hist=rrHistorialItem(cod);
+  var label, valorAnterior, campo;
+  if(tipo==='mat'){
+    var m=(it.mats||[]).find(function(x){return x.id===key;});
+    if(!m)return;
+    label=m.nom;
+    valorAnterior=m.rend;
+    campo='mats['+key+'].rend';
+  }else{
+    var mm=(it.mo||[]).find(function(x){return x.rol===key;});
+    if(!mm)return;
+    var rn={ofEsp:'Of. Especializado',of:'Oficial',mo:'Medio Oficial',ay:'Ayudante'}[key]||key;
+    label='MO — '+rn;
+    valorAnterior=mm.hh;
+    campo='mo['+key+'].hh';
+  }
+  var quiere=confirm('¿Calibrar "'+label+'" en "'+it.nom+'"?\n\nValor actual (presupuestado): '+valorAnterior+'\nValor nuevo (promedio de '+hist.length+' medición/es reales): '+promedio+'\n\nEsto actualiza la biblioteca y queda registrado en el historial con la fuente "Rendimiento Real de Obra".');
+  if(!quiere)return;
+  if(tipo==='mat'){
+    var m2=(it.mats||[]).find(function(x){return x.id===key;});
+    m2.rend=promedio;
+  }else{
+    var mm2=(it.mo||[]).find(function(x){return x.rol===key;});
+    mm2.hh=promedio;
+  }
+  if(typeof apuRegistrarCambio==='function'){
+    apuRegistrarCambio(cod, campo, valorAnterior, promedio,
+      'Calibrado con Rendimiento Real de Obra — promedio de '+hist.length+' medición/es de campo',
+      'Mediciones reales cargadas por el usuario (ver RR_DATA / módulo Rendimiento Real)',
+      'Diego Rojas');
+  }
+  rrPersistirItemCalibrado(it);
+  toast('✓ Calibrado — biblioteca actualizada');
+  rrRenderModulo();
+}
+
 
 function cpRenderMats(it){
   var qty=cpQty(it.dims,it.un);
