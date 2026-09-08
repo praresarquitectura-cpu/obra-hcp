@@ -7506,7 +7506,7 @@ var CP_CATALOGO_EXTRA = [
 // ══ CUBIERTA — calculadora dimensional (Largo real de faldón según pendiente, verificado contra planilla CUB.CHº) ══
 // Unidad especial 'm²cub': Largo=proyección horizontal, Ancho=ancho del faldón, campo Pendiente(%) reemplaza a 'Alto'.
 // Incidencias de materiales por m² ESTIMADAS (estándar de mercado — ajustar según especificación real de obra).
-{cod:'CUB01',nom:'Cubierta Chapas sobre Correas Metálicas (MO y materiales estándar — verificar)',un:'m²cub',
+{cod:'CUB01',nom:'Cubierta Chapas sobre Correas Metálicas (MO con fuente Coccaro 2021)',un:'m²cub',
  cat:'CUBIERTA',
  unidades_permitidas:['m²cub'],
  mats:[
@@ -7516,7 +7516,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'817',nom:'Lana de vidrio 100mm con papel kraft',un:'m²',rend:1.0},
   {id:'803',nom:'Film nylon polietileno 200μ (barrera de vapor)',un:'m²',rend:1.10},
  ],
- mo:[{rol:'of',hh:0.5},{rol:'ay',hh:0.7}]
+ mo:[{rol:'of',hh:1.25,nota:'CORREGIDO: el valor anterior (0,5hh Of.+0,7hh Ay., total 1,2hh) no tenía fuente. FUENTE: Coccaro Hnos. Construcciones S.A., Anexo I "Análisis de Precios", Licitación Pública S.P. e I.P. N°10/2021 (Municipalidad de Ushuaia), Ítem 8.1 "Cubierta de chapa sinusoidal prepintada" (m²): 1,25hh Oficial, sin ayudante. Técnica equivalente (correas metálicas + chapa + aislación), aunque el ítem fuente incluye además placa OSB y membrana hidrorrepelente que este ítem no tiene en materiales — el total de horas (1,2 vs 1,25) es consistente, se adopta el desglose real en vez del estimado. Cargado 2026-09-08.'}]
 },
 // ══ MESADAS ══
 {cod:'MZ01',nom:'Mesada Cocina (MO estándar — verificar)',un:'m',
