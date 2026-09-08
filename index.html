@@ -5727,12 +5727,19 @@ var CP_CATALOGO = [
  ],
  mo:[{rol:'of',hh:0.3},{rol:'ay',hh:0.6}]
 },
+// FASE D — corregido 2026-09-07: Contrapiso de 10cm usaba H13/250kg y malla 4mm,
+// pero el pliego oficial de Muni Ushuaia (Licitación 03/2022, Residencia de Adultos
+// Mayores) exige para contrapiso interior de 10cm: hormigón H21 (350kg cemento/m³
+// mínimo), poliestireno expandido 2"(50mm) —faltaba por completo—, film 200µ y
+// malla Sima 15x15cm Ø5mm (= designación Q131 del fabricante). Fuente: PLIEGO
+// OFICIAL, confianza ALTO. Ver CRITERIO_UNICO_FUENTES.md.
 {cod:'404',nom:'Contrapiso de 10cm',un:'m²',
  cat:'SOLADOS',
  mats:[
-  {id:'102',nom:'H13 250kg',un:'m³',rend:0.1},
-  {id:'508',nom:'Malla Sima 4mm 2x6m (12m2)',un:'m²',rend:1.05},
+  {id:'104',nom:'H21 350kg',un:'m³',rend:0.1,nota:'Corregido de H13 a H21 (350kg cemento/m3 min.) por exigencia del pliego oficial Muni Ushuaia 03/2022 — FASE D 2026-09-07'},
+  {id:'509',nom:'Malla Sima 5mm Q131 2.40x6m',un:'m²',rend:1.05,nota:'Corregido de malla 4mm a 5mm Q131 (=15x15cm Ø5mm exigido por pliego) — FASE D 2026-09-07'},
   {id:'803',nom:'Film nylon polietileno 200μ',un:'m²',rend:1.05},
+  {id:'808',nom:'Poliestireno expandido 50mm',un:'m²',rend:1.05,nota:'Agregado — faltaba en la receta. Pliego exige poliestireno expandido 2"(=50mm)/30kg/m3 en contrapisos interiores — FASE D 2026-09-07'},
  ],
  mo:[{rol:'of',hh:0.4},{rol:'ay',hh:0.6}]
 },
@@ -7407,6 +7414,19 @@ var CP_CATALOGO_EXTRA = [
  ],
  mo:[{rol:'of',hh:0.9},{rol:'ay',hh:0.7}]
 },
+{cod:'HA09',nom:'Muro HºAº alta durabilidad — sala de tanques / contacto con agua (espesor y armado segun calculo estructural, verificar)',un:'m³',
+ cat:'ESTRUCTURA HºAº',
+ unidades_permitidas:['m³'],
+ mats:[
+  {id:'105',nom:'H25 380kg',un:'m³',rend:0,nota:'PENDIENTE DE VALIDACION: rendimiento (m3 de HºAº por m3/m2 de muro) depende del espesor real, que el pliego deja explicitamente a definir por calculo estructural del contratista. No se estima sin proyecto ejecutivo (regla: no inventar datos). H25 (380kg cemento/m3) exigido por pliego oficial Muni Ushuaia 03/2022 para elementos con resistencia a congelamiento/deshielo, sales y abrasion, 300kg/cm2 minimo.'},
+ ],
+ mo:[],
+},
+// FASE D — agregado 2026-09-07 a pedido de Diego (buscar y agregar tambien el
+// Hormigon H25): ver nota de fuente en el item HA09 arriba y en
+// CRITERIO_UNICO_FUENTES.md. H25 ya existia en el catalogo de precios (cod 105)
+// y ya se usaba en 'Escalera de HºAº', pero no habia ningun item de biblioteca
+// que documentara el caso tecnico real (pliego) que exige H25 por durabilidad.
 // ══ MOVIMIENTO DE SUELO — sin datos de MO en planilla 3CM/INCIDENCIAS; MO estándar ESTIMADA (ajustar) ══
 // mats con Retroexcavadora/Camión volcador agregados 04-sep-2026 a pedido de Diego: habilita la
 // calculadora de rendimiento por esponjamiento (ver cpDemoEsAplicable/CP_EXCAV_RETRO_M3H) para
