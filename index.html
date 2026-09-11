@@ -4159,12 +4159,13 @@ actualizarUIEmpresa();
       var b512=URL.createObjectURL(blob512);
       icon192.toBlob(function(blob192){
         var b192=blob192?URL.createObjectURL(blob192):b512;
+        var _cleanUrl=window.location.origin+window.location.pathname;
         var manifest={
           name:'OBRAERP · Honorarios',
           short_name:'OBRAERP',
           description:'Motor de honorarios profesionales · PRARES ARQUITECTURA · Ushuaia TDF',
-          start_url:window.location.href,
-          scope:window.location.href,
+          start_url:_cleanUrl,
+          scope:_cleanUrl,
           display:'standalone',
           orientation:'any',
           background_color:'#09090b',
