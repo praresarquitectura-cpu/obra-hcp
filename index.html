@@ -7484,7 +7484,7 @@ var CP_CATALOGO_EXTRA = [
  mo:[{rol:'of',hh:0.35},{rol:'ay',hh:0.45}]
 },
 // ══ TABIQUES ESTRUCTURALES GALVANIZADOS (PGU Y PGC) — incidencias reales de rendimiento, MO ESTIMADA (ajustar) ══
-{cod:'EG01',nom:'Estructura Galvanizada Portante (Gº+AISL+REV.EXT+PINT.EXT - Steel Frame) (MO estándar — verificar)',un:'m²',
+{cod:'EG01',nom:'Estructura Galvanizada Portante — SOLO ESTRUCTURA, sin aislación/revestimiento/pintura (armar el muro completo en Sistemas Constructivos)',un:'m²',
  cat:'TABIQUES ESTRUCTURALES - (PGU Y PGC)',
  unidades_permitidas:['m²'],
  mats:[
@@ -7492,7 +7492,7 @@ var CP_CATALOGO_EXTRA = [
   {id:'301',nom:'PGU 100mm E0.92mm (solera horizontal — estructural)',un:'m',rend:0.6},
   {id:'312',nom:'Fleje Cruz San Andrés 50mm (riostra diagonal antipandeo)',un:'m',rend:1.0},
  ],
- mo:[{rol:'of',hh:0.6},{rol:'ay',hh:0.5}]
+ mo:[{rol:'of',hh:0.6,nota:'CORREGIDO SOLO EL NOMBRE (2026-09-11): este ítem tenía en el nombre "Gº+AISL+REV.EXT+PINT.EXT" (prometía estructura+aislación+revestimiento+pintura) pero los materiales de arriba son SOLO la estructura — le faltaba todo lo demás. En vez de agregar acá esas capas (que duplicaría el trabajo de Sistemas Constructivos), se corrigió el nombre para que sea honesto con lo que realmente contiene. Para armar el muro completo con aislación y revestimiento, usar el módulo Sistemas Constructivos — ahí se agregó un sistema de referencia "MURO EXTERIOR PGC/PGU — Steel Frame completo (fuente Coccaro 2021)" con el desglose real de una obra ejecutada. La MO de acá (0,6hh Of.+0,5hh Ay.) sigue siendo una estimación de mercado sin fuente puntual — no se tocó porque corresponde solo a la estructura, y el dato real de Coccaro es para el conjunto completo, no aplicable acá.'},{rol:'ay',hh:0.5}]
 },
 {cod:'EG02',nom:'Estructura Galvanizada No Portante (perfilería de Drywall) (MO estándar — verificar)',un:'m²',
  cat:'TABIQUES ESTRUCTURALES - (PGU Y PGC)',
@@ -13452,6 +13452,37 @@ var SC_SISTEMAS_A_RECUPERAR=[
       {cod:'1201',nom:'Placa cementicia 10mm Superboard',un:'m²',rend:1.05,esp:10},
       {cod:'1106',nom:'Chapa galvanizada lisa N25 (0.5mm)',un:'m²',rend:1.05,esp:0}
     ]
+  },
+  {
+    // Sistema de referencia agregado a pedido de Diego (2026-09-11), a partir del hallazgo de que
+    // el ítem de biblioteca EG01 prometía en el nombre un muro completo (estructura+aislación+
+    // revestimiento+pintura) pero solo tenía cargada la estructura. Este es el lugar correcto para
+    // armar el conjunto completo (Sistemas Constructivos), no la biblioteca de Análisis de Precios.
+    // Fuente: Coccaro Hnos. Construcciones S.A., Anexo I "Análisis de Precios", Licitación Pública
+    // S.P. e I.P. N°10/2021 (Municipalidad de Ushuaia), Ítem 6.1 "Muro exterior PGC/PGU" (m²).
+    // La estructura (PGC/PGU/riostra) se dejó con los rendimientos ya usados en EG01 (en metros
+    // lineales, unidad de esta app) en vez de los de Coccaro (en "un" de perfil, unidad distinta,
+    // no convertible sin el largo de barra). Las capas de aislación/revestimiento SÍ son el dato
+    // real de Coccaro (ya expresadas en m²/m², directamente comparables). Chapa Sinusoidal
+    // Prepintada no está cargada en este catálogo — se usa Chapa Acanalada Galvanizada (cod 1101)
+    // como equivalente más cercano disponible, dejado aclarado en la capa. Ajustar cantidades y
+    // materiales puntuales según el muro real que se vaya a construir.
+    nom:'MURO EXTERIOR PGC/PGU — Steel Frame completo (fuente Coccaro 2021)',
+    tipo:'MURO',
+    esp:100,
+    nota:'Sistema de referencia con fuente real (Coccaro Hnos. 2021, Ítem 6.1 "Muro exterior PGC/PGU") — ajustar materiales y cantidades según tu muro real antes de usar en una obra. Chapa Sinusoidal Prepintada del original reemplazada por Chapa Acanalada Galvanizada (equivalente más cercano disponible en este catálogo).',
+    mo:[{rol:'of',hh:2.5}],
+    capas:[
+      {cod:'302',nom:'PGC 100mm E0.92mm (montante vertical — estructural)',un:'m',rend:3.2,esp:0},
+      {cod:'301',nom:'PGU 100mm E0.92mm (solera horizontal — estructural)',un:'m',rend:0.6,esp:0},
+      {cod:'312',nom:'Fleje Cruz San Andrés 50mm (riostra diagonal antipandeo)',un:'m',rend:1.0,esp:0},
+      {cod:'807',nom:'Membrana Hidrofuga Wichi/Tyvek (hidrorrepelente exterior)',un:'m²',rend:1.05,esp:0},
+      {cod:'1101',nom:'Chapa Acanalada Galvanizada calibre 25 (revestimiento exterior — equivalente a Chapa Sinusoidal Prepintada, no cargada en este catálogo)',un:'m²',rend:1.00,esp:0},
+      {cod:'816',nom:'Lana de Vidrio 100mm con aluminio (aislación térmica)',un:'m²',rend:1.05,esp:100},
+      {cod:'803',nom:'Film nylon polietileno 200μ (barrera de vapor)',un:'m²',rend:1.05,esp:0},
+      {cod:'1401',nom:'OSB 9.5mm Estructural (placa de cierre bajo revestimiento interior)',un:'m²',rend:1.05,esp:0},
+      {cod:'1301',nom:'Placa de yeso 12.5 Std Durlock (revestimiento interior)',un:'m²',rend:1.05,esp:12.5}
+    ]
   }
 ];
 function scRecuperarSistemasPerdidos(){
@@ -13462,7 +13493,7 @@ function scRecuperarSistemasPerdidos(){
     var capas=def.capas.map(function(c){
       return {id:scNID(),catSel:'',matIdx:0,nom:c.nom,un:c.un,cod:c.cod,rend:c.rend,esp:c.esp||0,nota:c.nota||''};
     });
-    var s={id:scNID(),nom:def.nom,tipo:def.tipo,esp:def.esp||0,nota:def.nota||'',capas:capas,mo:scMOStandarDefault(def.tipo),ts:Date.now()};
+    var s={id:scNID(),nom:def.nom,tipo:def.tipo,esp:def.esp||0,nota:def.nota||'',capas:capas,mo:(def.mo&&def.mo.length)?def.mo:scMOStandarDefault(def.tipo),ts:Date.now()};
     SC_SISTEMAS.push(s);
     agregados.push(def.nom);
   });
