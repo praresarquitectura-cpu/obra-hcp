@@ -1521,7 +1521,7 @@ function handleQRUpload(inp){if(!inp.files||!inp.files[0])return;var r=new FileR
 function clearQR(){EMPRESA.qr=null;var qp=document.getElementById('qr-preview'),qpw=document.getElementById('qr-preview-wrap');if(qp)qp.src='';if(qpw)qpw.style.display='none';guardarTodo();toast('QR eliminado');}
 function updTC(){
   var v=parseFloat(document.getElementById('cfg-tc')?.value)||1350;
-  TC=v;
+  TC=v;TC_TS=Date.now();TC_SRC='Manual (Config)';tcGuardar();
   var mt=document.getElementById('mot-tc');if(mt)mt.value=v;
   var el=document.getElementById('db-tc');if(el)el.textContent='$'+v.toLocaleString('es-AR');
   var dbs=document.getElementById('db-tc-src');if(dbs)dbs.textContent='Manual (Config)';
@@ -1529,21 +1529,62 @@ function updTC(){
   if(typeof recalc==='function')recalc();
 }
 
-/* ── USD BNA ──────────────────────────────────────────────────────────── */
+/* CORREGIDO 2026-09-11 a pedido de Diego ("necesito que el precio del dolar
+   se actualice solo si o si"): antes TC arrancaba SIEMPRE en el valor
+   hardcodeado 1350 (desactualizado, de meses atras) y solo se corregia si
+   fetchDolar() lograba conectarse en ese preciso momento -- si fallaba (sin
+   internet, API caida, bloqueo de red), la app se quedaba mostrando 1350
+   silenciosamente, sin avisar que era un valor viejo, y sin volver a
+   intentarlo hasta el proximo reinicio de la pagina. Ahora: 1) el ultimo
+   valor obtenido con exito (BNA o manual) se guarda en localStorage
+   (tcGuardar) y se recupera ANTES de intentar conectar (tcCargarGuardado)
+   -- asi el peor caso ya no es 1350 sino el ultimo dolar real conocido.
+   2) motorInit() sigue llamando fetchDolar() al abrir la app, pero ademas
+   se agrego un reintento automatico cada 3 horas mientras la pestana sigue
+   abierta (tcAutoRefresh). 3) la UI ahora muestra hace cuanto se actualizo
+   por ultima vez. */
 var TC=1350;
+var TC_TS=0;
+var TC_SRC='estimado (sin conexion aun)';
+function tcGuardar(){
+  try{localStorage.setItem('obraerp_tc',JSON.stringify({v:TC,ts:TC_TS,src:TC_SRC}));}catch(e){}
+}
+function tcCargarGuardado(){
+  try{
+    var s=localStorage.getItem('obraerp_tc');
+    if(s){var d=JSON.parse(s);if(d&&d.v>100){TC=d.v;TC_TS=d.ts||0;TC_SRC=d.src||'guardado';}}
+  }catch(e){}
+}
+function tcFrescura(){
+  if(!TC_TS)return'';
+  var ms=Date.now()-TC_TS,h=ms/3600000;
+  if(h<1)return'hace '+Math.max(1,Math.round(ms/60000))+' min';
+  if(h<48)return'hace '+Math.round(h)+' h';
+  return'hace '+Math.round(h/24)+' d \u2014 verificar conexion';
+}
+function tcActualizarUI(){
+  ['mot-tc','cfg-tc'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=TC;});
+  var dbt=document.getElementById('db-tc');if(dbt)dbt.textContent='$'+TC.toLocaleString('es-AR');
+  var dbs=document.getElementById('db-tc-src');if(dbs)dbs.textContent=TC_SRC+(TC_TS?' \u00b7 '+tcFrescura():'');
+  var badge=document.getElementById('tc-badge');if(badge)badge.textContent=(TC_SRC.indexOf('BNA')===0?'\u2713 ':'')+'$'+TC.toLocaleString('es-AR')+(TC_TS?' ('+tcFrescura()+')':'');
+}
 async function fetchDolar(){
   var apis=[{url:'https://dolarapi.com/v1/dolares/oficial',fn:function(d){return d.venta;}},{url:'https://api.bluelytics.com.ar/v2/latest',fn:function(d){return d.oficial&&d.oficial.value_sell;}}];
   for(var i=0;i<apis.length;i++){
     try{var r=await fetch(apis[i].url,{signal:AbortSignal.timeout(6000)});if(!r.ok)continue;var d=await r.json();var v=apis[i].fn(d);
-      if(v&&v>100){TC=v;['mot-tc','cfg-tc'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=v;});
-        var dbt=document.getElementById('db-tc');if(dbt)dbt.textContent='$'+v.toLocaleString('es-AR');
-        var dbs=document.getElementById('db-tc-src');if(dbs)dbs.textContent='BNA oficial venta \u00b7 actualizado hoy';
-        var badge=document.getElementById('tc-badge');if(badge)badge.textContent='\u2713 BNA $'+v.toLocaleString('es-AR');
-        recalc();return;
+      if(v&&v>100){TC=v;TC_TS=Date.now();TC_SRC='BNA oficial venta';tcGuardar();tcActualizarUI();
+        if(typeof recalc==='function')recalc();
+        return true;
       }
     }catch(e){continue;}
   }
-  var badge=document.getElementById('tc-badge');if(badge)badge.textContent='Sin conexi\u00f3n \u2014 ingres\u00e1 manualmente';
+  tcActualizarUI();
+  var badge=document.getElementById('tc-badge');
+  if(badge)badge.textContent='Sin conexi\u00f3n \u2014 mostrando '+TC_SRC+' ('+(tcFrescura()||'sin fecha')+')';
+  return false;
+}
+function tcAutoRefresh(){
+  setInterval(function(){if(typeof fetchDolar==='function')fetchDolar();},3*60*60*1000);
 }
 
 /* ── ROLES ────────────────────────────────────────────────────────────── */
@@ -4033,6 +4074,7 @@ function toast(msg,ok){if(ok===undefined)ok=true;var e=document.getElementById('
 
 /* ── ARRANQUE ─────────────────────────────────────────────────────────── */
 cargarTodo();
+if(typeof tcCargarGuardado==='function')tcCargarGuardado();
 setTimeout(function(){
   renderObras(OBRAS_DATA);scCargar();
   // Cargar precios editados/agregados y catálogo de rubros/ítems guardados por el usuario
@@ -4055,6 +4097,7 @@ setTimeout(function(){
   }
 })();
 motorInit();
+if(typeof tcAutoRefresh==='function')tcAutoRefresh();
 updateDashboard();
 renderCli(CLIENTES);
 actualizarUIEmpresa();
@@ -6070,10 +6113,10 @@ var CP_CATALOGO = [
  ],
  mo:[{rol:'of',hh:0.2},{rol:'ay',hh:0.2}]
 },
-{cod:'R18',nom:'Replanteo de obra',un:'gl',
+{cod:'R18',nom:'Replanteo de obra en refacción/reforma (sin materiales — ver también TP05 para obra nueva con materiales)',un:'gl',
  cat:'TRABAJOS PRELIMINARES',
  mats:[],
- mo:[{rol:'of',hh:8},{rol:'ay',hh:8}]
+ mo:[{rol:'of',hh:8,nota:'RENOMBRADO 2026-09-11: este ítem tenía el mismo nombre exacto que TP05 ("Replanteo de obra"), en la misma categoría, pero con materiales y horas distintas (acá: sin materiales, 8hh Of.+8hh Ay.; TP05: con estacas/nivel láser/taladro, 4hh OfEsp+4hh Of.+4hh Ay.) — eran dos ítems distintos con el mismo nombre, algo confuso al elegir de la biblioteca. Se renombró éste para aclarar que es la versión simple para trabajos de refacción/reforma (viene del bloque "REFACCIÓN/VIVIENDA"), y se dejó TP05 como la versión de obra nueva con materiales. No se modificó ningún número — ambos ítems siguen disponibles, ahora con nombres distintos.'},{rol:'ay',hh:8}]
 },
 {cod:'R19',nom:'Instalación eléctrica clase industrial',un:'gl',
  cat:'INSTALACIONES ELÉCTRICAS',
@@ -7442,15 +7485,15 @@ var CP_CATALOGO_EXTRA = [
 // mats con Retroexcavadora/Camión volcador agregados 04-sep-2026 a pedido de Diego: habilita la
 // calculadora de rendimiento por esponjamiento (ver cpDemoEsAplicable/CP_EXCAV_RETRO_M3H) para
 // excavación de tierra virgen en este ítem, en vez de dejar solo la MO estándar fija.
-{cod:'MS01',nom:'Excavación Bases (mecanizada — fuente Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0.10,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0.04,esEquipo:true}],mo:[{rol:'ofEsp',hh:0.10},{rol:'ay',hh:0.10,nota:'CORREGIDO: el valor anterior (3,5hh Ayudante, sin equipo) era una estimación de excavación manual sin fuente. FUENTE REAL: Coccaro Hnos. Construcciones S.A., Anexo I "Análisis de Precios", Licitación Pública S.P. e I.P. N°10/2021 (Municipalidad de Ushuaia), Ítem 2.2 "Excavación en suelo común" (m³): Retroexcavadora 0,10 h-eq + Camión Volcador 0,04 h-eq + Oficial especializado 0,10hh + Ayudante 0,10hh, por m³. Es excavación mecanizada de fundaciones en suelo común (no roca), técnica equivalente a bases/vigas/pilotines de esta obra. Cargado 2026-09-08.'}]},
-{cod:'MS02',nom:'Excavación Vigas de Fundación (mecanizada — fuente Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0.10,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0.04,esEquipo:true}],mo:[{rol:'ofEsp',hh:0.10},{rol:'ay',hh:0.10,nota:'CORREGIDO: mismo criterio y fuente que MS01 (Coccaro Hnos. 2021, Ítem 2.2 "Excavación en suelo común"). Ver nota de MS01 para la cita completa.'}]},
-{cod:'MS03',nom:'Excavación de Pilotines (mecanizada — fuente Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0.10,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0.04,esEquipo:true}],mo:[{rol:'ofEsp',hh:0.10},{rol:'ay',hh:0.10,nota:'CORREGIDO: mismo criterio y fuente que MS01 (Coccaro Hnos. 2021, Ítem 2.2 "Excavación en suelo común"). Ver nota de MS01 para la cita completa.'}]},
+{cod:'MS01',nom:'Excavación Bases (mecanizada — fuente Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retroex',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0.10,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0.04,esEquipo:true}],mo:[{rol:'ofEsp',hh:0.10},{rol:'ay',hh:0.10,nota:'CORREGIDO 2026-09-11: el id de la retroexcavadora estaba escrito como "retro_excav", un código que no existe en el Listado de Precios — el equipo se estaba calculando en $0 sin que se notara. Se corrigió al id real ya usado en el catálogo para retroexcavadora de excavación: "retroex" ($125.000/hh). El valor anterior (3,5hh Ayudante, sin equipo) era una estimación de excavación manual sin fuente. FUENTE REAL: Coccaro Hnos. Construcciones S.A., Anexo I "Análisis de Precios", Licitación Pública S.P. e I.P. N°10/2021 (Municipalidad de Ushuaia), Ítem 2.2 "Excavación en suelo común" (m³): Retroexcavadora 0,10 h-eq + Camión Volcador 0,04 h-eq + Oficial especializado 0,10hh + Ayudante 0,10hh, por m³. Es excavación mecanizada de fundaciones en suelo común (no roca), técnica equivalente a bases/vigas/pilotines de esta obra. Cargado 2026-09-08.'}]},
+{cod:'MS02',nom:'Excavación Vigas de Fundación (mecanizada — fuente Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retroex',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0.10,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0.04,esEquipo:true}],mo:[{rol:'ofEsp',hh:0.10},{rol:'ay',hh:0.10,nota:'CORREGIDO: mismo criterio y fuente que MS01 (Coccaro Hnos. 2021, Ítem 2.2 "Excavación en suelo común"). Ver nota de MS01 para la cita completa.'}]},
+{cod:'MS03',nom:'Excavación de Pilotines (mecanizada — fuente Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retroex',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0.10,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0.04,esEquipo:true}],mo:[{rol:'ofEsp',hh:0.10},{rol:'ay',hh:0.10,nota:'CORREGIDO: mismo criterio y fuente que MS01 (Coccaro Hnos. 2021, Ítem 2.2 "Excavación en suelo común"). Ver nota de MS01 para la cita completa.'}]},
 {cod:'MS04',nom:'Excavación de Cámaras de Instalación Cloacal (MO estándar — verificar; zanja angosta manual, no hay fuente equivalente en Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4.5}]},
 {cod:'MS05',nom:'Excavación Cañería de Gas (MO estándar — verificar; zanja angosta manual, no hay fuente equivalente en Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4.5}]},
 {cod:'MS06',nom:'Excavación Cañería Eléctrica (MO estándar — verificar; zanja angosta manual, no hay fuente equivalente en Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4}]},
 {cod:'MS07',nom:'Excavación Cañería Agua Fría (MO estándar — verificar; zanja angosta manual, no hay fuente equivalente en Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4}]},
 {cod:'MS08',nom:'Excavación Cañería Cloaca (MO estándar — verificar; zanja angosta manual, no hay fuente equivalente en Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:4.5}]},
-{cod:'MS09',nom:'Extracción de Suelo en Sector de Implantación (mecanizada — fuente Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retro_excav',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0.10,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0.04,esEquipo:true}],mo:[{rol:'ofEsp',hh:0.10},{rol:'ay',hh:0.10,nota:'CORREGIDO: mismo criterio y fuente que MS01 (Coccaro Hnos. 2021, Ítem 2.2 "Excavación en suelo común"). Ver nota de MS01 para la cita completa.'}]},
+{cod:'MS09',nom:'Extracción de Suelo en Sector de Implantación (mecanizada — fuente Coccaro 2021)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[{id:'retroex',nom:'Retroexcavadora (excavación)',un:'h-eq',rend:0.10,esEquipo:true},{id:'volquete_5m3',nom:'Camión volcador (retiro)',un:'h-eq',rend:0.04,esEquipo:true}],mo:[{rol:'ofEsp',hh:0.10},{rol:'ay',hh:0.10,nota:'CORREGIDO: mismo criterio y fuente que MS01 (Coccaro Hnos. 2021, Ítem 2.2 "Excavación en suelo común"). Ver nota de MS01 para la cita completa.'}]},
 {cod:'MS10',nom:'Compactación Suelo Seleccionado (MO estándar — verificar)',un:'m³',cat:'MOVIMIENTO DE SUELO',unidades_permitidas:['m³'],mats:[],mo:[{rol:'ay',hh:0.8}]},
 // ══ ESTRUCTURA METÁLICA — incidencias ESTIMADAS de mercado (ajustar) ══
 {cod:'EM01',nom:'Estructura Metálica (MO estándar — verificar)',un:'m²',
