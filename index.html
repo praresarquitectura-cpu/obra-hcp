@@ -2949,6 +2949,7 @@ function renderHon(data){
       +'<td><div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap">'
       +'<button class="btn btn-sm btn-edit" title="Editar" data-hid="'+h.id+'" onclick="editarHon(+this.dataset.hid)">✏ Editar</button>'+(h.estado==='Borrador'?'<button class="btn btn-sm" style="color:var(--gt);border-color:rgba(74,222,128,.3)" data-hid="'+h.id+'" onclick="guardarDesdeListado(+this.dataset.hid)" title="Guardar cambios">💾 Guardar</button>':'')
       +'<button class="btn btn-sm" title="PDF" onclick="generarPDF('+h.id+')">PDF</button>'
+      +(['Aprobado','Entregado','Facturado'].indexOf(h.estado)>-1?'<button class="btn btn-sm" style="color:var(--golt);border-color:rgba(212,168,67,.35)" title="Generar contrato de locación de servicios" onclick="generarContrato('+h.id+')">📄 Contrato</button>':'')
       +'<button class="btn btn-sm btn-arch" title="Archivar" onclick="cambiarEstado('+h.id+',\'Archivado\')">📦</button>'
       +'<button class="btn btn-sm btn-del" title="Eliminar" onclick="eliminarHon('+h.id+')">🗑</button>'
       +'</div></td></tr>';
@@ -3069,6 +3070,7 @@ function openHonDetail(id){
     +'<option value="Rechazado">Rechazado</option><option value="Facturado">Facturado</option><option value="Archivado">Archivado</option>'
     +'</select>'
     +'<button class="btn btn-r btn-sm" onclick="generarPDF('+h.id+')">PDF</button>'
+    +(['Aprobado','Entregado','Facturado'].indexOf(h.estado)>-1?'<button class="btn btn-sm" style="color:var(--golt);border-color:rgba(212,168,67,.35)" title="Generar contrato de locaci\u00f3n de servicios" onclick="generarContrato('+h.id+')">\ud83d\udcc4 Contrato</button>':'')
     +'<button class="btn btn-del btn-sm" onclick="confirmarEliminarHon('+h.id+')">\ud83d\uddd1</button>'
     +'<button class="btn btn-sm" onclick="closeM(\'mod-hon\')" style="padding:4px 8px">\u00d7</button>'
     +'</div></div>'
@@ -3495,6 +3497,160 @@ function generarPDF(id){
   toast('PDF listo \u2014 Ctrl+P para guardar como PDF');
 }
 
+/* ── CONTRATO DE LOCACIÓN DE SERVICIOS PROFESIONALES ────────────────────
+   Agregado 2026-10-14 a pedido de Diego: poder sacar, una vez que el
+   cliente le aprueba un presupuesto, un contrato simple que encuadre sus
+   honorarios, forma de pago, obligaciones de ambas partes, plazo,
+   rescisión y jurisdicción — adaptado a Ushuaia, Tierra del Fuego.
+   Modelo base: contrato de locación de servicios profesionales que subió
+   Diego (uso general en Argentina), adaptado acá al Colegio de Técnicos
+   de Tierra del Fuego (C.P.T.) y a los tribunales de Ushuaia, y rellenado
+   automáticamente con los datos ya cargados del presupuesto/cliente —
+   nada de esto inventa valores: lo que no está cargado en la app queda
+   marcado entre corchetes para que Diego lo complete a mano antes de
+   firmar, igual que el modelo original dejaba espacios en blanco.
+   NOTA: esto es un modelo de uso general, no asesoramiento legal —
+   conviene que un abogado lo revise para casos particulares o de mayor
+   envergadura. */
+function generarContrato(id){
+  const h=HON_DATA.find(x=>x.id===id);if(!h)return;
+  if(!EMPRESA.logo) EMPRESA.logo = localStorage.getItem('obraerp_logo')||'';
+  const emp={};
+  Object.keys(EMPRESA).forEach(function(k){emp[k]=EMPRESA[k]||(h.empresa&&h.empresa[k])||'';});
+  var C1=emp.brandColor1||EMPRESA.brandColor1||'#8a0e1e';
+  const N=n=>Math.round(n||0).toLocaleString('es-AR');
+  const cli=(typeof CLIENTES!=='undefined')?CLIENTES.find(function(c){return String(c.id)===String(h.cliId);}):null;
+
+  /* ── Datos del comitente (con lo que haya cargado; lo que falte, placeholder) ── */
+  var cliNom=cli?((cli.ap||'')+(cli.ap&&cli.nm?', ':'')+(cli.nm||'')):h.cliente||'[NOMBRE DEL COMITENTE]';
+  var cliDoc='';
+  if(cli&&cli.dni) cliDoc='DNI Nº '+cli.dni+(cli.cuil?' (CUIL Nº '+cli.cuil+')':'');
+  else if(cli&&cli.cuil) cliDoc='CUIT Nº '+cli.cuil;
+  else cliDoc='[DNI/CUIT A COMPLETAR]';
+  var cliDom=(cli&&cli.dir)?cli.dir:'[DOMICILIO LEGAL A COMPLETAR]';
+  var cliEmail=(cli&&cli.email)?cli.email:'[sin registrar]';
+  var cliTel=(cli&&cli.tel)?cli.tel:'[sin registrar]';
+
+  /* ── Datos de la obra ── */
+  var obraDom=h.catDom||'[DOMICILIO DE LA OBRA A COMPLETAR]';
+  var catParts=[];
+  if(h.catSec) catParts.push('Sección '+h.catSec);
+  if(h.catMzo) catParts.push('Manzana '+h.catMzo);
+  if(h.catParc) catParts.push('Parcela '+h.catParc);
+  if(h.catUF) catParts.push('U.F. '+h.catUF);
+  var nomCat=catParts.length?catParts.join(' — '):'[NOMENCLATURA CATASTRAL A COMPLETAR]';
+  var tipoMap={nueva:'Obra nueva',amp:'Ampliación',ref:'Refacción',mod:'Modificación en ejecución',
+    conf:'Conforme a obra',emp:'Empadronamiento',empref:'Empadron. de refacciones',
+    calc:'Cálculo de estructura',inf:'Informe técnico',imp:'Guía impacto ambiental'};
+  var tareaDesc=h.descTrab||(tipoMap[h.tipo]||h.tipo||'')+(h.uso?(' — '+h.uso):'');
+  if(!tareaDesc) tareaDesc='[DESCRIPCIÓN DE LA TAREA A COMPLETAR]';
+
+  /* ── Fecha de firma: hoy, no la fecha del presupuesto (el contrato se firma al aceptarse) ── */
+  var hoy=new Date();
+  var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var fechaTxt='los '+hoy.getDate()+' días del mes de '+meses[hoy.getMonth()]+' de '+hoy.getFullYear();
+
+  /* ── Honorarios y forma de pago ── */
+  var totalUsd=h.subtotalDesc!=null?h.subtotalDesc:h.usd;
+  var totalArs=Math.round((totalUsd||0)*(h.tc||TC||0));
+  var cuotasHtml='';
+  if(h.formaPago==='financiado'&&(h.cuotas||[]).length){
+    cuotasHtml='<ol class="cl-list">'+h.cuotas.map(function(c){
+      var montoU=Math.round((totalUsd||0)*(c.pct||0)/100);
+      return '<li>'+(c.pct||0)+'% (USD '+N(montoU)+') — '+(c.nm||'')+'</li>';
+    }).join('')+'</ol>';
+  } else {
+    cuotasHtml='<p>El monto total se abonará en un único pago, contra la firma del presente contrato, salvo acuerdo posterior por escrito entre las partes.</p>';
+  }
+
+  /* ── CSS: estilo de documento legal, no de presupuesto comercial ── */
+  var css=''
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Georgia,"Times New Roman",serif;font-size:10.5pt;color:#1a1a1a;background:#fff;line-height:1.55}'
+    +'@page{size:A4 portrait;margin:20mm 20mm 18mm}'
+    +'.pg{max-width:740px;margin:0 auto}'
+    +'h1{font-size:13.5pt;text-align:center;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4pt;font-weight:700}'
+    +'.sub{text-align:center;font-size:9.5pt;color:#555;margin-bottom:18pt}'
+    +'.intro{text-align:justify;margin-bottom:12pt}'
+    +'.intro b{font-weight:700}'
+    +'h2{font-size:10.5pt;text-transform:uppercase;letter-spacing:.04em;margin:14pt 0 5pt;border-bottom:1px solid '+C1+';padding-bottom:2pt;color:'+C1+'}'
+    +'p{text-align:justify;margin-bottom:7pt}'
+    +'.cl-list{margin:4pt 0 8pt 18pt}'
+    +'.cl-list li{text-align:justify;margin-bottom:4pt}'
+    +'.ph{color:#b23b3b;font-weight:700}'
+    +'.datos-grid{display:grid;grid-template-columns:1fr 1fr;gap:4pt 18pt;margin:6pt 0 10pt;font-size:9.5pt}'
+    +'.datos-grid .lbl{color:#777;font-size:8pt;text-transform:uppercase;letter-spacing:.05em}'
+    +'.party-box{border:1px solid #ddd;border-radius:3pt;padding:8pt 10pt;margin-bottom:8pt}'
+    +'.party-tit{font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:'+C1+';margin-bottom:4pt}'
+    +'.sign-area{display:flex;justify-content:space-between;margin-top:34pt;page-break-inside:avoid}'
+    +'.sign-box{width:46%;text-align:center}'
+    +'.sign-line{border-top:1px solid #333;padding-top:5pt;font-size:9pt}'
+    +'.sign-line b{display:block;font-size:9.5pt}'
+    +'.foot-note{margin-top:20pt;padding-top:8pt;border-top:1px solid #ddd;font-size:7.5pt;color:#999;text-align:center}'
+    +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
+
+  var d='';
+  d+='<h1>Contrato de Locación de Servicios Profesionales</h1>';
+  d+='<div class="sub">'+(h.roles||'Servicios profesionales')+'</div>';
+
+  d+='<p class="intro">En la ciudad de Ushuaia, Provincia de Tierra del Fuego, Antártida e Islas del Atlántico Sur, a '+fechaTxt+', entre, por una parte, <b>'+cliNom+'</b>, '+cliDoc+', con domicilio legal en '+cliDom+', correo electrónico '+cliEmail+' y teléfono/WhatsApp '+cliTel+', en adelante <b>EL COMITENTE</b>; y por la otra parte, <b>'+(emp.nombreCompleto||'[NOMBRE DEL PROFESIONAL]')+'</b>, '+(emp.titulo||'profesional')+', Matrícula Profesional (C.P.T. Tierra del Fuego) Nº '+(emp.matricula||'[A COMPLETAR]')+(emp.rpc?(', RPC N° '+emp.rpc):'')+', con domicilio profesional en '+(emp.dir||'[A COMPLETAR]')+', correo electrónico '+(emp.email||'[A COMPLETAR]')+' y teléfono '+(emp.tel||'[A COMPLETAR]')+', en adelante <b>EL PROFESIONAL</b>; convienen celebrar el presente Contrato de Locación de Servicios Profesionales, sujeto a las cláusulas que se detallan a continuación.</p>';
+
+  d+='<h2>Datos de la Obra</h2>';
+  d+='<div class="datos-grid">'
+    +'<div><div class="lbl">Domicilio de la obra</div>'+obraDom+'</div>'
+    +'<div><div class="lbl">Nomenclatura catastral</div>'+nomCat+'</div>'
+    +'</div>';
+
+  d+='<h2>1. Objeto</h2>';
+  d+='<p>EL PROFESIONAL se obliga a prestar a favor de EL COMITENTE, en carácter de locación de servicios profesionales, las tareas correspondientes al/los siguiente(s) rol(es): <b>'+(h.roles||'[A COMPLETAR]')+'</b>, consistentes en: '+tareaDesc+'.</p>';
+
+  d+='<h2>2. Honorarios y Forma de Pago</h2>';
+  d+='<p>Los honorarios profesionales por las tareas descriptas en la Cláusula 1 se fijan en la suma de <b>USD '+N(totalUsd)+'</b> (dólares estadounidenses '+N(totalUsd)+'), equivalente a la fecha de este contrato a $ '+N(totalArs)+' (pesos argentinos), al tipo de cambio oficial Banco Nación vendedor de $ '+N(h.tc||TC)+' por dólar. El monto en pesos es meramente referencial a la fecha de firma; de abonarse en pesos, se tomará el tipo de cambio oficial Banco Nación vendedor vigente al día efectivo de cada pago.</p>';
+  d+=cuotasHtml;
+
+  d+='<h2>3. Obligaciones de EL PROFESIONAL</h2>';
+  d+='<ol class="cl-list">'
+    +'<li>Ejecutar las tareas contratadas con la diligencia propia de su profesión, conforme a las normas técnicas, el Código de Ética del Colegio de Técnicos de Tierra del Fuego y la normativa municipal y provincial vigente.</li>'
+    +'<li>Mantener informado a EL COMITENTE sobre el avance de las tareas.</li>'
+    +'<li>Suscribir y presentar ante los organismos que correspondan (Municipalidad de Ushuaia, Colegio de Técnicos de Tierra del Fuego y demás organismos pertinentes) la documentación técnica propia de su incumbencia profesional.</li>'
+    +'<li>Afrontar exclusivamente el costo de la certificación de la Nota de Encomienda ante el Colegio de Técnicos de Tierra del Fuego correspondiente al presente encargo.</li>'
+    +'</ol>';
+
+  d+='<h2>4. Obligaciones de EL COMITENTE</h2>';
+  d+='<ol class="cl-list">'
+    +'<li>Abonar los honorarios pactados en la Cláusula 2, en los plazos y formas convenidos.</li>'
+    +'<li>Proveer en tiempo y forma la documentación, información y, en su caso, los insumos necesarios para el cumplimiento del objeto del presente contrato.</li>'
+    +'<li>Facilitar el acceso al inmueble y a la obra cuando sea requerido para el cumplimiento de las tareas de EL PROFESIONAL.</li>'
+    +'<li>Tomar a su cargo la totalidad de los gastos, derechos, tasas, aranceles, sellados e impuestos que demande la gestión, presentación, visado y/o aprobación de la documentación técnica ante la Municipalidad de Ushuaia, el Colegio de Técnicos de Tierra del Fuego, Camuzzi Gas del Sur, la Dirección Provincial de Energía y todo otro organismo público o privado que corresponda, con la única excepción indicada en la Cláusula 3.4 (certificación de la Nota de Encomienda, a cargo de EL PROFESIONAL).</li>'
+    +'</ol>';
+
+  d+='<h2>5. Plazo</h2>';
+  d+='<p>Las tareas objeto del presente contrato tendrán un plazo estimado de <span class="ph">[PLAZO A COMPLETAR]</span>, contado a partir de la firma del presente y sujeto a la entrega en tiempo y forma por parte de EL COMITENTE de la documentación e información requerida. Dicho plazo podrá prorrogarse de común acuerdo entre las partes, por causas no imputables a EL PROFESIONAL.</p>';
+
+  d+='<h2>6. Rescisión</h2>';
+  d+='<p>Cualquiera de las partes podrá rescindir el presente contrato en caso de incumplimiento grave de la otra, previa notificación fehaciente con un plazo de diez (10) días hábiles para subsanarlo. En caso de rescisión por parte de EL COMITENTE sin mediar incumplimiento de EL PROFESIONAL, EL COMITENTE deberá abonar la totalidad de los honorarios devengados por las tareas efectivamente realizadas hasta la fecha de rescisión, en proporción al grado de avance del encargo.</p>';
+
+  d+='<h2>7. Jurisdicción</h2>';
+  d+='<p>Para cualquier controversia derivada del presente contrato, las partes se someten a la jurisdicción de los Tribunales Ordinarios de la ciudad de Ushuaia, Provincia de Tierra del Fuego, Antártida e Islas del Atlántico Sur, con renuncia expresa a cualquier otro fuero o jurisdicción que pudiera corresponder.</p>';
+
+  d+='<p>En prueba de conformidad, se firman dos (2) ejemplares de un mismo tenor y a un solo efecto, en el lugar y fecha indicados en el enunciado.</p>';
+
+  d+='<div class="sign-area">'
+    +'<div class="sign-box"><div class="sign-line"><b>'+cliNom+'</b>EL COMITENTE'+(cliDoc!=='[DNI/CUIT A COMPLETAR]'?('<br>'+cliDoc):'')+'</div></div>'
+    +'<div class="sign-box"><div class="sign-line"><b>'+(emp.nombreCompleto||'[NOMBRE DEL PROFESIONAL]')+'</b>EL PROFESIONAL'+(emp.matricula?('<br>Mat. C.P.T. Nº '+emp.matricula):'')+'</div></div>'
+    +'</div>';
+
+  d+='<div class="foot-note">Modelo de uso general — revisar con un abogado antes de usarlo en encargos de mayor envergadura o con cláusulas particulares. '+(emp.nombre||'')+' · '+honCode(h)+'</div>';
+
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Contrato — '+(cli?cliNom:h.cliente)+'</title>'
+    +'<style>'+css+'</style></head><body><div class="pg">'+d+'</div>'
+    +'<script>window.onload=function(){window.print();}<\/script></body></html>';
+
+  const pw=window.open('','_blank','width=940,height=780');
+  pw.document.write(html);
+  pw.document.close();
+  toast('Contrato listo — revisá los datos marcados en rojo antes de firmar');
+}
 
 
 /* ── NAV ──────────────────────────────────────────────────────────────── */
