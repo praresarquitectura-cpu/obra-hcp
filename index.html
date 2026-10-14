@@ -464,6 +464,7 @@ input,select,textarea,button{font-family:var(--font)}
     </select>
     <span id="hon-cnt" style="margin-left:auto;font-size:10.5px;color:var(--tx3)"></span>
   </div>
+  <div id="agenda-plazos-panel"></div>
   <div class="tw"><table class="dt">
     <thead><tr><th>Código</th><th>Rol(es)</th><th>Cliente</th><th>Uso</th><th>m²</th><th>USD</th><th>Estado</th><th style="text-align:center">Acciones</th></tr></thead>
     <tbody id="hon-body"></tbody>
@@ -1152,6 +1153,19 @@ input,select,textarea,button{font-family:var(--font)}
     <div class="fg"><label class="fl">Fecha de inicio</label><input class="fi" type="date" id="ob-fecha"></div>
     <input type="hidden" id="ob-edit-id" value="">
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px"><button class="btn" onclick="closeM('mod-obra')">Cancelar</button><button class="btn btn-r" onclick="saveObra()">Guardar</button></div>
+  </div>
+</div>
+<div class="mb" id="mod-plazo" onclick="closeBg(event,'mod-plazo')">
+  <div class="modal" style="max-width:420px">
+    <div class="mt2">Plazo de entrega</div>
+    <div class="msub" id="plazo-cliente-nombre">Definí el plazo estimado para el contrato</div>
+    <div class="fg"><label class="fl">Días corridos</label><input class="fi" type="number" min="1" id="plazo-dias" placeholder="Ej: 45"></div>
+    <div style="font-size:10.5px;color:var(--tx3);margin-top:4px;line-height:1.5">Se va a usar en el contrato como plazo estimado (con la aclaración de que puede variar) y vas a recibir un aviso en esta pantalla, con sonido, cuando se acerque o venza.</div>
+    <input type="hidden" id="plazo-hon-id" value="">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
+      <button class="btn btn-sm" onclick="omitirPlazoYGenerar()" style="color:var(--tx3)">Omitir por ahora</button>
+      <div style="display:flex;gap:10px"><button class="btn" onclick="closeM('mod-plazo')">Cancelar</button><button class="btn btn-r" onclick="guardarPlazoYGenerar()">Guardar y generar</button></div>
+    </div>
   </div>
 </div>
 
@@ -2861,7 +2875,8 @@ function motorGuardar(draft){
     if(idx>=0)HON_DATA[idx]=hon;else HON_DATA.unshift(hon);
     editandoId=null;
   }else{HON_DATA.unshift(hon);}
-  guardarTodo();renderHon(HON_DATA);updateDashboard();
+  guardarTodo();renderHon(HON_DATA);
+if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();updateDashboard();
   toast(draft?'Borrador guardado':hon.code+' guardado \u2014 USD '+Math.round(fin).toLocaleString());
   if(!draft)goTo('honorarios');
 }
@@ -2872,6 +2887,7 @@ function editarHon(id){
     hon.estado='Borrador';
     guardarTodo();
     renderHon(HON_DATA);
+if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
     toast('✏ Editando — estado revertido a Borrador');
   }
   editandoId=id;
@@ -2949,16 +2965,18 @@ function renderHon(data){
       +'<td><div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap">'
       +'<button class="btn btn-sm btn-edit" title="Editar" data-hid="'+h.id+'" onclick="editarHon(+this.dataset.hid)">✏ Editar</button>'+(h.estado==='Borrador'?'<button class="btn btn-sm" style="color:var(--gt);border-color:rgba(74,222,128,.3)" data-hid="'+h.id+'" onclick="guardarDesdeListado(+this.dataset.hid)" title="Guardar cambios">💾 Guardar</button>':'')
       +'<button class="btn btn-sm" title="PDF" onclick="generarPDF('+h.id+')">PDF</button>'
-      +(['Aprobado','Entregado','Facturado'].indexOf(h.estado)>-1?'<button class="btn btn-sm" style="color:var(--golt);border-color:rgba(212,168,67,.35)" title="Generar contrato de locación de servicios" onclick="generarContrato('+h.id+')">📄 Contrato</button>':'')
+      +(['Aprobado','Entregado','Facturado'].indexOf(h.estado)>-1?'<button class="btn btn-sm" style="color:var(--golt);border-color:rgba(212,168,67,.35)" title="Generar contrato de locación de servicios" onclick="abrirModalPlazo('+h.id+')">📄 Contrato</button>':'')
       +'<button class="btn btn-sm btn-arch" title="Archivar" onclick="cambiarEstado('+h.id+',\'Archivado\')">📦</button>'
       +'<button class="btn btn-sm btn-del" title="Eliminar" onclick="eliminarHon('+h.id+')">🗑</button>'
       +'</div></td></tr>';
   }).join('');
 }
 renderHon(HON_DATA);
+if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
 function filtHon(v){var q=v.toLowerCase();renderHon(HON_DATA.filter(function(h){return(h.code+h.roles+h.cliente+h.uso).toLowerCase().includes(q);}));}
 function filtHonSt(v){renderHon(v?HON_DATA.filter(function(h){return h.estado===v;}):HON_DATA);}
-function cambiarEstado(id,estado){id=isNaN(id)?id:Number(id);var h=HON_DATA.find(function(x){return x.id==id;});if(!h)return;h.estado=estado;renderHon(HON_DATA);updateDashboard();guardarTodo();toast(honCode(h)+' \u2192 '+estadoAbr(estado));}
+function cambiarEstado(id,estado){id=isNaN(id)?id:Number(id);var h=HON_DATA.find(function(x){return x.id==id;});if(!h)return;h.estado=estado;renderHon(HON_DATA);
+if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();updateDashboard();guardarTodo();toast(honCode(h)+' \u2192 '+estadoAbr(estado));}
 function eliminarHon(id){
   id=isNaN(id)?id:Number(id);
   var h=HON_DATA.find(function(x){return x.id==id;});
@@ -2968,7 +2986,8 @@ function eliminarHon(id){
   if(_db&&_uid){
     _db.collection('users').doc(_uid).collection('honorarios').doc(String(id)).delete().catch(function(){});
   }
-  HON_DATA=HON_DATA.filter(function(x){return x.id!==id;});renderHon(HON_DATA);updateDashboard();guardarTodo();toast(h.code+' eliminado');
+  HON_DATA=HON_DATA.filter(function(x){return x.id!==id;});renderHon(HON_DATA);
+if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();updateDashboard();guardarTodo();toast(h.code+' eliminado');
 }
 
 
@@ -3070,7 +3089,7 @@ function openHonDetail(id){
     +'<option value="Rechazado">Rechazado</option><option value="Facturado">Facturado</option><option value="Archivado">Archivado</option>'
     +'</select>'
     +'<button class="btn btn-r btn-sm" onclick="generarPDF('+h.id+')">PDF</button>'
-    +(['Aprobado','Entregado','Facturado'].indexOf(h.estado)>-1?'<button class="btn btn-sm" style="color:var(--golt);border-color:rgba(212,168,67,.35)" title="Generar contrato de locaci\u00f3n de servicios" onclick="generarContrato('+h.id+')">\ud83d\udcc4 Contrato</button>':'')
+    +(['Aprobado','Entregado','Facturado'].indexOf(h.estado)>-1?'<button class="btn btn-sm" style="color:var(--golt);border-color:rgba(212,168,67,.35)" title="Generar contrato de locaci\u00f3n de servicios" onclick="abrirModalPlazo('+h.id+')">\ud83d\udcc4 Contrato</button>':'')
     +'<button class="btn btn-del btn-sm" onclick="confirmarEliminarHon('+h.id+')">\ud83d\uddd1</button>'
     +'<button class="btn btn-sm" onclick="closeM(\'mod-hon\')" style="padding:4px 8px">\u00d7</button>'
     +'</div></div>'
@@ -3563,6 +3582,9 @@ function generarContrato(id){
     cuotasHtml='<p>El monto total se abonará en un único pago, contra la firma del presente contrato, salvo acuerdo posterior por escrito entre las partes.</p>';
   }
 
+  /* ── Plazo: si Diego ya cargó los días desde el botón "Contrato", se usa ese valor; si no, queda el placeholder de siempre ── */
+  var plazoTxt=h.plazoDias?('<b>'+h.plazoDias+' días corridos</b>'):'<span class="ph">[PLAZO A COMPLETAR]</span>';
+
   /* ── CSS: estilo de documento legal, no de presupuesto comercial ── */
   var css=''
     +'*{box-sizing:border-box;margin:0;padding:0}'
@@ -3625,7 +3647,7 @@ function generarContrato(id){
     +'</ol>';
 
   d+='<h2>5. Plazo</h2>';
-  d+='<p>Las tareas objeto del presente contrato tendrán un plazo estimado de <span class="ph">[PLAZO A COMPLETAR]</span>, contado a partir de la firma del presente. Este plazo es orientativo y puede variar, ya que EL PROFESIONAL trabaja en simultáneo con otros encargos y la dinámica propia de la actividad así lo requiere, además de estar sujeto a la entrega en tiempo y forma por parte de EL COMITENTE de la documentación e información requerida.</p>';
+  d+='<p>Las tareas objeto del presente contrato tendrán un plazo estimado de '+plazoTxt+', contado a partir de la firma del presente. Este plazo es orientativo y puede variar, ya que EL PROFESIONAL trabaja en simultáneo con otros encargos y la dinámica propia de la actividad así lo requiere, además de estar sujeto a la entrega en tiempo y forma por parte de EL COMITENTE de la documentación e información requerida.</p>';
 
   d+='<h2>6. Rescisión</h2>';
   d+='<p>Cualquiera de las partes podrá rescindir el presente contrato en caso de incumplimiento grave de la otra, previa notificación fehaciente con un plazo de diez (10) días hábiles para subsanarlo. En caso de rescisión por parte de EL COMITENTE sin mediar incumplimiento de EL PROFESIONAL, EL COMITENTE deberá abonar la totalidad de los honorarios devengados por las tareas efectivamente realizadas hasta la fecha de rescisión, en proporción al grado de avance del encargo.</p>';
@@ -3652,6 +3674,130 @@ function generarContrato(id){
   toast('Contrato listo — revisá los datos marcados en rojo antes de firmar');
 }
 
+/* ── PLAZO DEL CONTRATO + AGENDA DE AVISOS ───────────────────────────────
+   Agregado 2026-10-14 (2da vuelta) a pedido de Diego: al clickear "Contrato"
+   primero se pide cuántos días de plazo corridos tiene esa obra, se guarda
+   en el presupuesto (h.plazoDias / h.plazoFechaLimite) y ESE valor es el
+   que después aparece en la Cláusula 5 del contrato — ya no queda el
+   placeholder "[PLAZO A COMPLETAR]" si Diego lo cargó.
+   Con esos plazos guardados se arma una "Agenda" simple (panel arriba del
+   listado de Honorarios) que avisa con un toast + sonido + notificación
+   del navegador cuando un plazo está por vencer o ya venció. OJO: estos
+   avisos sólo pueden dispararse mientras OBRAERP esté abierto en el
+   navegador/app (pestaña o ventana instalada) — no hay servidor propio
+   detrás de esta app, así que no puede mandar avisos con la PC prendida
+   pero la app cerrada. Mientras esté abierta (aunque esté minimizada),
+   sí revisa cada 30 minutos. */
+function abrirModalPlazo(id){
+  var h=HON_DATA.find(function(x){return x.id===id;});if(!h)return;
+  document.getElementById('plazo-hon-id').value=id;
+  document.getElementById('plazo-dias').value=h.plazoDias||'';
+  document.getElementById('plazo-cliente-nombre').textContent=(h.code||honCode(h))+' — '+(h.cliente||'');
+  document.getElementById('mod-plazo').classList.add('open');
+}
+function omitirPlazoYGenerar(){
+  var id=Number(document.getElementById('plazo-hon-id').value);
+  closeM('mod-plazo');
+  generarContrato(id);
+}
+function guardarPlazoYGenerar(){
+  var id=Number(document.getElementById('plazo-hon-id').value);
+  var h=HON_DATA.find(function(x){return x.id===id;});if(!h)return;
+  var dias=parseInt(document.getElementById('plazo-dias').value,10);
+  if(!dias||dias<1){toast('Ingresá un número de días válido',false);return;}
+  h.plazoDias=dias;
+  var lim=new Date();lim.setDate(lim.getDate()+dias);
+  h.plazoFechaLimite=lim.toISOString().slice(0,10);
+  h.plazoCumplido=false;
+  guardarTodo();
+  closeM('mod-plazo');
+  if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
+  if(typeof solicitarPermisoNotif==='function')solicitarPermisoNotif();
+  toast('Plazo guardado: '+dias+' días (vence '+lim.toLocaleDateString('es-AR')+')');
+  generarContrato(id);
+}
+function agendaListaPendientes(){
+  return HON_DATA.filter(function(h){return h.plazoFechaLimite&&!h.plazoCumplido;})
+    .sort(function(a,b){return a.plazoFechaLimite<b.plazoFechaLimite?-1:1;});
+}
+function agendaDiasRestantes(fechaStr){
+  var hoy=new Date();hoy.setHours(0,0,0,0);
+  var lim=new Date(fechaStr+'T00:00:00');
+  return Math.round((lim-hoy)/86400000);
+}
+function marcarPlazoCumplido(id){
+  var h=HON_DATA.find(function(x){return x.id===id;});if(!h)return;
+  h.plazoCumplido=true;guardarTodo();
+  if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
+  toast('Plazo de '+(h.cliente||'')+' marcado como cumplido');
+}
+function renderAgendaPlazos(){
+  var panel=document.getElementById('agenda-plazos-panel');if(!panel)return;
+  var relevantes=agendaListaPendientes().filter(function(h){return agendaDiasRestantes(h.plazoFechaLimite)<=14;});
+  if(!relevantes.length){panel.innerHTML='';return;}
+  panel.innerHTML='<div class="card" style="margin:12px 0 4px;border-color:rgba(212,168,67,.3)">'
+    +'<div style="font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--golt);margin-bottom:8px">⏰ Agenda de plazos</div>'
+    +relevantes.map(function(h){
+      var d=agendaDiasRestantes(h.plazoFechaLimite);
+      var txt=d<0?('Venció hace '+Math.abs(d)+' día'+(Math.abs(d)===1?'':'s')):(d===0?'Vence hoy':'Vence en '+d+' día'+(d===1?'':'s'));
+      var color=d<0?'var(--rt)':(d<=3?'var(--golt)':'var(--tx2)');
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--br)">'
+        +'<div><span style="font-weight:600">'+(h.cliente||'')+'</span><span style="color:var(--tx3);font-size:11px"> · '+(h.roles||'')+'</span></div>'
+        +'<div style="display:flex;align-items:center;gap:8px"><span style="color:'+color+';font-size:11px;font-weight:700">'+txt+'</span>'
+        +'<button class="btn btn-sm" onclick="marcarPlazoCumplido('+h.id+')" title="Marcar como entregado/cumplido">✓</button></div></div>';
+    }).join('')
+    +'</div>';
+}
+function playAlarmBeep(){
+  try{
+    var Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
+    var ctx=new Ctx();
+    [0,0.25,0.5].forEach(function(t){
+      var o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=880;
+      o.connect(g);g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.0001,ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.25,ctx.currentTime+t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+t+0.18);
+      o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+0.2);
+    });
+  }catch(e){}
+}
+function solicitarPermisoNotif(){
+  try{
+    if(typeof Notification==='undefined')return;
+    if(Notification.permission==='default')Notification.requestPermission();
+  }catch(e){}
+}
+function agendaRevisar(){
+  try{
+    var items=agendaListaPendientes();
+    var hoyStr=new Date().toISOString().slice(0,10);
+    var avisados={};
+    try{avisados=JSON.parse(localStorage.getItem('obraerp_agenda_avisado')||'{}');}catch(e){avisados={};}
+    var huboAviso=false;
+    items.forEach(function(h){
+      var d=agendaDiasRestantes(h.plazoFechaLimite);
+      if(d>2)return; // avisa desde 2 días antes, el día, y si ya venció
+      if(avisados[h.id]===hoyStr)return; // ya avisado hoy, no repetir
+      var txt=d<0?('venció hace '+Math.abs(d)+' día'+(Math.abs(d)===1?'':'s')):(d===0?'vence hoy':'vence en '+d+' día'+(d===1?'':'s'));
+      var msg='Plazo de '+(h.cliente||'')+' ('+(h.roles||'')+') '+txt+'.';
+      toast('⏰ '+msg);
+      playAlarmBeep();
+      if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
+        try{new Notification('OBRAERP — Plazo de obra',{body:msg});}catch(e){}
+      }
+      avisados[h.id]=hoyStr;
+      huboAviso=true;
+    });
+    if(huboAviso){try{localStorage.setItem('obraerp_agenda_avisado',JSON.stringify(avisados));}catch(e){}}
+  }catch(e){console.warn('agendaRevisar error:',e);}
+}
+function agendaInit(){
+  renderAgendaPlazos();
+  setTimeout(agendaRevisar,4000);
+  setInterval(agendaRevisar,30*60*1000); // revisa cada 30 min mientras la app esté abierta
+}
 
 /* ── NAV ──────────────────────────────────────────────────────────────── */
 var SM={dashboard:'s-dashboard',clientes:'s-clientes',obras:'s-obras',honorarios:'s-honorarios',motor:'s-motor',computo:'s-computo',apu:'s-apu',sistemas:'s-sistemas',precios:'s-precios',config:'s-config',admin:'s-admin'};
@@ -4254,6 +4400,7 @@ setTimeout(function(){
 })();
 motorInit();
 if(typeof tcAutoRefresh==='function')tcAutoRefresh();
+if(typeof agendaInit==='function')agendaInit();
 updateDashboard();
 renderCli(CLIENTES);
 actualizarUIEmpresa();
@@ -4585,6 +4732,7 @@ async function fbLoadAll(){
     if(typeof rrCargarDatos==='function')rrCargarDatos();
     guardarTodo(); // save to localStorage as cache
     renderHon(HON_DATA);
+if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
     renderCli(CLIENTES);
     renderObras(OBRAS_DATA);
     updateDashboard();
@@ -4666,7 +4814,8 @@ function setupRealtimeListeners(){
       });
       if(!snap.metadata.hasPendingWrites){
         HON_DATA.sort(function(a,b){return b.id-a.id;});
-        renderHon(HON_DATA);updateDashboard();
+        renderHon(HON_DATA);
+if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();updateDashboard();
         guardarTodo();
       }
     },function(){});
@@ -5088,6 +5237,7 @@ function importarDatos(input){
       }
       guardarTodo();
       renderHon(HON_DATA);
+if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
       renderCli(CLIENTES);
       updateDashboard();
       actualizarUIEmpresa();
@@ -5147,6 +5297,7 @@ async function sincronizarDatosLocales(){
   // Save to Firebase
   await fbSyncAll();
   renderHon(HON_DATA);
+if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
   renderCli(CLIENTES);
   updateDashboard();
   showSyncBar('✓ '+HON_DATA.length+' presupuestos sincronizados', true);
@@ -5241,6 +5392,7 @@ function importarDesdeBoton(input){
       HON_DATA.sort(function(a,b){return b.id-a.id;});
       guardarTodo();
       renderHon(HON_DATA);
+if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
       renderCli(CLIENTES);
       updateDashboard();
       actualizarUIEmpresa();
@@ -5549,6 +5701,7 @@ function guardarDesdeListado(id){
     _db.collection('users').doc(_uid).collection('honorarios').doc(String(id)).set(honToSave).catch(function(){});
   }
   renderHon(HON_DATA);
+if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
   toast('\u2713 '+honCode(hon)+' guardado');
 }
 
