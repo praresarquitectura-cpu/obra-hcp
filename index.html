@@ -4486,35 +4486,31 @@ actualizarUIEmpresa();
   }catch(e){console.warn('PWA init error:',e);}
 
   // Service Worker (solo si está siendo servido via HTTP/S, no file://)
+  // 2026-10-14 (3ra vuelta): antes el SW se generaba como un Blob acá adentro —
+  // eso hacía que el navegador no pudiera revisar después si había una versión
+  // nueva publicada (una URL blob: no es un archivo real que se pueda volver a
+  // pedir), así que la app instalada en el celular se podía quedar con una
+  // versión vieja sin enterarse. Ahora se registra el archivo real sw.js
+  // (publicado junto al index.html) y, además, se fuerza el chequeo de versión
+  // nueva cada vez que la app se abre o vuelve a primer plano, y si encuentra
+  // una versión nueva, recarga sola — así lo que ves en el celular queda igual
+  // a lo que ves en la PC sin tener que hacer nada manual.
   if('serviceWorker' in navigator && location.protocol !== 'file:'){
-    var swCode=[
-      'var CACHE="obraerp-v2";',
-      'self.addEventListener("install",function(e){',
-      '  self.skipWaiting();',
-      '});',
-      'self.addEventListener("activate",function(e){',
-      '  e.waitUntil(caches.keys().then(function(keys){',
-      '    return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));',
-      '  }).then(function(){return self.clients.claim();}));',
-      '});',
-      'self.addEventListener("fetch",function(e){',
-      '  if(e.request.method!=="GET")return;',
-      '  e.respondWith(',
-      '    fetch(e.request).then(function(r){',
-      '      var copy=r.clone();',
-      '      caches.open(CACHE).then(function(c){c.put(e.request,copy);});',
-      '      return r;',
-      '    }).catch(function(){return caches.match(e.request);})',
-      '  );',
-      '});'
-    ].join('\n');
-    try{
-      var swBlob=new Blob([swCode],{type:'application/javascript'});
-      var swUrl=URL.createObjectURL(swBlob);
-      navigator.serviceWorker.register(swUrl).then(function(){
-        console.log('SW registered');
-      }).catch(function(){});
-    }catch(e){}
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      console.log('SW registered');
+      reg.update().catch(function(){});
+      document.addEventListener('visibilitychange',function(){
+        if(document.visibilityState==='visible') reg.update().catch(function(){});
+      });
+      window.addEventListener('focus',function(){ reg.update().catch(function(){}); });
+    }).catch(function(){});
+
+    var _swAutoReloaded=false;
+    navigator.serviceWorker.addEventListener('controllerchange',function(){
+      if(_swAutoReloaded)return;
+      _swAutoReloaded=true;
+      window.location.reload();
+    });
   }
 
   // Mostrar banner "Instalable" en móviles si no está instalada
