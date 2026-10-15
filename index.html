@@ -3576,7 +3576,8 @@ function generarContrato(id){
   if(h.formaPago==='financiado'&&(h.cuotas||[]).length){
     cuotasHtml='<ol class="cl-list">'+h.cuotas.map(function(c){
       var montoU=Math.round((totalUsd||0)*(c.pct||0)/100);
-      return '<li>'+(c.pct||0)+'% (USD '+N(montoU)+') — '+(c.nm||'')+'</li>';
+      var montoArs=Math.round(montoU*(h.tc||TC||0));
+      return '<li>'+(c.pct||0)+'% — USD '+N(montoU)+' (equivalente a $ '+N(montoArs)+' referencial, al TC oficial BNA vendedor del día de pago) — '+(c.nm||'')+'</li>';
     }).join('')+'</ol>';
   } else {
     cuotasHtml='<p>El monto total se abonará en un único pago, contra la firma del presente contrato, salvo acuerdo posterior por escrito entre las partes.</p>';
@@ -3614,6 +3615,10 @@ function generarContrato(id){
   var d='';
   d+='<h1>Contrato de Locación de Servicios Profesionales</h1>';
   d+='<div class="sub">'+(h.roles||'Servicios profesionales')+'</div>';
+  d+='<div class="datos-grid" style="margin-bottom:14pt">'
+    +'<div><div class="lbl">Presupuesto Nº</div>'+(h.code||'[A COMPLETAR]')+(h.rev?(' · '+h.rev):'')+'</div>'
+    +'<div><div class="lbl">Fecha del presupuesto</div>'+(h.fecha||'[A COMPLETAR]')+'</div>'
+    +'</div>';
 
   d+='<p class="intro">En la ciudad de Ushuaia, Provincia de Tierra del Fuego, Antártida e Islas del Atlántico Sur, a '+fechaTxt+', entre, por una parte, <b>'+cliNom+'</b>, '+cliDoc+', con domicilio legal en '+cliDom+', correo electrónico '+cliEmail+' y teléfono/WhatsApp '+cliTel+', en adelante <b>EL COMITENTE</b>; y por la otra parte, <b>'+(emp.nombreCompleto||'[NOMBRE DEL PROFESIONAL]')+'</b>, '+(emp.titulo||'profesional')+', Matrícula Profesional (C.P.T. Tierra del Fuego) Nº '+(emp.matricula||'[A COMPLETAR]')+(emp.rpc?(', RPC N° '+emp.rpc):'')+', con domicilio profesional en '+(emp.dir||'[A COMPLETAR]')+', correo electrónico '+(emp.email||'[A COMPLETAR]')+' y teléfono '+(emp.tel||'[A COMPLETAR]')+', en adelante <b>EL PROFESIONAL</b>; convienen celebrar el presente Contrato de Locación de Servicios Profesionales, sujeto a las cláusulas que se detallan a continuación.</p>';
 
@@ -3641,8 +3646,10 @@ function generarContrato(id){
   d+='<h2>4. Obligaciones de EL COMITENTE</h2>';
   d+='<ol class="cl-list">'
     +'<li>Abonar los honorarios pactados en la Cláusula 2, en los plazos y formas convenidos.</li>'
-    +'<li>Proveer en tiempo y forma la documentación, información y, en su caso, los insumos necesarios para el cumplimiento del objeto del presente contrato.</li>'
+    +'<li>Entregar a EL PROFESIONAL, en tiempo y forma y cuando este lo solicite, la documentación e información necesaria para el cumplimiento del objeto del presente contrato, que podrá incluir —según corresponda al tipo de trabajo encomendado— Certificado de Deslinde y Amojonamiento, Título de Propiedad, Escritura, Decreto de Adjudicación, Boleto de Compraventa, Libre Deuda de Rentas Municipal y Libre Deuda del Juzgado Administrativo de Faltas Municipal, entre otra documentación que resulte pertinente.</li>'
     +'<li>Facilitar el acceso al inmueble y a la obra cuando sea requerido para el cumplimiento de las tareas de EL PROFESIONAL.</li>'
+    +'<li>Autorizar el ingreso de EL PROFESIONAL al inmueble para realizar los relevamientos y tomar las medidas necesarias para el cumplimiento del presente encargo.</li>'
+    +'<li>Autorizar el ingreso de la Municipalidad de Ushuaia al inmueble, cuando esta lo requiera, a efectos de verificar las medidas declaradas en el plano confeccionado por EL PROFESIONAL.</li>'
     +'<li>Tomar a su cargo la totalidad de los gastos, derechos, tasas, aranceles, sellados e impuestos que demande la gestión, presentación, visado y/o aprobación de la documentación técnica ante la Municipalidad de Ushuaia, el Colegio de Técnicos de Tierra del Fuego, Camuzzi Gas del Sur, la Dirección Provincial de Energía y todo otro organismo público o privado que corresponda, con la única excepción indicada en la Cláusula 3.4 (certificación de la Nota de Encomienda, a cargo de EL PROFESIONAL).</li>'
     +'</ol>';
 
