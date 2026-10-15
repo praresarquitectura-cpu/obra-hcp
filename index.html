@@ -2670,6 +2670,64 @@ function motorLimpiar(){
   editandoId=null;
   buildRoles();buildLeyendasUI();toast('Motor limpiado');
 }
+/* ── NUMERACIÓN DE PRESUPUESTOS DE HONORARIOS ────────────────────────────
+   Agregado 2026-10-15 a pedido de Diego: el código de cada presupuesto
+   (HON-0001, HON-0002, ...) se calculaba antes como "HON_DATA.length+1" —
+   la cantidad de presupuestos que había EN ESE MOMENTO en la lista. Eso se
+   rompe apenas se borra alguno: si tenías 10 presupuestos y borrabas el
+   último, la lista volvía a tener 9, y el próximo presupuesto nuevo se
+   creaba otra vez como HON-0010 — repitiendo un número ya usado.
+   Ahora el número sale de un contador propio, guardado aparte, que SOLO
+   avanza (nunca se repite ni retrocede aunque se borren presupuestos), y
+   además se compara siempre contra el número más alto que ya exista en
+   los datos (por si en otro dispositivo se cargó un número más nuevo que
+   todavía no llegó a este). */
+function honProximoCodigo(){
+  var maxExistente=0;
+  (HON_DATA||[]).forEach(function(h){
+    var m=/^HON-(\d+)$/.exec(h&&h.code||'');
+    if(m){var n=parseInt(m[1],10);if(n>maxExistente)maxExistente=n;}
+  });
+  var guardado=0;
+  try{guardado=parseInt(localStorage.getItem('obraerp_hon_contador')||'0',10)||0;}catch(e){}
+  var siguiente=Math.max(maxExistente,guardado)+1;
+  try{localStorage.setItem('obraerp_hon_contador',String(siguiente));}catch(e){}
+  return 'HON-'+String(siguiente).padStart(4,'0');
+}
+/* Corrige, una sola vez al arrancar, los presupuestos que hayan quedado con
+   un código duplicado por el bug de arriba: para cada código repetido deja
+   sin tocar al presupuesto más viejo (el que probablemente ya se mandó a
+   un cliente) y le asigna un número nuevo, limpio, a cada duplicado más
+   reciente. Nunca borra ni modifica ningún otro dato del presupuesto. */
+function honRepararNumeracion(){
+  try{
+    var porCodigo={};
+    (HON_DATA||[]).forEach(function(h){
+      var c=h.code||'';
+      (porCodigo[c]=porCodigo[c]||[]).push(h);
+    });
+    var corregidos=[];
+    Object.keys(porCodigo).forEach(function(c){
+      var grupo=porCodigo[c];
+      if(!c||grupo.length<2)return;
+      grupo.sort(function(a,b){return (a.id||0)-(b.id||0);});
+      for(var i=1;i<grupo.length;i++){
+        grupo[i].code=honProximoCodigo();
+        corregidos.push(grupo[i]);
+      }
+    });
+    if(corregidos.length){
+      guardarTodo();
+      if(typeof renderHon==='function')renderHon(HON_DATA);
+      if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
+      if(typeof updateDashboard==='function')updateDashboard();
+      if(_db&&_uid&&typeof fbSave==='function'){
+        corregidos.forEach(function(h){fbSave('honorarios',h.id,h);});
+      }
+      toast('Se corrigieron '+corregidos.length+' número'+(corregidos.length===1?'':'s')+' de presupuesto que estaba'+(corregidos.length===1?'':'n')+' duplicado'+(corregidos.length===1?'':'s'));
+    }
+  }catch(e){console.warn('honRepararNumeracion error:',e);}
+}
 function motorGuardar(draft){
   var activeRoles=ROLES.filter(function(r){return S[r.id]?.on;}).map(function(r){return r.nm;});
   if(!activeRoles.length&&!draft){toast('Seleccioná al menos un rol',false);return;}
@@ -2852,7 +2910,7 @@ function motorGuardar(draft){
   var cuotasBase=Math.round(netoDC+gastos+dibujanteTotalNeto);
   var hon={
     id:editandoId||Date.now(),
-    code:editandoId?HON_DATA.find(function(h){return h.id===editandoId;})?.code||('HON-'+String(HON_DATA.length+1).padStart(4,'0')):'HON-'+String(HON_DATA.length+1).padStart(4,'0'),
+    code:editandoId?(HON_DATA.find(function(h){return h.id===editandoId;})?.code||honProximoCodigo()):honProximoCodigo(),
     rev:'R01',roles:activeRoles.join(' + '),uso,tipo,m2,m2dec,m2sind,cu,cat,tc,calcUsdM2,
     descPct:desc*100,gastPct:gast*100,ipc:ipc*100,
     cliente:cli?cli.ap+', '+cli.nm:'—',cliId,
@@ -4384,6 +4442,7 @@ function toast(msg,ok){if(ok===undefined)ok=true;var e=document.getElementById('
 /* ── ARRANQUE ─────────────────────────────────────────────────────────── */
 cargarTodo();
 if(typeof tcCargarGuardado==='function')tcCargarGuardado();
+if(typeof honRepararNumeracion==='function')honRepararNumeracion();
 setTimeout(function(){
   renderObras(OBRAS_DATA);scCargar();
   // Cargar precios editados/agregados y catálogo de rubros/ítems guardados por el usuario
@@ -4785,6 +4844,7 @@ function setupAuthListener(){
       if(av&&user.displayName)av.textContent=user.displayName.charAt(0).toUpperCase();
       // Load data from cloud
       fbLoadAll().then(function(){
+        if(typeof honRepararNumeracion==='function')honRepararNumeracion();
         setupRealtimeListeners();
         if(currentPlan!=='admin')loadUserPlan(user.uid);
         // Detectar datos locales sin sincronizar
