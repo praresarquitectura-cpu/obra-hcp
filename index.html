@@ -2694,37 +2694,38 @@ function honProximoCodigo(){
   try{localStorage.setItem('obraerp_hon_contador',String(siguiente));}catch(e){}
   return 'HON-'+String(siguiente).padStart(4,'0');
 }
-/* Corrige, una sola vez al arrancar, los presupuestos que hayan quedado con
-   un código duplicado por el bug de arriba: para cada código repetido deja
-   sin tocar al presupuesto más viejo (el que probablemente ya se mandó a
-   un cliente) y le asigna un número nuevo, limpio, a cada duplicado más
-   reciente. Nunca borra ni modifica ningún otro dato del presupuesto. */
+/* Corrige, cada vez que arranca la app, la numeración completa de los
+   presupuestos de Honorarios: los ordena por fecha/hora real de creación
+   (h.id, que es Date.now() al momento de crearse — más preciso que h.fecha,
+   que solo guarda el día) y les reasigna HON-0001, HON-0002, HON-0003... en
+   ESE orden. Esto deja la numeración siempre consecutiva y sin huecos ni
+   repetidos, incluso si antes quedó desordenada (por el bug viejo que usaba
+   HON_DATA.length, por crear dos presupuestos seguidos, o por sincronizar
+   entre dispositivos). Es una operación idempotente: si la numeración ya
+   está bien, no cambia nada ni hace ruido — solo toca y sincroniza a la
+   nube los presupuestos cuyo código realmente cambió. Nunca borra ni
+   modifica ningún otro dato del presupuesto, solo el campo "code". */
 function honRepararNumeracion(){
   try{
-    var porCodigo={};
-    (HON_DATA||[]).forEach(function(h){
-      var c=h.code||'';
-      (porCodigo[c]=porCodigo[c]||[]).push(h);
-    });
-    var corregidos=[];
-    Object.keys(porCodigo).forEach(function(c){
-      var grupo=porCodigo[c];
-      if(!c||grupo.length<2)return;
-      grupo.sort(function(a,b){return (a.id||0)-(b.id||0);});
-      for(var i=1;i<grupo.length;i++){
-        grupo[i].code=honProximoCodigo();
-        corregidos.push(grupo[i]);
+    var ordenado=(HON_DATA||[]).slice().sort(function(a,b){return (a.id||0)-(b.id||0);});
+    var cambiados=[];
+    ordenado.forEach(function(h,i){
+      var nuevo='HON-'+String(i+1).padStart(4,'0');
+      if(h.code!==nuevo){
+        cambiados.push(h);
+        h.code=nuevo;
       }
     });
-    if(corregidos.length){
+    if(cambiados.length){
+      try{localStorage.setItem('obraerp_hon_contador',String(ordenado.length));}catch(e){}
       guardarTodo();
       if(typeof renderHon==='function')renderHon(HON_DATA);
       if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
       if(typeof updateDashboard==='function')updateDashboard();
       if(_db&&_uid&&typeof fbSave==='function'){
-        corregidos.forEach(function(h){fbSave('honorarios',h.id,h);});
+        cambiados.forEach(function(h){fbSave('honorarios',h.id,h);});
       }
-      toast('Se corrigieron '+corregidos.length+' número'+(corregidos.length===1?'':'s')+' de presupuesto que estaba'+(corregidos.length===1?'':'n')+' duplicado'+(corregidos.length===1?'':'s'));
+      toast('Se renumeraron '+cambiados.length+' presupuesto'+(cambiados.length===1?'':'s')+' en orden de creación — numeración consecutiva');
     }
   }catch(e){console.warn('honRepararNumeracion error:',e);}
 }
