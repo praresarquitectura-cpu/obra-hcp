@@ -211,7 +211,7 @@ input,select,textarea,button{font-family:var(--font)}
   .pi{font-size:13px}
   .cuotas-card{padding:14px 12px}
   .rc-nm{font-size:12px}.rc-dsc{font-size:9px}
-  .str{grid-template-columns:16px 1fr 46px 76px!important;gap:5px}
+  .str{grid-template-columns:16px 1fr 46px 56px 76px!important;gap:5px}
   .str-render{grid-template-columns:16px 1fr 190px 76px!important;gap:5px}
   .card{padding:14px}
   #nav{padding:0 10px}
@@ -536,6 +536,10 @@ input,select,textarea,button{font-family:var(--font)}
           </div>
           <div class="fg"><label class="fl">Ajuste IPC</label>
             <div class="pw"><input class="pi" type="number" id="mot-ipc" value="0" oninput="recalc()"><span class="pu">%</span></div>
+          </div>
+          <div class="fg"><label class="fl">Ajuste general del presupuesto</label>
+            <div class="pw"><input class="pi" type="number" id="mot-ajuste-global" value="100" min="0" step="1" oninput="recalc()"><span class="pu">%</span></div>
+            <div style="font-size:9px;color:var(--tx3);margin-top:3px">100% = sin cambios · &gt;100% más caro · &lt;100% más barato. Se aplica a TODAS las subtareas, sumado al ajuste individual de cada una (más abajo).</div>
           </div>
         </div>
         <div class="g2" style="margin-top:2px">
@@ -2201,10 +2205,35 @@ function dibujanteAplicarCoeficientes(){
 var S={};
 function initS(){
   ROLES.forEach(function(r){
-    if(!S[r.id])S[r.id]={on:false,open:false,tasks:{},subs:{}};
+    if(!S[r.id])S[r.id]={on:false,open:false,tasks:{},subs:{},adj:{}};
+    if(!S[r.id].adj)S[r.id].adj={};
     r.tareas.forEach(function(t){if(!(t.id in S[r.id].tasks))S[r.id].tasks[t.id]=false;});
     r.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){if(!(it.id in S[r.id].subs))S[r.id].subs[it.id]=false;});});});
   });
+}
+// getItemAdjPct/updateItemAdjust — "Ajuste %" por subtarea, a pedido de Diego (oct-2026): poder
+// encarecer o abaratar CUALQUIER subtarea individual (tipo 'normal' % de incidencia, o tipo 'render'
+// cantidad×precio) sin tener que editar la fórmula de base del rol. 100% = sin cambios (comportamiento
+// idéntico al de siempre). Se multiplica, además, por el "Ajuste general del presupuesto" (mot-ajuste-
+// global) — ambos factores se combinan (ej. ítem a 110% + ajuste general a 95% = 104.5% final).
+function getItemAdjPct(rid,iid){
+  var v=(S[rid]&&S[rid].adj)?S[rid].adj[iid]:null;
+  return (typeof v==='number'&&!isNaN(v)&&v>=0)?v:100;
+}
+function getGlobalAdjPct(){
+  var v=getN('mot-ajuste-global',100);
+  return (typeof v==='number'&&!isNaN(v)&&v>=0)?v:100;
+}
+function itemAdjFactor(rid,iid){
+  return (getItemAdjPct(rid,iid)/100)*(getGlobalAdjPct()/100);
+}
+function updateItemAdjust(rid,iid,v){
+  var p=parseFloat(v);
+  if(isNaN(p)||p<0)p=100;
+  if(!S[rid])return;
+  if(!S[rid].adj)S[rid].adj={};
+  S[rid].adj[iid]=p;
+  recalc();
 }
 
 /* Build a single render row (no string escaping nightmares) */
@@ -2234,8 +2263,9 @@ function makeRenderRow(it,on,roleId,tareaId){
   }
   html+='<span style="font-size:12px;color:var(--tx3);padding-bottom:7px">\u00d7</span>';
   html+='<div class="r-inp-wrap"><label class="r-inp-lbl">USD/u</label><input id="rprc-'+it.id+'" type="number" value="'+price+'"'+dis+' class="r-inp-p" style="width:60px" oninput="updateRenderPrice(\''+roleId+'\',\''+it.id+'\',this.value)"></div>';
+  html+='<div class="r-inp-wrap"><label class="r-inp-lbl">Ajuste</label><input id="radj-'+it.id+'" type="number" min="0" step="1" value="'+getItemAdjPct(roleId,it.id)+'"'+dis+' class="r-inp-p" style="width:52px" oninput="updateItemAdjust(\''+roleId+'\',\''+it.id+'\',this.value)" title="Encarecer o abaratar SOLO esta subtarea, en %. 100% = sin cambios."><span style="font-size:9px;color:var(--tx3)">%</span></div>';
   html+='</div>';
-  html+='<div class="st-usd" id="usd-'+it.id+'" style="color:'+(on?'var(--bt)':'var(--tx3)')+'">'+( on?'USD '+Math.round(qty*price).toLocaleString():'—' )+'</div>';
+  html+='<div class="st-usd" id="usd-'+it.id+'" style="color:'+(on?'var(--bt)':'var(--tx3)')+'">'+( on?'USD '+Math.round(qty*price*itemAdjFactor(roleId,it.id)).toLocaleString():'—' )+'</div>';
   html+='<div class="st-ars" id="ars-'+it.id+'" style="text-align:right;font-size:11px;color:var(--tx3)">—</div>';
   html+='</div>';
   return html;
@@ -2245,6 +2275,7 @@ function makeNormalRow(it,on,roleId,tareaId){
   html+='<input type="checkbox" class="st-chk" id="it-'+it.id+'"'+(on?' checked':'')+' onchange="onItem(\''+roleId+'\',\''+tareaId+'\',\''+it.id+'\',this.checked)">';
   html+='<div><div class="st-nm">'+it.nm+'</div><div class="st-dsc">'+it.dsc+'</div></div>';
   html+='<div class="st-inc">'+it.inc+'%<br><span style="font-size:8.5px;color:var(--tx3);font-weight:400">del rol</span></div>';
+  html+='<div class="r-inp-wrap"><label class="r-inp-lbl">Ajuste</label><input id="radj-'+it.id+'" type="number" min="0" step="1" value="'+getItemAdjPct(roleId,it.id)+'"'+(on?'':' disabled')+' class="r-inp-p" style="width:52px" oninput="updateItemAdjust(\''+roleId+'\',\''+it.id+'\',this.value)" title="Encarecer o abaratar SOLO esta subtarea, en %. 100% = sin cambios."><span style="font-size:9px;color:var(--tx3)">%</span></div>';
   html+='<div>';
   html+='<div class="st-usd" id="usd-'+it.id+'" style="color:'+(on?'var(--bt)':'var(--tx3)')+'">'+( on?'calc\u2026':'—' )+'</div>';
   html+='<div class="st-ars" id="ars-'+it.id+'">—</div>';
@@ -2318,8 +2349,8 @@ function onTarea(rid,tid,on){
   var role=ROLES.find(function(r){return r.id===rid;}),tarea=role.tareas.find(function(t){return t.id===tid;});
   S[rid].tasks[tid]=on;
   tarea.grupos.forEach(function(g){g.items.forEach(function(it){S[rid].subs[it.id]=on;var el=document.getElementById('it-'+it.id);if(el)el.checked=on;
-    var rq=document.getElementById('rqty-'+it.id),rp=document.getElementById('rprc-'+it.id);
-    if(rq)rq.disabled=!on;if(rp)rp.disabled=!on;
+    var rq=document.getElementById('rqty-'+it.id),rp=document.getElementById('rprc-'+it.id),ra=document.getElementById('radj-'+it.id);
+    if(rq)rq.disabled=!on;if(rp)rp.disabled=!on;if(ra)ra.disabled=!on;
   });});
   var any=role.tareas.some(function(t){return S[rid].tasks[t.id];});S[rid].on=any;
   var rc=document.getElementById('rchk-'+rid);if(rc)rc.checked=any;
@@ -2328,8 +2359,8 @@ function onTarea(rid,tid,on){
 }
 function onItem(rid,tid,iid,on){
   S[rid].subs[iid]=on;
-  var rq=document.getElementById('rqty-'+iid),rp=document.getElementById('rprc-'+iid);
-  if(rq)rq.disabled=!on;if(rp)rp.disabled=!on;
+  var rq=document.getElementById('rqty-'+iid),rp=document.getElementById('rprc-'+iid),ra=document.getElementById('radj-'+iid);
+  if(rq)rq.disabled=!on;if(rp)rp.disabled=!on;if(ra)ra.disabled=!on;
   var role=ROLES.find(function(r){return r.id===rid;}),tarea=role.tareas.find(function(t){return t.id===tid;});
   var anyT=tarea.grupos.some(function(g){return g.items.some(function(it){return S[rid].subs[it.id];});});
   S[rid].tasks[tid]=anyT;var tc=document.getElementById('ta-'+tid);if(tc)tc.checked=anyT;
@@ -2342,7 +2373,7 @@ function selTarea(rid,tid,v){
   var role=ROLES.find(function(r){return r.id===rid;}),tarea=role.tareas.find(function(t){return t.id===tid;});
   S[rid].tasks[tid]=v;
   tarea.grupos.forEach(function(g){g.items.forEach(function(it){S[rid].subs[it.id]=v;var el=document.getElementById('it-'+it.id);if(el)el.checked=v;
-    var rq=document.getElementById('rqty-'+it.id),rp=document.getElementById('rprc-'+it.id);if(rq)rq.disabled=!v;if(rp)rp.disabled=!v;
+    var rq=document.getElementById('rqty-'+it.id),rp=document.getElementById('rprc-'+it.id),ra=document.getElementById('radj-'+it.id);if(rq)rq.disabled=!v;if(rp)rp.disabled=!v;if(ra)ra.disabled=!v;
   });});
   var tc=document.getElementById('ta-'+tid);if(tc)tc.checked=v;
   var anyR=role.tareas.some(function(t){return S[rid].tasks[t.id];});S[rid].on=anyR;
@@ -2455,6 +2486,11 @@ function recalc(){
           // Actualizar objeto
           it.qty=qty;it.unitPrice=prc;
         }else{usd=(it.baseSup==='existente'?vObraDemol:vObraRole)*it.pct;}
+        // Ajuste % por subtarea + Ajuste general del presupuesto (a pedido de Diego, oct-2026): se
+        // aplica SIEMPRE al final, sobre el monto ya calculado por la fórmula de base del ítem — así
+        // el usuario puede encarecer/abaratar cualquier subtarea (o todo el presupuesto) sin alterar
+        // la lógica de cálculo de base. 100%×100% = sin cambios (comportamiento idéntico al de siempre).
+        usd=usd*itemAdjFactor(role.id,it.id);
       }
       rs+=usd;
       var ue=document.getElementById('usd-'+it.id),ae=document.getElementById('ars-'+it.id),bk=document.getElementById('brk-'+it.id);
@@ -2468,7 +2504,9 @@ function recalc(){
     renderItems.forEach(function(ri){
       if(!ri.bk)return;
       var pct=(ri.on&&rs>0)?(ri.usd/rs*100):0;
-      ri.bk.textContent=ri.on?('· '+ri.it.qty+'u × USD '+ri.it.unitPrice+' · '+pct.toLocaleString('es-AR',{maximumFractionDigits:1})+'% de incidencia'):'';
+      var adjP=getItemAdjPct(role.id,ri.it.id),globP=getGlobalAdjPct();
+      var adjTxt=(adjP!==100||globP!==100)?(' · ajuste '+adjP+'%'+(globP!==100?' × general '+globP+'%':'')):'';
+      ri.bk.textContent=ri.on?('· '+ri.it.qty+'u × USD '+ri.it.unitPrice+adjTxt+' · '+pct.toLocaleString('es-AR',{maximumFractionDigits:1})+'% de incidencia'):'';
     });
 
     /* Descuento proyecto sobre Dibujante: se aplica el mismo % Descuento proyecto (mot-desc-pct)
@@ -2689,10 +2727,11 @@ function leyendasRestaurarSeleccion(ids){
 
 function motorInit(){initS();populateCliSel();buildCatdfInputs();buildRoles();buildLeyendasUI();buildHonCfgInputs();honCfgCargar();fetchDolar();}
 function motorLimpiar(){
-  ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{}};});
+  ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{},adj:{}};});
   cuotas=[{id:1,nm:'Anticipo',pct:40},{id:2,nm:'Aprobaci\u00f3n anteproyecto',pct:20},{id:3,nm:'Plano municipal',pct:20},{id:4,nm:'Estructura',pct:10},{id:5,nm:'Doc. ejecutiva',pct:10}];
   LEYENDAS_SEL={};
   editandoId=null;
+  var agEl=document.getElementById('mot-ajuste-global');if(agEl)agEl.value=100;
   buildRoles();buildLeyendasUI();toast('Motor limpiado');
 }
 /* ── NUMERACIÓN DE PRESUPUESTOS DE HONORARIOS ────────────────────────────
@@ -2801,10 +2840,15 @@ function motorGuardar(draft){
     role.tareas.forEach(function(t){t.grupos.forEach(function(g){g.items.forEach(function(it){
       if(S[role.id].subs[it.id]){
         var iusd,rawUsd;
+        // Ajuste % por subtarea + Ajuste general del presupuesto (oct-2026): se aplica al monto SIN
+        // redondear (rawUsd), ANTES del redondeo por ítem — mismo criterio de "redondear una sola vez"
+        // que ya usa todo este bloque, para que el total guardado coincida con el que se vio en vivo
+        // (recalc() aplica el mismo factor, ver itemAdjFactor()). 100% = sin cambios.
+        var adjPct=getItemAdjPct(role.id,it.id),adjFactor=itemAdjFactor(role.id,it.id);
         if((esCalc||esConfObra)&&it.tipo==='normal'){
-          rawUsd=rolTotalCustom*(it.inc/100);
+          rawUsd=rolTotalCustom*(it.inc/100)*adjFactor;
           iusd=Math.round(rawUsd);
-          items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'normal'});
+          items.push({id:it.id,nm:it.nm,inc:it.inc,pct:0,usd:iusd,rawUsd:rawUsd,ajustePct:adjPct,tipo:'normal'});
         }else if(it.tipo==='render'){
           var qEl=document.getElementById('rqty-'+it.id),pEl=document.getElementById('rprc-'+it.id);
           var qty=qEl?Math.max(1,parseInt(qEl.value)||it.qty||1):(it.qty||1);
@@ -2813,13 +2857,13 @@ function motorGuardar(draft){
           if(it.esM2){qty=m2total;}
           if(it.esM2Existente){qty=m2dec+m2sind;}
           if(it.esM2Nueva){qty=m2;}
-          rawUsd=qty*prc;
+          rawUsd=qty*prc*adjFactor;
           iusd=Math.round(rawUsd);
-          items.push({nm:it.nm,inc:it.inc,pct:0,usd:iusd,tipo:'render',qty:qty,unitPrice:prc});
+          items.push({id:it.id,nm:it.nm,inc:it.inc,pct:0,usd:iusd,rawUsd:rawUsd,ajustePct:adjPct,tipo:'render',qty:qty,unitPrice:prc});
         }else{
-          rawUsd=(it.baseSup==='existente'?vObraDemol:vObraRole)*it.pct;
+          rawUsd=(it.baseSup==='existente'?vObraDemol:vObraRole)*it.pct*adjFactor;
           iusd=Math.round(rawUsd);
-          items.push({nm:it.nm,inc:it.inc,pct:it.pct,usd:iusd,tipo:'normal',baseSup:it.baseSup});
+          items.push({id:it.id,nm:it.nm,inc:it.inc,pct:it.pct,usd:iusd,rawUsd:rawUsd,ajustePct:adjPct,tipo:'normal',baseSup:it.baseSup});
         }
         rawTotal+=rawUsd;
       }
@@ -2851,8 +2895,11 @@ function motorGuardar(draft){
       // El target del residuo tiene que ser el total de SOLO las subtareas seleccionadas de ESTE grupo
       // (incSum% de incidencia sobre SU base), no el 100% del rol — si no, cuando el usuario tilda
       // apenas alguna(s) subtarea(s), la última absorbe el valor de las que no seleccionó (sobrefacturación).
-      var baseVal=(key==='custom')?rolTotalCustom:role.catdf*(key==='existente'?vObraDemol:vObraRole);
-      var targetRol=Math.round(baseVal*(b.incSum/100));
+      // Se suma directo items[].rawUsd (ya con el Ajuste % de cada subtarea aplicado) en vez de
+      // recalcular baseVal*(incSum/100) desde cero — así el residuo cierra correcto aunque cada
+      // subtarea del bucket tenga un Ajuste % distinto (oct-2026). Sin ajustes (100% en todas), esto
+      // da exactamente el mismo resultado que antes: sum(rawUsd)=baseVal*(incSum/100).
+      var targetRol=Math.round(b.idxs.reduce(function(s,idx){return s+items[idx].rawUsd;},0));
       var sumOtros=0;
       for(var k=0;k<b.idxs.length-1;k++)sumOtros+=items[b.idxs[k]].usd;
       items[b.idxs[b.idxs.length-1]].usd=targetRol-sumOtros;
@@ -2938,7 +2985,7 @@ function motorGuardar(draft){
     id:editandoId||Date.now(),
     code:editandoId?(HON_DATA.find(function(h){return h.id===editandoId;})?.code||honProximoCodigo()):honProximoCodigo(),
     rev:'R01',roles:activeRoles.join(' + '),uso,tipo,m2,m2dec,m2sind,cu,cat,tc,calcUsdM2,
-    descPct:desc*100,gastPct:gast*100,ipc:ipc*100,
+    descPct:desc*100,gastPct:gast*100,ipc:ipc*100,ajusteGlobalPct:getGlobalAdjPct(),
     cliente:cli?cli.ap+', '+cli.nm:'—',cliId,
     usd:Math.round(fin),ars:Math.round(fin*tc),
     subtotalDesc:Math.round(totalDesc),subtotalNoDesc:Math.round(totalNoDesc),
@@ -2979,7 +3026,7 @@ if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
   var sv=function(elId,v){var el=document.getElementById(elId);if(el&&v!==undefined&&v!==null)el.value=v;};
   sv('mot-uso',hon.uso);sv('mot-tipo',hon.tipo);sv('mot-m2',hon.m2);sv('mot-m2-dec',hon.m2dec||0);sv('mot-m2-sind',hon.m2sind||0);sv('mot-cu',hon.cu);
   sv('mot-tc',hon.tc);sv('mot-desc-pct',hon.descPct||0);sv('mot-gast-pct',hon.gastPct||5);sv('mot-calc-usdm2',hon.calcUsdM2||9);
-  sv('mot-ipc',hon.ipc||0);sv('mot-sec',hon.catSec);sv('mot-mzo',hon.catMzo);
+  sv('mot-ipc',hon.ipc||0);sv('mot-ajuste-global',hon.ajusteGlobalPct||100);sv('mot-sec',hon.catSec);sv('mot-mzo',hon.catMzo);
   sv('mot-parc',hon.catParc);sv('mot-uf',hon.catUF);sv('mot-dom',hon.catDom);
   sv('mot-desc-trab',hon.descTrab);sv('mot-excl',hon.excl);sv('mot-nota',hon.nota);
   sv('mot-forma-pago',hon.formaPago||'contado');sv('mot-comision',hon.comisionPct||6.49);
@@ -2996,7 +3043,7 @@ if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
   // Restaurar cuotas
   if(hon.cuotas)cuotas=JSON.parse(JSON.stringify(hon.cuotas));
   // Resetear estado
-  ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{}};});
+  ROLES.forEach(function(r){S[r.id]={on:false,open:false,tasks:{},subs:{},adj:{}};});
   // Restaurar checkboxes desde detalle
   try{
     if(hon.detalle){
@@ -3012,6 +3059,9 @@ if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
                 S[role.id].tasks[t.id]=true;
                 if(it.tipo==='render'&&itDet.qty)it.qty=itDet.qty;
                 if(it.tipo==='render'&&itDet.unitPrice)it.unitPrice=itDet.unitPrice;
+                // Restaurar el "Ajuste %" guardado de esta subtarea (oct-2026) — si el presupuesto
+                // es de antes de esta funcionalidad, itDet.ajustePct no existe y queda en 100 (default).
+                if(itDet.ajustePct!=null)S[role.id].adj[it.id]=itDet.ajustePct;
               }
             });});
           });
