@@ -237,6 +237,30 @@ input,select,textarea,button{font-family:var(--font)}
 .comp-input{width:80px;background:var(--bg3);border:1px solid var(--br);border-radius:4px;padding:4px 6px;color:var(--tx);font-size:11px;font-family:var(--font);text-align:center}
 .comp-input:focus{outline:none;border-color:var(--bt)}
 .comp-sel{background:var(--bg3);border:1px solid var(--br);border-radius:4px;padding:4px 6px;color:var(--tx);font-size:11px;font-family:var(--font)}
+/* ===== MÓDULO INSPECCIÓN — INICIO ===== */
+#modulo-inspeccion .ins-sites-wrap{border:1px solid var(--br);border-radius:8px;overflow:hidden;margin-bottom:6px}
+#modulo-inspeccion .ins-site-row{display:grid;grid-template-columns:28px 1fr 110px 90px 32px;gap:8px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--br)}
+#modulo-inspeccion .ins-site-row:last-child{border-bottom:none}
+#modulo-inspeccion .ins-site-row.hd{background:var(--bg3);font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3)}
+#modulo-inspeccion .ins-site-idx{font-size:11px;color:var(--tx3);text-align:center}
+#modulo-inspeccion .ins-site-row input{width:100%}
+#modulo-inspeccion .ins-rm{background:none;border:none;color:var(--rt);cursor:pointer;font-size:15px;line-height:1;padding:0}
+#modulo-inspeccion .ins-summary{border:1.5px solid var(--bt);border-radius:10px;padding:14px 16px;position:sticky;top:8px}
+#modulo-inspeccion .ins-sum-row{display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0;color:var(--tx2)}
+#modulo-inspeccion .ins-sum-row.tot{border-top:1px solid var(--br2);margin-top:6px;padding-top:8px;font-size:14px;font-weight:800;color:var(--bt)}
+#modulo-inspeccion .ins-sum-row.sub{font-size:10px;color:var(--tx3);padding:1px 0}
+#modulo-inspeccion .ins-sum-grp{margin-top:8px;padding-top:8px;border-top:1px dashed var(--br)}
+#modulo-inspeccion .ins-alert{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);color:var(--rt);border-radius:6px;padding:7px 10px;font-size:10.5px;margin-top:8px}
+#modulo-inspeccion .ins-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;border-bottom:1px solid var(--br);padding-bottom:0}
+#modulo-inspeccion .ins-tab{background:none;border:none;color:var(--tx3);font-size:11px;font-weight:600;padding:8px 12px;cursor:pointer;border-bottom:2px solid transparent}
+#modulo-inspeccion .ins-tab.on{color:var(--bt);border-bottom-color:var(--bt)}
+#modulo-inspeccion .ins-sec{display:none}
+#modulo-inspeccion .ins-sec.on{display:block}
+#modulo-inspeccion .ins-vh-note{font-size:9px;color:var(--tx3);margin-top:3px}
+@media (max-width:760px){
+  #modulo-inspeccion .ins-site-row{grid-template-columns:22px 1fr 1fr 32px;grid-template-areas:"idx nm nm rm" "idx h k rm"}
+}
+/* ===== MÓDULO INSPECCIÓN — FIN ===== */
 </style></head><body>
 
 <!-- Firebase Auth / Setup Modal -->
@@ -344,6 +368,7 @@ input,select,textarea,button{font-family:var(--font)}
     <button class="nb" onclick="goTo('obras',this)">Obras</button>
     <button class="nb" onclick="goTo('honorarios',this)">Honorarios</button>
     <button class="nb" onclick="goTo('motor',this)">Motor Hon.</button>
+    <!-- ===== MÓDULO INSPECCIÓN — INICIO ===== --><button class="nb" onclick="goTo('inspeccion',this)">Inspección</button><!-- ===== MÓDULO INSPECCIÓN — FIN ===== -->
     <button class="nb" onclick="goTo('computo',this)">Cómputo</button>
     <button class="nb" onclick="goTo('apu',this)">An. Precios</button>
     <button class="nb" onclick="goTo('sistemas',this)">Sistemas</button>
@@ -361,6 +386,9 @@ input,select,textarea,button{font-family:var(--font)}
     <div class="sbi on" onclick="goTo('dashboard',null,this)"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V21H15v-6H9v6H3V9.5z"/></svg><span>Inicio</span></div>
     <div class="sbi" onclick="goTo('motor',null,this)"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>Motor Honorarios</span></div>
     <div class="sbi" onclick="goTo('honorarios',null,this)"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 9h10M7 13h7M7 17h5"/></svg><span>Honorarios</span><span class="sbn" id="sb-hon">0</span></div>
+    <!-- ===== MÓDULO INSPECCIÓN — INICIO ===== -->
+    <div class="sbi" onclick="goTo('inspeccion',null,this)"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 9h10M7 13h7M7 17h5"/></svg><span>Inspección</span><span class="sbn" id="sb-ins">0</span></div>
+    <!-- ===== MÓDULO INSPECCIÓN — FIN ===== -->
     <div class="sbi" onclick="goTo('clientes',null,this)"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span>Clientes</span></div>
     <div class="sbi" onclick="goTo('obras',null,this)"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><rect x="2" y="13" width="20" height="9" rx="1"/><path d="M5 13V9h14v4"/></svg><span>Obras</span></div>
   </div>
@@ -470,6 +498,219 @@ input,select,textarea,button{font-family:var(--font)}
     <tbody id="hon-body"></tbody>
   </table></div>
 </section>
+<!-- ===== MÓDULO INSPECCIÓN — INICIO ===== -->
+<section id="s-inspeccion" class="scr" style="" >
+<div id="modulo-inspeccion">
+  <div id="ins-view-lista">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><div class="pgt">Presupuestos de Inspección / Supervisión</div><div class="pgs">Supervisión de obra por visita · Honorario fijo por visita · PDF cliente + PDF interno</div></div>
+      <button class="btn btn-r" onclick="insNuevo()">+ Nuevo</button>
+    </div>
+    <div class="tb" style="margin-top:16px">
+      <input class="si" type="text" placeholder="Buscar…" oninput="insFiltrar(this.value)">
+      <select class="sf" onchange="insFiltrarEstado(this.value)">
+        <option value="">Todos</option><option>Borrador</option><option>Enviado</option>
+        <option>Aprobado</option><option>Rechazado</option><option>Archivado</option>
+      </select>
+      <span id="ins-cnt" style="margin-left:auto;font-size:10.5px;color:var(--tx3)"></span>
+    </div>
+    <div class="tw"><table class="dt">
+      <thead><tr><th>Código</th><th>Cliente</th><th>Obra / Sitios</th><th>Visitas</th><th>USD / visita</th><th>USD total</th><th>Estado</th><th style="text-align:center">Acciones</th></tr></thead>
+      <tbody id="ins-body"></tbody>
+    </table></div>
+  </div>
+
+  <div id="ins-view-form" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div><div class="pgt" id="ins-form-tit">Nuevo presupuesto de Inspección</div><div class="pgs">Visita de supervisión a precio fijo por visita</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="insVolverLista()">← Volver</button>
+        <button class="btn" onclick="insGuardar(true)">Guardar borrador</button>
+        <button class="btn btn-r" onclick="insGuardar(false)">Guardar</button>
+      </div>
+    </div>
+
+    <div class="ins-tabs">
+      <button class="ins-tab on" data-t="ins-t-enc" onclick="insTab(this)">1. Encabezado</button>
+      <button class="ins-tab" data-t="ins-t-sit" onclick="insTab(this)">2. Sitios de obra</button>
+      <button class="ins-tab" data-t="ins-t-vis" onclick="insTab(this)">3. Definición de la visita</button>
+      <button class="ins-tab" data-t="ins-t-tie" onclick="insTab(this)">4. Tiempos</button>
+      <button class="ins-tab" data-t="ins-t-hon" onclick="insTab(this)">5. Honorario profesional</button>
+      <button class="ins-tab" data-t="ins-t-mov" onclick="insTab(this)">6. Movilidad y viáticos</button>
+      <button class="ins-tab" data-t="ins-t-fij" onclick="insTab(this)">7. Costos fijos</button>
+      <button class="ins-tab" data-t="ins-t-rie" onclick="insTab(this)">8. Riesgo / Impuestos / Moneda</button>
+      <button class="ins-tab" data-t="ins-t-pla" onclick="insTab(this)">Plantillas PDF</button>
+    </div>
+
+    <div id="ins-grid" style="display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start">
+      <div>
+
+        <div class="ins-sec on" id="ins-t-enc">
+          <div class="card">
+            <div class="fsc">Encabezado del presupuesto</div>
+            <div class="g3">
+              <div class="fg"><label class="fl">Cliente</label><select class="fis" id="ins-cli" onchange="insOnCliente()"><option value="">— seleccionar —</option></select></div>
+              <div class="fg"><label class="fl">Contacto / referente en obra</label><input class="fi" type="text" id="ins-contacto" placeholder="Nombre y cargo"></div>
+              <div class="fg"><label class="fl">Fecha del presupuesto</label><input class="fi" type="date" id="ins-fecha"></div>
+            </div>
+            <div class="g2">
+              <div class="fg"><label class="fl">Obra / Proyecto</label><input class="fi" type="text" id="ins-obra" placeholder="Ej: Oficinas FAO Argentina — Tolhuin" oninput="insRecalc()"></div>
+              <div class="fg"><label class="fl">Alcance del servicio</label><input class="fi" type="text" id="ins-alcance" placeholder="Ej: Supervisión técnica de obra por visita periódica"></div>
+            </div>
+            <div class="fg"><label class="fl">Descripción / objeto del encargo</label><textarea class="fita" id="ins-desc" style="min-height:70px" placeholder="Detalle del objeto de la inspección/supervisión…"></textarea></div>
+          </div>
+        </div>
+
+        <div class="ins-sec" id="ins-t-sit">
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div class="fsc" style="margin-bottom:0">Sitios de obra a visitar</div>
+              <button class="btn btn-sm" onclick="insAgregarSitio()">+ Agregar sitio</button>
+            </div>
+            <div class="ins-sites-wrap">
+              <div class="ins-site-row hd"><span>#</span><span>Nombre del sitio</span><span>Horas en sitio</span><span>Km (ida)</span><span></span></div>
+              <div id="ins-sitios-body"></div>
+            </div>
+            <div class="ins-vh-note">Las horas en sitio y los km se usan para calcular H_sitio y el circuito automático entre sitios (ver pestaña "Definición de la visita").</div>
+          </div>
+        </div>
+
+        <div class="ins-sec" id="ins-t-vis">
+          <div class="card">
+            <div class="fsc">Definición de la visita</div>
+            <div class="g3">
+              <div class="fg"><label class="fl">Tipo de visita</label>
+                <select class="fis" id="ins-tipovisita" onchange="insRecalc()">
+                  <option value="uno">Un solo sitio por visita</option>
+                  <option value="alternado">Recorrido alternado (promedio de horas por sitio)</option>
+                  <option value="todos">Se recorren todos los sitios en cada visita</option>
+                </select>
+                <div class="ins-vh-note">"Un solo sitio" no suma km de circuito. "Todos los sitios" suma las horas de todos los sitios por visita.</div>
+              </div>
+              <div class="fg"><label class="fl">Cantidad de visitas (N)</label><input class="fi" type="number" id="ins-nvisitas" value="1" min="1" oninput="insRecalc()"></div>
+              <div class="fg"><label class="fl">Km base ida y vuelta (estudio ↔ obra)</label><div class="pw"><input class="pi" type="number" id="ins-kmbase" value="0" min="0" oninput="insRecalc()"><span class="pu">km</span></div></div>
+            </div>
+            <div class="g2">
+              <div class="fg">
+                <label class="fl"><input type="checkbox" id="ins-kmcircuito-manual" onchange="insRecalc()"> Km de circuito entre sitios — ingresar manualmente</label>
+                <div class="pw"><input class="pi" type="number" id="ins-kmcircuito" value="0" min="0" oninput="insRecalc()"><span class="pu">km</span></div>
+                <div class="ins-vh-note">Si no se tilda, se calcula automáticamente sumando los km declarados en cada sitio (pestaña 2).</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ins-sec" id="ins-t-tie">
+          <div class="card">
+            <div class="fsc">Tiempos por visita</div>
+            <div class="g3">
+              <div class="fg"><label class="fl">Horas de traslado / manejo</label><div class="pw"><input class="pi" type="number" id="ins-hmanejo" value="0" min="0" step="0.5" oninput="insRecalc()"><span class="pu">hs</span></div></div>
+              <div class="fg"><label class="fl">Horas de informe por visita</label><div class="pw"><input class="pi" type="number" id="ins-hinforme" value="0" min="0" step="0.5" oninput="insRecalc()"><span class="pu">hs</span></div></div>
+              <div class="fg"><label class="fl">% horas de escritorio (sobre horas base)</label><div class="pw"><input class="pi" type="number" id="ins-pctescritorio" value="0" min="0" step="1" oninput="insRecalc()"><span class="pu">%</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ins-sec" id="ins-t-hon">
+          <div class="card">
+            <div class="fsc">Honorario profesional</div>
+            <div class="g3">
+              <div class="fg"><label class="fl">Valor hora profesional</label><div class="pw"><input class="pi" type="number" id="ins-valorhora" value="0" min="0" step="500" oninput="insRecalc()"><span class="pu">$</span></div></div>
+              <div class="fg"><label class="fl">Arancel mínimo de referencia (opcional)</label><div class="pw"><input class="pi" type="number" id="ins-arancelmin" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Si el precio final por visita queda por debajo, se muestra una alerta.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ins-sec" id="ins-t-mov">
+          <div class="card">
+            <div class="fsc">Movilidad</div>
+            <div class="g3">
+              <div class="fg"><label class="fl">Consumo del vehículo</label><div class="pw"><input class="pi" type="number" id="ins-consumo" value="10" min="0" step="0.5" oninput="insRecalc()"><span class="pu">L/100km</span></div></div>
+              <div class="fg"><label class="fl">Precio del litro de combustible</label><div class="pw"><input class="pi" type="number" id="ins-preciolitro" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
+              <div class="fg"><label class="fl">Desgaste / mantenimiento por km</label><div class="pw"><input class="pi" type="number" id="ins-desgastekm" value="0" min="0" oninput="insRecalc()"><span class="pu">$/km</span></div></div>
+            </div>
+            <div class="fsc" style="margin-top:14px">Viáticos</div>
+            <div class="g3">
+              <div class="fg"><label class="fl">Viáticos (comida, etc.)</label><div class="pw"><input class="pi" type="number" id="ins-viaticos" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
+              <div class="fg"><label class="fl">Alojamiento</label><div class="pw"><input class="pi" type="number" id="ins-alojamiento" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
+              <div class="fg"><label class="fl">Otros gastos de la visita</label><div class="pw"><input class="pi" type="number" id="ins-otrosgastos" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ins-sec" id="ins-t-fij">
+          <div class="card">
+            <div class="fsc">Costos fijos (se reparten entre el total de visitas)</div>
+            <div class="g2">
+              <div class="fg"><label class="fl">Seguros totales del contrato</label><div class="pw"><input class="pi" type="number" id="ins-segurostotal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
+              <div class="fg"><label class="fl">Equipamiento / insumos totales</label><div class="pw"><input class="pi" type="number" id="ins-equipamientototal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ins-sec" id="ins-t-rie">
+          <div class="card">
+            <div class="fsc">Riesgo, impuestos y moneda</div>
+            <div class="g3">
+              <div class="fg"><label class="fl">% Riesgo / imprevistos</label><div class="pw"><input class="pi" type="number" id="ins-pctriesgo" value="0" min="0" oninput="insRecalc()"><span class="pu">%</span></div></div>
+              <div class="fg"><label class="fl">% IIBB</label><div class="pw"><input class="pi" type="number" id="ins-pctiibb" value="0" min="0" oninput="insRecalc()"><span class="pu">%</span></div></div>
+              <div class="fg"><label class="fl">% Otras retenciones</label><div class="pw"><input class="pi" type="number" id="ins-pctotrasret" value="0" min="0" oninput="insRecalc()"><span class="pu">%</span></div></div>
+            </div>
+            <div class="g3">
+              <div class="fg"><label class="fl">Condición fiscal</label>
+                <select class="fis" id="ins-condicionfiscal" onchange="insRecalc()">
+                  <option value="exento">Monotributista / Exento</option>
+                  <option value="ri">Responsable Inscripto (IVA)</option>
+                </select>
+              </div>
+              <div class="fg"><label class="fl"><input type="checkbox" id="ins-clienteexento" onchange="insRecalc()" style="margin-right:6px">Cliente exento de IVA</label>
+                <div class="pw"><input class="pi" type="number" id="ins-alicuotaiva" value="21" min="0" oninput="insRecalc()"><span class="pu">% IVA</span></div>
+              </div>
+              <div class="fg"><label class="fl">Redondeo del precio por visita</label>
+                <select class="fis" id="ins-redondeo" onchange="insRecalc()">
+                  <option value="sin">Sin redondeo</option>
+                  <option value="100">Al múltiplo de 100</option>
+                  <option value="1000" selected>Al múltiplo de 1.000</option>
+                  <option value="10000">Al múltiplo de 10.000</option>
+                </select>
+              </div>
+            </div>
+            <div class="fg"><label class="fl">Cotización USD</label><div class="pw"><input class="pi" type="number" id="ins-tc" value="1350" min="0" oninput="insRecalc()"><span class="pu">ARS</span></div></div>
+          </div>
+        </div>
+
+        <div class="ins-sec" id="ins-t-pla">
+          <div class="card" style="margin-bottom:14px">
+            <div class="fsc">Plantilla de texto — PDF para el cliente</div>
+            <div class="ins-vh-note" style="margin-bottom:6px">Este texto se usa como introducción/condiciones del PDF que se entrega al cliente (sin desglose interno de costos). Podés usar {{OBRA}}, {{CLIENTE}}, {{NVISITAS}} y {{PRECIO_VISITA}} como variables.</div>
+            <textarea class="fita" id="ins-plantilla-cliente" style="min-height:160px"></textarea>
+          </div>
+          <div class="card">
+            <div class="fsc">Plantilla de texto — PDF interno (con desglose de costos)</div>
+            <div class="ins-vh-note" style="margin-bottom:6px">Este texto se usa en el PDF de uso interno, que sí incluye el desglose completo de costos.</div>
+            <textarea class="fita" id="ins-plantilla-interna" style="min-height:160px"></textarea>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="btn btn-sm" onclick="insGuardarPlantillasDefault()">💾 Guardar como plantilla predeterminada</button>
+            <button class="btn btn-sm" onclick="insRestaurarPlantillasDefault()">↺ Restaurar texto predeterminado</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="ins-summary">
+        <div class="fsc" style="margin-bottom:8px">Resumen de cálculo (en vivo)</div>
+        <div id="ins-resumen"></div>
+        <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="insGenerarPDFCliente(editandoInsId)" id="ins-btn-pdf-cli" disabled title="Guardá el presupuesto primero">PDF Cliente</button>
+          <button class="btn btn-sm" onclick="insGenerarPDFInterno(editandoInsId)" id="ins-btn-pdf-int" disabled title="Guardá el presupuesto primero">PDF Interno</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+<!-- ===== MÓDULO INSPECCIÓN — FIN ===== -->
 <section id="s-motor" class="scr">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
     <div><div class="pgt">Motor de Honorarios</div><div class="pgs">6 roles · Renders · CATDF/CPT · Cotización BNA · Cuotas · PDF</div></div>
@@ -3994,7 +4235,7 @@ function agendaInit(){
 }
 
 /* ── NAV ──────────────────────────────────────────────────────────────── */
-var SM={dashboard:'s-dashboard',clientes:'s-clientes',obras:'s-obras',honorarios:'s-honorarios',motor:'s-motor',computo:'s-computo',apu:'s-apu',sistemas:'s-sistemas',precios:'s-precios',config:'s-config',admin:'s-admin'};
+var SM={dashboard:'s-dashboard',clientes:'s-clientes',obras:'s-obras',honorarios:'s-honorarios',motor:'s-motor',/* ===== MÓDULO INSPECCIÓN ===== */inspeccion:'s-inspeccion',/* ===== FIN MÓDULO INSPECCIÓN ===== */computo:'s-computo',apu:'s-apu',sistemas:'s-sistemas',precios:'s-precios',config:'s-config',admin:'s-admin'};
 function goTo(id,btn,sb){
   document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on');});
   var t=SM[id];if(t)document.getElementById(t).classList.add('on');
@@ -4003,6 +4244,7 @@ function goTo(id,btn,sb){
   if(sb)sb.classList.add('on');
   document.getElementById('main').scrollTop=0;
   if(id==='motor')motorInit();
+  /* ===== MÓDULO INSPECCIÓN ===== */if(id==='inspeccion')insInit();/* ===== FIN MÓDULO INSPECCIÓN ===== */
   if(id==='computo')cpEntrarConObraActiva();
   // fix 23-jul-2026 (2da vuelta): antes recargaba CP_CATALOGO_USER desde Firebase (async, .get()
   // sin await) CADA VEZ que entrabas a esta pestaña — incluyendo si solo la volvías a clickear
@@ -4572,6 +4814,7 @@ function toast(msg,ok){if(ok===undefined)ok=true;var e=document.getElementById('
 cargarTodo();
 if(typeof tcCargarGuardado==='function')tcCargarGuardado();
 if(typeof honRepararNumeracion==='function')honRepararNumeracion();
+/* ===== MÓDULO INSPECCIÓN ===== */if(typeof insCargarLocal==='function')insCargarLocal();/* ===== FIN MÓDULO INSPECCIÓN ===== */
 setTimeout(function(){
   renderObras(OBRAS_DATA);scCargar();
   // Cargar precios editados/agregados y catálogo de rubros/ítems guardados por el usuario
@@ -4974,6 +5217,7 @@ function setupAuthListener(){
       // Load data from cloud
       fbLoadAll().then(function(){
         if(typeof honRepararNumeracion==='function')honRepararNumeracion();
+        /* ===== MÓDULO INSPECCIÓN ===== */if(typeof insCargarDesdeFirebase==='function')insCargarDesdeFirebase();/* ===== FIN MÓDULO INSPECCIÓN ===== */
         setupRealtimeListeners();
         if(currentPlan!=='admin')loadUserPlan(user.uid);
         // Detectar datos locales sin sincronizar
@@ -14263,6 +14507,601 @@ function applyBrandToPage(){
   // Apply selected font to brand preview only - the app itself keeps its font
   updateColorPreview();
 }
+
+
+/* ===== MÓDULO INSPECCIÓN ===== */
+/* Presupuesto de Inspección / Supervisión de obra por visita — módulo independiente.
+   No modifica ninguna función, variable ni colección existente. Todo identificador nuevo
+   usa el prefijo "ins". Persiste en localStorage (clave propia) y, si hay sesión Firebase
+   activa, en las colecciones NUEVAS "presupuestosInspeccion" y "inspeccionConfig"
+   (reutilizando tal cual las funciones genéricas fbSave/fbDelete ya existentes). */
+
+var INS_DATA = [];
+var editandoInsId = null;
+var insSitiosTemp = [];
+
+/* ── Motor de cálculo (validado contra el caso de prueba antes de integrarse) ── */
+function insRedondearArriba(valor, paso){
+  if(!paso || paso<=0) return valor;
+  return Math.ceil((valor - 1e-9) / paso) * paso;
+}
+function insCalcular(d){
+  var sitios = d.sitios || [];
+  var horasSitios = sitios.map(function(s){ return parseFloat(s.horas) || 0; });
+  var kmSitios = sitios.map(function(s){ return parseFloat(s.km) || 0; });
+
+  var H_sitio;
+  if (d.tipoVisita === 'todos') {
+    H_sitio = horasSitios.reduce(function(a,b){ return a+b; }, 0);
+  } else {
+    H_sitio = horasSitios.length ? (horasSitios.reduce(function(a,b){ return a+b; }, 0) / horasSitios.length) : 0;
+  }
+
+  var kmCircuitoAuto = kmSitios.reduce(function(a,b){ return a+b; }, 0);
+  var kmCircuito;
+  if (d.tipoVisita === 'uno') {
+    kmCircuito = 0;
+  } else if (d.kmCircuitoManual) {
+    kmCircuito = parseFloat(d.kmCircuito) || 0;
+  } else {
+    kmCircuito = kmCircuitoAuto;
+  }
+
+  var H_manejo = parseFloat(d.hManejo) || 0;
+  var H_informe = parseFloat(d.hInforme) || 0;
+  var pctEscritorio = parseFloat(d.pctEscritorio) || 0;
+
+  var H_base = H_manejo + H_sitio + H_informe;
+  var H_escritorio = H_base * (pctEscritorio / 100);
+  var H_total = H_base + H_escritorio;
+
+  var valorHora = parseFloat(d.valorHora) || 0;
+  var C_honorario = H_total * valorHora;
+
+  var consumo = parseFloat(d.consumo) || 0;
+  var precioLitro = parseFloat(d.precioLitro) || 0;
+  var desgasteKm = parseFloat(d.desgasteKm) || 0;
+  var costoKm = (consumo / 100) * precioLitro + desgasteKm;
+
+  var kmBase = parseFloat(d.kmBase) || 0;
+  var kmTotal = kmBase + kmCircuito;
+  var C_movilidad = kmTotal * costoKm;
+
+  var viaticos = parseFloat(d.viaticos) || 0;
+  var alojamiento = parseFloat(d.alojamiento) || 0;
+  var otrosGastos = parseFloat(d.otrosGastos) || 0;
+  var C_viaticos = viaticos + alojamiento + otrosGastos;
+
+  var nVisitas = parseFloat(d.nVisitas) || 0;
+  var segurosTotal = parseFloat(d.segurosTotal) || 0;
+  var equipamientoTotal = parseFloat(d.equipamientoTotal) || 0;
+  var C_seguros = nVisitas > 0 ? (segurosTotal / nVisitas) : 0;
+  var C_fijos = nVisitas > 0 ? (equipamientoTotal / nVisitas) : 0;
+
+  var Subtotal = C_honorario + C_movilidad + C_viaticos + C_seguros + C_fijos;
+  var pctRiesgo = parseFloat(d.pctRiesgo) || 0;
+  var Riesgo = Subtotal * (pctRiesgo / 100);
+  var Neto = Subtotal + Riesgo;
+
+  var pctIIBB = parseFloat(d.pctIIBB) || 0;
+  var pctOtrasRet = parseFloat(d.pctOtrasRet) || 0;
+  var divisor = 1 - ((pctIIBB + pctOtrasRet) / 100);
+  var Precio_sin_IVA = divisor > 0 ? (Neto / divisor) : Neto;
+
+  var pasoMap = { sin: 0, '100': 100, '1000': 1000, '10000': 10000 };
+  var paso = pasoMap[d.redondeo] != null ? pasoMap[d.redondeo] : 0;
+  var Precio_unit = insRedondearArriba(Precio_sin_IVA, paso);
+
+  var alicuotaIVA = parseFloat(d.alicuotaIVA) || 0;
+  var IVA_unit = 0;
+  if (d.condicionFiscal === 'ri' && !d.clienteExento) {
+    IVA_unit = Precio_unit * (alicuotaIVA / 100);
+  }
+  var Precio_unit_final = Precio_unit + IVA_unit;
+  var Total_contrato = Precio_unit_final * nVisitas;
+
+  var tc = parseFloat(d.tc) || 0;
+  var usd_unit = tc > 0 ? (Precio_unit_final / tc) : 0;
+  var usd_total = tc > 0 ? (Total_contrato / tc) : 0;
+
+  var impuestos_unit = Precio_unit_final - Neto;
+  var valorHoraEfectivo = H_total > 0
+    ? (Precio_unit_final - C_movilidad - C_viaticos - C_seguros - C_fijos - impuestos_unit) / H_total
+    : 0;
+
+  var alertaArancel = !!(d.arancelMinimo && parseFloat(d.arancelMinimo) > 0 && Precio_unit_final < parseFloat(d.arancelMinimo));
+
+  return {
+    H_sitio: H_sitio, H_base: H_base, H_escritorio: H_escritorio, H_total: H_total,
+    H_contrato: H_total * nVisitas,
+    C_honorario: C_honorario, costoKm: costoKm, kmCircuito: kmCircuito, kmCircuitoAuto: kmCircuitoAuto,
+    kmTotal: kmTotal, C_movilidad: C_movilidad, C_viaticos: C_viaticos, C_seguros: C_seguros, C_fijos: C_fijos,
+    Subtotal: Subtotal, Riesgo: Riesgo, Neto: Neto,
+    Precio_sin_IVA: Precio_sin_IVA, Precio_unit: Precio_unit, IVA_unit: IVA_unit,
+    Precio_unit_final: Precio_unit_final, Total_contrato: Total_contrato,
+    usd_unit: usd_unit, usd_total: usd_total,
+    valorHoraEfectivo: valorHoraEfectivo, alertaArancel: alertaArancel
+  };
+}
+
+/* ── Helpers de formato / DOM (propios, no se reutilizan los de otros módulos) ── */
+function insFmt(n){ return Math.round(n||0).toLocaleString('es-AR'); }
+function insFmt2(n){ return (n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function insSv(id,v){ var el=document.getElementById(id); if(el) el.value=(v===undefined||v===null)?'':v; }
+function insGv(id){ var el=document.getElementById(id); return el?el.value:''; }
+function insGc(id){ var el=document.getElementById(id); return el?!!el.checked:false; }
+
+/* ── Numeración propia INS-0001... (contador independiente del de Honorarios) ── */
+function insProximoCodigo(){
+  var maxExistente=0;
+  (INS_DATA||[]).forEach(function(r){
+    var m=/^INS-(\d+)$/.exec(r&&r.code||'');
+    if(m){var n=parseInt(m[1],10);if(n>maxExistente)maxExistente=n;}
+  });
+  var guardado=0;
+  try{guardado=parseInt(localStorage.getItem('obraerp_ins_contador')||'0',10)||0;}catch(e){}
+  var siguiente=Math.max(maxExistente,guardado)+1;
+  try{localStorage.setItem('obraerp_ins_contador',String(siguiente));}catch(e){}
+  return 'INS-'+String(siguiente).padStart(4,'0');
+}
+
+/* ── Plantillas de texto por defecto (editables por Diego, se guardan en inspeccionConfig/plantillas) ── */
+var INS_PLANTILLA_CLIENTE_DEFAULT =
+"Por medio de la presente se cotiza el servicio de Inspección / Supervisión Técnica de Obra, mediante visitas periódicas, para la obra \"{{OBRA}}\", a nombre de {{CLIENTE}}.\n\n"+
+"El presente presupuesto contempla un total de {{NVISITAS}} visitas de obra, con un valor fijo por visita de USD {{PRECIO_VISITA}}, que incluye honorarios profesionales, movilidad, viáticos y gastos de equipamiento asociados a cada visita.\n\n"+
+"Cada visita comprende la verificación del avance de obra conforme a planos y especificaciones técnicas, la detección de desvíos constructivos, y la emisión del correspondiente informe de inspección.\n\n"+
+"Condiciones generales: el presente presupuesto tiene una validez de 30 días corridos desde su emisión. Los valores se expresan en Dólares Estadounidenses (USD) y se facturan al tipo de cambio vigente al momento de cada visita, salvo acuerdo en contrario.";
+
+var INS_PLANTILLA_INTERNA_DEFAULT =
+"Presupuesto interno de Inspección / Supervisión de Obra por visita — \"{{OBRA}}\" ({{CLIENTE}}). Incluye desglose completo de costos: honorario profesional, movilidad, viáticos, seguros, costos fijos, riesgo e impuestos, para uso exclusivo del estudio.";
+
+function insDefaultTextos(){
+  return { cliente: INS_PLANTILLA_CLIENTE_DEFAULT, interna: INS_PLANTILLA_INTERNA_DEFAULT };
+}
+
+/* ── Persistencia local (localStorage, clave propia) ── */
+function insGuardarLocal(){
+  try{ localStorage.setItem('obraerp_ins_data', JSON.stringify(INS_DATA)); }catch(e){}
+}
+function insCargarLocal(){
+  try{
+    var raw = localStorage.getItem('obraerp_ins_data');
+    if(raw){ INS_DATA = JSON.parse(raw) || []; }
+    var rawPl = localStorage.getItem('obraerp_ins_plantillas');
+    if(rawPl){
+      var pl = JSON.parse(rawPl);
+      if(pl && pl.cliente) INS_PLANTILLA_CLIENTE_DEFAULT = pl.cliente;
+      if(pl && pl.interna) INS_PLANTILLA_INTERNA_DEFAULT = pl.interna;
+    }
+  }catch(e){}
+  if(typeof renderInsBadge==='function') renderInsBadge();
+}
+
+/* ── Persistencia Firebase (reutiliza fbSave/fbDelete genéricas tal cual existen,
+   SOLO con las colecciones NUEVAS "presupuestosInspeccion" e "inspeccionConfig") ── */
+function insGuardarFirebase(rec){
+  if(typeof fbSave==='function') fbSave('presupuestosInspeccion', rec.id, rec);
+}
+function insEliminarFirebase(id){
+  if(typeof fbDelete==='function') fbDelete('presupuestosInspeccion', id);
+}
+function insGuardarPlantillasFirebase(){
+  if(typeof fbSave==='function') fbSave('inspeccionConfig', 'plantillas', {
+    cliente: INS_PLANTILLA_CLIENTE_DEFAULT, interna: INS_PLANTILLA_INTERNA_DEFAULT
+  });
+}
+async function insCargarDesdeFirebase(){
+  if(typeof _syncMode==='undefined' || _syncMode!=='firebase' || !_db || !_uid) return;
+  try{
+    var snap = await _db.collection('users').doc(_uid).collection('presupuestosInspeccion').get();
+    if(!snap.empty){
+      INS_DATA = snap.docs.map(function(d){ return d.data(); });
+      INS_DATA.sort(function(a,b){ return (b.id||0)-(a.id||0); });
+    }
+    var plDoc = await _db.collection('users').doc(_uid).collection('inspeccionConfig').doc('plantillas').get();
+    if(plDoc.exists){
+      var pl = plDoc.data();
+      if(pl && pl.cliente) INS_PLANTILLA_CLIENTE_DEFAULT = pl.cliente;
+      if(pl && pl.interna) INS_PLANTILLA_INTERNA_DEFAULT = pl.interna;
+    }
+    var ctDoc = await _db.collection('users').doc(_uid).collection('inspeccionConfig').doc('contador').get();
+    if(ctDoc.exists && ctDoc.data() && ctDoc.data().n){
+      try{
+        var actual = parseInt(localStorage.getItem('obraerp_ins_contador')||'0',10)||0;
+        if(ctDoc.data().n > actual) localStorage.setItem('obraerp_ins_contador', String(ctDoc.data().n));
+      }catch(e){}
+    }
+    insGuardarLocal();
+    if(document.getElementById('s-inspeccion') && document.getElementById('s-inspeccion').classList.contains('on')) insRenderLista(INS_DATA);
+    if(typeof renderInsBadge==='function') renderInsBadge();
+  }catch(e){ console.warn('insCargarDesdeFirebase error:', e); }
+}
+
+function renderInsBadge(){
+  var b = document.getElementById('sb-ins'); if(b) b.textContent = INS_DATA.length;
+}
+
+/* ── Navegación / init de sección ── */
+function insInit(){
+  insPoblarClientes();
+  insRenderLista(INS_DATA);
+}
+function insPoblarClientes(){
+  var sel = document.getElementById('ins-cli'); if(!sel) return;
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">— seleccionar —</option>' + (CLIENTES||[]).map(function(c){
+    var nm = c.tp==='jur' ? (c.nm||'') : ((c.nm||'')+' '+(c.ap||''));
+    return '<option value="'+c.id+'">'+nm.trim()+'</option>';
+  }).join('');
+  sel.value = cur;
+}
+function insOnCliente(){ insRecalc(); }
+
+function insTab(btn){
+  document.querySelectorAll('#modulo-inspeccion .ins-tab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  document.querySelectorAll('#modulo-inspeccion .ins-sec').forEach(function(s){ s.classList.remove('on'); });
+  var t = document.getElementById(btn.dataset.t); if(t) t.classList.add('on');
+}
+
+/* ── Sitios de obra (filas dinámicas) ── */
+function insRenderSitios(){
+  var body = document.getElementById('ins-sitios-body'); if(!body) return;
+  body.innerHTML = insSitiosTemp.map(function(s,idx){
+    return '<div class="ins-site-row">'
+      +'<span class="ins-site-idx">'+(idx+1)+'</span>'
+      +'<input class="fi" type="text" value="'+(s.nombre||'').replace(/"/g,'&quot;')+'" placeholder="Ej: Edificio A" oninput="insSitioSet('+idx+',\'nombre\',this.value)">'
+      +'<input class="fi" type="number" min="0" step="0.5" value="'+(s.horas||0)+'" oninput="insSitioSet('+idx+',\'horas\',this.value)">'
+      +'<input class="fi" type="number" min="0" step="0.5" value="'+(s.km||0)+'" oninput="insSitioSet('+idx+',\'km\',this.value)">'
+      +'<button class="ins-rm" title="Quitar" onclick="insQuitarSitio('+idx+')">×</button>'
+      +'</div>';
+  }).join('') || '<div style="padding:12px;text-align:center;color:var(--tx3);font-size:11px">Sin sitios — agregá al menos uno</div>';
+}
+function insAgregarSitio(){
+  insSitiosTemp.push({ nombre:'Sitio '+(insSitiosTemp.length+1), horas:1, km:0 });
+  insRenderSitios(); insRecalc();
+}
+function insQuitarSitio(idx){
+  insSitiosTemp.splice(idx,1);
+  insRenderSitios(); insRecalc();
+}
+function insSitioSet(idx,campo,val){
+  if(!insSitiosTemp[idx]) return;
+  insSitiosTemp[idx][campo] = (campo==='nombre') ? val : (parseFloat(val)||0);
+  insRecalc();
+}
+
+/* ── Lectura del formulario → objeto de cálculo ── */
+function insLeerForm(){
+  return {
+    sitios: insSitiosTemp,
+    tipoVisita: insGv('ins-tipovisita')||'uno',
+    nVisitas: getN('ins-nvisitas',1),
+    kmBase: getN('ins-kmbase',0),
+    kmCircuitoManual: insGc('ins-kmcircuito-manual'),
+    kmCircuito: getN('ins-kmcircuito',0),
+    hManejo: getN('ins-hmanejo',0),
+    hInforme: getN('ins-hinforme',0),
+    pctEscritorio: getN('ins-pctescritorio',0),
+    valorHora: getN('ins-valorhora',0),
+    arancelMinimo: getN('ins-arancelmin',0),
+    consumo: getN('ins-consumo',0),
+    precioLitro: getN('ins-preciolitro',0),
+    desgasteKm: getN('ins-desgastekm',0),
+    viaticos: getN('ins-viaticos',0),
+    alojamiento: getN('ins-alojamiento',0),
+    otrosGastos: getN('ins-otrosgastos',0),
+    segurosTotal: getN('ins-segurostotal',0),
+    equipamientoTotal: getN('ins-equipamientototal',0),
+    pctRiesgo: getN('ins-pctriesgo',0),
+    pctIIBB: getN('ins-pctiibb',0),
+    pctOtrasRet: getN('ins-pctotrasret',0),
+    condicionFiscal: insGv('ins-condicionfiscal')||'exento',
+    clienteExento: insGc('ins-clienteexento'),
+    alicuotaIVA: getN('ins-alicuotaiva',21),
+    redondeo: insGv('ins-redondeo')||'1000',
+    tc: getN('ins-tc',0)
+  };
+}
+
+/* ── Recálculo en vivo + render del panel resumen ── */
+function insRecalc(){
+  var d = insLeerForm();
+  var r = insCalcular(d);
+  var html = ''
+    +'<div class="ins-sum-row"><span>Horas por visita (H_total)</span><span>'+r.H_total.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
+    +'<div class="ins-sum-row sub"><span>— sitio / manejo / informe</span><span>'+r.H_base.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
+    +'<div class="ins-sum-row sub"><span>— escritorio</span><span>'+r.H_escritorio.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
+    +'<div class="ins-sum-grp"></div>'
+    +'<div class="ins-sum-row"><span>Honorario</span><span>$ '+insFmt(r.C_honorario)+'</span></div>'
+    +'<div class="ins-sum-row"><span>Movilidad</span><span>$ '+insFmt(r.C_movilidad)+'</span></div>'
+    +'<div class="ins-sum-row sub"><span>— km totales / costo km</span><span>'+insFmt(r.kmTotal)+' km · $'+insFmt(r.costoKm)+'/km</span></div>'
+    +'<div class="ins-sum-row"><span>Viáticos</span><span>$ '+insFmt(r.C_viaticos)+'</span></div>'
+    +'<div class="ins-sum-row"><span>Seguros (por visita)</span><span>$ '+insFmt(r.C_seguros)+'</span></div>'
+    +'<div class="ins-sum-row"><span>Costos fijos (por visita)</span><span>$ '+insFmt(r.C_fijos)+'</span></div>'
+    +'<div class="ins-sum-row sub" style="font-weight:700;color:var(--tx2)"><span>Subtotal</span><span>$ '+insFmt(r.Subtotal)+'</span></div>'
+    +'<div class="ins-sum-row"><span>Riesgo</span><span>$ '+insFmt(r.Riesgo)+'</span></div>'
+    +'<div class="ins-sum-row sub" style="font-weight:700;color:var(--tx2)"><span>Neto</span><span>$ '+insFmt(r.Neto)+'</span></div>'
+    +'<div class="ins-sum-row"><span>Precio sin IVA</span><span>$ '+insFmt2(r.Precio_sin_IVA)+'</span></div>'
+    +'<div class="ins-sum-row"><span>Precio redondeado</span><span>$ '+insFmt(r.Precio_unit)+'</span></div>'
+    +(r.IVA_unit>0?'<div class="ins-sum-row"><span>IVA</span><span>$ '+insFmt(r.IVA_unit)+'</span></div>':'')
+    +'<div class="ins-sum-row tot"><span>USD / visita</span><span>USD '+insFmt2(r.usd_unit)+'</span></div>'
+    +'<div class="ins-sum-row"><span>Total contrato ('+ (d.nVisitas||0) +' visitas)</span><span>USD '+insFmt2(r.usd_total)+'</span></div>'
+    +'<div class="ins-sum-row sub"><span>Valor hora efectivo</span><span>$ '+insFmt(r.valorHoraEfectivo)+'/hs</span></div>'
+    +(r.alertaArancel?'<div class="ins-alert">⚠ El precio por visita (USD '+insFmt2(r.usd_unit)+') está por debajo del arancel mínimo de referencia declarado.</div>':'');
+  var el = document.getElementById('ins-resumen'); if(el) el.innerHTML = html;
+  return r;
+}
+
+/* ── Alta / edición ── */
+function insNuevo(){
+  editandoInsId = null;
+  insSitiosTemp = [{ nombre:'Sitio 1', horas:1, km:0 }];
+  document.getElementById('ins-form-tit').textContent = 'Nuevo presupuesto de Inspección';
+  ['ins-contacto','ins-obra','ins-alcance','ins-desc'].forEach(function(id){ insSv(id,''); });
+  insSv('ins-cli','');
+  insSv('ins-fecha', new Date().toISOString().slice(0,10));
+  insSv('ins-tipovisita','uno'); insSv('ins-nvisitas',1); insSv('ins-kmbase',0);
+  document.getElementById('ins-kmcircuito-manual').checked=false; insSv('ins-kmcircuito',0);
+  insSv('ins-hmanejo',0); insSv('ins-hinforme',0); insSv('ins-pctescritorio',0);
+  insSv('ins-valorhora',0); insSv('ins-arancelmin',0);
+  insSv('ins-consumo',10); insSv('ins-preciolitro',0); insSv('ins-desgastekm',0);
+  insSv('ins-viaticos',0); insSv('ins-alojamiento',0); insSv('ins-otrosgastos',0);
+  insSv('ins-segurostotal',0); insSv('ins-equipamientototal',0);
+  insSv('ins-pctriesgo',0); insSv('ins-pctiibb',0); insSv('ins-pctotrasret',0);
+  insSv('ins-condicionfiscal','exento'); document.getElementById('ins-clienteexento').checked=false;
+  insSv('ins-alicuotaiva',21); insSv('ins-redondeo','1000'); insSv('ins-tc', (typeof TC!=='undefined'&&TC)?TC:1350);
+  var pl = insDefaultTextos();
+  insSv('ins-plantilla-cliente', INS_PLANTILLA_CLIENTE_DEFAULT || pl.cliente);
+  insSv('ins-plantilla-interna', INS_PLANTILLA_INTERNA_DEFAULT || pl.interna);
+  insPoblarClientes(); insRenderSitios(); insRecalc();
+  document.getElementById('ins-btn-pdf-cli').disabled = true;
+  document.getElementById('ins-btn-pdf-int').disabled = true;
+  document.getElementById('ins-view-lista').style.display='none';
+  document.getElementById('ins-view-form').style.display='';
+  document.querySelector('#modulo-inspeccion .ins-tab').click();
+}
+
+function insEditar(id){
+  var r = INS_DATA.find(function(x){ return x.id===id; }); if(!r) return;
+  editandoInsId = id;
+  document.getElementById('ins-form-tit').textContent = 'Editar '+r.code;
+  insSv('ins-cli', r.clienteId||''); insSv('ins-contacto', r.contacto||'');
+  insSv('ins-fecha', r.fecha||''); insSv('ins-obra', r.obra||''); insSv('ins-alcance', r.alcance||'');
+  insSv('ins-desc', r.desc||'');
+  insSitiosTemp = (r.sitios||[]).map(function(s){ return Object.assign({},s); });
+  insSv('ins-tipovisita', r.tipoVisita||'uno'); insSv('ins-nvisitas', r.nVisitas||1);
+  insSv('ins-kmbase', r.kmBase||0);
+  document.getElementById('ins-kmcircuito-manual').checked = !!r.kmCircuitoManual;
+  insSv('ins-kmcircuito', r.kmCircuito||0);
+  insSv('ins-hmanejo', r.hManejo||0); insSv('ins-hinforme', r.hInforme||0); insSv('ins-pctescritorio', r.pctEscritorio||0);
+  insSv('ins-valorhora', r.valorHora||0); insSv('ins-arancelmin', r.arancelMinimo||0);
+  insSv('ins-consumo', r.consumo||0); insSv('ins-preciolitro', r.precioLitro||0); insSv('ins-desgastekm', r.desgasteKm||0);
+  insSv('ins-viaticos', r.viaticos||0); insSv('ins-alojamiento', r.alojamiento||0); insSv('ins-otrosgastos', r.otrosGastos||0);
+  insSv('ins-segurostotal', r.segurosTotal||0); insSv('ins-equipamientototal', r.equipamientoTotal||0);
+  insSv('ins-pctriesgo', r.pctRiesgo||0); insSv('ins-pctiibb', r.pctIIBB||0); insSv('ins-pctotrasret', r.pctOtrasRet||0);
+  insSv('ins-condicionfiscal', r.condicionFiscal||'exento');
+  document.getElementById('ins-clienteexento').checked = !!r.clienteExento;
+  insSv('ins-alicuotaiva', r.alicuotaIVA!=null?r.alicuotaIVA:21); insSv('ins-redondeo', r.redondeo||'1000'); insSv('ins-tc', r.tc||1350);
+  insSv('ins-plantilla-cliente', r.plantillaCliente || INS_PLANTILLA_CLIENTE_DEFAULT);
+  insSv('ins-plantilla-interna', r.plantillaInterna || INS_PLANTILLA_INTERNA_DEFAULT);
+  insPoblarClientes(); document.getElementById('ins-cli').value = r.clienteId||'';
+  insRenderSitios(); insRecalc();
+  document.getElementById('ins-btn-pdf-cli').disabled = false;
+  document.getElementById('ins-btn-pdf-int').disabled = false;
+  document.getElementById('ins-view-lista').style.display='none';
+  document.getElementById('ins-view-form').style.display='';
+  document.querySelector('#modulo-inspeccion .ins-tab').click();
+}
+
+function insVolverLista(){
+  document.getElementById('ins-view-form').style.display='none';
+  document.getElementById('ins-view-lista').style.display='';
+  insRenderLista(INS_DATA);
+}
+
+function insGuardar(borrador){
+  if(!insSitiosTemp.length){ toast('⚠ Agregá al menos un sitio de obra', false); return; }
+  var cliSel = document.getElementById('ins-cli');
+  var cliId = cliSel ? cliSel.value : '';
+  var cliObj = (CLIENTES||[]).find(function(c){ return String(c.id)===String(cliId); });
+  var clienteNombre = cliObj ? (cliObj.tp==='jur' ? cliObj.nm : ((cliObj.nm||'')+' '+(cliObj.ap||'')).trim()) : (insGv('ins-obra')?'':'');
+  var d = insLeerForm();
+  var r = insCalcular(d);
+  var now = Date.now();
+  var rec = Object.assign({}, d, {
+    id: editandoInsId || now,
+    code: editandoInsId ? (INS_DATA.find(function(x){return x.id===editandoInsId;})||{}).code || insProximoCodigo() : insProximoCodigo(),
+    estado: borrador ? 'Borrador' : 'Enviado',
+    clienteId: cliId, cliente: clienteNombre,
+    contacto: insGv('ins-contacto'), fecha: insGv('ins-fecha'),
+    obra: insGv('ins-obra'), alcance: insGv('ins-alcance'), desc: insGv('ins-desc'),
+    plantillaCliente: insGv('ins-plantilla-cliente'), plantillaInterna: insGv('ins-plantilla-interna'),
+    resultado: r, ts: now
+  });
+  if(editandoInsId){
+    var idx = INS_DATA.findIndex(function(x){ return x.id===editandoInsId; });
+    if(idx>-1) INS_DATA[idx]=rec; else INS_DATA.unshift(rec);
+  } else {
+    INS_DATA.unshift(rec);
+    editandoInsId = rec.id;
+  }
+  insGuardarLocal();
+  insGuardarFirebase(rec);
+  toast('✓ '+rec.code+' guardado', true);
+  document.getElementById('ins-btn-pdf-cli').disabled = false;
+  document.getElementById('ins-btn-pdf-int').disabled = false;
+  document.getElementById('ins-form-tit').textContent = 'Editar '+rec.code;
+  insRenderLista(INS_DATA);
+}
+
+function insDuplicar(id){
+  var r = INS_DATA.find(function(x){ return x.id===id; }); if(!r) return;
+  var copia = JSON.parse(JSON.stringify(r));
+  copia.id = Date.now();
+  copia.code = insProximoCodigo();
+  copia.estado = 'Borrador';
+  copia.fecha = new Date().toISOString().slice(0,10);
+  INS_DATA.unshift(copia);
+  insGuardarLocal(); insGuardarFirebase(copia);
+  toast('✓ Duplicado como '+copia.code, true);
+  insRenderLista(INS_DATA);
+}
+
+function insEliminar(id){
+  if(!confirm('¿Eliminar este presupuesto de Inspección? Esta acción no se puede deshacer.')) return;
+  INS_DATA = INS_DATA.filter(function(x){ return x.id!==id; });
+  insGuardarLocal(); insEliminarFirebase(id);
+  toast('🗑 Eliminado', true);
+  insRenderLista(INS_DATA);
+}
+
+function insCambiarEstado(id, estado){
+  var r = INS_DATA.find(function(x){ return x.id===id; }); if(!r) return;
+  r.estado = estado;
+  insGuardarLocal(); insGuardarFirebase(r);
+  insRenderLista(INS_DATA);
+}
+
+/* ── Plantillas: guardar como predeterminada / restaurar ── */
+function insGuardarPlantillasDefault(){
+  INS_PLANTILLA_CLIENTE_DEFAULT = insGv('ins-plantilla-cliente');
+  INS_PLANTILLA_INTERNA_DEFAULT = insGv('ins-plantilla-interna');
+  try{ localStorage.setItem('obraerp_ins_plantillas', JSON.stringify({cliente:INS_PLANTILLA_CLIENTE_DEFAULT, interna:INS_PLANTILLA_INTERNA_DEFAULT})); }catch(e){}
+  insGuardarPlantillasFirebase();
+  toast('✓ Plantillas guardadas como predeterminadas', true);
+}
+function insRestaurarPlantillasDefault(){
+  var pl = insDefaultTextos();
+  insSv('ins-plantilla-cliente', pl.cliente);
+  insSv('ins-plantilla-interna', pl.interna);
+  toast('Texto predeterminado restaurado (no olvides guardar el presupuesto)', true);
+}
+
+/* ── Lista / filtros ── */
+function insRenderLista(data){
+  var cnt = document.getElementById('ins-cnt'); if(cnt) cnt.textContent = data.length+' registros';
+  renderInsBadge();
+  var body = document.getElementById('ins-body'); if(!body) return;
+  if(!data.length){ body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--tx3)">Sin presupuestos de inspección — creá el primero</td></tr>'; return; }
+  body.innerHTML = data.map(function(r){
+    var res = r.resultado || insCalcular(r);
+    var sitiosTxt = (r.sitios||[]).map(function(s){return s.nombre;}).join(', ');
+    return '<tr>'
+      +'<td class="m p" style="cursor:pointer" onclick="insEditar('+r.id+')">'+r.code+'</td>'
+      +'<td style="cursor:pointer" onclick="insEditar('+r.id+')">'+(r.cliente||'—')+'</td>'
+      +'<td style="cursor:pointer;max-width:200px;white-space:normal;font-size:11px" onclick="insEditar('+r.id+')"><b>'+(r.obra||'—')+'</b><br><span style="color:var(--tx3)">'+sitiosTxt+'</span></td>'
+      +'<td style="cursor:pointer" onclick="insEditar('+r.id+')">'+(r.nVisitas||0)+'</td>'
+      +'<td style="cursor:pointer;color:var(--bt);font-weight:700" onclick="insEditar('+r.id+')">USD '+insFmt2(res.usd_unit)+'</td>'
+      +'<td style="cursor:pointer;color:var(--bt);font-weight:700" onclick="insEditar('+r.id+')">USD '+insFmt2(res.usd_total)+'</td>'
+      +'<td style="cursor:pointer" onclick="insEditar('+r.id+')"><span class="bdg '+(ST[r.estado]||'b-dr')+'">'+r.estado+'</span></td>'
+      +'<td><div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap">'
+      +'<button class="btn btn-sm btn-edit" title="Editar" onclick="insEditar('+r.id+')">✏</button>'
+      +'<button class="btn btn-sm" title="PDF Cliente" onclick="insGenerarPDFCliente('+r.id+')">PDF Cli.</button>'
+      +'<button class="btn btn-sm" title="PDF Interno" onclick="insGenerarPDFInterno('+r.id+')">PDF Int.</button>'
+      +'<button class="btn btn-sm" title="Duplicar" onclick="insDuplicar('+r.id+')">⎘</button>'
+      +(r.estado!=='Archivado'?'<button class="btn btn-sm btn-arch" title="Archivar" onclick="insCambiarEstado('+r.id+',\'Archivado\')">📦</button>':'')
+      +'<button class="btn btn-sm btn-del" title="Eliminar" onclick="insEliminar('+r.id+')">🗑</button>'
+      +'</div></td></tr>';
+  }).join('');
+}
+function insFiltrar(v){
+  var q=(v||'').toLowerCase();
+  insRenderLista(INS_DATA.filter(function(r){ return ((r.code||'')+(r.cliente||'')+(r.obra||'')).toLowerCase().indexOf(q)>-1; }));
+}
+function insFiltrarEstado(v){
+  insRenderLista(v ? INS_DATA.filter(function(r){ return r.estado===v; }) : INS_DATA);
+}
+
+/* ── PDF Cliente (sin desglose interno de costos) ── */
+function insGenerarPDFCliente(id){
+  var r = INS_DATA.find(function(x){ return x.id===id; }); if(!r) return;
+  var res = r.resultado || insCalcular(r);
+  var emp = EMPRESA || {};
+  var C1 = emp.brandColor1 || '#8a0e1e';
+  var txt = (r.plantillaCliente || INS_PLANTILLA_CLIENTE_DEFAULT)
+    .replace(/{{OBRA}}/g, r.obra||'')
+    .replace(/{{CLIENTE}}/g, r.cliente||'')
+    .replace(/{{NVISITAS}}/g, r.nVisitas||0)
+    .replace(/{{PRECIO_VISITA}}/g, insFmt2(res.usd_unit));
+  var css = ''
+    +'*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:10pt;color:#222}'
+    +'@page{size:A4 portrait;margin:16mm 14mm}'
+    +'.hd{border-bottom:3px solid '+C1+';padding-bottom:10pt;margin-bottom:12pt;display:flex;justify-content:space-between;align-items:flex-end}'
+    +'.hd h1{font-size:13pt;color:'+C1+'}'
+    +'.hd .emp{font-size:9pt;text-align:right;color:#555;line-height:1.5}'
+    +'.ref{font-size:9pt;color:#777;margin-bottom:10pt}'
+    +'.txt{white-space:pre-wrap;line-height:1.7;font-size:10pt;margin-bottom:16pt}'
+    +'.tbl{width:100%;border-collapse:collapse;margin-bottom:14pt}'
+    +'.tbl th{text-align:left;font-size:8pt;text-transform:uppercase;letter-spacing:.06em;color:#888;border-bottom:2px solid #ddd;padding:5pt 6pt}'
+    +'.tbl td{padding:6pt;border-bottom:1px solid #eee;font-size:9.5pt}'
+    +'.tot-box{border:1.5px solid '+C1+';border-radius:4pt;padding:10pt;display:flex;justify-content:space-between;align-items:center;margin-top:10pt}'
+    +'.tot-box b{font-size:16pt;color:'+C1+'}'
+    +'.sign-area{margin-top:40pt;display:flex;justify-content:space-between}'
+    +'.sign-box{border-top:1px solid #333;width:180pt;padding-top:4pt;font-size:8.5pt;text-align:center}'
+    +'@media print{body{-webkit-print-color-adjust:exact}}';
+  var sitiosRows = (r.sitios||[]).map(function(s){ return '<tr><td>'+(s.nombre||'')+'</td><td>'+(s.horas||0)+' hs</td><td>'+(s.km||0)+' km</td></tr>'; }).join('');
+  var d = '<div class="hd"><h1>PRESUPUESTO DE<br>INSPECCIÓN / SUPERVISIÓN DE OBRA</h1>'
+    +'<div class="emp">'+(emp.nombreCompleto?'<div><b>'+emp.nombreCompleto+'</b></div>':'')+(emp.titulo?'<div>'+emp.titulo+'</div>':'')+(emp.matricula?'<div>Mat. '+emp.matricula+'</div>':'')+(emp.email?'<div>'+emp.email+'</div>':'')+'</div></div>'
+    +'<div class="ref"><b>'+r.code+'</b> · '+(r.fecha||'')+' · Cliente: '+(r.cliente||'—')+'</div>'
+    +'<div class="txt">'+txt+'</div>'
+    +'<table class="tbl"><thead><tr><th>Sitio de obra</th><th>Horas por visita</th><th>Km</th></tr></thead><tbody>'+sitiosRows+'</tbody></table>'
+    +'<div class="tot-box"><span>Precio por visita × '+(r.nVisitas||0)+' visitas</span><b>USD '+insFmt2(res.usd_total)+'</b></div>'
+    +'<div style="text-align:right;font-size:9pt;color:#777;margin-top:4pt">Equivalente a USD '+insFmt2(res.usd_unit)+' por visita.</div>'
+    +'<div class="sign-area"><div class="sign-box">'+(emp.nombreCompleto||emp.nombre||'')+'</div><div class="sign-box">Conformidad del cliente</div></div>';
+  var full = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+r.code+'</title><style>'+css+'</style></head><body>'+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
+  var pw = window.open('','_blank','width=940,height=780');
+  pw.document.write(full); pw.document.close();
+}
+
+/* ── PDF Interno (con desglose completo de costos) ── */
+function insGenerarPDFInterno(id){
+  var r = INS_DATA.find(function(x){ return x.id===id; }); if(!r) return;
+  var res = r.resultado || insCalcular(r);
+  var C1 = '#2a2a3a';
+  var css = ''
+    +'*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:9.5pt;color:#222}'
+    +'@page{size:A4 portrait;margin:14mm}'
+    +'.hd{background:'+C1+';color:#fff;padding:8pt 12pt;margin-bottom:10pt}'
+    +'.hd h1{font-size:12pt}.hd .sub{font-size:8.5pt;opacity:.85}'
+    +'.tbl{width:100%;border-collapse:collapse;margin-bottom:10pt}'
+    +'.tbl th{text-align:left;font-size:7.5pt;text-transform:uppercase;letter-spacing:.06em;color:#888;border-bottom:2px solid #ddd;padding:4pt 6pt}'
+    +'.tbl td{padding:4.5pt 6pt;border-bottom:1px solid #eee}'
+    +'.tbl .r{text-align:right;font-weight:700}'
+    +'.tot-row{display:flex;justify-content:space-between;padding:5pt 10pt;font-size:10pt;border-bottom:1px solid #f0f0f0}'
+    +'.tot-row.final{background:'+C1+';color:#fff;font-weight:700;font-size:12pt}'
+    +'.sec-tit{font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555;border-left:3px solid '+C1+';padding-left:6pt;margin:10pt 0 4pt}'
+    +'@media print{body{-webkit-print-color-adjust:exact}}';
+  var sitiosRows = (r.sitios||[]).map(function(s){ return '<tr><td>'+(s.nombre||'')+'</td><td class="r">'+(s.horas||0)+' hs</td><td class="r">'+(s.km||0)+' km</td></tr>'; }).join('');
+  var d = '<div class="hd"><h1>USO INTERNO — Inspección / Supervisión de obra</h1><div class="sub">'+r.code+' · '+(r.fecha||'')+' · '+(r.cliente||'—')+' · '+(r.obra||'')+'</div></div>'
+    +'<div class="sec-tit">Sitios de obra · Tipo de visita: '+(r.tipoVisita==='uno'?'un solo sitio':(r.tipoVisita==='todos'?'todos los sitios':'recorrido alternado'))+'</div>'
+    +'<table class="tbl"><thead><tr><th>Sitio</th><th class="r">Horas</th><th class="r">Km</th></tr></thead><tbody>'+sitiosRows+'</tbody></table>'
+    +'<div class="sec-tit">Tiempos</div>'
+    +'<div class="tot-row"><span>H_sitio</span><span>'+res.H_sitio.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
+    +'<div class="tot-row"><span>H_base (manejo + sitio + informe)</span><span>'+res.H_base.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
+    +'<div class="tot-row"><span>H_escritorio</span><span>'+res.H_escritorio.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
+    +'<div class="tot-row"><span>H_total por visita</span><span>'+res.H_total.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
+    +'<div class="sec-tit">Desglose de costos por visita</div>'
+    +'<div class="tot-row"><span>Honorario profesional ('+res.H_total.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs × $'+insFmt(r.valorHora)+')</span><span>$ '+insFmt(res.C_honorario)+'</span></div>'
+    +'<div class="tot-row"><span>Movilidad ('+insFmt(res.kmTotal)+' km × $'+insFmt(res.costoKm)+'/km)</span><span>$ '+insFmt(res.C_movilidad)+'</span></div>'
+    +'<div class="tot-row"><span>Viáticos</span><span>$ '+insFmt(res.C_viaticos)+'</span></div>'
+    +'<div class="tot-row"><span>Seguros (prorrateado / visita)</span><span>$ '+insFmt(res.C_seguros)+'</span></div>'
+    +'<div class="tot-row"><span>Costos fijos (prorrateado / visita)</span><span>$ '+insFmt(res.C_fijos)+'</span></div>'
+    +'<div class="tot-row"><b>Subtotal</b><b>$ '+insFmt(res.Subtotal)+'</b></div>'
+    +'<div class="tot-row"><span>Riesgo ('+(r.pctRiesgo||0)+'%)</span><span>$ '+insFmt(res.Riesgo)+'</span></div>'
+    +'<div class="tot-row"><b>Neto</b><b>$ '+insFmt(res.Neto)+'</b></div>'
+    +'<div class="tot-row"><span>Precio sin IVA (gross-up IIBB '+(r.pctIIBB||0)+'% + otras ret. '+(r.pctOtrasRet||0)+'%)</span><span>$ '+insFmt2(res.Precio_sin_IVA)+'</span></div>'
+    +'<div class="tot-row"><span>Precio redondeado ('+(r.redondeo==='sin'?'sin redondeo':'múlt. '+r.redondeo)+')</span><span>$ '+insFmt(res.Precio_unit)+'</span></div>'
+    +(res.IVA_unit>0?'<div class="tot-row"><span>IVA ('+(r.alicuotaIVA||0)+'%)</span><span>$ '+insFmt(res.IVA_unit)+'</span></div>':'')
+    +'<div class="tot-row final"><span>Precio final / visita</span><span>USD '+insFmt2(res.usd_unit)+'</span></div>'
+    +'<div class="tot-row"><span>Total del contrato ('+(r.nVisitas||0)+' visitas)</span><span>USD '+insFmt2(res.usd_total)+'</span></div>'
+    +'<div class="tot-row"><span>Valor hora efectivo neto</span><span>$ '+insFmt(res.valorHoraEfectivo)+'/hs</span></div>'
+    +(res.alertaArancel?'<div class="tot-row" style="color:#c0392b"><span>⚠ Por debajo del arancel mínimo declarado</span><span>$ '+insFmt(r.arancelMinimo)+'</span></div>':'');
+  var full = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+r.code+' interno</title><style>'+css+'</style></head><body>'+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
+  var pw = window.open('','_blank','width=940,height=780');
+  pw.document.write(full); pw.document.close();
+}
+/* ===== FIN MÓDULO INSPECCIÓN ===== */
 
 </script>
 </body></html>
