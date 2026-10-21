@@ -615,25 +615,38 @@ input,select,textarea,button{font-family:var(--font)}
           <div class="card">
             <div class="fsc">Honorario profesional</div>
             <div class="g3">
-              <div class="fg"><label class="fl">Valor hora profesional</label><div class="pw"><input class="pi" type="number" id="ins-valorhora" value="0" min="0" step="500" oninput="insRecalc()"><span class="pu">$</span></div></div>
-              <div class="fg"><label class="fl">Arancel mínimo de referencia (opcional)</label><div class="pw"><input class="pi" type="number" id="ins-arancelmin" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Si el precio final por visita queda por debajo, se muestra una alerta.</div></div>
+              <div class="fg"><label class="fl">Valor hora profesional</label><div class="pw"><input class="pi" type="number" id="ins-valorhora" value="15000" min="0" step="500" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Cuánto vale cada hora de tu trabajo (manejar, revisar la obra, escribir el informe). No hay una tarifa oficial para esto: es un valor orientativo que podés ajustar según tu experiencia y la zona. El Colegio de Arquitectos sólo publica porcentajes sobre el valor de obra, no valores por hora.</div></div>
+              <div class="fg"><label class="fl">Arancel mínimo de referencia (opcional)</label><div class="pw"><input class="pi" type="number" id="ins-arancelmin" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Un piso de precio por visita, por debajo del cual no te conviene trabajar. Si lo completás y el precio final queda por debajo, el sistema te avisa con una alerta. Dejalo en 0 si no querés usar esta alerta.</div></div>
             </div>
           </div>
         </div>
 
         <div class="ins-sec" id="ins-t-mov">
           <div class="card">
-            <div class="fsc">Movilidad</div>
+            <div class="fsc">Época del año de la visita</div>
             <div class="g3">
-              <div class="fg"><label class="fl">Consumo del vehículo</label><div class="pw"><input class="pi" type="number" id="ins-consumo" value="10" min="0" step="0.5" oninput="insRecalc()"><span class="pu">L/100km</span></div></div>
-              <div class="fg"><label class="fl">Precio del litro de combustible</label><div class="pw"><input class="pi" type="number" id="ins-preciolitro" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
-              <div class="fg"><label class="fl">Desgaste / mantenimiento por km</label><div class="pw"><input class="pi" type="number" id="ins-desgastekm" value="0" min="0" oninput="insRecalc()"><span class="pu">$/km</span></div></div>
+              <div class="fg"><label class="fl">Estación</label>
+                <select class="fis" id="ins-estacion" onchange="insEstacionChange()">
+                  <option value="verano">Verano (dic–feb)</option>
+                  <option value="otono">Otoño (mar–may)</option>
+                  <option value="invierno">Invierno (jun–ago)</option>
+                  <option value="primavera">Primavera (sep–nov)</option>
+                </select>
+                <div class="ins-vh-note" id="ins-estacion-hoy">Se completa sola según la fecha de hoy; podés cambiarla si la visita es en otra época del año.</div>
+              </div>
+              <div class="fg"><label class="fl">% Recargo por época del año</label><div class="pw"><input class="pi" type="number" id="ins-pctestacion" value="5" min="0" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">En invierno viajar cuesta más (nieve, hielo, rutas cortadas, más tiempo de manejo), así que este recargo se suma al costo de movilidad. Valor sugerido de referencia: Verano 0%, Otoño 5%, Primavera 5%, Invierno 15%. Vos lo podés cambiar.</div></div>
+            </div>
+            <div class="fsc" style="margin-top:14px">Movilidad</div>
+            <div class="g3">
+              <div class="fg"><label class="fl">Consumo del vehículo</label><div class="pw"><input class="pi" type="number" id="ins-consumo" value="10" min="0" step="0.5" oninput="insRecalc()"><span class="pu">L/100km</span></div><div class="ins-vh-note">Cuántos litros de combustible consume tu vehículo cada 100 km. Lo tenés en el manual del auto o lo podés estimar por tu consumo habitual.</div></div>
+              <div class="fg"><label class="fl">Precio del litro de combustible</label><div class="pw"><input class="pi" type="number" id="ins-preciolitro" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">El precio actual del combustible que usás, en pesos por litro. Como el precio cambia seguido, convi actualizarlo antes de cada presupuesto.</div></div>
+              <div class="fg"><label class="fl">Desgaste / mantenimiento por km</label><div class="pw"><input class="pi" type="number" id="ins-desgastekm" value="0" min="0" oninput="insRecalc()"><span class="pu">$/km</span></div><div class="ins-vh-note">Un costo extra por kilómetro para cubrir el desgaste del vehículo (service, cubiertas, etc.), además de la nafta. Podés dejarlo en 0 si no querés contemplarlo.</div></div>
             </div>
             <div class="fsc" style="margin-top:14px">Viáticos</div>
             <div class="g3">
-              <div class="fg"><label class="fl">Viáticos (comida, etc.)</label><div class="pw"><input class="pi" type="number" id="ins-viaticos" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
-              <div class="fg"><label class="fl">Alojamiento</label><div class="pw"><input class="pi" type="number" id="ins-alojamiento" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
-              <div class="fg"><label class="fl">Otros gastos de la visita</label><div class="pw"><input class="pi" type="number" id="ins-otrosgastos" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
+              <div class="fg"><label class="fl">Viáticos (comida, etc.)</label><div class="pw"><input class="pi" type="number" id="ins-viaticos" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Gastos de comida durante la visita, si corresponde.</div></div>
+              <div class="fg"><label class="fl">Alojamiento</label><div class="pw"><input class="pi" type="number" id="ins-alojamiento" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Si la visita requiere quedarte a dormir (obra lejana), el costo del hotel o alojamiento.</div></div>
+              <div class="fg"><label class="fl">Otros gastos de la visita</label><div class="pw"><input class="pi" type="number" id="ins-otrosgastos" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Cualquier otro gasto puntual de esa visita que no entre en las categorías anteriores (peajes, estacionamiento, etc.).</div></div>
             </div>
           </div>
         </div>
@@ -642,8 +655,8 @@ input,select,textarea,button{font-family:var(--font)}
           <div class="card">
             <div class="fsc">Costos fijos (se reparten entre el total de visitas)</div>
             <div class="g2">
-              <div class="fg"><label class="fl">Seguros totales del contrato</label><div class="pw"><input class="pi" type="number" id="ins-segurostotal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
-              <div class="fg"><label class="fl">Equipamiento / insumos totales</label><div class="pw"><input class="pi" type="number" id="ins-equipamientototal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div></div>
+              <div class="fg"><label class="fl">Seguros totales del contrato</label><div class="pw"><input class="pi" type="number" id="ins-segurostotal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Lo que te cuesta por año el Seguro de Responsabilidad Civil Profesional (te cubre si un reclamo judicial te responsabiliza por un error u omisión en tu trabajo). En Argentina suele rondar entre $500.000 y $5.000.000 por año según el monto de honorarios que querés cubrir (valor de referencia, mayo 2026; consultá con una aseguradora para una cotización exacta). Si no tenés seguro contratado, podés dejarlo en 0.</div></div>
+              <div class="fg"><label class="fl">Equipamiento e insumos totales (anual)</label><div class="pw"><input class="pi" type="number" id="ins-equipamientototal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">El costo total, repartido en el año, de las herramientas e insumos que usás para inspeccionar obras: por ejemplo cámara de fotos, cinta métrica, nivel, botas y ropa de seguridad, carpetas e impresiones de los informes, celular/datos para sacar fotos y enviarlas. No es el equipamiento de la obra en sí (eso lo pone el cliente): es lo que gastás vos como profesional para poder inspeccionar. Si no lo tenés calculado, podés dejarlo en 0 por ahora.</div></div>
             </div>
           </div>
         </div>
@@ -652,9 +665,9 @@ input,select,textarea,button{font-family:var(--font)}
           <div class="card">
             <div class="fsc">Riesgo, impuestos y moneda</div>
             <div class="g3">
-              <div class="fg"><label class="fl">% Riesgo / imprevistos</label><div class="pw"><input class="pi" type="number" id="ins-pctriesgo" value="0" min="0" oninput="insRecalc()"><span class="pu">%</span></div></div>
-              <div class="fg"><label class="fl">% IIBB</label><div class="pw"><input class="pi" type="number" id="ins-pctiibb" value="0" min="0" oninput="insRecalc()"><span class="pu">%</span></div></div>
-              <div class="fg"><label class="fl">% Otras retenciones</label><div class="pw"><input class="pi" type="number" id="ins-pctotrasret" value="0" min="0" oninput="insRecalc()"><span class="pu">%</span></div></div>
+              <div class="fg"><label class="fl">% Riesgo / imprevistos</label><div class="pw"><input class="pi" type="number" id="ins-pctriesgo" value="8" min="0" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Un colchón sobre el subtotal para cubrir imprevistos: demoras, viajes extra, cambios de alcance, etc. 8% es un valor de partida razonable; vos lo podés subir o bajar según el riesgo real de la obra.</div></div>
+              <div class="fg"><label class="fl">% IIBB</label><div class="pw"><input class="pi" type="number" id="ins-pctiibb" value="0" min="0" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Ingresos Brutos: el impuesto provincial que te retienen o que tenés que pagar sobre lo facturado. Depende de tu provincia y tu situación fiscal; si no te aplica, dejalo en 0.</div></div>
+              <div class="fg"><label class="fl">% Otras retenciones</label><div class="pw"><input class="pi" type="number" id="ins-pctotrasret" value="0" min="0" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Cualquier otra retención o descuento que el cliente te aplique al pagar (por ejemplo Ganancias, SUSS). Si no corresponde, dejalo en 0.</div></div>
             </div>
             <div class="g3">
               <div class="fg"><label class="fl">Condición fiscal</label>
@@ -662,9 +675,11 @@ input,select,textarea,button{font-family:var(--font)}
                   <option value="exento">Monotributista / Exento</option>
                   <option value="ri">Responsable Inscripto (IVA)</option>
                 </select>
+                <div class="ins-vh-note">Tu situación frente al IVA. Si sos Monotributista no facturás IVA; si sos Responsable Inscripto, se suma el IVA al precio final.</div>
               </div>
               <div class="fg"><label class="fl"><input type="checkbox" id="ins-clienteexento" onchange="insRecalc()" style="margin-right:6px">Cliente exento de IVA</label>
                 <div class="pw"><input class="pi" type="number" id="ins-alicuotaiva" value="21" min="0" oninput="insRecalc()"><span class="pu">% IVA</span></div>
+                <div class="ins-vh-note">Marcá el casillero si tu cliente está exento de pagar IVA (por ejemplo un organismo público). La alícuota (21% es la general en Argentina) sólo se aplica si sos Responsable Inscripto y el cliente no está exento.</div>
               </div>
               <div class="fg"><label class="fl">Redondeo del precio por visita</label>
                 <select class="fis" id="ins-redondeo" onchange="insRecalc()">
@@ -673,9 +688,10 @@ input,select,textarea,button{font-family:var(--font)}
                   <option value="1000" selected>Al múltiplo de 1.000</option>
                   <option value="10000">Al múltiplo de 10.000</option>
                 </select>
+                <div class="ins-vh-note">Para que el precio final no quede con números feos (tipo $47.382), se redondea hacia arriba al múltiplo que elijas.</div>
               </div>
             </div>
-            <div class="fg"><label class="fl">Cotización USD</label><div class="pw"><input class="pi" type="number" id="ins-tc" value="1350" min="0" oninput="insRecalc()"><span class="pu">ARS</span></div></div>
+            <div class="fg"><label class="fl">Cotización USD</label><div class="pw"><input class="pi" type="number" id="ins-tc" value="1350" min="0" oninput="insRecalc()"><span class="pu">ARS</span></div><div class="ins-vh-note">Cuántos pesos vale un dólar hoy. El presupuesto se calcula en pesos pero se muestra también en dólares con este tipo de cambio; actualizalo antes de cada presupuesto.</div></div>
           </div>
         </div>
 
@@ -14580,7 +14596,8 @@ function insCalcular(d){
 
   var kmBase = parseFloat(d.kmBase) || 0;
   var kmTotal = kmBase + kmCircuito;
-  var C_movilidad = kmTotal * costoKm;
+  var pctEstacion = parseFloat(d.pctEstacion) || 0;
+  var C_movilidad = kmTotal * costoKm * (1 + pctEstacion / 100);
 
   var viaticos = parseFloat(d.viaticos) || 0;
   var alojamiento = parseFloat(d.alojamiento) || 0;
@@ -14778,6 +14795,29 @@ function insSitioSet(idx,campo,val){
   insRecalc();
 }
 
+/* ── Época del año (hemisferio sur): calcula la estación actual a partir de la fecha de hoy ── */
+function insEstacionActual(){
+  var m = new Date().getMonth(); // 0=ene
+  if (m===11 || m===0 || m===1) return 'verano';
+  if (m>=2 && m<=4) return 'otono';
+  if (m>=5 && m<=7) return 'invierno';
+  return 'primavera';
+}
+function insEstacionPctDefault(est){
+  var map = { verano:0, otono:5, primavera:5, invierno:15 };
+  return map[est]!=null ? map[est] : 5;
+}
+/* Al cambiar manualmente la estación, sugerimos su recargo típico (el usuario puede editarlo después) */
+function insEstacionChange(){
+  var est = insGv('ins-estacion')||'primavera';
+  insSv('ins-pctestacion', insEstacionPctDefault(est));
+  var nombres = { verano:'Verano', otono:'Otoño', invierno:'Invierno', primavera:'Primavera' };
+  var hoyEst = insEstacionActual();
+  var nota = document.getElementById('ins-estacion-hoy');
+  if(nota) nota.textContent = 'Hoy, según la fecha, estamos en ' + (nombres[hoyEst]||hoyEst) + '. Se completa sola al crear un presupuesto nuevo; podés cambiarla si la visita va a ser en otra época del año.';
+  insRecalc();
+}
+
 /* ── Lectura del formulario → objeto de cálculo ── */
 function insLeerForm(){
   return {
@@ -14792,6 +14832,8 @@ function insLeerForm(){
     pctEscritorio: getN('ins-pctescritorio',0),
     valorHora: getN('ins-valorhora',0),
     arancelMinimo: getN('ins-arancelmin',0),
+    estacion: insGv('ins-estacion')||'primavera',
+    pctEstacion: getN('ins-pctestacion',0),
     consumo: getN('ins-consumo',0),
     precioLitro: getN('ins-preciolitro',0),
     desgasteKm: getN('ins-desgastekm',0),
@@ -14823,6 +14865,7 @@ function insRecalc(){
     +'<div class="ins-sum-row"><span>Honorario</span><span>$ '+insFmt(r.C_honorario)+'</span></div>'
     +'<div class="ins-sum-row"><span>Movilidad</span><span>$ '+insFmt(r.C_movilidad)+'</span></div>'
     +'<div class="ins-sum-row sub"><span>— km totales / costo km</span><span>'+insFmt(r.kmTotal)+' km · $'+insFmt(r.costoKm)+'/km</span></div>'
+    +(d.pctEstacion>0?'<div class="ins-sum-row sub"><span>— recargo por época del año</span><span>+'+d.pctEstacion+'%</span></div>':'')
     +'<div class="ins-sum-row"><span>Viáticos</span><span>$ '+insFmt(r.C_viaticos)+'</span></div>'
     +'<div class="ins-sum-row"><span>Seguros (por visita)</span><span>$ '+insFmt(r.C_seguros)+'</span></div>'
     +'<div class="ins-sum-row"><span>Costos fijos (por visita)</span><span>$ '+insFmt(r.C_fijos)+'</span></div>'
@@ -14851,11 +14894,12 @@ function insNuevo(){
   insSv('ins-tipovisita','uno'); insSv('ins-nvisitas',1); insSv('ins-kmbase',0);
   document.getElementById('ins-kmcircuito-manual').checked=false; insSv('ins-kmcircuito',0);
   insSv('ins-hmanejo',0); insSv('ins-hinforme',0); insSv('ins-pctescritorio',0);
-  insSv('ins-valorhora',0); insSv('ins-arancelmin',0);
+  insSv('ins-valorhora',15000); insSv('ins-arancelmin',0);
+  insSv('ins-estacion', insEstacionActual()); insEstacionChange();
   insSv('ins-consumo',10); insSv('ins-preciolitro',0); insSv('ins-desgastekm',0);
   insSv('ins-viaticos',0); insSv('ins-alojamiento',0); insSv('ins-otrosgastos',0);
   insSv('ins-segurostotal',0); insSv('ins-equipamientototal',0);
-  insSv('ins-pctriesgo',0); insSv('ins-pctiibb',0); insSv('ins-pctotrasret',0);
+  insSv('ins-pctriesgo',8); insSv('ins-pctiibb',0); insSv('ins-pctotrasret',0);
   insSv('ins-condicionfiscal','exento'); document.getElementById('ins-clienteexento').checked=false;
   insSv('ins-alicuotaiva',21); insSv('ins-redondeo','1000'); insSv('ins-tc', (typeof TC!=='undefined'&&TC)?TC:1350);
   var pl = insDefaultTextos();
@@ -14883,6 +14927,7 @@ function insEditar(id){
   insSv('ins-kmcircuito', r.kmCircuito||0);
   insSv('ins-hmanejo', r.hManejo||0); insSv('ins-hinforme', r.hInforme||0); insSv('ins-pctescritorio', r.pctEscritorio||0);
   insSv('ins-valorhora', r.valorHora||0); insSv('ins-arancelmin', r.arancelMinimo||0);
+  insSv('ins-estacion', r.estacion || insEstacionActual()); insSv('ins-pctestacion', r.pctEstacion!=null?r.pctEstacion:insEstacionPctDefault(r.estacion || insEstacionActual()));
   insSv('ins-consumo', r.consumo||0); insSv('ins-preciolitro', r.precioLitro||0); insSv('ins-desgastekm', r.desgasteKm||0);
   insSv('ins-viaticos', r.viaticos||0); insSv('ins-alojamiento', r.alojamiento||0); insSv('ins-otrosgastos', r.otrosGastos||0);
   insSv('ins-segurostotal', r.segurosTotal||0); insSv('ins-equipamientototal', r.equipamientoTotal||0);
