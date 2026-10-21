@@ -4810,6 +4810,22 @@ function confirmarEliminarHon(id){
 var _tt;
 function toast(msg,ok){if(ok===undefined)ok=true;var e=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;e.style.borderColor=ok?'var(--br2)':'var(--rt)';e.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){e.classList.remove('show');},2800);}
 
+/* ===== MÓDULO INSPECCIÓN ===== */
+/* Variables de estado del módulo, declaradas acá (y no donde están las funciones, más abajo
+   en el archivo) para que ya existan cuando insCargarLocal() se llama durante el arranque,
+   evitando una excepción de "INS_DATA undefined" que frenaba el resto del arranque. */
+var INS_DATA = [];
+var editandoInsId = null;
+var insSitiosTemp = [];
+var INS_PLANTILLA_CLIENTE_DEFAULT =
+"Por medio de la presente se cotiza el servicio de Inspección / Supervisión Técnica de Obra, mediante visitas periódicas, para la obra \"{{OBRA}}\", a nombre de {{CLIENTE}}.\n\n"+
+"El presente presupuesto contempla un total de {{NVISITAS}} visitas de obra, con un valor fijo por visita de USD {{PRECIO_VISITA}}, que incluye honorarios profesionales, movilidad, viáticos y gastos de equipamiento asociados a cada visita.\n\n"+
+"Cada visita comprende la verificación del avance de obra conforme a planos y especificaciones técnicas, la detección de desvíos constructivos, y la emisión del correspondiente informe de inspección.\n\n"+
+"Condiciones generales: el presente presupuesto tiene una validez de 30 días corridos desde su emisión. Los valores se expresan en Dólares Estadounidenses (USD) y se facturan al tipo de cambio vigente al momento de cada visita, salvo acuerdo en contrario.";
+var INS_PLANTILLA_INTERNA_DEFAULT =
+"Presupuesto interno de Inspección / Supervisión de Obra por visita — \"{{OBRA}}\" ({{CLIENTE}}). Incluye desglose completo de costos: honorario profesional, movilidad, viáticos, seguros, costos fijos, riesgo e impuestos, para uso exclusivo del estudio.";
+/* ===== FIN MÓDULO INSPECCIÓN ===== */
+
 /* ── ARRANQUE ─────────────────────────────────────────────────────────── */
 cargarTodo();
 if(typeof tcCargarGuardado==='function')tcCargarGuardado();
@@ -14514,11 +14530,10 @@ function applyBrandToPage(){
    No modifica ninguna función, variable ni colección existente. Todo identificador nuevo
    usa el prefijo "ins". Persiste en localStorage (clave propia) y, si hay sesión Firebase
    activa, en las colecciones NUEVAS "presupuestosInspeccion" y "inspeccionConfig"
-   (reutilizando tal cual las funciones genéricas fbSave/fbDelete ya existentes). */
-
-var INS_DATA = [];
-var editandoInsId = null;
-var insSitiosTemp = [];
+   (reutilizando tal cual las funciones genéricas fbSave/fbDelete ya existentes).
+   Nota: INS_DATA, editandoInsId, insSitiosTemp, INS_PLANTILLA_CLIENTE_DEFAULT e
+   INS_PLANTILLA_INTERNA_DEFAULT se declaran más arriba en el archivo, antes del
+   arranque, para que existan cuando insCargarLocal() se llama al iniciar la app. */
 
 /* ── Motor de cálculo (validado contra el caso de prueba antes de integrarse) ── */
 function insRedondearArriba(valor, paso){
@@ -14645,16 +14660,8 @@ function insProximoCodigo(){
   return 'INS-'+String(siguiente).padStart(4,'0');
 }
 
-/* ── Plantillas de texto por defecto (editables por Diego, se guardan en inspeccionConfig/plantillas) ── */
-var INS_PLANTILLA_CLIENTE_DEFAULT =
-"Por medio de la presente se cotiza el servicio de Inspección / Supervisión Técnica de Obra, mediante visitas periódicas, para la obra \"{{OBRA}}\", a nombre de {{CLIENTE}}.\n\n"+
-"El presente presupuesto contempla un total de {{NVISITAS}} visitas de obra, con un valor fijo por visita de USD {{PRECIO_VISITA}}, que incluye honorarios profesionales, movilidad, viáticos y gastos de equipamiento asociados a cada visita.\n\n"+
-"Cada visita comprende la verificación del avance de obra conforme a planos y especificaciones técnicas, la detección de desvíos constructivos, y la emisión del correspondiente informe de inspección.\n\n"+
-"Condiciones generales: el presente presupuesto tiene una validez de 30 días corridos desde su emisión. Los valores se expresan en Dólares Estadounidenses (USD) y se facturan al tipo de cambio vigente al momento de cada visita, salvo acuerdo en contrario.";
-
-var INS_PLANTILLA_INTERNA_DEFAULT =
-"Presupuesto interno de Inspección / Supervisión de Obra por visita — \"{{OBRA}}\" ({{CLIENTE}}). Incluye desglose completo de costos: honorario profesional, movilidad, viáticos, seguros, costos fijos, riesgo e impuestos, para uso exclusivo del estudio.";
-
+/* ── Plantillas de texto por defecto (editables por Diego, se guardan en inspeccionConfig/plantillas;
+   los valores están declarados más arriba en el archivo, antes del arranque) ── */
 function insDefaultTextos(){
   return { cliente: INS_PLANTILLA_CLIENTE_DEFAULT, interna: INS_PLANTILLA_INTERNA_DEFAULT };
 }
