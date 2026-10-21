@@ -1168,6 +1168,19 @@ input,select,textarea,button{font-family:var(--font)}
     </div>
   </div>
 </div>
+<div class="mb" id="mod-plazo-fecha" onclick="closeBg(event,'mod-plazo-fecha')">
+  <div class="modal" style="max-width:420px">
+    <div class="mt2">Modificar vencimiento</div>
+    <div class="msub" id="plazofecha-cliente-nombre">Cambiá la fecha de vencimiento de este plazo</div>
+    <div class="fg"><label class="fl">Nueva fecha límite</label><input class="fi" type="date" id="plazofecha-input"></div>
+    <div style="font-size:10.5px;color:var(--tx3);margin-top:4px;line-height:1.5">Esto solo actualiza el aviso de la Agenda de plazos (y los días que figuran en el contrato si lo volvés a generar) — no modifica ningún otro dato del presupuesto.</div>
+    <input type="hidden" id="plazofecha-hon-id" value="">
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+      <button class="btn" onclick="closeM('mod-plazo-fecha')">Cancelar</button>
+      <button class="btn btn-r" onclick="guardarFechaPlazo()">Guardar</button>
+    </div>
+  </div>
+</div>
 
 <div class="mb" id="mod-sc-picker" onclick="closeBg(event,'mod-sc-picker')">
   <div class="modal" style="max-width:640px">
@@ -3797,6 +3810,42 @@ function marcarPlazoCumplido(id){
   if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
   toast('Plazo de '+(h.cliente||'')+' marcado como cumplido');
 }
+/* ── EDITAR FECHA DE VENCIMIENTO DESDE LA AGENDA ──────────────────────────
+   Agregado 2026-10-21 a pedido de Diego: poder corregir la fecha de un
+   aviso directamente desde el panel "Agenda de plazos", sin tener que pasar
+   de nuevo por el botón "Contrato". Abre un modal con un selector de fecha
+   real (no "días desde hoy"), así se puede fijar cualquier fecha, para
+   adelante o para atrás. */
+function abrirModalEditarFecha(id){
+  var h=HON_DATA.find(function(x){return x.id===id;});if(!h)return;
+  document.getElementById('plazofecha-hon-id').value=id;
+  document.getElementById('plazofecha-input').value=h.plazoFechaLimite||'';
+  document.getElementById('plazofecha-cliente-nombre').textContent=(h.code||honCode(h))+' — '+(h.cliente||'');
+  document.getElementById('mod-plazo-fecha').classList.add('open');
+}
+function guardarFechaPlazo(){
+  var id=Number(document.getElementById('plazofecha-hon-id').value);
+  var h=HON_DATA.find(function(x){return x.id===id;});if(!h)return;
+  var nuevaFecha=document.getElementById('plazofecha-input').value;
+  if(!nuevaFecha){toast('Elegí una fecha válida',false);return;}
+  h.plazoFechaLimite=nuevaFecha;
+  // Recalcula los "días corridos" para que, si se vuelve a generar el contrato, el texto
+  // de la Cláusula 5 quede consistente con la nueva fecha (contados desde hoy).
+  var hoy=new Date();hoy.setHours(0,0,0,0);
+  var lim=new Date(nuevaFecha+'T00:00:00');
+  var diasRecalc=Math.round((lim-hoy)/86400000);
+  if(diasRecalc>0)h.plazoDias=diasRecalc;
+  // Si ya se había avisado hoy con la fecha vieja, se limpia ese aviso para que la Agenda
+  // vuelva a evaluar la urgencia real contra la fecha nueva (y pueda volver a sonar si corresponde).
+  try{
+    var avisados=JSON.parse(localStorage.getItem('obraerp_agenda_avisado')||'{}');
+    if(avisados[id]){delete avisados[id];localStorage.setItem('obraerp_agenda_avisado',JSON.stringify(avisados));}
+  }catch(e){}
+  guardarTodo();
+  closeM('mod-plazo-fecha');
+  if(typeof renderAgendaPlazos==='function')renderAgendaPlazos();
+  toast('Vencimiento de '+(h.cliente||'')+' actualizado: '+lim.toLocaleDateString('es-AR'));
+}
 function renderAgendaPlazos(){
   var panel=document.getElementById('agenda-plazos-panel');if(!panel)return;
   var relevantes=agendaListaPendientes().filter(function(h){return agendaDiasRestantes(h.plazoFechaLimite)<=14;});
@@ -3810,6 +3859,7 @@ function renderAgendaPlazos(){
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--br)">'
         +'<div><span style="font-weight:600">'+(h.cliente||'')+'</span><span style="color:var(--tx3);font-size:11px"> · '+(h.roles||'')+'</span></div>'
         +'<div style="display:flex;align-items:center;gap:8px"><span style="color:'+color+';font-size:11px;font-weight:700">'+txt+'</span>'
+        +'<button class="btn btn-sm" onclick="abrirModalEditarFecha('+h.id+')" title="Modificar fecha de vencimiento">✏</button>'
         +'<button class="btn btn-sm" onclick="marcarPlazoCumplido('+h.id+')" title="Marcar como entregado/cumplido">✓</button></div></div>';
     }).join('')
     +'</div>';
