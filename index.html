@@ -3703,13 +3703,29 @@ function generarContrato(id){
   var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   var fechaTxt='los '+hoy.getDate()+' días del mes de '+meses[hoy.getMonth()]+' de '+hoy.getFullYear();
 
-  /* ── Honorarios y forma de pago ── */
-  var totalUsd=h.subtotalDesc!=null?h.subtotalDesc:h.usd;
+  /* ── Honorarios y forma de pago ──
+     CORREGIDO (oct-2026, a pedido de Diego): "totalUsd" usaba h.subtotalDesc, que es SOLO el bruto
+     de Dirección de Proyecto + Calculista (por diseño, Dibujante y los roles de honorario fijo —
+     Dirección de Obra, Administración de Obra, Constructor/Repr. Técnico, Informante Técnico,
+     Conforme a Obra — quedan deliberadamente afuera de ese subtotal, ver motorGuardar()). Resultado:
+     en CUALQUIER presupuesto que no incluya Dirección de Proyecto ni Calculista (ej. un presupuesto
+     solo de Dibujante), h.subtotalDesc daba 0 y el contrato salía con todos los montos en USD 0 — el
+     bug que reportó Diego ("cuando quiero sacar el contrato no me permite... necesito que sea para
+     todos los modos"). Ahora el total que se muestra en el contrato es h.usd: el total REAL del
+     presupuesto completo, sea cual sea la combinación de roles contratados. */
+  var totalUsd=h.usd||0;
   var totalArs=Math.round((totalUsd||0)*(h.tc||TC||0));
   var cuotasHtml='';
   if(h.formaPago==='financiado'&&(h.cuotas||[]).length){
+    // Las cuotas (%) se definieron contra "cuotasBase" (Dir.Proyecto + Calculista netos + Gastos y
+    // gestiones + Dibujante neto — ver Planilla de Cuotas en el detalle/PDF, misma base ahí) — se usa
+    // esa base acá también para que el monto de cada cuota del contrato coincida exacto con el que ve
+    // el cliente en el presupuesto/PDF. Si el presupuesto no tiene nada de esa base (ej. solo
+    // Dirección de Obra financiado, caso atípico sin Proy./Calc./Dibujante), se usa el total general
+    // (h.usd) para que la cuota nunca salga en USD 0.
+    var baseCuotas=(h.cuotasBase>0)?h.cuotasBase:totalUsd;
     cuotasHtml='<ol class="cl-list">'+h.cuotas.map(function(c){
-      var montoU=Math.round((totalUsd||0)*(c.pct||0)/100);
+      var montoU=Math.round((baseCuotas||0)*(c.pct||0)/100);
       var montoArs=Math.round(montoU*(h.tc||TC||0));
       return '<li>'+(c.pct||0)+'% — USD '+N(montoU)+' (equivalente a $ '+N(montoArs)+' referencial, al TC oficial BNA vendedor del día de pago) — '+(c.nm||'')+'</li>';
     }).join('')+'</ol>';
