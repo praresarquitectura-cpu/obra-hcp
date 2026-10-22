@@ -14660,15 +14660,16 @@ function insCalcular(d){
   var costoPorM2 = m2Obra > 0 ? (Total_contrato / m2Obra) : 0;
   var costoPorM2USD = m2Obra > 0 && tc > 0 ? (usd_total / m2Obra) : 0;
 
-  /* Forma de pago: valor mensual fijo + anticipo financiero recuperado en cuotas iguales (esquema de obra pública) */
-  var valorMensualFijo = mesesContrato > 0 ? (Total_contrato / mesesContrato) : 0;
+  /* Forma de pago: del total del contrato se cobra un anticipo al firmar; el saldo restante se factura
+     en cuotas mensuales iguales durante toda la duración del contrato (esquema de obra pública). Cadena
+     directa y sin pasos intermedios confusos: Total → Anticipo → Saldo a facturar → Cuota mensual. */
   var pctAnticipo = parseFloat(d.anticipoPct) || 0;
   var anticipoMonto = Total_contrato * (pctAnticipo / 100);
-  var descuentoMensualAnticipo = mesesContrato > 0 ? (anticipoMonto / mesesContrato) : 0;
-  var valorMensualNeto = valorMensualFijo - descuentoMensualAnticipo;
-  var usdMensualFijo = tc > 0 ? (valorMensualFijo / tc) : 0;
+  var saldoAFacturar = Total_contrato - anticipoMonto;
+  var cuotaMensual = mesesContrato > 0 ? (saldoAFacturar / mesesContrato) : 0;
   var usdAnticipo = tc > 0 ? (anticipoMonto / tc) : 0;
-  var usdMensualNeto = tc > 0 ? (valorMensualNeto / tc) : 0;
+  var usdSaldoAFacturar = tc > 0 ? (saldoAFacturar / tc) : 0;
+  var usdCuotaMensual = tc > 0 ? (cuotaMensual / tc) : 0;
 
   var alertaArancel = !!(d.arancelMinimo && parseFloat(d.arancelMinimo) > 0 && Precio_unit_final < parseFloat(d.arancelMinimo));
 
@@ -14690,9 +14691,9 @@ function insCalcular(d){
     ratioPrecioHonorario: ratioPrecioHonorario, alertaPrecioAlto: alertaPrecioAlto, alertaMuchasVisitas: alertaMuchasVisitas,
     honorarioMensualObjetivo: honorarioMensualObjetivo, honorarioMensualResultante: honorarioMensualResultante,
     m2Obra: m2Obra, costoPorM2: costoPorM2, costoPorM2USD: costoPorM2USD,
-    valorMensualFijo: valorMensualFijo, pctAnticipo: pctAnticipo, anticipoMonto: anticipoMonto,
-    descuentoMensualAnticipo: descuentoMensualAnticipo, valorMensualNeto: valorMensualNeto,
-    usdMensualFijo: usdMensualFijo, usdAnticipo: usdAnticipo, usdMensualNeto: usdMensualNeto,
+    pctAnticipo: pctAnticipo, anticipoMonto: anticipoMonto,
+    saldoAFacturar: saldoAFacturar, cuotaMensual: cuotaMensual,
+    usdAnticipo: usdAnticipo, usdSaldoAFacturar: usdSaldoAFacturar, usdCuotaMensual: usdCuotaMensual,
     mesesContrato: mesesContrato
   };
 }
@@ -14918,13 +14919,13 @@ function insRecalc(){
     +'<div class="ins-sum-row"><span>Precio redondeado</span><span>$ '+insFmt(r.Precio_unit)+'</span></div>'
     +(r.IVA_unit>0?'<div class="ins-sum-row"><span>IVA</span><span>$ '+insFmt(r.IVA_unit)+'</span></div>':'')
     +'<div class="ins-sum-row tot"><span>USD / visita</span><span>USD '+insFmt2(r.usd_unit)+'</span></div>'
-    +'<div class="ins-sum-row"><span>Total contrato ('+ (d.nVisitas||0) +' visitas)</span><span>USD '+insFmt2(r.usd_total)+'</span></div>'
     +'<div class="ins-sum-row sub"><span>Valor hora efectivo</span><span>$ '+insFmt(r.valorHoraEfectivo)+'/hs</span></div>'
     +(r.m2Obra>0?'<div class="ins-sum-row sub"><span>Costo por m²</span><span>USD '+insFmt2(r.costoPorM2USD)+'/m²</span></div>':'')
     +'<div class="ins-sum-grp"></div>'
-    +'<div class="ins-sum-row ins-sum-highlight"><span>Valor mensual fijo (sin anticipo)</span><span>USD '+insFmt2(r.usdMensualFijo)+'</span></div>'
-    +'<div class="ins-sum-row"><span>Anticipo financiero ('+(d.anticipoPct||0)+'%)</span><span>USD '+insFmt2(r.usdAnticipo)+'</span></div>'
-    +'<div class="ins-sum-row"><span>Cuota mensual neta (post-anticipo)</span><span>USD '+insFmt2(r.usdMensualNeto)+'</span></div>'
+    +'<div class="ins-sum-row ins-sum-highlight"><span>Total del contrato ('+ (d.nVisitas||0) +' visitas)</span><span>USD '+insFmt2(r.usd_total)+'</span></div>'
+    +'<div class="ins-sum-row"><span>− Anticipo al firmar ('+(d.anticipoPct||0)+'%)</span><span>USD '+insFmt2(r.usdAnticipo)+'</span></div>'
+    +'<div class="ins-sum-row sub"><span>= Saldo a facturar en '+(r.mesesContrato||0)+' meses</span><span>USD '+insFmt2(r.usdSaldoAFacturar)+'</span></div>'
+    +'<div class="ins-sum-row ins-sum-highlight"><span>Cuota mensual</span><span>USD '+insFmt2(r.usdCuotaMensual)+'</span></div>'
     +(r.alertaArancel?'<div class="ins-alert">⚠ El precio por visita (USD '+insFmt2(r.usd_unit)+') está por debajo del arancel mínimo de referencia declarado.</div>':'')
     +(r.alertaPrecioAlto?'<div class="ins-alert">⚠ El precio por visita es '+r.ratioPrecioHonorario.toFixed(1)+' veces tu honorario profesional ($ '+insFmt(r.C_honorario)+'). Revisá Viáticos, Movilidad o el % de Gastos generales — puede haber un dato cargado de más.</div>':'')
     +(r.alertaMuchasVisitas?'<div class="ins-alert">⚠ Cargaste '+(d.nVisitas||0)+' visitas. Es un número muy alto para un contrato de obra — revisá si no pusiste días, meses u otra cosa en vez de la cantidad real de visitas.</div>':'');
@@ -15175,10 +15176,11 @@ function insGenerarPDFCliente(id){
     +(res.m2Obra>0?'<div class="card-mini"><div class="lbl">Costo por m²</div><div class="val">USD '+insFmt2(res.costoPorM2USD)+'</div></div>':'')
     +'</div>';
   var payBox = '<div class="pay-box"><div class="tit">Forma de pago</div>'
-    +'<div class="pay-row"><span>Valor mensual fijo</span><b>USD '+insFmt2(res.usdMensualFijo)+'</b></div>'
-    +'<div class="pay-row"><span>Anticipo financiero ('+(r.anticipoPct||0)+'% del total, al inicio)</span><span>USD '+insFmt2(res.usdAnticipo)+'</span></div>'
-    +'<div class="pay-row"><span>Cuota mensual neta (descontado el anticipo)</span><span>USD '+insFmt2(res.usdMensualNeto)+'</span></div>'
-    +'<div style="font-size:8pt;color:#777;margin-top:6pt;line-height:1.5">Se abona un anticipo financiero del '+(r.anticipoPct||0)+'% del total del contrato al inicio de los trabajos. Ese anticipo se recupera descontando una parte proporcional de cada certificación mensual, en partes iguales, a lo largo de toda la duración del contrato — el mismo esquema habitual de anticipos financieros en obra pública.</div>'
+    +'<div class="pay-row"><span>Total del contrato</span><b>USD '+insFmt2(res.usd_total)+'</b></div>'
+    +'<div class="pay-row"><span>− Anticipo al firmar ('+(r.anticipoPct||0)+'% del total)</span><span>USD '+insFmt2(res.usdAnticipo)+'</span></div>'
+    +'<div class="pay-row"><span>= Saldo a facturar en '+(res.mesesContrato||0)+' cuotas mensuales</span><span>USD '+insFmt2(res.usdSaldoAFacturar)+'</span></div>'
+    +'<div class="pay-row" style="font-weight:700"><span>Cuota mensual</span><b>USD '+insFmt2(res.usdCuotaMensual)+'</b></div>'
+    +'<div style="font-size:8pt;color:#777;margin-top:6pt;line-height:1.5">Al firmar se abona un anticipo financiero del '+(r.anticipoPct||0)+'% del total del contrato. El saldo restante se factura en cuotas mensuales iguales a lo largo de toda la duración del contrato — el mismo esquema habitual de anticipos financieros en obra pública.</div>'
     +'</div>';
   var exclText = r.noIncluye || INS_NOINCLUYE_DEFAULT;
   var exclBox = '<div class="excl-box"><div class="tit">Qué no incluye este presupuesto</div><p>'+exclText+'</p></div>';
@@ -15242,10 +15244,10 @@ function insGenerarPDFInterno(id){
     +(res.m2Obra>0?'<div class="tot-row"><span>Costo por m² ('+insFmt(res.m2Obra)+' m²)</span><span>USD '+insFmt2(res.costoPorM2USD)+'/m²</span></div>':'')
     +(res.alertaArancel?'<div class="tot-row" style="color:#c0392b"><span>⚠ Por debajo del arancel mínimo declarado</span><span>$ '+insFmt(r.arancelMinimo)+'</span></div>':'')
     +'<div class="sec-tit">Forma de pago</div>'
-    +'<div class="tot-row"><span>Valor mensual fijo (sin anticipo)</span><span>USD '+insFmt2(res.usdMensualFijo)+'</span></div>'
-    +'<div class="tot-row"><span>Anticipo financiero ('+(r.anticipoPct||0)+'%)</span><span>USD '+insFmt2(res.usdAnticipo)+'</span></div>'
-    +'<div class="tot-row"><span>Descuento mensual del anticipo</span><span>USD '+insFmt2((parseFloat(r.tc)||0) > 0 ? (res.descuentoMensualAnticipo/(parseFloat(r.tc)||1)) : 0)+'</span></div>'
-    +'<div class="tot-row"><b>Cuota mensual neta</b><b>USD '+insFmt2(res.usdMensualNeto)+'</b></div>';
+    +'<div class="tot-row"><span>Total del contrato</span><span>USD '+insFmt2(res.usd_total)+'</span></div>'
+    +'<div class="tot-row"><span>− Anticipo al firmar ('+(r.anticipoPct||0)+'%)</span><span>USD '+insFmt2(res.usdAnticipo)+'</span></div>'
+    +'<div class="tot-row"><span>= Saldo a facturar en '+(res.mesesContrato||0)+' meses</span><span>USD '+insFmt2(res.usdSaldoAFacturar)+'</span></div>'
+    +'<div class="tot-row"><b>Cuota mensual</b><b>USD '+insFmt2(res.usdCuotaMensual)+'</b></div>';
   var full = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+r.code+' interno</title><style>'+css+'</style></head><body>'+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
   var pw = window.open('','_blank','width=940,height=780');
   pw.document.write(full); pw.document.close();
