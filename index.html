@@ -537,8 +537,7 @@ input,select,textarea,button{font-family:var(--font)}
       <button class="ins-tab" data-t="ins-t-tie" onclick="insTab(this)">4. Tiempos</button>
       <button class="ins-tab" data-t="ins-t-hon" onclick="insTab(this)">5. Honorario profesional</button>
       <button class="ins-tab" data-t="ins-t-mov" onclick="insTab(this)">6. Movilidad y viáticos</button>
-      <button class="ins-tab" data-t="ins-t-fij" onclick="insTab(this)">7. Costos fijos</button>
-      <button class="ins-tab" data-t="ins-t-rie" onclick="insTab(this)">8. Riesgo / Impuestos / Moneda</button>
+      <button class="ins-tab" data-t="ins-t-rie" onclick="insTab(this)">7. Gastos generales y moneda</button>
       <button class="ins-tab" data-t="ins-t-pla" onclick="insTab(this)">Plantillas PDF</button>
     </div>
 
@@ -646,30 +645,18 @@ input,select,textarea,button{font-family:var(--font)}
             </div>
             <div class="fsc" style="margin-top:14px">Viáticos</div>
             <div class="g3">
-              <div class="fg"><label class="fl">Viáticos (comida, etc.)</label><div class="pw"><input class="pi" type="number" id="ins-viaticos" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Gastos de comida durante la visita, si corresponde.</div></div>
-              <div class="fg"><label class="fl">Alojamiento</label><div class="pw"><input class="pi" type="number" id="ins-alojamiento" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Si la visita requiere quedarte a dormir (obra lejana), el costo del hotel o alojamiento.</div></div>
-              <div class="fg"><label class="fl">Otros gastos de la visita</label><div class="pw"><input class="pi" type="number" id="ins-otrosgastos" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Cualquier otro gasto puntual de esa visita que no entre en las categorías anteriores (peajes, estacionamiento, etc.).</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="ins-sec" id="ins-t-fij">
-          <div class="card">
-            <div class="fsc">Costos fijos (se reparten entre el total de visitas)</div>
-            <div class="g2">
-              <div class="fg"><label class="fl">Seguros — total para ESTA obra</label><div class="pw"><input class="pi" type="number" id="ins-segurostotal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">⚠ Este valor es el TOTAL a repartir entre las visitas de este contrato — NO es el costo mensual ni el costo anual de la póliza. Si tu seguro cuesta, por ejemplo, $50.000/mes y la obra dura 6 meses (campo "Duración estimada", pestaña 3), poné acá 50.000 × 6 = 300.000. Es el Seguro de Responsabilidad Civil Profesional (te cubre si un reclamo judicial te responsabiliza por un error u omisión en tu trabajo); en Argentina la póliza completa suele rondar entre $500.000 y $5.000.000 por año según el monto de honorarios que querés cubrir (valor de referencia, mayo 2026; consultá con una aseguradora para una cotización exacta). Si no tenés seguro contratado, podés dejarlo en 0.</div></div>
-              <div class="fg"><label class="fl">Equipamiento e insumos — total para ESTA obra</label><div class="pw"><input class="pi" type="number" id="ins-equipamientototal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">⚠ Igual que Seguros: es el TOTAL a repartir entre las visitas de este contrato, no un costo mensual. Herramientas e insumos que usás para inspeccionar: cámara de fotos, cinta métrica, nivel, botas y ropa de seguridad, carpetas e impresiones de los informes, celular/datos para sacar fotos y enviarlas. No es el equipamiento de la obra en sí (eso lo pone el cliente): es lo que gastás vos como profesional para poder inspeccionar. Si no lo tenés calculado, podés dejarlo en 0 por ahora.</div></div>
+              <div class="fg"><label class="fl">Viáticos (comida, etc.)</label><div class="pw"><input class="pi" type="number" id="ins-viaticos" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Gastos de comida de ESA visita (un día), no mensuales. Como referencia, para una salida de un día esto suele ser un monto chico (algo así como lo que gastarías en dos o tres comidas afuera). Si acá estás por poner una cifra de cientos de miles, probablemente estás pensando en un total mensual o anual — eso no va acá.</div></div>
+              <div class="fg"><label class="fl">Alojamiento</label><div class="pw"><input class="pi" type="number" id="ins-alojamiento" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Sólo si esa visita puntual requiere quedarte a dormir (obra lejana): el costo de UNA noche de hotel. Si la visita es de ida y vuelta en el día, dejalo en 0.</div></div>
+              <div class="fg"><label class="fl">Otros gastos de la visita</label><div class="pw"><input class="pi" type="number" id="ins-otrosgastos" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Gastos puntuales de ESA visita que no entren arriba (peajes, estacionamiento, etc.). Normalmente es un monto chico.</div></div>
             </div>
           </div>
         </div>
 
         <div class="ins-sec" id="ins-t-rie">
           <div class="card">
-            <div class="fsc">Riesgo, impuestos y moneda</div>
-            <div class="g3">
-              <div class="fg"><label class="fl">% Riesgo / imprevistos</label><div class="pw"><input class="pi" type="number" id="ins-pctriesgo" value="8" min="0" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Un colchón sobre el subtotal para cubrir imprevistos: demoras, viajes extra, cambios de alcance, etc. 8% es un valor de partida razonable; vos lo podés subir o bajar según el riesgo real de la obra.</div></div>
-              <div class="fg"><label class="fl">% IIBB</label><div class="pw"><input class="pi" type="number" id="ins-pctiibb" value="0" min="0" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Ingresos Brutos: el impuesto provincial que te retienen o que tenés que pagar sobre lo facturado. Depende de tu provincia y tu situación fiscal; si no te aplica, dejalo en 0.</div></div>
-              <div class="fg"><label class="fl">% Otras retenciones</label><div class="pw"><input class="pi" type="number" id="ins-pctotrasret" value="0" min="0" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Cualquier otra retención o descuento que el cliente te aplique al pagar (por ejemplo Ganancias, SUSS). Si no corresponde, dejalo en 0.</div></div>
+            <div class="fsc">Gastos generales</div>
+            <div class="g2">
+              <div class="fg"><label class="fl">% Gastos generales (seguro + equipamiento + imprevistos + impuestos)</label><div class="pw"><input class="pi" type="number" id="ins-pctgastosgenerales" value="25" min="0" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Un único porcentaje que se suma sobre Honorario + Movilidad + Viáticos, y que cubre todo lo demás: tu seguro de responsabilidad civil profesional, el equipamiento que usás, un colchón por imprevistos, y lo que te puedan retener de impuestos. Como guía: 10-15% para cubrir seguro+equipamiento, más 10-15% de margen/imprevistos → 25% es un punto de partida razonable. Si tenés costos de seguro o equipamiento muy altos en relación a pocas visitas, puede convenir subir este número en vez de cargar montos fijos gigantes.</div></div>
             </div>
             <div class="g3">
               <div class="fg"><label class="fl">Condición fiscal</label>
@@ -14607,20 +14594,13 @@ function insCalcular(d){
   var C_viaticos = viaticos + alojamiento + otrosGastos;
 
   var nVisitas = parseFloat(d.nVisitas) || 0;
-  var segurosTotal = parseFloat(d.segurosTotal) || 0;
-  var equipamientoTotal = parseFloat(d.equipamientoTotal) || 0;
-  var C_seguros = nVisitas > 0 ? (segurosTotal / nVisitas) : 0;
-  var C_fijos = nVisitas > 0 ? (equipamientoTotal / nVisitas) : 0;
 
-  var Subtotal = C_honorario + C_movilidad + C_viaticos + C_seguros + C_fijos;
-  var pctRiesgo = parseFloat(d.pctRiesgo) || 0;
-  var Riesgo = Subtotal * (pctRiesgo / 100);
-  var Neto = Subtotal + Riesgo;
+  var Subtotal = C_honorario + C_movilidad + C_viaticos;
+  var pctGastosGenerales = parseFloat(d.pctGastosGenerales) || 0;
+  var GastosGenerales = Subtotal * (pctGastosGenerales / 100);
+  var Neto = Subtotal + GastosGenerales;
 
-  var pctIIBB = parseFloat(d.pctIIBB) || 0;
-  var pctOtrasRet = parseFloat(d.pctOtrasRet) || 0;
-  var divisor = 1 - ((pctIIBB + pctOtrasRet) / 100);
-  var Precio_sin_IVA = divisor > 0 ? (Neto / divisor) : Neto;
+  var Precio_sin_IVA = Neto;
 
   var pasoMap = { sin: 0, '100': 100, '1000': 1000, '10000': 10000 };
   var paso = pasoMap[d.redondeo] != null ? pasoMap[d.redondeo] : 0;
@@ -14638,23 +14618,26 @@ function insCalcular(d){
   var usd_unit = tc > 0 ? (Precio_unit_final / tc) : 0;
   var usd_total = tc > 0 ? (Total_contrato / tc) : 0;
 
-  var impuestos_unit = Precio_unit_final - Neto;
-  var valorHoraEfectivo = H_total > 0
-    ? (Precio_unit_final - C_movilidad - C_viaticos - C_seguros - C_fijos - impuestos_unit) / H_total
-    : 0;
+  var valorHoraEfectivo = H_total > 0 ? (C_honorario / H_total) : 0;
 
   var alertaArancel = !!(d.arancelMinimo && parseFloat(d.arancelMinimo) > 0 && Precio_unit_final < parseFloat(d.arancelMinimo));
+
+  /* Alertas de "precio sospechoso": avisan cuando un dato cargado de más dispara el resultado sin que se note */
+  var ratioPrecioHonorario = C_honorario > 0 ? (Precio_unit_final / C_honorario) : 0;
+  var alertaPrecioAlto = C_honorario > 0 && ratioPrecioHonorario > 2.5;
+  var alertaMuchasVisitas = nVisitas > 60;
 
   return {
     H_sitio: H_sitio, H_base: H_base, H_escritorio: H_escritorio, H_total: H_total,
     H_contrato: H_total * nVisitas,
     C_honorario: C_honorario, costoKm: costoKm, kmCircuito: kmCircuito, kmCircuitoAuto: kmCircuitoAuto,
-    kmTotal: kmTotal, C_movilidad: C_movilidad, C_viaticos: C_viaticos, C_seguros: C_seguros, C_fijos: C_fijos,
-    Subtotal: Subtotal, Riesgo: Riesgo, Neto: Neto,
+    kmTotal: kmTotal, C_movilidad: C_movilidad, C_viaticos: C_viaticos,
+    Subtotal: Subtotal, GastosGenerales: GastosGenerales, Neto: Neto,
     Precio_sin_IVA: Precio_sin_IVA, Precio_unit: Precio_unit, IVA_unit: IVA_unit,
     Precio_unit_final: Precio_unit_final, Total_contrato: Total_contrato,
     usd_unit: usd_unit, usd_total: usd_total,
-    valorHoraEfectivo: valorHoraEfectivo, alertaArancel: alertaArancel
+    valorHoraEfectivo: valorHoraEfectivo, alertaArancel: alertaArancel,
+    ratioPrecioHonorario: ratioPrecioHonorario, alertaPrecioAlto: alertaPrecioAlto, alertaMuchasVisitas: alertaMuchasVisitas
   };
 }
 
@@ -14843,11 +14826,7 @@ function insLeerForm(){
     viaticos: getN('ins-viaticos',0),
     alojamiento: getN('ins-alojamiento',0),
     otrosGastos: getN('ins-otrosgastos',0),
-    segurosTotal: getN('ins-segurostotal',0),
-    equipamientoTotal: getN('ins-equipamientototal',0),
-    pctRiesgo: getN('ins-pctriesgo',0),
-    pctIIBB: getN('ins-pctiibb',0),
-    pctOtrasRet: getN('ins-pctotrasret',0),
+    pctGastosGenerales: getN('ins-pctgastosgenerales',25),
     condicionFiscal: insGv('ins-condicionfiscal')||'exento',
     clienteExento: insGc('ins-clienteexento'),
     alicuotaIVA: getN('ins-alicuotaiva',21),
@@ -14870,18 +14849,17 @@ function insRecalc(){
     +'<div class="ins-sum-row sub"><span>— km totales / costo km</span><span>'+insFmt(r.kmTotal)+' km · $'+insFmt(r.costoKm)+'/km</span></div>'
     +(d.pctEstacion>0?'<div class="ins-sum-row sub"><span>— recargo por época del año</span><span>+'+d.pctEstacion+'%</span></div>':'')
     +'<div class="ins-sum-row"><span>Viáticos</span><span>$ '+insFmt(r.C_viaticos)+'</span></div>'
-    +'<div class="ins-sum-row"><span>Seguros (por visita)</span><span>$ '+insFmt(r.C_seguros)+'</span></div>'
-    +'<div class="ins-sum-row"><span>Costos fijos (por visita)</span><span>$ '+insFmt(r.C_fijos)+'</span></div>'
     +'<div class="ins-sum-row sub" style="font-weight:700;color:var(--tx2)"><span>Subtotal</span><span>$ '+insFmt(r.Subtotal)+'</span></div>'
-    +'<div class="ins-sum-row"><span>Riesgo</span><span>$ '+insFmt(r.Riesgo)+'</span></div>'
+    +'<div class="ins-sum-row"><span>Gastos generales ('+(d.pctGastosGenerales||0)+'%)</span><span>$ '+insFmt(r.GastosGenerales)+'</span></div>'
     +'<div class="ins-sum-row sub" style="font-weight:700;color:var(--tx2)"><span>Neto</span><span>$ '+insFmt(r.Neto)+'</span></div>'
-    +'<div class="ins-sum-row"><span>Precio sin IVA</span><span>$ '+insFmt2(r.Precio_sin_IVA)+'</span></div>'
     +'<div class="ins-sum-row"><span>Precio redondeado</span><span>$ '+insFmt(r.Precio_unit)+'</span></div>'
     +(r.IVA_unit>0?'<div class="ins-sum-row"><span>IVA</span><span>$ '+insFmt(r.IVA_unit)+'</span></div>':'')
     +'<div class="ins-sum-row tot"><span>USD / visita</span><span>USD '+insFmt2(r.usd_unit)+'</span></div>'
     +'<div class="ins-sum-row"><span>Total contrato ('+ (d.nVisitas||0) +' visitas)</span><span>USD '+insFmt2(r.usd_total)+'</span></div>'
     +'<div class="ins-sum-row sub"><span>Valor hora efectivo</span><span>$ '+insFmt(r.valorHoraEfectivo)+'/hs</span></div>'
-    +(r.alertaArancel?'<div class="ins-alert">⚠ El precio por visita (USD '+insFmt2(r.usd_unit)+') está por debajo del arancel mínimo de referencia declarado.</div>':'');
+    +(r.alertaArancel?'<div class="ins-alert">⚠ El precio por visita (USD '+insFmt2(r.usd_unit)+') está por debajo del arancel mínimo de referencia declarado.</div>':'')
+    +(r.alertaPrecioAlto?'<div class="ins-alert">⚠ El precio por visita es '+r.ratioPrecioHonorario.toFixed(1)+' veces tu honorario profesional ($ '+insFmt(r.C_honorario)+'). Revisá Viáticos, Movilidad o el % de Gastos generales — puede haber un dato cargado de más.</div>':'')
+    +(r.alertaMuchasVisitas?'<div class="ins-alert">⚠ Cargaste '+(d.nVisitas||0)+' visitas. Es un número muy alto para un contrato de obra — revisá si no pusiste días, meses u otra cosa en vez de la cantidad real de visitas.</div>':'');
   var el = document.getElementById('ins-resumen'); if(el) el.innerHTML = html;
   return r;
 }
@@ -14901,8 +14879,7 @@ function insNuevo(){
   insSv('ins-estacion', insEstacionActual()); insEstacionChange();
   insSv('ins-consumo',10); insSv('ins-preciolitro',0); insSv('ins-desgastekm',0);
   insSv('ins-viaticos',0); insSv('ins-alojamiento',0); insSv('ins-otrosgastos',0);
-  insSv('ins-segurostotal',0); insSv('ins-equipamientototal',0);
-  insSv('ins-pctriesgo',8); insSv('ins-pctiibb',0); insSv('ins-pctotrasret',0);
+  insSv('ins-pctgastosgenerales',25);
   insSv('ins-condicionfiscal','exento'); document.getElementById('ins-clienteexento').checked=false;
   insSv('ins-alicuotaiva',21); insSv('ins-redondeo','1000'); insSv('ins-tc', (typeof TC!=='undefined'&&TC)?TC:1350);
   var pl = insDefaultTextos();
@@ -14914,6 +14891,19 @@ function insNuevo(){
   document.getElementById('ins-view-lista').style.display='none';
   document.getElementById('ins-view-form').style.display='';
   document.querySelector('#modulo-inspeccion .ins-tab').click();
+}
+
+/* Para presupuestos guardados ANTES de simplificar el modelo (tenían Seguros/Equipamiento/Riesgo/IIBB
+   por separado): al abrirlos para editar, estima un % de Gastos generales equivalente a partir del
+   desglose que quedó guardado en resultado, para que el precio no cambie de golpe sin que se note. */
+function insEstimarPctGastosGeneralesLegacy(r){
+  var res = r && r.resultado;
+  if (!res) return 25;
+  var baseLegacy = (res.C_honorario||0) + (res.C_movilidad||0) + (res.C_viaticos||0);
+  if (baseLegacy <= 0) return 25;
+  var extrasLegacy = (res.Riesgo||0) + (res.C_seguros||0) + (res.C_fijos||0);
+  var pct = Math.round((extrasLegacy / baseLegacy) * 100);
+  return pct > 0 ? pct : 25;
 }
 
 function insEditar(id){
@@ -14933,8 +14923,7 @@ function insEditar(id){
   insSv('ins-estacion', r.estacion || insEstacionActual()); insSv('ins-pctestacion', r.pctEstacion!=null?r.pctEstacion:insEstacionPctDefault(r.estacion || insEstacionActual()));
   insSv('ins-consumo', r.consumo||0); insSv('ins-preciolitro', r.precioLitro||0); insSv('ins-desgastekm', r.desgasteKm||0);
   insSv('ins-viaticos', r.viaticos||0); insSv('ins-alojamiento', r.alojamiento||0); insSv('ins-otrosgastos', r.otrosGastos||0);
-  insSv('ins-segurostotal', r.segurosTotal||0); insSv('ins-equipamientototal', r.equipamientoTotal||0);
-  insSv('ins-pctriesgo', r.pctRiesgo||0); insSv('ins-pctiibb', r.pctIIBB||0); insSv('ins-pctotrasret', r.pctOtrasRet||0);
+  insSv('ins-pctgastosgenerales', r.pctGastosGenerales!=null ? r.pctGastosGenerales : insEstimarPctGastosGeneralesLegacy(r));
   insSv('ins-condicionfiscal', r.condicionFiscal||'exento');
   document.getElementById('ins-clienteexento').checked = !!r.clienteExento;
   insSv('ins-alicuotaiva', r.alicuotaIVA!=null?r.alicuotaIVA:21); insSv('ins-redondeo', r.redondeo||'1000'); insSv('ins-tc', r.tc||1350);
@@ -15140,12 +15129,9 @@ function insGenerarPDFInterno(id){
     +'<div class="tot-row"><span>Honorario profesional ('+res.H_total.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs × $'+insFmt(r.valorHora)+')</span><span>$ '+insFmt(res.C_honorario)+'</span></div>'
     +'<div class="tot-row"><span>Movilidad ('+insFmt(res.kmTotal)+' km × $'+insFmt(res.costoKm)+'/km)</span><span>$ '+insFmt(res.C_movilidad)+'</span></div>'
     +'<div class="tot-row"><span>Viáticos</span><span>$ '+insFmt(res.C_viaticos)+'</span></div>'
-    +'<div class="tot-row"><span>Seguros (prorrateado / visita)</span><span>$ '+insFmt(res.C_seguros)+'</span></div>'
-    +'<div class="tot-row"><span>Costos fijos (prorrateado / visita)</span><span>$ '+insFmt(res.C_fijos)+'</span></div>'
     +'<div class="tot-row"><b>Subtotal</b><b>$ '+insFmt(res.Subtotal)+'</b></div>'
-    +'<div class="tot-row"><span>Riesgo ('+(r.pctRiesgo||0)+'%)</span><span>$ '+insFmt(res.Riesgo)+'</span></div>'
+    +'<div class="tot-row"><span>Gastos generales ('+(r.pctGastosGenerales||0)+'% — seguro, equipamiento, imprevistos e impuestos)</span><span>$ '+insFmt(res.GastosGenerales)+'</span></div>'
     +'<div class="tot-row"><b>Neto</b><b>$ '+insFmt(res.Neto)+'</b></div>'
-    +'<div class="tot-row"><span>Precio sin IVA (gross-up IIBB '+(r.pctIIBB||0)+'% + otras ret. '+(r.pctOtrasRet||0)+'%)</span><span>$ '+insFmt2(res.Precio_sin_IVA)+'</span></div>'
     +'<div class="tot-row"><span>Precio redondeado ('+(r.redondeo==='sin'?'sin redondeo':'múlt. '+r.redondeo)+')</span><span>$ '+insFmt(res.Precio_unit)+'</span></div>'
     +(res.IVA_unit>0?'<div class="tot-row"><span>IVA ('+(r.alicuotaIVA||0)+'%)</span><span>$ '+insFmt(res.IVA_unit)+'</span></div>':'')
     +'<div class="tot-row final"><span>Precio final / visita</span><span>USD '+insFmt2(res.usd_unit)+'</span></div>'
