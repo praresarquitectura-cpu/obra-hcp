@@ -571,7 +571,8 @@ input,select,textarea,button{font-family:var(--font)}
               <div class="ins-site-row hd"><span>#</span><span>Nombre del sitio</span><span>Horas en sitio</span><span>Km (ida)</span><span></span></div>
               <div id="ins-sitios-body"></div>
             </div>
-            <div class="ins-vh-note">Las horas en sitio y los km se usan para calcular H_sitio y el circuito automático entre sitios (ver pestaña "Definición de la visita").</div>
+            <div class="ins-vh-note">"Horas en sitio" es el tiempo que pasás trabajando EN ese lugar (no el viaje), en horas decimales: 15 min = 0.25, 20 min = 0.33, 30 min = 0.5, 45 min = 1 hora y 20 min = 1.33. Ojo: no es formato hora:minuto (1 hora y media NO es 1.30, es 1.5). "Km (ida)" es la distancia de ida (un solo sentido) desde la base hasta ese sitio; el sistema ya suma el circuito completo (ver pestaña "Definición de la visita").</div>
+            <div class="ins-vh-note" style="margin-top:6px">Estos valores son por visita (cada vez que vas), no por mes ni por toda la obra. La duración total de la obra y cuántas veces vas en total se define en la pestaña 3 "Definición de la visita", con "Cantidad de visitas (N)".</div>
           </div>
         </div>
 
@@ -587,8 +588,9 @@ input,select,textarea,button{font-family:var(--font)}
                 </select>
                 <div class="ins-vh-note">"Un solo sitio" no suma km de circuito. "Todos los sitios" suma las horas de todos los sitios por visita.</div>
               </div>
-              <div class="fg"><label class="fl">Cantidad de visitas (N)</label><input class="fi" type="number" id="ins-nvisitas" value="1" min="1" oninput="insRecalc()"></div>
-              <div class="fg"><label class="fl">Km base ida y vuelta (estudio ↔ obra)</label><div class="pw"><input class="pi" type="number" id="ins-kmbase" value="0" min="0" oninput="insRecalc()"><span class="pu">km</span></div></div>
+              <div class="fg"><label class="fl">Cantidad de visitas (N)</label><input class="fi" type="number" id="ins-nvisitas" value="1" min="1" oninput="insRecalc()"><div class="ins-vh-note">Cuántas veces en TOTAL vas a visitar la obra durante todo el contrato (no por mes). Si vas a ir, por ejemplo, 1 vez por mes durante 6 meses, poné 6. Todos los costos totales (seguros, equipamiento, honorario) se reparten entre esta cantidad de visitas.</div></div>
+              <div class="fg"><label class="fl">Duración estimada de la obra</label><div class="pw"><input class="pi" type="number" id="ins-duracionmeses" value="1" min="0" step="0.5" oninput="insRecalc()"><span class="pu">meses</span></div><div class="ins-vh-note">Sólo informativo: te sirve para calcular el total de Seguros y Equipamiento (pestaña 7) si tenés esos costos por mes — multiplicá el costo mensual por esta duración. No afecta el cálculo del precio por sí sola.</div></div>
+              <div class="fg"><label class="fl">Km base ida y vuelta (estudio ↔ obra)</label><div class="pw"><input class="pi" type="number" id="ins-kmbase" value="0" min="0" oninput="insRecalc()"><span class="pu">km</span></div><div class="ins-vh-note">Los kilómetros de ida y vuelta entre tu estudio/casa y la obra, por cada visita (no el circuito entre sitios dentro de la obra, eso va abajo).</div></div>
             </div>
             <div class="g2">
               <div class="fg">
@@ -655,8 +657,8 @@ input,select,textarea,button{font-family:var(--font)}
           <div class="card">
             <div class="fsc">Costos fijos (se reparten entre el total de visitas)</div>
             <div class="g2">
-              <div class="fg"><label class="fl">Seguros totales del contrato</label><div class="pw"><input class="pi" type="number" id="ins-segurostotal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Lo que te cuesta por año el Seguro de Responsabilidad Civil Profesional (te cubre si un reclamo judicial te responsabiliza por un error u omisión en tu trabajo). En Argentina suele rondar entre $500.000 y $5.000.000 por año según el monto de honorarios que querés cubrir (valor de referencia, mayo 2026; consultá con una aseguradora para una cotización exacta). Si no tenés seguro contratado, podés dejarlo en 0.</div></div>
-              <div class="fg"><label class="fl">Equipamiento e insumos totales (anual)</label><div class="pw"><input class="pi" type="number" id="ins-equipamientototal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">El costo total, repartido en el año, de las herramientas e insumos que usás para inspeccionar obras: por ejemplo cámara de fotos, cinta métrica, nivel, botas y ropa de seguridad, carpetas e impresiones de los informes, celular/datos para sacar fotos y enviarlas. No es el equipamiento de la obra en sí (eso lo pone el cliente): es lo que gastás vos como profesional para poder inspeccionar. Si no lo tenés calculado, podés dejarlo en 0 por ahora.</div></div>
+              <div class="fg"><label class="fl">Seguros — total para ESTA obra</label><div class="pw"><input class="pi" type="number" id="ins-segurostotal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">⚠ Este valor es el TOTAL a repartir entre las visitas de este contrato — NO es el costo mensual ni el costo anual de la póliza. Si tu seguro cuesta, por ejemplo, $50.000/mes y la obra dura 6 meses (campo "Duración estimada", pestaña 3), poné acá 50.000 × 6 = 300.000. Es el Seguro de Responsabilidad Civil Profesional (te cubre si un reclamo judicial te responsabiliza por un error u omisión en tu trabajo); en Argentina la póliza completa suele rondar entre $500.000 y $5.000.000 por año según el monto de honorarios que querés cubrir (valor de referencia, mayo 2026; consultá con una aseguradora para una cotización exacta). Si no tenés seguro contratado, podés dejarlo en 0.</div></div>
+              <div class="fg"><label class="fl">Equipamiento e insumos — total para ESTA obra</label><div class="pw"><input class="pi" type="number" id="ins-equipamientototal" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">⚠ Igual que Seguros: es el TOTAL a repartir entre las visitas de este contrato, no un costo mensual. Herramientas e insumos que usás para inspeccionar: cámara de fotos, cinta métrica, nivel, botas y ropa de seguridad, carpetas e impresiones de los informes, celular/datos para sacar fotos y enviarlas. No es el equipamiento de la obra en sí (eso lo pone el cliente): es lo que gastás vos como profesional para poder inspeccionar. Si no lo tenés calculado, podés dejarlo en 0 por ahora.</div></div>
             </div>
           </div>
         </div>
@@ -14824,6 +14826,7 @@ function insLeerForm(){
     sitios: insSitiosTemp,
     tipoVisita: insGv('ins-tipovisita')||'uno',
     nVisitas: getN('ins-nvisitas',1),
+    duracionMeses: getN('ins-duracionmeses',1),
     kmBase: getN('ins-kmbase',0),
     kmCircuitoManual: insGc('ins-kmcircuito-manual'),
     kmCircuito: getN('ins-kmcircuito',0),
@@ -14891,7 +14894,7 @@ function insNuevo(){
   ['ins-contacto','ins-obra','ins-alcance','ins-desc'].forEach(function(id){ insSv(id,''); });
   insSv('ins-cli','');
   insSv('ins-fecha', new Date().toISOString().slice(0,10));
-  insSv('ins-tipovisita','uno'); insSv('ins-nvisitas',1); insSv('ins-kmbase',0);
+  insSv('ins-tipovisita','uno'); insSv('ins-nvisitas',1); insSv('ins-duracionmeses',1); insSv('ins-kmbase',0);
   document.getElementById('ins-kmcircuito-manual').checked=false; insSv('ins-kmcircuito',0);
   insSv('ins-hmanejo',0); insSv('ins-hinforme',0); insSv('ins-pctescritorio',0);
   insSv('ins-valorhora',15000); insSv('ins-arancelmin',0);
@@ -14921,7 +14924,7 @@ function insEditar(id){
   insSv('ins-fecha', r.fecha||''); insSv('ins-obra', r.obra||''); insSv('ins-alcance', r.alcance||'');
   insSv('ins-desc', r.desc||'');
   insSitiosTemp = (r.sitios||[]).map(function(s){ return Object.assign({},s); });
-  insSv('ins-tipovisita', r.tipoVisita||'uno'); insSv('ins-nvisitas', r.nVisitas||1);
+  insSv('ins-tipovisita', r.tipoVisita||'uno'); insSv('ins-nvisitas', r.nVisitas||1); insSv('ins-duracionmeses', r.duracionMeses||1);
   insSv('ins-kmbase', r.kmBase||0);
   document.getElementById('ins-kmcircuito-manual').checked = !!r.kmCircuitoManual;
   insSv('ins-kmcircuito', r.kmCircuito||0);
