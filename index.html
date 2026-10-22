@@ -593,7 +593,7 @@ input,select,textarea,button{font-family:var(--font)}
                 </select>
                 <div class="ins-vh-note">"Un solo sitio" no suma km de circuito. "Todos los sitios" suma las horas de todos los sitios por visita.</div>
               </div>
-              <div class="fg"><label class="fl">Cantidad de visitas (N)</label><input class="fi" type="number" id="ins-nvisitas" value="1" min="1" oninput="insRecalc()"><div class="ins-vh-note">Cuántas veces en TOTAL vas a visitar la obra durante todo el contrato (no por mes). Si vas a ir, por ejemplo, 1 vez por mes durante 6 meses, poné 6. El honorario mensual objetivo (pestaña 5) se reparte entre estas visitas.</div></div>
+              <div class="fg"><label class="fl">Cantidad de visitas (N)</label><input class="fi" type="number" id="ins-nvisitas" value="1" min="1" oninput="insRecalc()"><div class="ins-vh-note">Cuántas veces en TOTAL vas a visitar la obra durante todo el contrato (no por mes). Si vas a ir, por ejemplo, 1 vez por mes durante 6 meses, poné 6. El honorario mensual objetivo (pestaña 5) se reparte entre estas visitas — por eso, si el contrato garantiza sólo un MÍNIMO de visitas y el resto son "estimadas" o "a demanda", cargá acá el mínimo garantizado (no el estimado optimista): así tu ingreso mensual objetivo se cumple incluso en el escenario más conservador, y las visitas que se terminen pagando de más (al mismo valor unitario) son ingreso extra, no un faltante.</div></div>
               <div class="fg"><label class="fl">Duración estimada de la obra</label><div class="pw"><input class="pi" type="number" id="ins-duracionmeses" value="1" min="0" step="0.5" oninput="insRecalc()"><span class="pu">meses</span></div><div class="ins-vh-note">Cuántos meses dura el contrato. Se usa para traducir tu objetivo de ingreso mensual (pestaña 5) al valor por visita, y para calcular el anticipo financiero y su recupero.</div></div>
               <div class="fg"><label class="fl">Km base ida y vuelta (estudio ↔ obra)</label><div class="pw"><input class="pi" type="number" id="ins-kmbase" value="0" min="0" oninput="insRecalc()"><span class="pu">km</span></div><div class="ins-vh-note">Los kilómetros de ida y vuelta entre tu estudio/casa y la obra, por cada visita (no el circuito entre sitios dentro de la obra, eso va abajo).</div></div>
               <div class="fg"><label class="fl">Superficie total de la obra</label><div class="pw"><input class="pi" type="number" id="ins-m2obra" value="0" min="0" oninput="insRecalc()"><span class="pu">m²</span></div><div class="ins-vh-note">Metros cuadrados totales de la construcción. Sirve para mostrar el costo de inspección por m² — un dato que suele ser más fácil de comparar y justificar frente al cliente que el total del contrato. Dejalo en 0 si no aplica.</div></div>
@@ -696,9 +696,30 @@ input,select,textarea,button{font-family:var(--font)}
           <div class="card">
             <div class="fsc">Forma de pago — anticipo financiero</div>
             <div class="g3">
-              <div class="fg"><label class="fl">% Anticipo financiero</label><div class="pw"><input class="pi" type="number" id="ins-anticipopct" value="20" min="0" max="100" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Como en obra pública: un porcentaje del total del contrato que se cobra por adelantado al firmar, para financiar el arranque. Se va descontando en partes iguales de cada factura mensual hasta recuperarlo por completo al final del contrato.</div></div>
+              <div class="fg"><label class="fl">% Anticipo financiero</label><div class="pw"><input class="pi" type="number" id="ins-anticipopct" value="20" min="0" max="100" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Como en obra pública: un porcentaje del total del contrato que se cobra por adelantado al firmar, para financiar el arranque. Se va descontando en partes iguales de cada factura mensual hasta recuperarlo por completo al final del contrato. Si el cliente paga directamente por transferencia a los pocos días de cada factura (sin anticipo), dejá este campo en 0.</div></div>
             </div>
-            <div class="ins-vh-note" style="margin-top:4px">El valor mensual fijo, el monto del anticipo y la cuota mensual ya descontada el anticipo se calculan solos y aparecen en el resumen y en el PDF del cliente.</div>
+            <div class="ins-vh-note" style="margin-top:4px">El total, el anticipo, el saldo a facturar y la cuota mensual se calculan solos y aparecen en el resumen y en el PDF del cliente.</div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div class="fsc">Mediciones periódicas (certificaciones)</div>
+            <div class="ins-vh-note" style="margin-bottom:6px">Si el contrato exige mediciones de avance con una periodicidad fija (por ejemplo cada 15 días, con foja a entregar en 24 hs), cargá acá el tiempo EXTRA que te lleva medir cantidades y completar la foja — además de las horas de informe de la pestaña 4. Ese tiempo se suma a tus horas totales del contrato (bajando el valor hora, pero sin bajar tu ingreso mensual objetivo) y su costo se reparte en partes iguales entre todas las visitas. Si una medición no coincide con ninguna visita programada, ese viaje ya es una visita más — sumalo en "Cantidad de visitas" (pestaña 3), no acá.</div>
+            <div class="g3">
+              <div class="fg"><label class="fl">Cantidad de mediciones estimada</label><input class="fi" type="number" id="ins-mediccantidad" value="0" min="0" oninput="insRecalc()"></div>
+              <div class="fg"><label class="fl">Horas extra por medición</label><div class="pw"><input class="pi" type="number" id="ins-medichoras" value="0" min="0" step="0.5" oninput="insRecalc()"><span class="pu">hs</span></div></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div class="fsc">Costos específicos a tu cargo</div>
+            <div class="ins-vh-note" style="margin-bottom:6px">Costos puntuales de ESTE contrato que te exigen a vos (no están ya cubiertos por el objetivo de ingreso mensual de la pestaña 5, porque son por-contrato y no mensuales). Se reparten en partes iguales entre todas las visitas, así quedan incluidos en el precio por visita.</div>
+            <div class="g3">
+              <div class="fg"><label class="fl">Seguro de accidentes personales (toda la obra)</label><div class="pw"><input class="pi" type="number" id="ins-seguroaccidentes" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Costo total de la póliza para toda la duración del contrato (por ejemplo, con cláusula de no repetición exigida por el cliente).</div></div>
+              <div class="fg"><label class="fl">Libro de Órdenes de Servicio</label><div class="pw"><input class="pi" type="number" id="ins-libroordenes" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Costo único del libro, si te exigen proveerlo vos.</div></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div class="fsc">Supuestos de la propuesta</div>
+            <div class="ins-vh-note" style="margin-bottom:6px">Este texto aparece en un recuadro del PDF del cliente, junto con "Qué no incluye". Son las condiciones sobre las que se armó el precio — tu protección cuando todavía no tenés el contrato completo ni la documentación técnica definitiva. Editalo según corresponda a cada obra.</div>
+            <textarea class="fita" id="ins-supuestos" style="min-height:160px"></textarea>
           </div>
           <div class="card" style="margin-top:14px">
             <div class="fsc">Qué NO incluye este presupuesto</div>
@@ -4853,7 +4874,22 @@ var INS_PLANTILLA_CLIENTE_DEFAULT =
 var INS_PLANTILLA_INTERNA_DEFAULT =
 "Presupuesto interno de Inspección / Supervisión de Obra — \"{{OBRA}}\" ({{CLIENTE}}). Incluye desglose completo de costos: honorario profesional (a partir del objetivo de ingreso mensual), movilidad, viáticos, gastos generales, anticipo financiero e impuestos, para uso exclusivo del estudio.";
 var INS_NOINCLUYE_DEFAULT =
-"Este presupuesto corresponde exclusivamente al servicio de inspección y supervisión técnica de obra mediante visitas periódicas. No incluye: dirección de obra ni presencia permanente en el sitio; redacción o modificación de proyecto, planos o documentación técnica; gestiones, trámites o presentaciones ante organismos municipales, provinciales o de servicios; ensayos de laboratorio o certificaciones de terceros; medición y confección de certificados de obra (salvo que se acuerde expresamente); ni la resolución de controversias legales o contractuales entre las partes. Cualquier tarea adicional a las visitas de inspección descriptas se cotiza por separado.";
+"Este presupuesto corresponde exclusivamente al servicio de inspección y supervisión técnica de obra mediante visitas periódicas. No incluye: dirección de obra ni presencia permanente en el sitio; redacción o modificación de proyecto, planos o documentación técnica; cálculo, verificación ni responsabilidad estructural de la obra ni de sus fundaciones (incluyendo el dimensionamiento de bases y el sistema de anclaje, que son responsabilidad de la empresa contratista y su profesional); gestiones, trámites o presentaciones ante organismos municipales, provinciales o de servicios; ensayos de laboratorio o certificaciones de terceros; medición y confección de certificados de obra (salvo que se acuerde expresamente, en cuyo caso se detalla en \"Supuestos de la propuesta\"); visitas a taller o planta de fabricación; visitas durante el período de garantía ni la recepción definitiva; rediseño ni elaboración de documentación técnica nueva para la contratista; seguimiento específico del cumplimiento de salvaguardas ambientales o sociales (tarea de otros profesionales designados a tal fin); ni la resolución de controversias legales o contractuales entre las partes. Cualquier tarea adicional a las descriptas se cotiza por separado.";
+var INS_SUPUESTOS_DEFAULT =
+"Esta propuesta se cotiza sobre la base de los siguientes supuestos. Cualquier diferencia respecto de las condiciones reales de contratación o del proyecto definitivo podrá requerir un ajuste del precio:\n\n"+
+"• Visitas: la cantidad de visitas cotizada corresponde al mínimo garantizado informado por el comitente. Las visitas adicionales que se requieran (incluyendo las que surjan de demoras de la contratista) se reconocen y abonan al mismo valor unitario cotizado, con autorización previa. Una visita en la que no pueda realizarse la inspección por causas ajenas al inspector (obra no lista, clima, accesos) se reconoce igual, siempre que se informe a la Inspección/Ingeniería Residente.\n"+
+"• Mediciones periódicas: las mediciones de avance con la periodicidad establecida (con entrega de foja dentro del plazo exigido) están incluidas en el precio cotizado en la medida declarada en este presupuesto. Si una medición no coincide con una visita programada, ese viaje se computa como una visita adicional al mismo valor unitario.\n"+
+"• Plan de Trabajo y replanteo: su elaboración y ejecución son responsabilidad de la empresa contratista; la inspección se limita a revisar, controlar el avance y aprobar, informando los desvíos.\n"+
+"• Coordinación: la coordinación entre visitas es remota (teléfono, mensajes, correo electrónico) y no implica presencia diaria en obra.\n"+
+"• Apoyo técnico: se limita a interpretar el proyecto y responder consultas de la contratista, sin rediseñar ni elaborar documentación técnica nueva.\n"+
+"• Salvaguardas ambientales y sociales: el rol de la inspección es facilitar información, visitas y comunicación con los profesionales responsables de su seguimiento, sin asumir esa responsabilidad.\n"+
+"• Estructura y fundaciones: el presupuesto asume que el cálculo y la verificación estructural de la obra y de sus fundaciones son responsabilidad de la empresa contratista. En particular, no se aprueban bases ni sistemas de anclaje sin una verificación escrita del profesional de la contratista que avale su idoneidad para el terreno real de cada sitio.\n"+
+"• Recepción: la firma del Acta de Recepción Provisoria por parte del inspector se realiza junto con los profesionales responsables de las salvaguardas ambientales y sociales, y no implica asumir la dirección técnica ni la representación técnica de la contratista.\n"+
+"• Encuadre contractual: la contratación se formaliza mediante orden de compra (sin contrato de locación de servicios) y la documentación técnica completa del proyecto, así como los datos de la empresa contratista, se entregan una vez adjudicado el servicio. Los supuestos y exclusiones de esta propuesta son la base sobre la que se cotizó, a falta de esa documentación.\n"+
+"• Plazos: la fecha de inicio y el plazo total de obra son estimados y dependen de aprobaciones administrativas/ambientales previas; una demora o extensión relevante del plazo total puede requerir revisar el presupuesto.\n"+
+"• Costos a cargo del inspector incluidos en el precio: seguro de accidentes personales (con cláusula de no repetición, si se exige) y la provisión del Libro de Órdenes de Servicio, en la medida declarada en este presupuesto.\n"+
+"• Forma de pago: se asume cobro por transferencia bancaria dentro del plazo informado por el comitente tras la presentación de cada factura, liquidándose a medida que se certifican las visitas/mediciones realizadas.\n"+
+"• Cargas profesionales: queda a cargo del inspector verificar ante su Colegio o Consejo profesional si la obra requiere encomienda profesional y/o aportes, y su costo (si corresponde) se suma al presupuesto una vez confirmado.";
 /* ===== FIN MÓDULO INSPECCIÓN ===== */
 
 /* ── ARRANQUE ─────────────────────────────────────────────────────────── */
@@ -14602,7 +14638,16 @@ function insCalcular(d){
 
   var nVisitas = parseFloat(d.nVisitas) || 0;
   var mesesContrato = parseFloat(d.duracionMeses) || 0;
-  var horasTotalesContrato = H_total * nVisitas;
+
+  /* Mediciones periódicas (ej. certificaciones quincenales): trabajo de medir cantidades ejecutadas
+     y completar la foja, además de las visitas. Si una medición no coincide con una visita programada,
+     ese viaje ya se cuenta como visita aparte (sumalo en "Cantidad de visitas"); acá sólo va el tiempo
+     EXTRA de medir + papeles. Se reparte entre todas las visitas para mantener el precio por visita. */
+  var medicCantidad = parseFloat(d.medicCantidad) || 0;
+  var medicHoras = parseFloat(d.medicHoras) || 0;
+  var horasMedicionTotal = medicCantidad * medicHoras;
+
+  var horasTotalesContrato = (H_total * nVisitas) + horasMedicionTotal;
   var honorarioMensualObjetivo = parseFloat(d.honorarioMensual) || 0;
   var valorHora;
   if (honorarioMensualObjetivo > 0 && horasTotalesContrato > 0 && mesesContrato > 0) {
@@ -14611,6 +14656,14 @@ function insCalcular(d){
     valorHora = parseFloat(d.valorHora) || 0;
   }
   var C_honorario = H_total * valorHora;
+  var C_medicion = nVisitas > 0 ? ((horasMedicionTotal * valorHora) / nVisitas) : 0;
+
+  /* Costos específicos de este contrato (seguro de accidentes personales, Libro de Órdenes de Servicio)
+     amortizados en partes iguales entre todas las visitas, para que el precio por visita ya los incluya. */
+  var seguroAccidentes = parseFloat(d.seguroAccidentes) || 0;
+  var libroOrdenes = parseFloat(d.libroOrdenes) || 0;
+  var C_seguro = nVisitas > 0 ? (seguroAccidentes / nVisitas) : 0;
+  var C_libro = nVisitas > 0 ? (libroOrdenes / nVisitas) : 0;
 
   var consumo = parseFloat(d.consumo) || 0;
   var precioLitro = parseFloat(d.precioLitro) || 0;
@@ -14627,7 +14680,7 @@ function insCalcular(d){
   var otrosGastos = parseFloat(d.otrosGastos) || 0;
   var C_viaticos = viaticos + alojamiento + otrosGastos;
 
-  var Subtotal = C_honorario + C_movilidad + C_viaticos;
+  var Subtotal = C_honorario + C_movilidad + C_viaticos + C_medicion + C_seguro + C_libro;
   var pctGastosGenerales = parseFloat(d.pctGastosGenerales) || 0;
   var GastosGenerales = Subtotal * (pctGastosGenerales / 100);
   var Neto = Subtotal + GastosGenerales;
@@ -14653,7 +14706,7 @@ function insCalcular(d){
   var valorHoraEfectivo = H_total > 0 ? (C_honorario / H_total) : 0;
 
   /* Honorario mensual resultante: para comparar contra el objetivo de ingreso mensual declarado */
-  var honorarioMensualResultante = mesesContrato > 0 ? (C_honorario * nVisitas / mesesContrato) : 0;
+  var honorarioMensualResultante = mesesContrato > 0 ? (((C_honorario * nVisitas) + (horasMedicionTotal * valorHora)) / mesesContrato) : 0;
 
   /* Costo por m² — útil para comparar/justificar frente al cliente */
   var m2Obra = parseFloat(d.m2Obra) || 0;
@@ -14683,6 +14736,8 @@ function insCalcular(d){
     H_contrato: H_total * nVisitas,
     C_honorario: C_honorario, valorHora: valorHora, costoKm: costoKm, kmCircuito: kmCircuito, kmCircuitoAuto: kmCircuitoAuto,
     kmTotal: kmTotal, C_movilidad: C_movilidad, C_viaticos: C_viaticos,
+    medicCantidad: medicCantidad, medicHoras: medicHoras, horasMedicionTotal: horasMedicionTotal, C_medicion: C_medicion,
+    seguroAccidentes: seguroAccidentes, libroOrdenes: libroOrdenes, C_seguro: C_seguro, C_libro: C_libro,
     Subtotal: Subtotal, GastosGenerales: GastosGenerales, Neto: Neto,
     Precio_sin_IVA: Precio_sin_IVA, Precio_unit: Precio_unit, IVA_unit: IVA_unit,
     Precio_unit_final: Precio_unit_final, Total_contrato: Total_contrato,
@@ -14892,6 +14947,11 @@ function insLeerForm(){
     redondeo: insGv('ins-redondeo')||'1000',
     tc: getN('ins-tc',0),
     anticipoPct: getN('ins-anticipopct',20),
+    medicCantidad: getN('ins-mediccantidad',0),
+    medicHoras: getN('ins-medichoras',0),
+    seguroAccidentes: getN('ins-seguroaccidentes',0),
+    libroOrdenes: getN('ins-libroordenes',0),
+    supuestos: insGv('ins-supuestos')||'',
     noIncluye: insGv('ins-noincluye')||''
   };
 }
@@ -14913,6 +14973,9 @@ function insRecalc(){
     +'<div class="ins-sum-row sub"><span>— km totales / costo km</span><span>'+insFmt(r.kmTotal)+' km · $'+insFmt(r.costoKm)+'/km</span></div>'
     +(d.pctEstacion>0?'<div class="ins-sum-row sub"><span>— recargo por época del año</span><span>+'+d.pctEstacion+'%</span></div>':'')
     +'<div class="ins-sum-row"><span>Viáticos</span><span>$ '+insFmt(r.C_viaticos)+'</span></div>'
+    +(r.horasMedicionTotal>0?'<div class="ins-sum-row"><span>Mediciones ('+(r.medicCantidad||0)+' × '+(r.medicHoras||0)+' hs, prorrateado)</span><span>$ '+insFmt(r.C_medicion)+'</span></div>':'')
+    +(r.seguroAccidentes>0?'<div class="ins-sum-row"><span>Seguro accidentes personales (prorrateado)</span><span>$ '+insFmt(r.C_seguro)+'</span></div>':'')
+    +(r.libroOrdenes>0?'<div class="ins-sum-row"><span>Libro de Órdenes de Servicio (prorrateado)</span><span>$ '+insFmt(r.C_libro)+'</span></div>':'')
     +'<div class="ins-sum-row sub" style="font-weight:700;color:var(--tx2)"><span>Subtotal</span><span>$ '+insFmt(r.Subtotal)+'</span></div>'
     +'<div class="ins-sum-row"><span>Gastos generales ('+(d.pctGastosGenerales||0)+'%)</span><span>$ '+insFmt(r.GastosGenerales)+'</span></div>'
     +'<div class="ins-sum-row sub" style="font-weight:700;color:var(--tx2)"><span>Neto</span><span>$ '+insFmt(r.Neto)+'</span></div>'
@@ -14949,11 +15012,14 @@ function insNuevo(){
   insSv('ins-consumo',10); insSv('ins-preciolitro',0); insSv('ins-desgastekm',0);
   insSv('ins-viaticos',0); insSv('ins-alojamiento',0); insSv('ins-otrosgastos',0);
   insSv('ins-pctgastosgenerales',10); insSv('ins-anticipopct',20);
+  insSv('ins-mediccantidad',0); insSv('ins-medichoras',0);
+  insSv('ins-seguroaccidentes',0); insSv('ins-libroordenes',0);
   insSv('ins-condicionfiscal','exento'); document.getElementById('ins-clienteexento').checked=false;
   insSv('ins-alicuotaiva',21); insSv('ins-redondeo','1000'); insSv('ins-tc', (typeof TC!=='undefined'&&TC)?TC:1350);
   var pl = insDefaultTextos();
   insSv('ins-plantilla-cliente', INS_PLANTILLA_CLIENTE_DEFAULT || pl.cliente);
   insSv('ins-plantilla-interna', INS_PLANTILLA_INTERNA_DEFAULT || pl.interna);
+  insSv('ins-supuestos', INS_SUPUESTOS_DEFAULT);
   insSv('ins-noincluye', INS_NOINCLUYE_DEFAULT);
   insPoblarClientes(); insRenderSitios(); insRecalc();
   document.getElementById('ins-btn-pdf-cli').disabled = true;
@@ -14996,11 +15062,14 @@ function insEditar(id){
   insSv('ins-viaticos', r.viaticos||0); insSv('ins-alojamiento', r.alojamiento||0); insSv('ins-otrosgastos', r.otrosGastos||0);
   insSv('ins-pctgastosgenerales', r.pctGastosGenerales!=null ? r.pctGastosGenerales : insEstimarPctGastosGeneralesLegacy(r));
   insSv('ins-anticipopct', r.anticipoPct!=null ? r.anticipoPct : 20);
+  insSv('ins-mediccantidad', r.medicCantidad||0); insSv('ins-medichoras', r.medicHoras||0);
+  insSv('ins-seguroaccidentes', r.seguroAccidentes||0); insSv('ins-libroordenes', r.libroOrdenes||0);
   insSv('ins-condicionfiscal', r.condicionFiscal||'exento');
   document.getElementById('ins-clienteexento').checked = !!r.clienteExento;
   insSv('ins-alicuotaiva', r.alicuotaIVA!=null?r.alicuotaIVA:21); insSv('ins-redondeo', r.redondeo||'1000'); insSv('ins-tc', r.tc||1350);
   insSv('ins-plantilla-cliente', r.plantillaCliente || INS_PLANTILLA_CLIENTE_DEFAULT);
   insSv('ins-plantilla-interna', r.plantillaInterna || INS_PLANTILLA_INTERNA_DEFAULT);
+  insSv('ins-supuestos', r.supuestos || INS_SUPUESTOS_DEFAULT);
   insSv('ins-noincluye', r.noIncluye || INS_NOINCLUYE_DEFAULT);
   insPoblarClientes(); document.getElementById('ins-cli').value = r.clienteId||'';
   insRenderSitios(); insRecalc();
@@ -15166,6 +15235,9 @@ function insGenerarPDFCliente(id){
     +'.excl-box{border:1px solid #ddd;border-radius:8pt;padding:11pt 13pt;margin-bottom:14pt;background:#fafafa}'
     +'.excl-box .tit{font-size:9pt;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5pt}'
     +'.excl-box p{font-size:8.5pt;line-height:1.6;color:#666}'
+    +'.sup-box{border:1px solid #c7d2e3;border-radius:8pt;padding:11pt 13pt;margin-bottom:14pt;background:#f4f7fc}'
+    +'.sup-box .tit{font-size:9pt;font-weight:700;color:'+C2+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:5pt}'
+    +'.sup-box p{font-size:8.5pt;line-height:1.6;color:#445;white-space:pre-wrap}'
     +'.sign-area{margin-top:32pt;display:flex;justify-content:space-between}'
     +'.sign-box{border-top:1px solid #333;width:180pt;padding-top:4pt;font-size:8.5pt;text-align:center}'
     +'@media print{body{-webkit-print-color-adjust:exact}}';
@@ -15182,6 +15254,8 @@ function insGenerarPDFCliente(id){
     +'<div class="pay-row" style="font-weight:700"><span>Cuota mensual</span><b>USD '+insFmt2(res.usdCuotaMensual)+'</b></div>'
     +'<div style="font-size:8pt;color:#777;margin-top:6pt;line-height:1.5">Al firmar se abona un anticipo financiero del '+(r.anticipoPct||0)+'% del total del contrato. El saldo restante se factura en cuotas mensuales iguales a lo largo de toda la duración del contrato — el mismo esquema habitual de anticipos financieros en obra pública.</div>'
     +'</div>';
+  var supText = r.supuestos || INS_SUPUESTOS_DEFAULT;
+  var supBox = '<div class="sup-box"><div class="tit">Supuestos de la propuesta</div><p>'+supText+'</p></div>';
   var exclText = r.noIncluye || INS_NOINCLUYE_DEFAULT;
   var exclBox = '<div class="excl-box"><div class="tit">Qué no incluye este presupuesto</div><p>'+exclText+'</p></div>';
   var d = '<div class="hd"><h1>PRESUPUESTO DE<br>INSPECCIÓN / SUPERVISIÓN DE OBRA</h1>'
@@ -15192,6 +15266,7 @@ function insGenerarPDFCliente(id){
     +'<table class="tbl"><thead><tr><th>Sitio de obra</th><th>Horas por visita</th><th>Km</th></tr></thead><tbody>'+sitiosRows+'</tbody></table>'
     +'<div class="tot-box"><span class="lbl">Total del contrato ('+(r.nVisitas||0)+' visitas)</span><b>USD '+insFmt2(res.usd_total)+'</b></div>'
     +payBox
+    +supBox
     +exclBox
     +'<div class="sign-area"><div class="sign-box">'+(emp.nombreCompleto||emp.nombre||'')+'</div><div class="sign-box">Conformidad del cliente</div></div>';
   var full = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+r.code+'</title><style>'+css+'</style></head><body>'+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
@@ -15233,6 +15308,9 @@ function insGenerarPDFInterno(id){
     +'<div class="tot-row"><span>Honorario profesional ('+res.H_total.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs × $'+insFmt(res.valorHora)+')</span><span>$ '+insFmt(res.C_honorario)+'</span></div>'
     +'<div class="tot-row"><span>Movilidad ('+insFmt(res.kmTotal)+' km × $'+insFmt(res.costoKm)+'/km)</span><span>$ '+insFmt(res.C_movilidad)+'</span></div>'
     +'<div class="tot-row"><span>Viáticos</span><span>$ '+insFmt(res.C_viaticos)+'</span></div>'
+    +(res.horasMedicionTotal>0?'<div class="tot-row"><span>Mediciones ('+(res.medicCantidad||0)+' mediciones × '+(res.medicHoras||0)+' hs, prorrateado entre '+(r.nVisitas||0)+' visitas)</span><span>$ '+insFmt(res.C_medicion)+'</span></div>':'')
+    +(res.seguroAccidentes>0?'<div class="tot-row"><span>Seguro accidentes personales ($'+insFmt(res.seguroAccidentes)+' total, prorrateado)</span><span>$ '+insFmt(res.C_seguro)+'</span></div>':'')
+    +(res.libroOrdenes>0?'<div class="tot-row"><span>Libro de Órdenes de Servicio ($'+insFmt(res.libroOrdenes)+' total, prorrateado)</span><span>$ '+insFmt(res.C_libro)+'</span></div>':'')
     +'<div class="tot-row"><b>Subtotal</b><b>$ '+insFmt(res.Subtotal)+'</b></div>'
     +'<div class="tot-row"><span>Gastos generales ('+(r.pctGastosGenerales||0)+'% — imprevistos e impuestos, el resto ya está en el objetivo mensual)</span><span>$ '+insFmt(res.GastosGenerales)+'</span></div>'
     +'<div class="tot-row"><b>Neto</b><b>$ '+insFmt(res.Neto)+'</b></div>'
@@ -15247,7 +15325,9 @@ function insGenerarPDFInterno(id){
     +'<div class="tot-row"><span>Total del contrato</span><span>USD '+insFmt2(res.usd_total)+'</span></div>'
     +'<div class="tot-row"><span>− Anticipo al firmar ('+(r.anticipoPct||0)+'%)</span><span>USD '+insFmt2(res.usdAnticipo)+'</span></div>'
     +'<div class="tot-row"><span>= Saldo a facturar en '+(res.mesesContrato||0)+' meses</span><span>USD '+insFmt2(res.usdSaldoAFacturar)+'</span></div>'
-    +'<div class="tot-row"><b>Cuota mensual</b><b>USD '+insFmt2(res.usdCuotaMensual)+'</b></div>';
+    +'<div class="tot-row"><b>Cuota mensual</b><b>USD '+insFmt2(res.usdCuotaMensual)+'</b></div>'
+    +'<div class="sec-tit">Supuestos de la propuesta</div>'
+    +'<div style="font-size:8.5pt;line-height:1.6;color:#444;white-space:pre-wrap;padding:4pt 2pt">'+(r.supuestos || INS_SUPUESTOS_DEFAULT)+'</div>';
   var full = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+r.code+' interno</title><style>'+css+'</style></head><body>'+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
   var pw = window.open('','_blank','width=940,height=780');
   pw.document.write(full); pw.document.close();
