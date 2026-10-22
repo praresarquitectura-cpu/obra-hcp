@@ -245,18 +245,23 @@ input,select,textarea,button{font-family:var(--font)}
 #modulo-inspeccion .ins-site-idx{font-size:11px;color:var(--tx3);text-align:center}
 #modulo-inspeccion .ins-site-row input{width:100%}
 #modulo-inspeccion .ins-rm{background:none;border:none;color:var(--rt);cursor:pointer;font-size:15px;line-height:1;padding:0}
-#modulo-inspeccion .ins-summary{border:1.5px solid var(--bt);border-radius:10px;padding:14px 16px;position:sticky;top:8px}
+#modulo-inspeccion .ins-summary{border:1.5px solid var(--bt);border-radius:12px;padding:14px 16px;position:sticky;top:8px;background:linear-gradient(180deg,rgba(138,14,30,.06) 0%,transparent 60px)}
 #modulo-inspeccion .ins-sum-row{display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0;color:var(--tx2)}
 #modulo-inspeccion .ins-sum-row.tot{border-top:1px solid var(--br2);margin-top:6px;padding-top:8px;font-size:14px;font-weight:800;color:var(--bt)}
 #modulo-inspeccion .ins-sum-row.sub{font-size:10px;color:var(--tx3);padding:1px 0}
+#modulo-inspeccion .ins-sum-row.ins-sum-highlight{background:rgba(138,14,30,.08);border-radius:6px;padding:5px 7px;margin:4px -7px;font-weight:700;color:var(--tx1)}
 #modulo-inspeccion .ins-sum-grp{margin-top:8px;padding-top:8px;border-top:1px dashed var(--br)}
 #modulo-inspeccion .ins-alert{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);color:var(--rt);border-radius:6px;padding:7px 10px;font-size:10.5px;margin-top:8px}
 #modulo-inspeccion .ins-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;border-bottom:1px solid var(--br);padding-bottom:0}
-#modulo-inspeccion .ins-tab{background:none;border:none;color:var(--tx3);font-size:11px;font-weight:600;padding:8px 12px;cursor:pointer;border-bottom:2px solid transparent}
-#modulo-inspeccion .ins-tab.on{color:var(--bt);border-bottom-color:var(--bt)}
+#modulo-inspeccion .ins-tab{background:none;border:none;color:var(--tx3);font-size:11px;font-weight:600;padding:8px 12px;cursor:pointer;border-bottom:2px solid transparent;border-radius:6px 6px 0 0;transition:background .15s,color .15s}
+#modulo-inspeccion .ins-tab:hover{color:var(--tx1);background:rgba(138,14,30,.06)}
+#modulo-inspeccion .ins-tab.on{color:var(--bt);border-bottom-color:var(--bt);background:rgba(138,14,30,.08)}
 #modulo-inspeccion .ins-sec{display:none}
-#modulo-inspeccion .ins-sec.on{display:block}
+#modulo-inspeccion .ins-sec.on{display:block;animation:insFadeIn .18s ease}
+@keyframes insFadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
 #modulo-inspeccion .ins-vh-note{font-size:9px;color:var(--tx3);margin-top:3px}
+#modulo-inspeccion .card{transition:box-shadow .15s}
+#modulo-inspeccion .card:hover{box-shadow:0 2px 14px rgba(0,0,0,.08)}
 @media (max-width:760px){
   #modulo-inspeccion .ins-site-row{grid-template-columns:22px 1fr 1fr 32px;grid-template-areas:"idx nm nm rm" "idx h k rm"}
 }
@@ -538,6 +543,7 @@ input,select,textarea,button{font-family:var(--font)}
       <button class="ins-tab" data-t="ins-t-hon" onclick="insTab(this)">5. Honorario profesional</button>
       <button class="ins-tab" data-t="ins-t-mov" onclick="insTab(this)">6. Movilidad y viáticos</button>
       <button class="ins-tab" data-t="ins-t-rie" onclick="insTab(this)">7. Gastos generales y moneda</button>
+      <button class="ins-tab" data-t="ins-t-pag" onclick="insTab(this)">8. Forma de pago</button>
       <button class="ins-tab" data-t="ins-t-pla" onclick="insTab(this)">Plantillas PDF</button>
     </div>
 
@@ -587,9 +593,10 @@ input,select,textarea,button{font-family:var(--font)}
                 </select>
                 <div class="ins-vh-note">"Un solo sitio" no suma km de circuito. "Todos los sitios" suma las horas de todos los sitios por visita.</div>
               </div>
-              <div class="fg"><label class="fl">Cantidad de visitas (N)</label><input class="fi" type="number" id="ins-nvisitas" value="1" min="1" oninput="insRecalc()"><div class="ins-vh-note">Cuántas veces en TOTAL vas a visitar la obra durante todo el contrato (no por mes). Si vas a ir, por ejemplo, 1 vez por mes durante 6 meses, poné 6. Todos los costos totales (seguros, equipamiento, honorario) se reparten entre esta cantidad de visitas.</div></div>
-              <div class="fg"><label class="fl">Duración estimada de la obra</label><div class="pw"><input class="pi" type="number" id="ins-duracionmeses" value="1" min="0" step="0.5" oninput="insRecalc()"><span class="pu">meses</span></div><div class="ins-vh-note">Sólo informativo: te sirve para calcular el total de Seguros y Equipamiento (pestaña 7) si tenés esos costos por mes — multiplicá el costo mensual por esta duración. No afecta el cálculo del precio por sí sola.</div></div>
+              <div class="fg"><label class="fl">Cantidad de visitas (N)</label><input class="fi" type="number" id="ins-nvisitas" value="1" min="1" oninput="insRecalc()"><div class="ins-vh-note">Cuántas veces en TOTAL vas a visitar la obra durante todo el contrato (no por mes). Si vas a ir, por ejemplo, 1 vez por mes durante 6 meses, poné 6. El honorario mensual objetivo (pestaña 5) se reparte entre estas visitas.</div></div>
+              <div class="fg"><label class="fl">Duración estimada de la obra</label><div class="pw"><input class="pi" type="number" id="ins-duracionmeses" value="1" min="0" step="0.5" oninput="insRecalc()"><span class="pu">meses</span></div><div class="ins-vh-note">Cuántos meses dura el contrato. Se usa para traducir tu objetivo de ingreso mensual (pestaña 5) al valor por visita, y para calcular el anticipo financiero y su recupero.</div></div>
               <div class="fg"><label class="fl">Km base ida y vuelta (estudio ↔ obra)</label><div class="pw"><input class="pi" type="number" id="ins-kmbase" value="0" min="0" oninput="insRecalc()"><span class="pu">km</span></div><div class="ins-vh-note">Los kilómetros de ida y vuelta entre tu estudio/casa y la obra, por cada visita (no el circuito entre sitios dentro de la obra, eso va abajo).</div></div>
+              <div class="fg"><label class="fl">Superficie total de la obra</label><div class="pw"><input class="pi" type="number" id="ins-m2obra" value="0" min="0" oninput="insRecalc()"><span class="pu">m²</span></div><div class="ins-vh-note">Metros cuadrados totales de la construcción. Sirve para mostrar el costo de inspección por m² — un dato que suele ser más fácil de comparar y justificar frente al cliente que el total del contrato. Dejalo en 0 si no aplica.</div></div>
             </div>
             <div class="g2">
               <div class="fg">
@@ -616,7 +623,8 @@ input,select,textarea,button{font-family:var(--font)}
           <div class="card">
             <div class="fsc">Honorario profesional</div>
             <div class="g3">
-              <div class="fg"><label class="fl">Valor hora profesional</label><div class="pw"><input class="pi" type="number" id="ins-valorhora" value="15000" min="0" step="500" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Cuánto vale cada hora de tu trabajo (manejar, revisar la obra, escribir el informe). No hay una tarifa oficial para esto: es un valor orientativo que podés ajustar según tu experiencia y la zona. El Colegio de Arquitectos sólo publica porcentajes sobre el valor de obra, no valores por hora.</div></div>
+              <div class="fg"><label class="fl">Objetivo de ingreso mensual</label><div class="pw"><input class="pi" type="number" id="ins-honorariomensual" value="6500000" min="0" step="50000" oninput="insRecalc()"><span class="pu">$/mes</span></div><div class="ins-vh-note">Lo que querés que te deje este contrato por mes, en limpio, por dedicarte a inspeccionar esta obra (como un sueldo). Este valor ya se asume que incluye gran parte de tus costos fijos de trabajar por tu cuenta: monotributo, seguro de responsabilidad civil profesional, seguro del vehículo, amortización del equipamiento, etc. — por eso el % de Gastos generales de la pestaña 7 es ahora chico (sólo cubre lo que no entra acá). El sistema reparte este objetivo entre las horas totales que vas a dedicar en todo el contrato para obtener el valor hora.</div></div>
+              <div class="fg"><label class="fl">Valor hora resultante</label><div class="pw"><input class="pi" type="number" id="ins-valorhora" value="15000" min="0" step="500" disabled style="opacity:.75"><span class="pu">$/hs</span></div><div class="ins-vh-note">Se calcula solo a partir del objetivo de ingreso mensual y las horas totales del contrato. Es un resultado, no lo cargues vos — lo ves acá sólo para chequear que sea razonable.</div></div>
               <div class="fg"><label class="fl">Arancel mínimo de referencia (opcional)</label><div class="pw"><input class="pi" type="number" id="ins-arancelmin" value="0" min="0" oninput="insRecalc()"><span class="pu">$</span></div><div class="ins-vh-note">Un piso de precio por visita, por debajo del cual no te conviene trabajar. Si lo completás y el precio final queda por debajo, el sistema te avisa con una alerta. Dejalo en 0 si no querés usar esta alerta.</div></div>
             </div>
           </div>
@@ -656,7 +664,7 @@ input,select,textarea,button{font-family:var(--font)}
           <div class="card">
             <div class="fsc">Gastos generales</div>
             <div class="g2">
-              <div class="fg"><label class="fl">% Gastos generales (seguro + equipamiento + imprevistos + impuestos)</label><div class="pw"><input class="pi" type="number" id="ins-pctgastosgenerales" value="25" min="0" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Un único porcentaje que se suma sobre Honorario + Movilidad + Viáticos, y que cubre todo lo demás: tu seguro de responsabilidad civil profesional, el equipamiento que usás, un colchón por imprevistos, y lo que te puedan retener de impuestos. Como guía: 10-15% para cubrir seguro+equipamiento, más 10-15% de margen/imprevistos → 25% es un punto de partida razonable. Si tenés costos de seguro o equipamiento muy altos en relación a pocas visitas, puede convenir subir este número en vez de cargar montos fijos gigantes.</div></div>
+              <div class="fg"><label class="fl">% Gastos generales (lo que no cubre el objetivo mensual)</label><div class="pw"><input class="pi" type="number" id="ins-pctgastosgenerales" value="10" min="0" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Como tu objetivo de ingreso mensual (pestaña 5) ya asume que cubre monotributo, seguro y equipamiento, acá sólo hace falta un colchón chico por imprevistos y lo que te retengan de impuestos. 10% es un punto de partida razonable; subilo si tus gastos fijos reales son más altos que lo que el objetivo mensual alcanza a cubrir.</div></div>
             </div>
             <div class="g3">
               <div class="fg"><label class="fl">Condición fiscal</label>
@@ -681,6 +689,21 @@ input,select,textarea,button{font-family:var(--font)}
               </div>
             </div>
             <div class="fg"><label class="fl">Cotización USD</label><div class="pw"><input class="pi" type="number" id="ins-tc" value="1350" min="0" oninput="insRecalc()"><span class="pu">ARS</span></div><div class="ins-vh-note">Cuántos pesos vale un dólar hoy. El presupuesto se calcula en pesos pero se muestra también en dólares con este tipo de cambio; actualizalo antes de cada presupuesto.</div></div>
+          </div>
+        </div>
+
+        <div class="ins-sec" id="ins-t-pag">
+          <div class="card">
+            <div class="fsc">Forma de pago — anticipo financiero</div>
+            <div class="g3">
+              <div class="fg"><label class="fl">% Anticipo financiero</label><div class="pw"><input class="pi" type="number" id="ins-anticipopct" value="20" min="0" max="100" oninput="insRecalc()"><span class="pu">%</span></div><div class="ins-vh-note">Como en obra pública: un porcentaje del total del contrato que se cobra por adelantado al firmar, para financiar el arranque. Se va descontando en partes iguales de cada factura mensual hasta recuperarlo por completo al final del contrato.</div></div>
+            </div>
+            <div class="ins-vh-note" style="margin-top:4px">El valor mensual fijo, el monto del anticipo y la cuota mensual ya descontada el anticipo se calculan solos y aparecen en el resumen y en el PDF del cliente.</div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div class="fsc">Qué NO incluye este presupuesto</div>
+            <div class="ins-vh-note" style="margin-bottom:6px">Este texto aparece en un recuadro del PDF del cliente, para dejar claro el alcance del servicio. Editalo según corresponda a cada obra.</div>
+            <textarea class="fita" id="ins-noincluye" style="min-height:120px"></textarea>
           </div>
         </div>
 
@@ -4824,11 +4847,13 @@ var editandoInsId = null;
 var insSitiosTemp = [];
 var INS_PLANTILLA_CLIENTE_DEFAULT =
 "Por medio de la presente se cotiza el servicio de Inspección / Supervisión Técnica de Obra, mediante visitas periódicas, para la obra \"{{OBRA}}\", a nombre de {{CLIENTE}}.\n\n"+
-"El presente presupuesto contempla un total de {{NVISITAS}} visitas de obra, con un valor fijo por visita de USD {{PRECIO_VISITA}}, que incluye honorarios profesionales, movilidad, viáticos y gastos de equipamiento asociados a cada visita.\n\n"+
-"Cada visita comprende la verificación del avance de obra conforme a planos y especificaciones técnicas, la detección de desvíos constructivos, y la emisión del correspondiente informe de inspección.\n\n"+
-"Condiciones generales: el presente presupuesto tiene una validez de 30 días corridos desde su emisión. Los valores se expresan en Dólares Estadounidenses (USD) y se facturan al tipo de cambio vigente al momento de cada visita, salvo acuerdo en contrario.";
+"El presente presupuesto contempla un total de {{NVISITAS}} visitas de obra a lo largo de la duración del contrato, e incluye honorarios profesionales, movilidad, viáticos y gastos asociados a cada visita.\n\n"+
+"Cada visita comprende la verificación del avance de obra conforme a planos y especificaciones técnicas, la detección de desvíos constructivos, el seguimiento con la empresa contratista, y la emisión del correspondiente informe de inspección.\n\n"+
+"Condiciones generales: el presente presupuesto tiene una validez de 30 días corridos desde su emisión. Los valores se expresan en Dólares Estadounidenses (USD) y se facturan al tipo de cambio vigente al momento de cada certificación mensual, salvo acuerdo en contrario.";
 var INS_PLANTILLA_INTERNA_DEFAULT =
-"Presupuesto interno de Inspección / Supervisión de Obra por visita — \"{{OBRA}}\" ({{CLIENTE}}). Incluye desglose completo de costos: honorario profesional, movilidad, viáticos, seguros, costos fijos, riesgo e impuestos, para uso exclusivo del estudio.";
+"Presupuesto interno de Inspección / Supervisión de Obra — \"{{OBRA}}\" ({{CLIENTE}}). Incluye desglose completo de costos: honorario profesional (a partir del objetivo de ingreso mensual), movilidad, viáticos, gastos generales, anticipo financiero e impuestos, para uso exclusivo del estudio.";
+var INS_NOINCLUYE_DEFAULT =
+"Este presupuesto corresponde exclusivamente al servicio de inspección y supervisión técnica de obra mediante visitas periódicas. No incluye: dirección de obra ni presencia permanente en el sitio; redacción o modificación de proyecto, planos o documentación técnica; gestiones, trámites o presentaciones ante organismos municipales, provinciales o de servicios; ensayos de laboratorio o certificaciones de terceros; medición y confección de certificados de obra (salvo que se acuerde expresamente); ni la resolución de controversias legales o contractuales entre las partes. Cualquier tarea adicional a las visitas de inspección descriptas se cotiza por separado.";
 /* ===== FIN MÓDULO INSPECCIÓN ===== */
 
 /* ── ARRANQUE ─────────────────────────────────────────────────────────── */
@@ -14575,7 +14600,16 @@ function insCalcular(d){
   var H_escritorio = H_base * (pctEscritorio / 100);
   var H_total = H_base + H_escritorio;
 
-  var valorHora = parseFloat(d.valorHora) || 0;
+  var nVisitas = parseFloat(d.nVisitas) || 0;
+  var mesesContrato = parseFloat(d.duracionMeses) || 0;
+  var horasTotalesContrato = H_total * nVisitas;
+  var honorarioMensualObjetivo = parseFloat(d.honorarioMensual) || 0;
+  var valorHora;
+  if (honorarioMensualObjetivo > 0 && horasTotalesContrato > 0 && mesesContrato > 0) {
+    valorHora = (honorarioMensualObjetivo * mesesContrato) / horasTotalesContrato;
+  } else {
+    valorHora = parseFloat(d.valorHora) || 0;
+  }
   var C_honorario = H_total * valorHora;
 
   var consumo = parseFloat(d.consumo) || 0;
@@ -14592,8 +14626,6 @@ function insCalcular(d){
   var alojamiento = parseFloat(d.alojamiento) || 0;
   var otrosGastos = parseFloat(d.otrosGastos) || 0;
   var C_viaticos = viaticos + alojamiento + otrosGastos;
-
-  var nVisitas = parseFloat(d.nVisitas) || 0;
 
   var Subtotal = C_honorario + C_movilidad + C_viaticos;
   var pctGastosGenerales = parseFloat(d.pctGastosGenerales) || 0;
@@ -14620,6 +14652,24 @@ function insCalcular(d){
 
   var valorHoraEfectivo = H_total > 0 ? (C_honorario / H_total) : 0;
 
+  /* Honorario mensual resultante: para comparar contra el objetivo de ingreso mensual declarado */
+  var honorarioMensualResultante = mesesContrato > 0 ? (C_honorario * nVisitas / mesesContrato) : 0;
+
+  /* Costo por m² — útil para comparar/justificar frente al cliente */
+  var m2Obra = parseFloat(d.m2Obra) || 0;
+  var costoPorM2 = m2Obra > 0 ? (Total_contrato / m2Obra) : 0;
+  var costoPorM2USD = m2Obra > 0 && tc > 0 ? (usd_total / m2Obra) : 0;
+
+  /* Forma de pago: valor mensual fijo + anticipo financiero recuperado en cuotas iguales (esquema de obra pública) */
+  var valorMensualFijo = mesesContrato > 0 ? (Total_contrato / mesesContrato) : 0;
+  var pctAnticipo = parseFloat(d.anticipoPct) || 0;
+  var anticipoMonto = Total_contrato * (pctAnticipo / 100);
+  var descuentoMensualAnticipo = mesesContrato > 0 ? (anticipoMonto / mesesContrato) : 0;
+  var valorMensualNeto = valorMensualFijo - descuentoMensualAnticipo;
+  var usdMensualFijo = tc > 0 ? (valorMensualFijo / tc) : 0;
+  var usdAnticipo = tc > 0 ? (anticipoMonto / tc) : 0;
+  var usdMensualNeto = tc > 0 ? (valorMensualNeto / tc) : 0;
+
   var alertaArancel = !!(d.arancelMinimo && parseFloat(d.arancelMinimo) > 0 && Precio_unit_final < parseFloat(d.arancelMinimo));
 
   /* Alertas de "precio sospechoso": avisan cuando un dato cargado de más dispara el resultado sin que se note */
@@ -14630,14 +14680,20 @@ function insCalcular(d){
   return {
     H_sitio: H_sitio, H_base: H_base, H_escritorio: H_escritorio, H_total: H_total,
     H_contrato: H_total * nVisitas,
-    C_honorario: C_honorario, costoKm: costoKm, kmCircuito: kmCircuito, kmCircuitoAuto: kmCircuitoAuto,
+    C_honorario: C_honorario, valorHora: valorHora, costoKm: costoKm, kmCircuito: kmCircuito, kmCircuitoAuto: kmCircuitoAuto,
     kmTotal: kmTotal, C_movilidad: C_movilidad, C_viaticos: C_viaticos,
     Subtotal: Subtotal, GastosGenerales: GastosGenerales, Neto: Neto,
     Precio_sin_IVA: Precio_sin_IVA, Precio_unit: Precio_unit, IVA_unit: IVA_unit,
     Precio_unit_final: Precio_unit_final, Total_contrato: Total_contrato,
     usd_unit: usd_unit, usd_total: usd_total,
     valorHoraEfectivo: valorHoraEfectivo, alertaArancel: alertaArancel,
-    ratioPrecioHonorario: ratioPrecioHonorario, alertaPrecioAlto: alertaPrecioAlto, alertaMuchasVisitas: alertaMuchasVisitas
+    ratioPrecioHonorario: ratioPrecioHonorario, alertaPrecioAlto: alertaPrecioAlto, alertaMuchasVisitas: alertaMuchasVisitas,
+    honorarioMensualObjetivo: honorarioMensualObjetivo, honorarioMensualResultante: honorarioMensualResultante,
+    m2Obra: m2Obra, costoPorM2: costoPorM2, costoPorM2USD: costoPorM2USD,
+    valorMensualFijo: valorMensualFijo, pctAnticipo: pctAnticipo, anticipoMonto: anticipoMonto,
+    descuentoMensualAnticipo: descuentoMensualAnticipo, valorMensualNeto: valorMensualNeto,
+    usdMensualFijo: usdMensualFijo, usdAnticipo: usdAnticipo, usdMensualNeto: usdMensualNeto,
+    mesesContrato: mesesContrato
   };
 }
 
@@ -14811,11 +14867,13 @@ function insLeerForm(){
     nVisitas: getN('ins-nvisitas',1),
     duracionMeses: getN('ins-duracionmeses',1),
     kmBase: getN('ins-kmbase',0),
+    m2Obra: getN('ins-m2obra',0),
     kmCircuitoManual: insGc('ins-kmcircuito-manual'),
     kmCircuito: getN('ins-kmcircuito',0),
     hManejo: getN('ins-hmanejo',0),
     hInforme: getN('ins-hinforme',0),
     pctEscritorio: getN('ins-pctescritorio',0),
+    honorarioMensual: getN('ins-honorariomensual',6500000),
     valorHora: getN('ins-valorhora',0),
     arancelMinimo: getN('ins-arancelmin',0),
     estacion: insGv('ins-estacion')||'primavera',
@@ -14826,12 +14884,14 @@ function insLeerForm(){
     viaticos: getN('ins-viaticos',0),
     alojamiento: getN('ins-alojamiento',0),
     otrosGastos: getN('ins-otrosgastos',0),
-    pctGastosGenerales: getN('ins-pctgastosgenerales',25),
+    pctGastosGenerales: getN('ins-pctgastosgenerales',10),
     condicionFiscal: insGv('ins-condicionfiscal')||'exento',
     clienteExento: insGc('ins-clienteexento'),
     alicuotaIVA: getN('ins-alicuotaiva',21),
     redondeo: insGv('ins-redondeo')||'1000',
-    tc: getN('ins-tc',0)
+    tc: getN('ins-tc',0),
+    anticipoPct: getN('ins-anticipopct',20),
+    noIncluye: insGv('ins-noincluye')||''
   };
 }
 
@@ -14839,12 +14899,15 @@ function insLeerForm(){
 function insRecalc(){
   var d = insLeerForm();
   var r = insCalcular(d);
+  var vhEl = document.getElementById('ins-valorhora'); if (vhEl) vhEl.value = Math.round(r.valorHora||0);
   var html = ''
     +'<div class="ins-sum-row"><span>Horas por visita (H_total)</span><span>'+r.H_total.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
     +'<div class="ins-sum-row sub"><span>— sitio / manejo / informe</span><span>'+r.H_base.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
     +'<div class="ins-sum-row sub"><span>— escritorio</span><span>'+r.H_escritorio.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
     +'<div class="ins-sum-grp"></div>'
-    +'<div class="ins-sum-row"><span>Honorario</span><span>$ '+insFmt(r.C_honorario)+'</span></div>'
+    +'<div class="ins-sum-row ins-sum-highlight"><span>Objetivo de ingreso mensual</span><span>$ '+insFmt(r.honorarioMensualObjetivo)+'</span></div>'
+    +'<div class="ins-sum-row sub"><span>— valor hora resultante</span><span>$ '+insFmt(r.valorHora)+'/hs</span></div>'
+    +'<div class="ins-sum-row"><span>Honorario (por visita)</span><span>$ '+insFmt(r.C_honorario)+'</span></div>'
     +'<div class="ins-sum-row"><span>Movilidad</span><span>$ '+insFmt(r.C_movilidad)+'</span></div>'
     +'<div class="ins-sum-row sub"><span>— km totales / costo km</span><span>'+insFmt(r.kmTotal)+' km · $'+insFmt(r.costoKm)+'/km</span></div>'
     +(d.pctEstacion>0?'<div class="ins-sum-row sub"><span>— recargo por época del año</span><span>+'+d.pctEstacion+'%</span></div>':'')
@@ -14857,6 +14920,11 @@ function insRecalc(){
     +'<div class="ins-sum-row tot"><span>USD / visita</span><span>USD '+insFmt2(r.usd_unit)+'</span></div>'
     +'<div class="ins-sum-row"><span>Total contrato ('+ (d.nVisitas||0) +' visitas)</span><span>USD '+insFmt2(r.usd_total)+'</span></div>'
     +'<div class="ins-sum-row sub"><span>Valor hora efectivo</span><span>$ '+insFmt(r.valorHoraEfectivo)+'/hs</span></div>'
+    +(r.m2Obra>0?'<div class="ins-sum-row sub"><span>Costo por m²</span><span>USD '+insFmt2(r.costoPorM2USD)+'/m²</span></div>':'')
+    +'<div class="ins-sum-grp"></div>'
+    +'<div class="ins-sum-row ins-sum-highlight"><span>Valor mensual fijo (sin anticipo)</span><span>USD '+insFmt2(r.usdMensualFijo)+'</span></div>'
+    +'<div class="ins-sum-row"><span>Anticipo financiero ('+(d.anticipoPct||0)+'%)</span><span>USD '+insFmt2(r.usdAnticipo)+'</span></div>'
+    +'<div class="ins-sum-row"><span>Cuota mensual neta (post-anticipo)</span><span>USD '+insFmt2(r.usdMensualNeto)+'</span></div>'
     +(r.alertaArancel?'<div class="ins-alert">⚠ El precio por visita (USD '+insFmt2(r.usd_unit)+') está por debajo del arancel mínimo de referencia declarado.</div>':'')
     +(r.alertaPrecioAlto?'<div class="ins-alert">⚠ El precio por visita es '+r.ratioPrecioHonorario.toFixed(1)+' veces tu honorario profesional ($ '+insFmt(r.C_honorario)+'). Revisá Viáticos, Movilidad o el % de Gastos generales — puede haber un dato cargado de más.</div>':'')
     +(r.alertaMuchasVisitas?'<div class="ins-alert">⚠ Cargaste '+(d.nVisitas||0)+' visitas. Es un número muy alto para un contrato de obra — revisá si no pusiste días, meses u otra cosa en vez de la cantidad real de visitas.</div>':'');
@@ -14872,19 +14940,20 @@ function insNuevo(){
   ['ins-contacto','ins-obra','ins-alcance','ins-desc'].forEach(function(id){ insSv(id,''); });
   insSv('ins-cli','');
   insSv('ins-fecha', new Date().toISOString().slice(0,10));
-  insSv('ins-tipovisita','uno'); insSv('ins-nvisitas',1); insSv('ins-duracionmeses',1); insSv('ins-kmbase',0);
+  insSv('ins-tipovisita','uno'); insSv('ins-nvisitas',1); insSv('ins-duracionmeses',1); insSv('ins-kmbase',0); insSv('ins-m2obra',0);
   document.getElementById('ins-kmcircuito-manual').checked=false; insSv('ins-kmcircuito',0);
   insSv('ins-hmanejo',0); insSv('ins-hinforme',0); insSv('ins-pctescritorio',0);
-  insSv('ins-valorhora',15000); insSv('ins-arancelmin',0);
+  insSv('ins-honorariomensual',6500000); insSv('ins-valorhora',15000); insSv('ins-arancelmin',0);
   insSv('ins-estacion', insEstacionActual()); insEstacionChange();
   insSv('ins-consumo',10); insSv('ins-preciolitro',0); insSv('ins-desgastekm',0);
   insSv('ins-viaticos',0); insSv('ins-alojamiento',0); insSv('ins-otrosgastos',0);
-  insSv('ins-pctgastosgenerales',25);
+  insSv('ins-pctgastosgenerales',10); insSv('ins-anticipopct',20);
   insSv('ins-condicionfiscal','exento'); document.getElementById('ins-clienteexento').checked=false;
   insSv('ins-alicuotaiva',21); insSv('ins-redondeo','1000'); insSv('ins-tc', (typeof TC!=='undefined'&&TC)?TC:1350);
   var pl = insDefaultTextos();
   insSv('ins-plantilla-cliente', INS_PLANTILLA_CLIENTE_DEFAULT || pl.cliente);
   insSv('ins-plantilla-interna', INS_PLANTILLA_INTERNA_DEFAULT || pl.interna);
+  insSv('ins-noincluye', INS_NOINCLUYE_DEFAULT);
   insPoblarClientes(); insRenderSitios(); insRecalc();
   document.getElementById('ins-btn-pdf-cli').disabled = true;
   document.getElementById('ins-btn-pdf-int').disabled = true;
@@ -14915,20 +14984,23 @@ function insEditar(id){
   insSv('ins-desc', r.desc||'');
   insSitiosTemp = (r.sitios||[]).map(function(s){ return Object.assign({},s); });
   insSv('ins-tipovisita', r.tipoVisita||'uno'); insSv('ins-nvisitas', r.nVisitas||1); insSv('ins-duracionmeses', r.duracionMeses||1);
-  insSv('ins-kmbase', r.kmBase||0);
+  insSv('ins-kmbase', r.kmBase||0); insSv('ins-m2obra', r.m2Obra||0);
   document.getElementById('ins-kmcircuito-manual').checked = !!r.kmCircuitoManual;
   insSv('ins-kmcircuito', r.kmCircuito||0);
   insSv('ins-hmanejo', r.hManejo||0); insSv('ins-hinforme', r.hInforme||0); insSv('ins-pctescritorio', r.pctEscritorio||0);
+  insSv('ins-honorariomensual', r.honorarioMensual!=null ? r.honorarioMensual : 6500000);
   insSv('ins-valorhora', r.valorHora||0); insSv('ins-arancelmin', r.arancelMinimo||0);
   insSv('ins-estacion', r.estacion || insEstacionActual()); insSv('ins-pctestacion', r.pctEstacion!=null?r.pctEstacion:insEstacionPctDefault(r.estacion || insEstacionActual()));
   insSv('ins-consumo', r.consumo||0); insSv('ins-preciolitro', r.precioLitro||0); insSv('ins-desgastekm', r.desgasteKm||0);
   insSv('ins-viaticos', r.viaticos||0); insSv('ins-alojamiento', r.alojamiento||0); insSv('ins-otrosgastos', r.otrosGastos||0);
   insSv('ins-pctgastosgenerales', r.pctGastosGenerales!=null ? r.pctGastosGenerales : insEstimarPctGastosGeneralesLegacy(r));
+  insSv('ins-anticipopct', r.anticipoPct!=null ? r.anticipoPct : 20);
   insSv('ins-condicionfiscal', r.condicionFiscal||'exento');
   document.getElementById('ins-clienteexento').checked = !!r.clienteExento;
   insSv('ins-alicuotaiva', r.alicuotaIVA!=null?r.alicuotaIVA:21); insSv('ins-redondeo', r.redondeo||'1000'); insSv('ins-tc', r.tc||1350);
   insSv('ins-plantilla-cliente', r.plantillaCliente || INS_PLANTILLA_CLIENTE_DEFAULT);
   insSv('ins-plantilla-interna', r.plantillaInterna || INS_PLANTILLA_INTERNA_DEFAULT);
+  insSv('ins-noincluye', r.noIncluye || INS_NOINCLUYE_DEFAULT);
   insPoblarClientes(); document.getElementById('ins-cli').value = r.clienteId||'';
   insRenderSitios(); insRecalc();
   document.getElementById('ins-btn-pdf-cli').disabled = false;
@@ -15063,35 +15135,62 @@ function insGenerarPDFCliente(id){
   var res = r.resultado || insCalcular(r);
   var emp = EMPRESA || {};
   var C1 = emp.brandColor1 || '#8a0e1e';
+  var C2 = '#0f172a';
   var txt = (r.plantillaCliente || INS_PLANTILLA_CLIENTE_DEFAULT)
     .replace(/{{OBRA}}/g, r.obra||'')
     .replace(/{{CLIENTE}}/g, r.cliente||'')
     .replace(/{{NVISITAS}}/g, r.nVisitas||0)
     .replace(/{{PRECIO_VISITA}}/g, insFmt2(res.usd_unit));
   var css = ''
-    +'*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:10pt;color:#222}'
-    +'@page{size:A4 portrait;margin:16mm 14mm}'
-    +'.hd{border-bottom:3px solid '+C1+';padding-bottom:10pt;margin-bottom:12pt;display:flex;justify-content:space-between;align-items:flex-end}'
-    +'.hd h1{font-size:13pt;color:'+C1+'}'
-    +'.hd .emp{font-size:9pt;text-align:right;color:#555;line-height:1.5}'
-    +'.ref{font-size:9pt;color:#777;margin-bottom:10pt}'
-    +'.txt{white-space:pre-wrap;line-height:1.7;font-size:10pt;margin-bottom:16pt}'
+    +'*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:10pt;color:#222;background:#fff}'
+    +'@page{size:A4 portrait;margin:14mm 14mm}'
+    +'.hd{background:linear-gradient(120deg,'+C2+' 0%,'+C1+' 100%);color:#fff;border-radius:10pt;padding:16pt 18pt;margin-bottom:14pt;display:flex;justify-content:space-between;align-items:flex-start}'
+    +'.hd h1{font-size:15pt;line-height:1.3;letter-spacing:.02em}'
+    +'.hd .emp{font-size:8.5pt;text-align:right;opacity:.92;line-height:1.5}'
+    +'.ref{font-size:9pt;color:#777;margin-bottom:12pt;display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding-bottom:8pt}'
+    +'.txt{white-space:pre-wrap;line-height:1.7;font-size:10pt;margin-bottom:14pt;color:#333}'
     +'.tbl{width:100%;border-collapse:collapse;margin-bottom:14pt}'
     +'.tbl th{text-align:left;font-size:8pt;text-transform:uppercase;letter-spacing:.06em;color:#888;border-bottom:2px solid #ddd;padding:5pt 6pt}'
     +'.tbl td{padding:6pt;border-bottom:1px solid #eee;font-size:9.5pt}'
-    +'.tot-box{border:1.5px solid '+C1+';border-radius:4pt;padding:10pt;display:flex;justify-content:space-between;align-items:center;margin-top:10pt}'
-    +'.tot-box b{font-size:16pt;color:'+C1+'}'
-    +'.sign-area{margin-top:40pt;display:flex;justify-content:space-between}'
+    +'.cards{display:flex;gap:10pt;margin-bottom:12pt}'
+    +'.card-mini{flex:1;border:1px solid #e3e3e8;border-radius:8pt;padding:9pt 10pt;background:#fafafb}'
+    +'.card-mini .lbl{font-size:7.5pt;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:3pt}'
+    +'.card-mini .val{font-size:12pt;font-weight:700;color:'+C2+'}'
+    +'.tot-box{background:'+C2+';color:#fff;border-radius:10pt;padding:14pt 16pt;display:flex;justify-content:space-between;align-items:center;margin-top:4pt;margin-bottom:10pt}'
+    +'.tot-box .lbl{font-size:9pt;opacity:.8}'
+    +'.tot-box b{font-size:18pt;color:#fff}'
+    +'.pay-box{border:1.5px solid '+C1+';border-radius:8pt;padding:11pt 13pt;margin-bottom:12pt;background:#fff7f2}'
+    +'.pay-box .tit{font-size:9.5pt;font-weight:700;color:'+C1+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:6pt}'
+    +'.pay-row{display:flex;justify-content:space-between;font-size:9.5pt;padding:2.5pt 0}'
+    +'.excl-box{border:1px solid #ddd;border-radius:8pt;padding:11pt 13pt;margin-bottom:14pt;background:#fafafa}'
+    +'.excl-box .tit{font-size:9pt;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5pt}'
+    +'.excl-box p{font-size:8.5pt;line-height:1.6;color:#666}'
+    +'.sign-area{margin-top:32pt;display:flex;justify-content:space-between}'
     +'.sign-box{border-top:1px solid #333;width:180pt;padding-top:4pt;font-size:8.5pt;text-align:center}'
     +'@media print{body{-webkit-print-color-adjust:exact}}';
   var sitiosRows = (r.sitios||[]).map(function(s){ return '<tr><td>'+(s.nombre||'')+'</td><td>'+(s.horas||0)+' hs</td><td>'+(s.km||0)+' km</td></tr>'; }).join('');
+  var cards = '<div class="cards">'
+    +'<div class="card-mini"><div class="lbl">Duración</div><div class="val">'+(r.duracionMeses||0)+' meses</div></div>'
+    +'<div class="card-mini"><div class="lbl">Visitas totales</div><div class="val">'+(r.nVisitas||0)+'</div></div>'
+    +(res.m2Obra>0?'<div class="card-mini"><div class="lbl">Costo por m²</div><div class="val">USD '+insFmt2(res.costoPorM2USD)+'</div></div>':'')
+    +'</div>';
+  var payBox = '<div class="pay-box"><div class="tit">Forma de pago</div>'
+    +'<div class="pay-row"><span>Valor mensual fijo</span><b>USD '+insFmt2(res.usdMensualFijo)+'</b></div>'
+    +'<div class="pay-row"><span>Anticipo financiero ('+(r.anticipoPct||0)+'% del total, al inicio)</span><span>USD '+insFmt2(res.usdAnticipo)+'</span></div>'
+    +'<div class="pay-row"><span>Cuota mensual neta (descontado el anticipo)</span><span>USD '+insFmt2(res.usdMensualNeto)+'</span></div>'
+    +'<div style="font-size:8pt;color:#777;margin-top:6pt;line-height:1.5">Se abona un anticipo financiero del '+(r.anticipoPct||0)+'% del total del contrato al inicio de los trabajos. Ese anticipo se recupera descontando una parte proporcional de cada certificación mensual, en partes iguales, a lo largo de toda la duración del contrato — el mismo esquema habitual de anticipos financieros en obra pública.</div>'
+    +'</div>';
+  var exclText = r.noIncluye || INS_NOINCLUYE_DEFAULT;
+  var exclBox = '<div class="excl-box"><div class="tit">Qué no incluye este presupuesto</div><p>'+exclText+'</p></div>';
   var d = '<div class="hd"><h1>PRESUPUESTO DE<br>INSPECCIÓN / SUPERVISIÓN DE OBRA</h1>'
     +'<div class="emp">'+(emp.nombreCompleto?'<div><b>'+emp.nombreCompleto+'</b></div>':'')+(emp.titulo?'<div>'+emp.titulo+'</div>':'')+(emp.matricula?'<div>Mat. '+emp.matricula+'</div>':'')+(emp.email?'<div>'+emp.email+'</div>':'')+'</div></div>'
-    +'<div class="ref"><b>'+r.code+'</b> · '+(r.fecha||'')+' · Cliente: '+(r.cliente||'—')+'</div>'
+    +'<div class="ref"><span><b>'+r.code+'</b> · '+(r.fecha||'')+'</span><span>Cliente: '+(r.cliente||'—')+'</span></div>'
     +'<div class="txt">'+txt+'</div>'
+    +cards
     +'<table class="tbl"><thead><tr><th>Sitio de obra</th><th>Horas por visita</th><th>Km</th></tr></thead><tbody>'+sitiosRows+'</tbody></table>'
-    +'<div class="tot-box"><span>Precio por visita × '+(r.nVisitas||0)+' visitas</span><b>USD '+insFmt2(res.usd_total)+'</b></div>'
-    +'<div style="text-align:right;font-size:9pt;color:#777;margin-top:4pt">Equivalente a USD '+insFmt2(res.usd_unit)+' por visita.</div>'
+    +'<div class="tot-box"><span class="lbl">Total del contrato ('+(r.nVisitas||0)+' visitas)</span><b>USD '+insFmt2(res.usd_total)+'</b></div>'
+    +payBox
+    +exclBox
     +'<div class="sign-area"><div class="sign-box">'+(emp.nombreCompleto||emp.nombre||'')+'</div><div class="sign-box">Conformidad del cliente</div></div>';
   var full = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+r.code+'</title><style>'+css+'</style></head><body>'+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
   var pw = window.open('','_blank','width=940,height=780');
@@ -15125,19 +15224,28 @@ function insGenerarPDFInterno(id){
     +'<div class="tot-row"><span>H_base (manejo + sitio + informe)</span><span>'+res.H_base.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
     +'<div class="tot-row"><span>H_escritorio</span><span>'+res.H_escritorio.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
     +'<div class="tot-row"><span>H_total por visita</span><span>'+res.H_total.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs</span></div>'
+    +'<div class="sec-tit">Objetivo de ingreso</div>'
+    +'<div class="tot-row"><span>Objetivo de ingreso mensual</span><span>$ '+insFmt(res.honorarioMensualObjetivo)+'</span></div>'
+    +'<div class="tot-row"><span>Honorario mensual resultante</span><span>$ '+insFmt(res.honorarioMensualResultante)+'</span></div>'
     +'<div class="sec-tit">Desglose de costos por visita</div>'
-    +'<div class="tot-row"><span>Honorario profesional ('+res.H_total.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs × $'+insFmt(r.valorHora)+')</span><span>$ '+insFmt(res.C_honorario)+'</span></div>'
+    +'<div class="tot-row"><span>Honorario profesional ('+res.H_total.toLocaleString('es-AR',{maximumFractionDigits:3})+' hs × $'+insFmt(res.valorHora)+')</span><span>$ '+insFmt(res.C_honorario)+'</span></div>'
     +'<div class="tot-row"><span>Movilidad ('+insFmt(res.kmTotal)+' km × $'+insFmt(res.costoKm)+'/km)</span><span>$ '+insFmt(res.C_movilidad)+'</span></div>'
     +'<div class="tot-row"><span>Viáticos</span><span>$ '+insFmt(res.C_viaticos)+'</span></div>'
     +'<div class="tot-row"><b>Subtotal</b><b>$ '+insFmt(res.Subtotal)+'</b></div>'
-    +'<div class="tot-row"><span>Gastos generales ('+(r.pctGastosGenerales||0)+'% — seguro, equipamiento, imprevistos e impuestos)</span><span>$ '+insFmt(res.GastosGenerales)+'</span></div>'
+    +'<div class="tot-row"><span>Gastos generales ('+(r.pctGastosGenerales||0)+'% — imprevistos e impuestos, el resto ya está en el objetivo mensual)</span><span>$ '+insFmt(res.GastosGenerales)+'</span></div>'
     +'<div class="tot-row"><b>Neto</b><b>$ '+insFmt(res.Neto)+'</b></div>'
     +'<div class="tot-row"><span>Precio redondeado ('+(r.redondeo==='sin'?'sin redondeo':'múlt. '+r.redondeo)+')</span><span>$ '+insFmt(res.Precio_unit)+'</span></div>'
     +(res.IVA_unit>0?'<div class="tot-row"><span>IVA ('+(r.alicuotaIVA||0)+'%)</span><span>$ '+insFmt(res.IVA_unit)+'</span></div>':'')
     +'<div class="tot-row final"><span>Precio final / visita</span><span>USD '+insFmt2(res.usd_unit)+'</span></div>'
     +'<div class="tot-row"><span>Total del contrato ('+(r.nVisitas||0)+' visitas)</span><span>USD '+insFmt2(res.usd_total)+'</span></div>'
     +'<div class="tot-row"><span>Valor hora efectivo neto</span><span>$ '+insFmt(res.valorHoraEfectivo)+'/hs</span></div>'
-    +(res.alertaArancel?'<div class="tot-row" style="color:#c0392b"><span>⚠ Por debajo del arancel mínimo declarado</span><span>$ '+insFmt(r.arancelMinimo)+'</span></div>':'');
+    +(res.m2Obra>0?'<div class="tot-row"><span>Costo por m² ('+insFmt(res.m2Obra)+' m²)</span><span>USD '+insFmt2(res.costoPorM2USD)+'/m²</span></div>':'')
+    +(res.alertaArancel?'<div class="tot-row" style="color:#c0392b"><span>⚠ Por debajo del arancel mínimo declarado</span><span>$ '+insFmt(r.arancelMinimo)+'</span></div>':'')
+    +'<div class="sec-tit">Forma de pago</div>'
+    +'<div class="tot-row"><span>Valor mensual fijo (sin anticipo)</span><span>USD '+insFmt2(res.usdMensualFijo)+'</span></div>'
+    +'<div class="tot-row"><span>Anticipo financiero ('+(r.anticipoPct||0)+'%)</span><span>USD '+insFmt2(res.usdAnticipo)+'</span></div>'
+    +'<div class="tot-row"><span>Descuento mensual del anticipo</span><span>USD '+insFmt2((parseFloat(r.tc)||0) > 0 ? (res.descuentoMensualAnticipo/(parseFloat(r.tc)||1)) : 0)+'</span></div>'
+    +'<div class="tot-row"><b>Cuota mensual neta</b><b>USD '+insFmt2(res.usdMensualNeto)+'</b></div>';
   var full = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+r.code+' interno</title><style>'+css+'</style></head><body>'+d+'<script>window.onload=function(){window.print();}<\/script></body></html>';
   var pw = window.open('','_blank','width=940,height=780');
   pw.document.write(full); pw.document.close();
