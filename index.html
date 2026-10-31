@@ -8,6 +8,10 @@
 <meta name="theme-color" content="#09090b">
 <meta name="description" content="Motor de honorarios profesionales · PRARES ARQUITECTURA · Ushuaia TDF">
 <title>OBRAERP · Ushuaia TDF</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<meta name="theme-color" content="#09090b">
 <!-- build v98: header/footer repetido en cada hoja (tabla thead/tfoot) + texto libre + teoria en formulas - 2026-07-24 -->
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -4965,44 +4969,11 @@ actualizarUIEmpresa();
   }
 
   try{
-    var icon512 = makeIcon(512);
-    var icon192 = makeIcon(192);
 
-    // Apple touch icon
-    var al=document.createElement('link');al.rel='apple-touch-icon';
-    al.href=icon512.toDataURL('image/png');document.head.appendChild(al);
 
-    // Favicon
-    var fl=document.createElement('link');fl.rel='icon';fl.type='image/png';
-    fl.href=icon192.toDataURL('image/png');document.head.appendChild(fl);
-
-    // PWA Manifest (para Android Chrome "Añadir a pantalla de inicio")
-    icon512.toBlob(function(blob512){
-      if(!blob512)return;
-      var b512=URL.createObjectURL(blob512);
-      icon192.toBlob(function(blob192){
-        var b192=blob192?URL.createObjectURL(blob192):b512;
-        var _cleanUrl=window.location.origin+window.location.pathname;
-        var manifest={
-          name:'OBRAERP · Honorarios',
-          short_name:'OBRAERP',
-          description:'Motor de honorarios profesionales · PRARES ARQUITECTURA · Ushuaia TDF',
-          start_url:_cleanUrl,
-          scope:_cleanUrl,
-          display:'standalone',
-          orientation:'any',
-          background_color:'#09090b',
-          theme_color:'#09090b',
-          icons:[
-            {src:b192,sizes:'192x192',type:'image/png',purpose:'any maskable'},
-            {src:b512,sizes:'512x512',type:'image/png',purpose:'any maskable'}
-          ]
-        };
-        var ml=document.createElement('link');ml.rel='manifest';
-        ml.href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify(manifest));
-        document.head.appendChild(ml);
-      },'image/png');
-    },'image/png');
+    // PWA Manifest: ahora es un archivo real (manifest.json + icon-192.png + icon-512.png)
+    // publicado en el repo. El manifest generado como data: URL no permitía instalar
+    // la app en Windows/Mac desde Chrome/Edge.
   }catch(e){console.warn('PWA init error:',e);}
 
   // Service Worker (solo si está siendo servido via HTTP/S, no file://)
@@ -5038,7 +5009,7 @@ actualizarUIEmpresa();
     e.preventDefault();
     var banner=document.createElement('div');
     banner.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e1e25;border:1px solid rgba(96,165,250,.4);border-radius:10px;padding:12px 18px;display:flex;align-items:center;gap:12px;z-index:400;box-shadow:0 8px 30px rgba(0,0,0,.6);white-space:nowrap;font-family:Montserrat,sans-serif;font-size:12px;color:#e6e4dd;max-width:90vw';
-    banner.innerHTML='<span>📱</span><span>¿Instalar OBRAERP como app?</span><button id="btn-install" style="background:#c42d46;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">Instalar</button><button id="btn-no" style="background:transparent;color:#555;border:none;cursor:pointer;font-size:16px;padding:0 4px">×</button>';
+    banner.innerHTML='<span>📱</span><span>¿Instalar OBRAERP como app en este equipo?</span><button id="btn-install" style="background:#c42d46;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">Instalar</button><button id="btn-no" style="background:transparent;color:#555;border:none;cursor:pointer;font-size:16px;padding:0 4px">×</button>';
     document.body.appendChild(banner);
     document.getElementById('btn-install').onclick=function(){e.prompt();banner.remove();};
     document.getElementById('btn-no').onclick=function(){banner.remove();};

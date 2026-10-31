@@ -12,7 +12,7 @@
    index.html en el mismo repositorio. Así el navegador SÍ puede comparar esta
    versión contra la que tiene instalada cada vez que se abre la app, y bajar
    la nueva automáticamente — en el celular y en la PC por igual. */
-var CACHE='obraerp-v3';
+var CACHE='obraerp-v4'; // v4 2026-10-30: manifest.json e íconos reales para instalar en escritorio
 
 self.addEventListener('install',function(e){
   self.skipWaiting();

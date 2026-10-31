@@ -1,0 +1,37 @@
+{
+  "id": "/obra-hcp/",
+  "name": "OBRAERP · PRARES ARQUITECTURA",
+  "short_name": "OBRAERP",
+  "description": "Honorarios, clientes, inspección y cómputo de obra · PRARES ARQUITECTURA · Ushuaia TDF",
+  "start_url": "/obra-hcp/",
+  "scope": "/obra-hcp/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "orientation": "any",
+  "lang": "es-AR",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
